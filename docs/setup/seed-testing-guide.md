@@ -124,12 +124,12 @@ All three services (backend, SBERT, frontend) must be running simultaneously for
 
 Open three separate PowerShell terminals and start each service in this order:
 
-**Terminal 1 - Backend (Port 8080)**
+**Terminal 1 - Backend (Port 3000)**
 ```powershell
 cd backend
 npm run dev
 ```
-Wait for: `Express server running at http://localhost:8080`
+Wait for: `Express server running at http://localhost:3000`
 
 **Terminal 2 - SBERT Service (Port 8000)**
 ```powershell
@@ -152,7 +152,7 @@ In a new terminal, test the health of each:
 
 ```powershell
 # Test backend
-Invoke-WebRequest -Uri http://localhost:8080/health -Method GET
+Invoke-WebRequest -Uri http://localhost:3000/health -Method GET
 
 # Test SBERT
 Invoke-WebRequest -Uri http://localhost:8000/docs -Method GET
@@ -285,7 +285,7 @@ Watch the backend terminal for logs like:
 [INFO] Running Jaccard search: 234ms
 [INFO] Running TF-IDF search: 456ms
 [INFO] Running SBERT search: 5234ms
-[INFO] Combined score: 0.68
+[INFO] Max similarity: 68
 [INFO] Risk level: MEDIUM
 [INFO] Response time: 5924ms
 ```
@@ -306,7 +306,7 @@ Watch the backend terminal for logs like:
 ### **If you get "Connection refused":**
 - Make sure all 3 services are running
 - Check firewall rules (especially on Windows)
-- Verify ports: 8080, 8000, 5173 are not blocked
+- Verify ports: 3000, 8000, 5173 are not blocked
 
 ### **If frontend shows blank page:**
 - Check browser console (F12) for JavaScript errors
@@ -323,22 +323,22 @@ For detailed debugging, check these endpoints:
 
 ```powershell
 # Backend health
-Invoke-WebRequest -Uri http://localhost:8080/health -Method GET
+Invoke-WebRequest -Uri http://localhost:3000/health -Method GET
 
 # SBERT health
 Invoke-WebRequest -Uri http://localhost:8000/docs -Method GET
 
 # Test API directly
-Invoke-WebRequest -Uri http://localhost:8080/api/similarity/check -Method POST -Body '{"topic": "test topic"}' -ContentType 'application/json'
+Invoke-WebRequest -Uri http://localhost:3000/api/similarity/check -Method POST -Body '{"topic": "test topic"}' -ContentType 'application/json'
 ```
 
 ### Quick Reference: What Each Icon Means
 
 | Icon | Risk Level | Score Range | Meaning |
 |------|-----------|---|---------|
-| 🟢 | LOW | < 0.50 | No concerning similarity |
-| 🟡 | MEDIUM | 0.50-0.70 | Some overlap, review recommended |
-| 🔴 | HIGH | ≥ 0.70 | High similarity, flag for originality check |
+| 🟢 | LOW | < 50 | No concerning similarity |
+| 🟡 | MEDIUM | 50-69 | Some overlap, review recommended |
+| 🔴 | HIGH | >= 70 | High similarity, flag for originality check |
 
 ---
 

@@ -163,11 +163,11 @@ node test-integration-with-sbert.js
 1. Backend receives topic in `POST /api/similarity/check`
 2. Backend calls SBERT service for query embedding
 3. Backend compares with pre-computed topic embeddings
-4. Returns combined similarity scores
+4. Returns public similarity results with separate algorithm scores
 
 ### Graceful Degradation:
 If SBERT is unavailable:
-- Backend fallback: Use only Jaccard + TF-IDF (50/50 split)
+- Backend fallback: Use lexical Jaccard and TF-IDF scores
 - Response includes `"warnings": ["SBERT unavailable"]`
 - Risk level calculated from available algorithms
 

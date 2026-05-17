@@ -4,7 +4,7 @@
 
 **All Services Running:**
 - ✅ Frontend: http://localhost:5173 (React + Vite)
-- ✅ Backend API: http://localhost:8080 (Express.js)
+- ✅ Backend API: http://localhost:3000 (Express.js)
 - ⏳ SBERT Service: http://localhost:8000 (Python, loading ML model)
 
 ---
@@ -111,13 +111,13 @@ The result shows a **Risk Level**:
 
 You'll see scores from 3 algorithms:
 
-| Algorithm | Weight | What It Does |
-|-----------|--------|--------------|
-| **Jaccard** | 30% | Keyword overlap analysis |
-| **TF-IDF** | 30% | Term importance weighting |
-| **SBERT** | 40% | Semantic understanding (AI) |
+| Algorithm | What It Does |
+|-----------|--------------|
+| **Jaccard** | Keyword overlap analysis |
+| **TF-IDF** | Term importance weighting |
+| **SBERT** | Semantic understanding when available |
 
-**Combined Score** = weighted average of all 3
+The current production API returns separate public Jaccard, TF-IDF, and SBERT scores. It does not expose a public combined score in the normal success response.
 
 ---
 
@@ -126,10 +126,10 @@ You'll see scores from 3 algorithms:
 ### Risk Calculation Rules
 
 ```
-IF   combined score ≥ 70%  OR  any Tier 3 matches
+IF   max similarity >= 70%
 THEN risk = HIGH 🔴
 
-ELSE IF  combined score ≥ 50%  OR  any Tier 2 matches
+ELSE IF  max similarity >= 50%
 THEN risk = MEDIUM 🟡
 
 ELSE risk = LOW 🟢
@@ -226,7 +226,7 @@ $body = @{
 
 # Send to API
 $response = Invoke-WebRequest `
-    -Uri "http://localhost:8080/api/similarity/check" `
+    -Uri "http://localhost:3000/api/similarity/check" `
     -Method POST `
     -ContentType "application/json" `
     -Body $body
@@ -238,7 +238,7 @@ $response.Content | ConvertFrom-Json | ConvertTo-Json -Depth 10
 ### Test with curl
 
 ```bash
-curl -X POST "http://localhost:8080/api/similarity/check" \
+curl -X POST "http://localhost:3000/api/similarity/check" \
     -H "Content-Type: application/json" \
     -d '{
         "topic": "Your topic here",
@@ -262,26 +262,21 @@ curl -X POST "http://localhost:8080/api/similarity/check" \
 ```json
 {
   "status": "success",
-  "riskLevel": "MEDIUM",
-  "combinedScore": 0.68,
-  "algorithms": {
-    "jaccard": {
-      "score": 0.62,
-      "topResults": [...]
-    },
-    "tfidf": {
-      "score": 0.75,
-      "topResults": [...]
-    },
-    "sbert": {
-      "score": 0.70,
-      "topResults": [...]
-    }
-  },
-  "tier1Results": [ /* Top 5 historical */ ],
-  "tier2Results": [ /* Current session ≥60% */ ],
-  "tier3Results": [ /* Under review ≥60% */ ],
-  "warnings": []
+  "data": {
+    "overall_risk": "MEDIUM",
+    "max_similarity": 68,
+    "tier1_historical": [
+      {
+        "title": "Similar historical topic",
+        "jaccard": 62,
+        "tfidf": 75,
+        "sbert": 70
+      }
+    ],
+    "tier2_current": [],
+    "tier3_under_review": [],
+    "recommendation": "Review similar topics before proceeding."
+  }
 }
 ```
 
@@ -319,7 +314,7 @@ Runs 3 algorithms in parallel:
   • TF-IDF - term importance
   • SBERT - semantic AI (if ready)
        ↓
-Combines scores with weights
+Returns separate public algorithm scores
        ↓
 Calculates risk level
        ↓
@@ -347,12 +342,12 @@ Frontend displays results with styling
 **A:** Yes! Use PowerShell or curl examples above. The backend accepts JSON POST requests.
 
 ### Q: What's the difference between the 3 algorithms?
-- **Jaccard:** Quick keyword matching (30%)
-- **TF-IDF:** Smart term weighting (30%)
-- **SBERT:** Deep semantic understanding (40%)
+- **Jaccard:** Quick keyword matching
+- **TF-IDF:** Smart term weighting
+- **SBERT:** Deep semantic understanding when available
 
 ### Q: Why is my topic flagged HIGH?
-**A:** Combined score ≥70% OR there's a match in Tier 3 (under review). Consider revising your topic.
+**A:** The highest public similarity score reaches the HIGH-risk threshold, or an under-review match needs attention. Consider revising your topic.
 
 ### Q: How are results sorted?
 **A:** By similarity percentage, highest first. Most similar topics appear at the top.

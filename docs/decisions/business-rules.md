@@ -2,6 +2,10 @@
 
 Source of truth for this document: `FYP_Selected/` only. If later implementation docs disagree, they do not redefine these rules.
 
+## Current Implementation Note
+
+This is an intended-rule document. For the current implemented backend API contract, use [Backend API](../api/backend-api.md). Production similarity scoring is still title-based, while Phase 4 context-aware scoring is evaluation-only.
+
 ## 1. Purpose
 
 The system helps Public Health lecturers screen proposed research topics for duplicate or highly similar topics by checking historical topics, current-session approved topics, and topics currently under review.
@@ -12,7 +16,7 @@ The system helps Public Health lecturers screen proposed research topics for dup
 - `TF-IDF`: weighted term matching for important domain-specific words
 - `SBERT`: primary semantic similarity signal for paraphrased or meaning-level matches
 
-The MVP documentation says the system should show all three scores separately. A merged/combined score is `needs verification`.
+The MVP documentation says the system should show all three scores separately. The current public production API does not expose a combined score. Evaluation-only tooling may calculate `weighted_combined` for measurement, but that is not a production response field.
 
 ## 3. Tier rules
 
@@ -39,7 +43,7 @@ If SBERT is unavailable, overall risk falls back to `max(Jaccard, TF-IDF)`.
 
 - Documented exposed similarity scores are percentages on a `0-100` scale
 - API examples show one decimal precision
-- Whether any internal combined similarity must stay within `0-1` is `needs verification`
+- Evaluation helper scores are normalized to `0-1` inside the evaluation harness, but public API scores remain percentage-style values.
 
 ## 6. Category and keywords
 
@@ -51,8 +55,8 @@ If SBERT is unavailable, overall risk falls back to `max(Jaccard, TF-IDF)`.
 
 ## 7. Out of scope for MVP
 
-- Custom algorithm weighting
-- Combined/merged similarity score
+- Custom production algorithm weighting
+- Public production combined/merged similarity score
 - Customizable thresholds
 - Filtering by category or year
 - Alternate sorting options beyond fixed SBERT-descending ranking

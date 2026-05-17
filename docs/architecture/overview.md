@@ -52,13 +52,13 @@ Located mainly in `backend/prisma/`.
 4. The backend reads historical, current-session, and under-review topics from the database.
 5. The backend preprocesses topic text and runs Jaccard, TF-IDF, and SBERT similarity.
 6. SBERT similarity calls the Python service for a query embedding and uses stored or generated topic embeddings.
-7. The backend combines scores, filters results into tiers, and calculates LOW/MEDIUM/HIGH risk.
-8. The backend returns tiered results and algorithm status.
+7. The backend returns separate public algorithm scores, filters results into tiers, and calculates LOW/MEDIUM/HIGH risk.
+8. The backend returns tiered results using the current public API contract.
 9. The frontend maps the response and renders the risk banner, matches, and technical score details.
 
 ## Protected / High-Risk Areas
 
-- Similarity scoring and result combination in `backend/src/controllers/similarity.controller.js`.
+- Similarity scoring and result tiering in `backend/src/controllers/similarity.controller.js`.
 - Tier filtering and LOW/MEDIUM/HIGH risk calculation.
 - API response shape consumed by `frontend/src/App.jsx`.
 - Prisma schema and database table/field mappings.

@@ -29,14 +29,14 @@ Copy-Item .env.test .env
 # Edit .env if your PostgreSQL password is different from 'postgres'
 ```
 
-## Step 3: Run Migrations
+## Step 3: Sync Prisma Schema
 
 ```powershell
 # Set environment variable
 $env:DATABASE_URL="postgresql://postgres:postgres@localhost:5432/topic_similarity_test?schema=public"
 
-# Run migrations
-npx prisma migrate dev --name init --skip-seed
+# Sync schema to the test database
+npm run prisma:push
 
 # Generate Prisma Client
 npx prisma generate
@@ -194,7 +194,7 @@ node prisma/seed-test.js
 
 All tests pass when:
 - ✅ Database is set up with pgvector
-- ✅ Migrations are run
+- ✅ Prisma schema is synced with `npm run prisma:push`
 - ✅ Test data is seeded
 - ✅ Server is running
 - ✅ All API endpoints respond correctly

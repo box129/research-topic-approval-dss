@@ -3,7 +3,7 @@
 ## Summary
 The Topic Similarity MVP backend Express.js server **cannot create network sockets on this Windows system**, despite:
 - ✅ Successfully initializing the Express application
-- ✅ Printing "Server is running on port 8080"
+- ✅ Printing "Server is running on port 3000"
 - ✅ Successfully firing the `listening` event
 - ❌ Actually binding to any network port
 
@@ -11,25 +11,25 @@ The Topic Similarity MVP backend Express.js server **cannot create network socke
 1. **Server says it's listening:**
    ```
    ✅ Server started successfully
-   Server is running on port 8080
+   Server is running on port 3000
    Environment: development
    ```
 
 2. **But netstat shows NO listening socket:**
    ```
-   netstat -ano | Select-String "8080"
+   netstat -ano | Select-String "3000"
    (returns empty - port is NOT listening)
    ```
 
 3. **HTTP requests fail:**
    ```
-   Invoke-WebRequest http://127.0.0.1:8080/health
+   Invoke-WebRequest http://127.0.0.1:3000/health
    > Unable to connect to remote server
    ```
 
 4. **Pattern is consistent:**
    - All Node.js processes exhibit this behavior
-   - All ports (3000, 5173, 5174, 8080) fail
+   - All ports (3000, 5173, 5174, 3000) fail
    - Both localhost and 0.0.0.0 binding fail
    - Test with minimal Express servers shows same issue
 
@@ -60,7 +60,7 @@ New-NetFirewallRule -DisplayName "Node.js Backend" `
   -Direction Inbound `
   -Action Allow `
   -Protocol TCP `
-  -LocalPort 8080
+  -LocalPort 3000
 
 # Create outbound rule if needed  
 New-NetFirewallRule -DisplayName "Node.js Outbound" `
@@ -143,14 +143,14 @@ Set-NetFirewallProfile -Profile Domain, Public, Private -Enabled True
 📊 PID: 27992
 
 ✅ Server started successfully
-Server is running on port 8080
+Server is running on port 3000
 Environment: development
 API Version: v1
 ```
 
 **But network check shows:**
 ```
-netstat -ano | Select-String "8080"
+netstat -ano | Select-String "3000"
 (empty output = no listening socket)
 ```
 

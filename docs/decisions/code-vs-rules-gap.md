@@ -1,51 +1,31 @@
 # Code vs Rules Gap Analysis
 
-This compares current implementation behavior against `docs/decisions/business-rules.md` and `docs/decisions/source-of-truth.md`.
+This document records the current living interpretation of earlier rule/code gaps. Older gap notes about public `combinedScore`, old response fields, and old score scale mismatches are historical; use [Backend API](../api/backend-api.md) as the current implemented API reference.
 
-## Areas Where Code Appears Aligned
+## Current Alignment
 
-- The backend checks three data sources: historical topics, current-session topics, and under-review topics.
-- Under-review topics are limited to the last 48 hours.
-- Jaccard, TF-IDF, and SBERT are all called during the similarity pipeline.
-- SBERT failures degrade gracefully instead of stopping the whole request.
-- The response includes separate algorithm scores inside each returned topic object.
-- `category` is treated as metadata in the response and is not used as a retrieval filter.
-- `keywords` is accepted as optional input and returned in the response.
+- Backend similarity checks still cover historical, current-session, and under-review topic sources.
+- The current public API exposes separate `jaccard`, `tfidf`, and `sbert` percentage-style scores.
+- Normal production responses do not expose a public combined score.
+- SBERT-unavailable behavior degrades to lexical similarity rather than failing the whole request.
+- Import preview and commit endpoints are documented separately and use `multipart/form-data`.
+- Phase 4 context-aware scoring remains evaluation-only and does not change production API behavior.
 
-## Areas Where Code Appears Misaligned
+## Current Residual Gaps
 
-- Business rules say combined/merged similarity is out of scope or `needs verification`; code calculates and exposes `scores.combined` and `overallMaxSimilarity`.
-- Business rules say Tier 2 and Tier 3 should be based on `SBERT >= 60%`; code requires both `combinedScore >= 0.60` and `sbert >= 0.60`.
-- Business rules say Tier 1 ranking should be by SBERT score descending; code ranks combined results by `combinedScore`.
-- Business rules say risk should be based on maximum SBERT score across all tiers; code bases risk on tier presence and top Tier 1 combined score.
-- Business rules say Tier 2 should not automatically mean HIGH risk; code returns HIGH if any Tier 2 match exists.
-- Business rules say exposed scores are percentages on a `0-100` scale; backend exposes normalized `0-1` scores in API results.
-- Business rules say if SBERT is unavailable, Tier 2 and Tier 3 fallback should use `Jaccard >= 60%` or `TF-IDF >= 60%`; code appears to keep `sbert` at `0`, which prevents Tier 2/Tier 3 fallback matches.
-- Business rules say custom algorithm weighting is out of scope; code contains algorithm weight constants and combined-score logic.
+- Production similarity scoring is still title-based and does not yet use `population`, `location`, or `study_focus`.
+- The evaluation harness includes `weighted_combined` and `context_adjusted_combined`, but those scorers are not production response fields.
+- Same-lecturer Tier 3 suppression still needs trusted lecturer identity in request/auth context before it can be implemented safely.
+- Lecturer-reviewed evaluation data is still needed before production threshold changes.
 
-## High-Risk Mismatches
+## Historical Gap Items
 
-- Risk correctness: a current-session match can produce `HIGH` in code, while the rules define risk by max SBERT score thresholds.
-- Tier correctness: Tier 1 may show the top combined-score historical topics instead of the top SBERT historical topics.
-- SBERT outage behavior: Tier 2/Tier 3 fallback rules may not work when SBERT is unavailable.
-- Score scale mismatch: frontend/API consumers may receive `0-1` values where the rules expect `0-100` percentages.
-- Combined-score dependence: business intent says combined scoring needs verification, but code uses it for ranking, tiering, and risk.
+Earlier versions of this document described public `combinedScore` behavior, normalized `0-1` public scores, and migration-oriented database workflow as active gaps. Those notes are no longer current living guidance.
 
-## Items That Need Verification Before Code Change
+## Recommended Next Reconciliation Work
 
-- Confirm the exact API response contract from `FYP_Selected/` before changing response fields.
-- Confirm whether backend should expose only percentage scores or both normalized and percentage scores.
-- Confirm whether user-supplied `keywords` should affect scoring or remain metadata only.
-- Confirm whether stored topic `keywords` should be included in algorithm comparison text.
-- Confirm whether Tier 1 should use SBERT-only ranking when SBERT is available.
-- Confirm expected behavior when SBERT is unavailable and lexical fallback produces Tier 2/Tier 3 matches.
-- Confirm whether `overallMaxSimilarity` should exist or be removed/replaced.
+1. Keep production behavior stable while planning context-aware scoring behind a feature flag.
+2. Add context explanation metadata before allowing context to change final production risk decisions.
+3. Validate future threshold changes against lecturer-reviewed cases, not only the pilot synthetic dataset.
+4. Update this document whenever production scoring behavior intentionally changes.
 
-## Recommended Order Of Reconciliation
-
-1. Confirm the intended API response shape and score scale.
-2. Align score calculation and remove or isolate combined-score behavior if it is not part of MVP rules.
-3. Align Tier 1, Tier 2, and Tier 3 filtering/ranking with SBERT-first rules.
-4. Align LOW/MEDIUM/HIGH risk calculation with the documented thresholds.
-5. Implement and test SBERT-unavailable fallback behavior for tiers and risk.
-6. Update docs and tests after the confirmed behavior is implemented.

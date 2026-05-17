@@ -4,7 +4,7 @@
 
 ```
 ✅ Frontend:  http://localhost:5173  (React + Vite)
-✅ Backend:   http://localhost:8080  (Express API)
+✅ Backend:   http://localhost:3000  (Express API)
 ⏳ SBERT:     http://localhost:8000  (Python, initializing)
 ```
 
@@ -46,10 +46,9 @@ See all 3 tiers with:
 
 ## 📊 Understanding Results
 
-**Combined Score Calculation:**
-```
-Score = (Jaccard × 30%) + (TF-IDF × 30%) + (SBERT × 40%)
-```
+**Current Public Scoring Contract:**
+
+The production API returns separate Jaccard, TF-IDF, and SBERT percentage-style scores. It does not expose a public combined score in the normal success response. See [Backend API](../api/backend-api.md) for the current response shape.
 
 **Risk Decision:**
 ```
@@ -64,13 +63,13 @@ Score = (Jaccard × 30%) + (TF-IDF × 30%) + (SBERT × 40%)
 
 ### Health Check
 ```powershell
-Invoke-WebRequest http://localhost:8080/health
+Invoke-WebRequest http://localhost:3000/health
 ```
 
 ### Submit a Topic
 ```powershell
 $body = '{"topic":"Your topic","keywords":"keyword1,keyword2"}'
-Invoke-WebRequest -Uri "http://localhost:8080/api/similarity/check" `
+Invoke-WebRequest -Uri "http://localhost:3000/api/similarity/check" `
   -Method POST `
   -ContentType "application/json" `
   -Body $body
@@ -94,7 +93,7 @@ Invoke-WebRequest -Uri "http://localhost:8080/api/similarity/check" `
 ```
 Frontend (5173)
      ↓ POST /api/similarity/check
-Backend (8080)
+Backend (3000)
      ↓ queries 3 tables + runs 3 algorithms
 PostgreSQL (Neon)
      ↑ 
@@ -132,7 +131,7 @@ PostgreSQL (Neon)
 ## 📋 Checklist Before Using
 
 - [ ] Frontend loads at :5173
-- [ ] Backend responds to :8080/health
+- [ ] Backend responds to :3000/health
 - [ ] Can submit a topic
 - [ ] Receive results with risk level
 - [ ] No browser console errors
@@ -147,7 +146,7 @@ PostgreSQL (Neon)
 1. Validates input
 2. Queries all 3 topic databases
 3. Runs 3 similarity algorithms in parallel
-4. Combines scores with weights
+4. Returns separate public algorithm scores
 5. Calculates risk level
 6. Formats 3-tier results
 

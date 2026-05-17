@@ -7,7 +7,7 @@
 cd backend
 npm run dev
 ```
-✅ Runs on port 8080
+✅ Runs on port 3000
 
 ### Step 2: Start SBERT Service
 ```powershell
@@ -37,8 +37,8 @@ npm run dev
 | Service | URL | Purpose |
 |---------|-----|---------|
 | **Frontend** | http://localhost:5173 | Web interface |
-| **API Health** | http://localhost:8080/health | API status check |
-| **Similarity Check** | http://localhost:8080/api/similarity/check | Main API endpoint |
+| **API Health** | http://localhost:3000/health | API status check |
+| **Similarity Check** | http://localhost:3000/api/similarity/check | Main API endpoint |
 | **SBERT Health** | http://localhost:8000/health | SBERT service status |
 | **SBERT Embed** | http://localhost:8000/embed | Generate embeddings |
 
@@ -48,7 +48,7 @@ npm run dev
 
 ### Simple Health Check
 ```powershell
-curl http://localhost:8080/health
+curl http://localhost:3000/health
 ```
 
 ### Test Similarity API
@@ -58,7 +58,7 @@ $body = @{
   keywords = "neural networks, medical AI, diagnosis"
 } | ConvertTo-Json
 
-Invoke-WebRequest -Uri "http://localhost:8080/api/similarity/check" `
+Invoke-WebRequest -Uri "http://localhost:3000/api/similarity/check" `
   -Method POST `
   -ContentType "application/json" `
   -Body $body
@@ -79,7 +79,7 @@ Invoke-WebRequest -Uri "http://localhost:8000/embed" `
 ## ✅ Verification Checklist
 
 Before declaring system ready:
-- [ ] Backend running on port 8080
+- [ ] Backend running on port 3000
 - [ ] SBERT service running on port 8000
 - [ ] Frontend accessible on port 5173
 - [ ] Health checks passing
@@ -90,13 +90,15 @@ Before declaring system ready:
 **Expected Response Pattern:**
 ```json
 {
-  "overallRisk": "LOW|MEDIUM|HIGH",
-  "algorithmStatus": {
-    "jaccard": true,
-    "tfidf": true,
-    "sbert": true
-  },
-  "processingTime": 1000-1500
+  "status": "success",
+  "data": {
+    "overall_risk": "LOW|MEDIUM|HIGH",
+    "max_similarity": 0,
+    "tier1_historical": [],
+    "tier2_current": [],
+    "tier3_under_review": [],
+    "recommendation": "..."
+  }
 }
 ```
 
@@ -126,7 +128,7 @@ Before declaring system ready:
 **Solution:**
 ```powershell
 # Find process using port
-Get-NetTCPConnection -LocalPort 8080 -ErrorAction SilentlyContinue
+Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue
 
 # Kill process
 Stop-Process -Id <PID> -Force

@@ -5,9 +5,9 @@
 The Node.js backend application is fully functional but **cannot accept network connections due to Windows Firewall restrictions**.
 
 ## Symptoms
-- Backend starts and prints: "Server is running on port 8080"
+- Backend starts and prints: "Server is running on port 3000"
 - But HTTP requests fail: "Unable to connect to remote server"
-- `netstat` shows no listening socket for port 8080
+- `netstat` shows no listening socket for port 3000
 
 ## Solution: Configure Windows Firewall
 
@@ -31,7 +31,7 @@ The Node.js backend application is fully functional but **cannot accept network 
      -Direction Inbound `
      -Action Allow `
      -Protocol TCP `
-     -LocalPort 8080
+     -LocalPort 3000
    ```
 
 ### Step 2: Start the Backend
@@ -47,12 +47,12 @@ npm run dev
 ✅ Server started successfully
 
 ══════════════════════════════════════════════════
-Server is running on port 8080
+Server is running on port 3000
 Press CTRL+C to stop
 
 Endpoints:
-  GET  http://localhost:8080/health
-  POST http://localhost:8080/api/similarity/check
+  GET  http://localhost:3000/health
+  POST http://localhost:3000/api/similarity/check
 
 ══════════════════════════════════════════════════
 ```
@@ -63,7 +63,7 @@ Open a new terminal window and test:
 
 **Test 1: Health Check**
 ```powershell
-Invoke-WebRequest -Uri "http://localhost:8080/health"
+Invoke-WebRequest -Uri "http://localhost:3000/health"
 ```
 
 Expected response:
@@ -84,7 +84,7 @@ $body = @{
 } | ConvertTo-Json
 
 Invoke-WebRequest -Method Post `
-  -Uri "http://localhost:8080/api/similarity/check" `
+  -Uri "http://localhost:3000/api/similarity/check" `
   -ContentType "application/json" `
   -Body $body
 ```
@@ -117,7 +117,7 @@ python app.py
 ## Verification
 
 All three should show:
-- ✅ Backend: "Server is running on port 8080"
+- ✅ Backend: "Server is running on port 3000"
 - ✅ Frontend: "Local: http://localhost:5174"
 - ✅ SBERT (if started): "Uvicorn running on http://0.0.0.0:8000"
 
@@ -161,7 +161,7 @@ Docker containers have different networking:
 
 | File | Purpose |
 |------|---------|
-| `src/server.js` | Express server entry point (listens on 0.0.0.0:8080) |
+| `src/server.js` | Express server entry point (listens on 0.0.0.0:3000) |
 | `start-server-wrapped.js` | Clean startup wrapper |
 | `add-firewall-rule.ps1` | PowerShell script to configure firewall |
 | `setup-firewall.bat` | Batch file that requests admin and runs PS script |
@@ -189,7 +189,7 @@ A: No. The backend code is production-ready. This is a Windows system configurat
 A: Only if you run a Linux/WSL2/Docker environment where firewall rules don't apply the same way.
 
 **Q: Is it safe to add the firewall rule?**
-A: Yes. The rule only allows Node.js to listen on port 8080 (a non-privileged port). You can remove it anytime.
+A: Yes. The rule only allows Node.js to listen on port 3000 (a non-privileged port). You can remove it anytime.
 
 ---
 

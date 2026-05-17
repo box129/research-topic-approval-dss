@@ -37,7 +37,7 @@ DATABASE_URL="postgresql://postgres:postgres@localhost:5432/topic_similarity_tes
 
 **Update the password** in `.env.test` if your PostgreSQL password is different.
 
-### Step 3: Run Prisma Migrations
+### Step 3: Sync Prisma Schema
 
 ```powershell
 cd topic-similarity-mvp/backend
@@ -45,8 +45,8 @@ cd topic-similarity-mvp/backend
 # Set test environment
 $env:DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/topic_similarity_test?schema=public"
 
-# Run migrations
-npx prisma migrate dev --name init
+# Sync schema to the test database
+npm run prisma:push
 
 # Generate Prisma Client
 npx prisma generate
@@ -228,37 +228,31 @@ curl -X POST http://localhost:3000/api/similarity/check `
 **Expected Response Structure:**
 ```json
 {
-  "topic": "Machine Learning for Medical Applications",
-  "keywords": "",
-  "results": {
+  "status": "success",
+  "data": {
+    "input_topic": "Machine Learning for Medical Applications",
+    "overall_risk": "HIGH",
+    "max_similarity": 88,
     "tier1_historical": [
       {
         "id": 1,
         "title": "Machine Learning in Healthcare",
-        "similarity": {
-          "jaccard": 0.XX,
-          "tfidf": 0.XX,
-          "sbert": 0.XX,
-          "combined": 0.XX
-        }
+        "jaccard": 65.3,
+        "tfidf": 72.1,
+        "sbert": 84.2
       }
     ],
-    "tier2_current_session": [],
+    "tier2_current": [],
     "tier3_under_review": [
       {
         "id": 1,
         "title": "AI in Medical Diagnosis",
-        "similarity": {
-          "combined": 0.XX
-        }
+        "jaccard": 61.4,
+        "tfidf": 68.2,
+        "sbert": 88.7
       }
-    ]
-  },
-  "overallRisk": "HIGH",
-  "algorithmStatus": {
-    "jaccard": true,
-    "tfidf": true,
-    "sbert": true
+    ],
+    "recommendation": "High similarity detected."
   },
   "processingTime": 1234
 }
@@ -554,7 +548,7 @@ After running tests, logs should contain:
 ### Database Setup
 - [ ] Test database created
 - [ ] Pgvector extension installed
-- [ ] Prisma migrations run
+- [ ] Prisma schema synced with `npm run prisma:push`
 - [ ] Test data seeded
 
 ### Unit Tests
@@ -584,7 +578,7 @@ After running tests, logs should contain:
 - [ ] Jaccard similarity calculated correctly
 - [ ] TF-IDF similarity calculated correctly
 - [ ] SBERT embeddings generated correctly
-- [ ] Combined scores calculated correctly
+- [ ] Public algorithm scores and risk level calculated correctly
 
 ### Service Integration
 - [ ] Works with SBERT available

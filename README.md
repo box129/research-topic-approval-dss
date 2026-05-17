@@ -210,25 +210,23 @@ Content-Type: application/json
 ```json
 {
   "status": "success",
-  "riskLevel": "HIGH",
-  "algorithms": {
-    "jaccard": {
-      "score": 0.85,
-      "topResults": [...]
-    },
-    "tfidf": {
-      "score": 0.82,
-      "topResults": [...]
-    },
-    "sbert": {
-      "score": 0.88,
-      "topResults": [...]
-    }
-  },
-  "warnings": []
+  "data": {
+    "overall_risk": "HIGH",
+    "max_similarity": 88,
+    "tier1_historical": [
+      {
+        "title": "Deep Learning for Medical Imaging",
+        "jaccard": 65.3,
+        "tfidf": 72.1,
+        "sbert": 88.0
+      }
+    ],
+    "tier2_current": [],
+    "tier3_under_review": [],
+    "recommendation": "High similarity detected."
+  }
 }
 ```
-
 [Full API Documentation →](docs/api/backend-api.md)
 
 ---
@@ -239,19 +237,19 @@ Content-Type: application/json
 - **Speed:** ⚡ Very fast
 - **Accuracy:** ⭐⭐⭐ Good for exact matches
 - **How:** Calculates overlap between word sets
-- **Weight:** 30% in final score
+- **Role:** Lexical overlap signal
 
 ### TF-IDF Scoring
 - **Speed:** ⚡ Very fast
 - **Accuracy:** ⭐⭐⭐ Good for term importance
 - **How:** Measures term frequency & document importance
-- **Weight:** 30% in final score
+- **Role:** Weighted lexical signal
 
 ### SBERT Embeddings
 - **Speed:** ⏱️ Slower (semantic processing)
 - **Accuracy:** ⭐⭐⭐⭐⭐ Best semantic understanding
 - **How:** Generates 384-dim vectors, compares cosine similarity
-- **Weight:** 40% in final score
+- **Role:** Semantic/paraphrase signal when available
 - **Fallback:** Auto-disables if service unavailable
 
 ---
@@ -262,9 +260,9 @@ Content-Type: application/json
 
 | Condition | Risk Level | Action |
 |-----------|-----------|--------|
-| MAX(scores) ≥ 70% | HIGH 🛑 | Reject submission |
-| MAX(scores) ≥ 50% OR Tier2 matches | MEDIUM ⚠️ | Manual review |
-| MAX(scores) < 50% | LOW ✅ | Approve |
+| Highest similarity >= 70% | HIGH | Review before proceeding |
+| Highest similarity >= 50% | MEDIUM | Manual review |
+| Highest similarity < 50% | LOW | Low duplication risk |
 
 ### Database Tables
 
@@ -383,7 +381,7 @@ cd frontend && npm test -- --no-coverage
 
 - [ ] All tests passing (backend + frontend)
 - [ ] Environment variables configured
-- [ ] Database migrations applied
+- [ ] Database schema synced with `npm run prisma:push`
 - [ ] SBERT service running
 - [ ] Frontend builds without errors
 - [ ] API responds to health check

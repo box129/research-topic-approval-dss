@@ -94,7 +94,7 @@ backend/
 │
 ├── prisma/
 │   ├── schema.prisma             # Database schema definition
-│   └── migrations/               # Database migration history
+│   └── seed.js                   # Seed data loader
 │
 ├── tests/
 │   ├── unit/                     # Unit tests
@@ -161,7 +161,7 @@ createdb topic_similarity
 # 3. Update DATABASE_URL in .env
 DATABASE_URL="postgresql://user:password@localhost:5432/topic_similarity?schema=public"
 
-# 4. Apply migrations
+# 4. Sync schema with db push
 npm run prisma:push
 ```
 
@@ -191,8 +191,8 @@ npm run prisma:generate
 # Apply schema changes (recommended for managed databases)
 npm run prisma:push
 
-# Run migrations
-npm run prisma:migrate
+# This project currently uses db push rather than committed Prisma migrations
+npm run prisma:push
 
 # Open Prisma Studio (visual DB editor)
 npm run prisma:studio
@@ -250,60 +250,28 @@ curl http://localhost:3000/health
 **Response (200 OK):**
 ```json
 {
-  "status": "OK",
-  "message": "Server is running",
-  "environment": "development",
-  "apiVersion": "1.0.0"
-}
-```
-
-### Check Topic Similarity
-
-**Endpoint:** `POST /api/similarity/check`
-
-Compare a new topic against existing submissions.
-
-```bash
-curl -X POST http://localhost:3000/api/similarity/check \
-  -H "Content-Type: application/json" \
-  -d '{
-    "topic": "Machine Learning Applications in Healthcare",
-    "keywords": "neural networks, medical diagnosis, AI"
-  }'
-```
-
-**Request Body:**
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| topic | string | Yes | Topic title (5-200 words) |
-| keywords | string | No | Comma-separated keywords |
-
-**Response (200 OK):**
-```json
-{
   "status": "success",
-  "riskLevel": "HIGH",
-  "algorithms": {
-    "jaccard": {
-      "score": 0.85,
-      "topResults": [
-        {
-          "id": 123,
-          "title": "Deep Learning for Medical Imaging",
-          "keywords": "CNN, diagnosis, medical",
-          "jaccard_score": 0.85,
-          "supervisor": "Dr. Smith",
-          "year": "2023"
-        }
-      ]
-    },
-    "tfidf": { "score": 0.82, "topResults": [...] },
-    "sbert": { "score": 0.88, "topResults": [...] }
-  },
-  "warnings": []
+  "data": {
+    "overall_risk": "HIGH",
+    "max_similarity": 88,
+    "tier1_historical": [
+      {
+        "id": 123,
+        "title": "Deep Learning for Medical Imaging",
+        "keywords": "CNN, diagnosis, medical",
+        "jaccard": 65.3,
+        "tfidf": 72.1,
+        "sbert": 88.0,
+        "supervisor": "Dr. Smith",
+        "year": "2023"
+      }
+    ],
+    "tier2_current": [],
+    "tier3_under_review": [],
+    "recommendation": "High similarity detected."
+  }
 }
 ```
-
 **Response (400 Bad Request):**
 ```json
 {
@@ -469,23 +437,23 @@ describe('Jaccard Similarity', () => {
 
 ## 🎯 Algorithm Details
 
-### Jaccard Similarity (30% weight)
+### Jaccard Similarity
 - **Formula:** |A ∩ B| / |A ∪ B|
 - **Characteristics:** Fast, exact word matching, no semantic understanding
 - **Best for:** Detecting exact duplicates, simple similarity
 - **Time complexity:** O(n)
 
-### TF-IDF Scoring (30% weight)
+### TF-IDF Scoring
 - **Formula:** Sum of (TF × IDF) for common terms
 - **Characteristics:** Fast, considers term importance, limited context
 - **Best for:** Relevance ranking, term frequency analysis
 - **Time complexity:** O(n log n)
 
-### SBERT Embeddings (40% weight)
+### SBERT Embeddings
 - **Model:** Sentence-BERT (all-MiniLM-L6-v2)
 - **Output:** 384-dimensional vector
 - **Similarity:** Cosine similarity between vectors
-- **Characteristics:** Slow, semantic understanding, context-aware
+- **Characteristics:** Slow, semantic understanding, paraphrase-aware
 - **Best for:** Deep semantic matching, paraphrases
 - **Time complexity:** O(n) + SBERT API call
 
@@ -527,14 +495,17 @@ If SBERT service fails:
 
 ```json
 {
-  "status": "degraded",
-  "riskLevel": "MEDIUM",
-  "warnings": [
-    "SBERT service unavailable, results based on 2 algorithms"
-  ]
+  "status": "partial_success",
+  "data": {
+    "overall_risk": "MEDIUM",
+    "max_similarity": 72.1,
+    "tier1_historical": [],
+    "tier2_current": [],
+    "tier3_under_review": [],
+    "recommendation": "SBERT unavailable; review lexical matches carefully."
+  }
 }
 ```
-
 ---
 
 ## 🔒 Security

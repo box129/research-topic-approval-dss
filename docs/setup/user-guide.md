@@ -7,7 +7,7 @@ Your Topic Similarity MVP system is now running with all three services active:
 | Service | Status | Port | URL |
 |---------|--------|------|-----|
 | **Frontend** | ✅ Running | 5173 | http://localhost:5173 |
-| **Backend API** | ✅ Running | 8080 | http://localhost:8080 |
+| **Backend API** | ✅ Running | 3000 | http://localhost:3000 |
 | **SBERT Service** | ⏳ Initializing | 8000 | http://localhost:8000 |
 
 ---
@@ -75,26 +75,24 @@ The system shows a **Risk Level** badge:
 ### Algorithm Scores
 Each result shows similarity calculated by 3 algorithms:
 
-**Jaccard Similarity** (30% weight)
+**Jaccard Similarity**
 - Keyword overlap analysis
 - Basic term matching
 - Fast and lightweight
 
-**TF-IDF** (30% weight)
+**TF-IDF**
 - Term frequency weighting
 - Importance-based matching
 - Good for content similarity
 
-**SBERT** (40% weight)
+**SBERT**
 - Semantic embeddings
 - Understands meaning, not just keywords
 - Most accurate but slower
 - ⏳ If still loading: system uses Jaccard + TF-IDF with automatic fallback
 
-### Combined Score
-The final similarity score is a weighted average:
-```
-Combined Score = (Jaccard × 0.30) + (TF-IDF × 0.30) + (SBERT × 0.40)
+### Public Scores
+The current production API returns separate Jaccard, TF-IDF, and SBERT percentage-style scores. It does not expose a public combined score in the normal success response. Context-adjusted scoring is currently evaluation-only.
 ```
 
 ---
@@ -117,7 +115,7 @@ Combined Score = (Jaccard × 0.30) + (TF-IDF × 0.30) + (SBERT × 0.40)
    - Jaccard: keyword matching
    - TF-IDF: term importance
    - SBERT: semantic understanding
-5. ✅ Calculates combined score
+5. ✅ Returns separate public algorithm scores
 6. ✅ Determines risk level:
    - MAX(scores) ≥ 70% OR any under-review match → **HIGH**
    - MAX(scores) ≥ 50% OR Tier 2 matches → **MEDIUM**
@@ -153,7 +151,7 @@ Tier 3 - Under Review:
                      │ {topic, keywords}
                      ▼
 ┌─────────────────────────────────────────────────────────────┐
-│               Express.js Backend (8080)                      │
+│               Express.js Backend (3000)                      │
 │  - Validates input                                           │
 │  - Queries PostgreSQL (Neon)                                │
 │  - Runs 3 algorithms in parallel                            │
@@ -213,7 +211,7 @@ Tier 3 - Under Review:
 
 ### Health Check
 ```bash
-GET http://localhost:8080/health
+GET http://localhost:3000/health
 ```
 
 **Response:**
@@ -228,7 +226,7 @@ GET http://localhost:8080/health
 
 ### Similarity Check (Main Endpoint)
 ```bash
-POST http://localhost:8080/api/similarity/check
+POST http://localhost:3000/api/similarity/check
 Content-Type: application/json
 
 {
@@ -241,62 +239,50 @@ Content-Type: application/json
 ```json
 {
   "status": "success",
-  "riskLevel": "HIGH",
-  "algorithms": {
-    "jaccard": {
-      "score": 0.75,
-      "topResults": [
-        {
-          "id": 123,
-          "title": "Similar Topic 1",
-          "similarity": 0.75,
-          "source": "historical"
-        }
-      ]
-    },
-    "tfidf": {
-      "score": 0.82,
-      "topResults": [...]
-    },
-    "sbert": {
-      "score": 0.88,
-      "topResults": [...]
-    }
-  },
-  "combinedScore": 0.82,
-  "tier1Results": [...],
-  "tier2Results": [...],
-  "tier3Results": [...],
-  "warnings": []
+  "data": {
+    "overall_risk": "HIGH",
+    "max_similarity": 88,
+    "tier1_historical": [
+      {
+        "id": 123,
+        "title": "Similar Topic 1",
+        "jaccard": 75,
+        "tfidf": 82,
+        "sbert": 88
+      }
+    ],
+    "tier2_current": [],
+    "tier3_under_review": [],
+    "recommendation": "High similarity detected."
+  }
 }
 ```
 
 **Response (DEGRADED - SBERT timeout):**
 ```json
 {
-  "status": "degraded",
-  "riskLevel": "MEDIUM",
-  "algorithms": {
-    "jaccard": { "score": 0.65, "topResults": [...] },
-    "tfidf": { "score": 0.72, "topResults": [...] }
-  },
-  "warnings": ["SBERT service unavailable - using Jaccard + TF-IDF"]
+  "status": "partial_success",
+  "data": {
+    "overall_risk": "MEDIUM",
+    "max_similarity": 72,
+    "tier1_historical": [],
+    "tier2_current": [],
+    "tier3_under_review": [],
+    "recommendation": "SBERT unavailable; review lexical matches carefully."
+  }
 }
 ```
-
----
-
 ## 🚦 Risk Level Decision Logic
 
 ```javascript
 const maxScore = Math.max(jaccard, tfidf, sbert);
 
-if (maxScore >= 0.70 || tier3Matches.length > 0) {
-  riskLevel = 'HIGH';          // 🔴 High risk
-} else if (maxScore >= 0.50 || tier2Matches.length > 0) {
-  riskLevel = 'MEDIUM';        // 🟡 Moderate risk
+if (maxScore >= 70) {
+  risk = 'HIGH';          // High risk
+} else if (maxScore >= 50) {
+  risk = 'MEDIUM';        // Moderate risk
 } else {
-  riskLevel = 'LOW';           // 🟢 Safe
+  risk = 'LOW';           // Low risk
 }
 ```
 
@@ -373,7 +359,7 @@ Try these topics to test the system:
 Before using in production, verify:
 
 - [ ] Frontend loads at http://localhost:5173
-- [ ] Backend health check: http://localhost:8080/health (returns 200 OK)
+- [ ] Backend health check: http://localhost:3000/health (returns 200 OK)
 - [ ] Can submit a topic and receive results
 - [ ] Risk level badge displays correctly
 - [ ] All 3 tiers show (or correct reasons for empty tiers)
