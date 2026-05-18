@@ -1,7 +1,7 @@
 # 07 — Data Model and API Needs
 
 > **Source:** `Phase-3A-System-Architecture-Backend-Design.md`, `Database-Design-and-Schema.md`, `API-Design-and-Specifications.md`, all screen breakdown files
-> **Database:** PostgreSQL + pgvector (Neon)
+> **Database:** PostgreSQL with vector-ready design; Neon/pgvector are assumed targets that must be verified before final deployment.
 > **ORM:** Prisma
 
 ---
@@ -83,8 +83,8 @@ CREATE TABLE users (
   role            VARCHAR(20) NOT NULL CHECK (role IN ('student', 'lecturer', 'admin')),
   status          VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'suspended')),
   invite_token    TEXT,
-  reset_token     TEXT,
-  reset_token_exp TIMESTAMP,
+  reset_token_hash TEXT,
+  reset_token_exp  TIMESTAMP,
   created_at      TIMESTAMP DEFAULT NOW(),
   updated_at      TIMESTAMP DEFAULT NOW()
 );
@@ -259,9 +259,10 @@ CREATE TABLE system_settings (
   updated_by      INTEGER REFERENCES users(id),
   updated_at      TIMESTAMP DEFAULT NOW()
 );
--- Default rows:
--- ('threshold_low', '0.30')
--- ('threshold_high', '0.60')
+-- Threshold defaults are pending confirmation because threshold values are a known
+-- documentation/implementation conflict. Do not seed or enforce 30/60, 50/70,
+-- or any replacement values without a dedicated settings/threshold PR.
+-- Future default rows may include:
 -- ('email_template_submission_confirmed', '...')
 -- ('email_template_approved', '...')
 -- ('email_template_rejected', '...')
@@ -295,16 +296,17 @@ submissions ──────────────────────�
 
 ### Authentication
 ```
-POST   /api/v1/auth/login              Body: {email, password} → {token, role, user}
-POST   /api/v1/auth/logout             Header: Bearer token
+POST   /api/v1/auth/login              Body: {email, password} -> sets rtadss_session cookie, returns {user}
+POST   /api/v1/auth/logout             Clears rtadss_session cookie
 POST   /api/v1/auth/forgot-password    Body: {email}
-POST   /api/v1/auth/reset-password     Body: {token, newPassword}
-GET    /api/v1/auth/me                 → current user profile
+POST   /api/v1/auth/reset-password     Body: {token, password}
+GET    /api/v1/auth/me                 -> current safe user profile
 ```
 
 ### Similarity Engine (MVP — preserve exactly)
 ```
-POST   /api/v1/check-similarity        Body: {topic, category?} → full result
+POST   /api/similarity/check           Body: {topic, category?} -> full result
+POST   /api/v1/check-similarity        Body: {topic, category?} -> full result
 POST   /embed                          Internal SBERT service
 GET    /api/v1/health                  → {status, services}
 ```

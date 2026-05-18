@@ -11,21 +11,21 @@
 | GET | `/login` | AUTH-01 Login | Redirect to role dashboard if already authenticated |
 | GET | `/forgot-password` | AUTH-02 Forgot Password | Public |
 | GET | `/reset-password?token=...` | AUTH-03 Reset Password | Token validated on load |
-| POST | `/api/v1/auth/login` | — | Returns JWT + role |
-| POST | `/api/v1/auth/logout` | — | Clears session |
-| POST | `/api/v1/auth/forgot-password` | — | Sends reset email |
+| POST | `/api/v1/auth/login` | — | Sets `rtadss_session` httpOnly cookie and returns safe user profile with role |
+| POST | `/api/v1/auth/logout` | — | Clears `rtadss_session` cookie |
+| POST | `/api/v1/auth/forgot-password` | — | Uses mock email provider to generate reset link |
 | POST | `/api/v1/auth/reset-password` | — | Validates token, sets new password |
 
 ---
 
 ## Role-Based Routing After Login
 
-On successful authentication the backend returns the user's role in the JWT payload. The frontend reads the role and redirects immediately — the user never sees a role selector.
+On successful authentication the backend sets the `rtadss_session` httpOnly cookie and returns a safe user profile with role. The frontend redirects immediately from that profile or from `GET /api/v1/auth/me` using `withCredentials: true` — the user never sees a role selector.
 
 ```
 Login success
     ↓
-Read role from JWT
+Read role from safe user profile or /auth/me
     ↓
 role === "lecturer"  →  /lecturer/dashboard
 role === "student"   →  /student/dashboard
@@ -128,16 +128,17 @@ Reports                 ← /admin/reports  (v2.0 — show placeholder)
 ### Authentication
 | Method | Endpoint | Purpose |
 |---|---|---|
-| POST | `/api/v1/auth/login` | Authenticate user, return JWT + role |
-| POST | `/api/v1/auth/logout` | Invalidate session |
-| POST | `/api/v1/auth/forgot-password` | Send reset email |
+| POST | `/api/v1/auth/login` | Authenticate user, set httpOnly cookie, return safe user profile with role |
+| POST | `/api/v1/auth/logout` | Clear httpOnly session cookie |
+| POST | `/api/v1/auth/forgot-password` | Generate reset link through mock email provider |
 | POST | `/api/v1/auth/reset-password` | Validate token, update password |
 | GET | `/api/v1/auth/me` | Return current user profile |
 
 ### Similarity Engine (MVP — preserve)
 | Method | Endpoint | Purpose |
 |---|---|---|
-| POST | `/api/v1/check-similarity` | Run tri-algorithm similarity check |
+| POST | `/api/similarity/check` | Run tri-algorithm similarity check (existing MVP endpoint) |
+| POST | `/api/v1/check-similarity` | Run tri-algorithm similarity check (v1 alias) |
 | POST | `/embed` | Internal — SBERT embedding service |
 | GET | `/api/v1/health` | System health check |
 
@@ -195,9 +196,9 @@ Do not return 404. Do not hide the nav item. Render a friendly placeholder so us
 
 ## Navigation Rules
 
-1. **No role selector on login** — role detected from JWT, routing is silent
+1. **No role selector on login** — role comes from the safe user profile returned by login or `GET /api/v1/auth/me`; routing is silent
 2. **No cross-role navigation** — a lecturer cannot navigate to `/student/*` routes and vice versa. Redirect to own dashboard silently.
-3. **Protected routes** — all `/lecturer/*`, `/student/*`, `/admin/*` routes require a valid JWT. Unauthenticated users are redirected to `/login` with the intended route stored for post-login redirect.
+3. **Protected routes** — all `/lecturer/*`, `/student/*`, `/admin/*` routes require cookie-backed auth. Unauthenticated users are redirected to `/login` with the intended route stored for post-login redirect.
 4. **Profile lives in avatar dropdown** — not a nav item. Dropdown contains: Account Details, Change Password, Notification Preferences, Sign Out.
 5. **Active nav highlighting** — the current route's nav item is highlighted in primary green. L3 keeps L2 ("Pending Reviews") highlighted since it is a drill-in from L2.
 6. **Back navigation on L3** — "← Back to Pending Reviews" breadcrumb preserves the filter state and scroll position of L2. Do not use browser back button behaviour — implement explicit state preservation.

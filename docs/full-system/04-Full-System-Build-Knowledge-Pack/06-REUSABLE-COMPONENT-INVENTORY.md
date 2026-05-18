@@ -267,7 +267,7 @@ font-family: Inter (sans), DM Serif Display (serif — headings only)
 - `sbert: number | null` — null when SBERT unavailable
 
 **Behaviour:**
-- Score colour: green <30%, amber 30–60%, red ≥60%
+- Score colour thresholds are pending confirmation because threshold values are a known documentation/implementation conflict. Do not hard-code 30/60 or any replacement values without explicit approval.
 - SBERT null: shows "N/A" at 50% opacity
 - Tooltip on each algorithm name (plain English explanations)
 

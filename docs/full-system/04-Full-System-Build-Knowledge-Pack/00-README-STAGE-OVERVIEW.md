@@ -8,6 +8,22 @@ This folder does not replace the original vault notes. It distils them into impl
 
 ---
 
+## Current Repo Decisions Override Older Vault Notes
+
+The full-system repository is `box129/research-topic-approval-dss`. The old MVP proof repository is preserved separately as `box129/topic-similarity-detection-mvp`, with the MVP/core proof tagged as `v0.1.0-mvp-core`.
+
+The current implementation decisions override older vault assumptions where they conflict:
+
+- Authentication uses JWT stored only in the `rtadss_session` httpOnly cookie. The frontend must not store or decode JWTs in `localStorage` or `sessionStorage`.
+- The backend returns a safe user profile with role from login and from `GET /api/v1/auth/me`; role routing uses that profile, not a frontend-decoded token.
+- Email starts with an `EmailService` adapter and mock provider only. Real providers such as Resend, SMTP, or Nodemailer are future adapter implementations.
+- v1 schema work uses committed Prisma migrations. `prisma db push` is legacy/local-only/experimental after the migration transition.
+- Similarity thresholds are a known documentation/implementation conflict. Do not change scoring thresholds without explicit approval and a dedicated settings/threshold PR.
+- The protected MVP similarity endpoints are `POST /api/similarity/check` and `POST /api/v1/check-similarity`.
+- L7 Research Trends, St5 Research Explorer, and A6 Reports remain v2.0 placeholder routes until v1.0 is stable.
+
+---
+
 ## Project Title
 
 **Development of a Decision Support System for Undergraduate Research Topic Approval Using Rule-Based Logic and Tri-Algorithm Text Similarity — Public Health Department, UNIOSUN**

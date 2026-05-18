@@ -36,7 +36,7 @@
 - University email input
 - "Send reset link" button
 - Confirmation state replaces form (echoes email address back, 30-min expiry note)
-- "Resend link" option
+- "Send another reset link" option
 - API always shows confirmation whether or not the email exists (prevents enumeration)
 - "← Back to sign in" link
 
@@ -330,7 +330,7 @@
 **Core features:**
 - Left sidebar tabs (200px fixed): Similarity Thresholds / Discipline Categories / Email Templates / Session Configuration
 - Amber unsaved dot in sidebar next to section name when changes pending
-- Thresholds section: sliders for LOW/MEDIUM/HIGH cutoffs (defaults 30%/60%), live preview
+- Thresholds section: sliders for LOW/MEDIUM/HIGH cutoffs. Historical design examples mention 30%/60%, but final defaults are pending confirmation and must not be changed without a dedicated settings/threshold PR.
 - Categories section: add/rename/reorder the 8 disciplines
 - Email Templates section: selector + editable textarea + "Send Test Email" per template
 - Session Config: session name + date range

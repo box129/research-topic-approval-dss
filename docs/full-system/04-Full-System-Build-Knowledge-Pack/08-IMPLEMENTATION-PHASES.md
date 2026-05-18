@@ -19,12 +19,12 @@
 **Goal:** Protect the thesis MVP as a stable, tagged baseline before any new code is written.
 
 **Deliverables:**
-- [ ] Git tag: `v0.1-mvp` on the current working commit
+- [ ] Git tag: `v0.1.0-mvp-core` on the preserved MVP/core proof commit
 - [ ] All existing tests pass and are recorded
 - [ ] MVP gold standard dataset results documented and committed
 - [ ] README updated to document MVP state clearly
 - [ ] Environment variables documented (`.env.example`)
-- [ ] Deployment URLs documented (Vercel frontend, Render backend, Neon DB)
+- [ ] Planned deployment URLs documented (Vercel frontend, Render backend, Neon DB) and verified before final deployment
 - [ ] No new features added in this phase
 
 **Screens affected:** None (freeze only)
@@ -32,10 +32,10 @@
 **Backend needs:** None (document existing)
 
 **Acceptance criteria:**
-- `git tag v0.1-mvp` exists
+- `git tag v0.1.0-mvp-core` exists
 - `POST /api/v1/check-similarity` returns correct results
 - `GET /api/v1/health` returns `{"status": "healthy"}`
-- MVP frontend renders correctly at Vercel URL
+- MVP frontend renders correctly at the verified deployment URL
 - All test results documented in `test-results/mvp-baseline.md`
 
 ---
@@ -75,7 +75,7 @@
 
 ## Phase 2 — Authentication System
 
-**Goal:** Add JWT-based authentication with three roles and role-based routing guards.
+**Goal:** Add httpOnly cookie-based authentication with three roles and role-based routing guards.
 
 **Deliverables:**
 
@@ -86,23 +86,23 @@
 - [ ] `system_settings` table created and seeded with defaults
 
 **Backend:**
-- [ ] `POST /api/v1/auth/login` — validates credentials, returns JWT with role
-- [ ] `POST /api/v1/auth/logout`
-- [ ] `POST /api/v1/auth/forgot-password` — sends reset email (always returns success)
+- [ ] `POST /api/v1/auth/login` — validates credentials, sets `rtadss_session` httpOnly cookie, returns safe user profile with role
+- [ ] `POST /api/v1/auth/logout` — clears `rtadss_session` cookie
+- [ ] `POST /api/v1/auth/forgot-password` — uses mock email provider and always returns generic success
 - [ ] `POST /api/v1/auth/reset-password` — validates token, updates password
 - [ ] `GET /api/v1/auth/me`
-- [ ] JWT middleware for protected routes
+- [ ] Cookie-backed auth middleware for protected routes
 - [ ] Role-based access control middleware (rejects cross-role access)
-- [ ] Email service integration (Resend or Nodemailer + SMTP)
+- [ ] EmailService adapter with mock provider only; real providers are future adapter implementations
 - [ ] Password reset token: single-use, 30-minute expiry
 
 **Frontend:**
 - [ ] AUTH-01 Login screen — full implementation
 - [ ] AUTH-02 Forgot Password screen — full implementation
 - [ ] AUTH-03 Reset Password screen — full implementation
-- [ ] Auth context / JWT storage (httpOnly cookie or secure localStorage)
+- [ ] Auth context uses cookie-backed session only; no frontend token storage
 - [ ] Protected route guards (redirect to `/login` if unauthenticated)
-- [ ] Post-login role routing (reads role from JWT, redirects to correct dashboard)
+- [ ] Post-login role routing uses returned user profile or `GET /api/v1/auth/me`, not a frontend-decoded token
 - [ ] Avatar dropdown connected to real user data
 
 **Screens affected:** AUTH-01, AUTH-02, AUTH-03
@@ -114,7 +114,7 @@
 - Login with invalid credentials → error banner shown, no redirection
 - Navigating to `/lecturer/dashboard` without auth → redirected to `/login`
 - Navigating to `/student/*` as a lecturer → redirected to `/lecturer/dashboard`
-- Forgot password flow sends email with reset link
+- Forgot password flow generates a mock reset link in development/test
 - Reset link expires after 30 minutes
 - Used reset token cannot be reused
 
@@ -286,7 +286,7 @@
 - [ ] End-to-end tests: full student submission → lecturer decision → email notification flow
 - [ ] API integration tests: all endpoints tested with correct role access
 - [ ] Accessibility audit: WCAG 2.1 AA on all 18 "Build Now" screens
-- [ ] Performance: similarity check response time < 1 second verified under load
+- [ ] Performance: similarity check target response time verified under load
 - [ ] SBERT degraded mode: verified fallback to Jaccard + TF-IDF works correctly
 - [ ] Mobile warning banner: verified on screens < 768px
 - [ ] Real UNIOSUN topic data imported via A3 (or confirmed test dataset ≥ 200 topics)
@@ -302,7 +302,7 @@
 **Acceptance criteria:**
 - Zero critical accessibility failures
 - All three user flows (student → lecturer → admin) completable end-to-end
-- Response time < 1 second for similarity checks
+- Target response time verified for similarity checks
 - System gracefully degrades when SBERT is unavailable
 - All email notifications deliver correctly
 - Thesis supervisor can demo the system without errors

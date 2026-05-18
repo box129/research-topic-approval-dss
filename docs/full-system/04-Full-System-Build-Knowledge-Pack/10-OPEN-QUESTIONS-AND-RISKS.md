@@ -15,19 +15,17 @@
 
 ## Authentication and Access
 
-### ❓ Password complexity requirements
+### ✅ Password complexity requirements
 **Issue:** The vault states password complexity requirements exist but does not specify them beyond "≥8 characters and contains a number" (from AUTH-03 Reset Password spec).
-**Impact:** Backend validation rules and AUTH-03 UI requirement indicators need to be consistent.
-**Recommended resolution:** Minimum 8 characters, at least 1 number, at least 1 uppercase letter. Confirm with project supervisor before implementing.
+**Resolution for PR #2:** Use at least 8 characters and at least 1 number. Do not add an uppercase requirement unless it is confirmed in a later security/settings decision.
 
-### ❓ JWT storage method
-**Issue:** The vault specifies JWT authentication but does not lock in whether tokens are stored in httpOnly cookies or localStorage.
-**Impact:** Security implications differ significantly. httpOnly cookies are safer (XSS-resistant) but require CORS configuration. localStorage is simpler but vulnerable to XSS.
-**Recommended resolution:** Use httpOnly cookies for production. For thesis demo, localStorage with short expiry (1 hour) is acceptable if HTTPS is enforced.
+### ✅ JWT storage method
+**Issue:** The vault specified JWT authentication but did not lock in the storage method.
+**Resolution for PR #2:** Use JWT only inside the `rtadss_session` httpOnly cookie. The frontend must not store or decode JWTs in localStorage/sessionStorage, and normal browser auth must not use Authorization-header token storage. Role routing uses the returned safe user profile and/or `GET /api/v1/auth/me` with `withCredentials: true`.
 
 ### ❓ Session timeout duration
-**Issue:** Not documented. How long before an authenticated session expires?
-**Recommended resolution:** 24-hour JWT expiry for a university tool where users log in once per day. Needs confirmation.
+**Issue:** Not documented. How long before the cookie-backed authenticated session expires?
+**Recommended resolution:** 24-hour JWT expiry inside the httpOnly cookie for a university tool where users log in once per day. Needs confirmation.
 
 ### ❓ Account lockout after failed logins
 **Issue:** Feature Scope Full mentions "account lockout after failed login attempts" but the number of attempts is not specified.
@@ -71,8 +69,16 @@
 **Risk:** If a lecturer opens L3 and closes their browser without deciding, the record stays in `under_review_topics` indefinitely. Need a cleanup job or TTL mechanism.
 **Recommended resolution:** Add `expires_at = NOW() + INTERVAL '48 hours'` to `under_review_topics` and filter by `expires_at > NOW()` in Tier 3 queries.
 
+---
+
+## Schema Management
+
+### ✅ Prisma workflow for v1
+**Issue:** The MVP previously used `prisma db push`, which is convenient for local iteration but does not provide committed schema history.
+**Resolution for v1:** Use committed Prisma migrations in `backend/prisma/migrations/` for schema evolution. Treat `prisma db push` as legacy/local-only/experimental after the migration transition. If Prisma detects drift in an existing local database, do not auto-reset it without user confirmation.
+
 ### ⚠️ SBERT service cold start
-**Risk:** The SBERT Python service on Render free tier goes to sleep after 15 minutes of inactivity. The first request after sleep takes 30–60 seconds to respond (cold start). This will cause the similarity check to time out or appear broken.
+**Risk:** If the planned deployment uses Render free tier or another sleeping host, the SBERT Python service may go to sleep after inactivity. The first request after sleep can take 30–60 seconds to respond (cold start). This will cause the similarity check to time out or appear broken.
 **Mitigation options:**
 1. Upgrade Render to a paid plan (no sleep)
 2. Implement a health ping every 10 minutes to keep the service warm
@@ -80,12 +86,12 @@
 **Recommended:** Option 2 (health ping) + Option 3 (user-facing message). Confirm before Phase 4.
 
 ### ⚠️ pgvector performance on Neon free tier
-**Risk:** Neon free tier has limited compute. SBERT similarity queries using vector cosine distance across 2,000+ topics may be slow.
+**Risk:** Neon/pgvector is the planned deployment target and must be verified. If Neon free tier is used, limited compute may make SBERT similarity queries using vector cosine distance across 2,000+ topics slow.
 **Mitigation:** Add an IVFFlat or HNSW index on the `embedding` column.
 ```sql
 CREATE INDEX ON historical_topics USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 ```
-**Add this index during Phase 1 database setup.**
+**Consider this index during deployment/database readiness work after verifying the final PostgreSQL/pgvector setup.**
 
 ---
 
@@ -102,10 +108,9 @@ CREATE INDEX ON historical_topics USING ivfflat (embedding vector_cosine_ops) WI
 **Likely answer:** Rejected topics are archived (not migrated). Pending topics should prompt a warning before migration ("You have X pending topics. Migrate anyway?").
 **Needs confirmation before implementing Phase 5.**
 
-### ❓ Email service provider
+### ✅ PR #2 email provider strategy
 **Issue:** The vault specifies email notifications are needed but does not specify the email service provider.
-**Options:** Resend (recommended — simple API, generous free tier), Nodemailer + SMTP (works with Gmail or university SMTP), SendGrid.
-**Recommended:** Resend for development and thesis demo. Confirm before Phase 2.
+**Resolution for PR #2:** Use an EmailService adapter with a mock provider only. The mock provider may log reset/invite links in development/test. Real providers such as Resend, SMTP/Nodemailer, or SendGrid are future adapter options and are not part of PR #2.
 
 ### ❓ Admin email template variables
 **Issue:** Admin can edit email templates in A4. But what template variables are available (e.g. `{{studentName}}`, `{{topicTitle}}`, `{{supervisorName}}`)?
@@ -149,8 +154,8 @@ CREATE INDEX ON historical_topics USING ivfflat (embedding vector_cosine_ops) WI
 
 ## Deployment
 
-### ⚠️ Render free tier limitations
-**Risk:** Render free tier instances spin down after 15 minutes of inactivity. Both the Node backend and Python SBERT service are affected.
+### ⚠️ Planned hosting free-tier limitations
+**Risk:** If Render free tier or another sleeping host is used, backend and Python SBERT service instances may spin down after inactivity.
 **Impact:** Cold starts cause 30–60 second delays for the first request after inactivity.
 **Mitigation:** Health ping service (cron or external uptime monitor) to keep instances warm.
 
@@ -158,11 +163,11 @@ CREATE INDEX ON historical_topics USING ivfflat (embedding vector_cosine_ops) WI
 **Issue:** Full list of required environment variables not consolidated in one place.
 **Needed:**
 ```
-DATABASE_URL          (Neon PostgreSQL connection string)
+DATABASE_URL          (PostgreSQL connection string; Neon is a planned target to verify)
 JWT_SECRET            (random 256-bit string)
-SBERT_SERVICE_URL     (Render Python service URL)
-RESEND_API_KEY        (email service)
-FRONTEND_URL          (Vercel URL — for CORS and email links)
+SBERT_SERVICE_URL     (Python service URL; Render is a planned target to verify)
+EMAIL_PROVIDER_API_KEY (future real email provider only; PR #2 uses mock email)
+FRONTEND_URL          (frontend URL for CORS and email links; Vercel is a planned target to verify)
 NODE_ENV              (production)
 ```
 **Create `.env.example` in Phase 0.**
@@ -174,11 +179,11 @@ NODE_ENV              (production)
 | Risk | Severity | Phase | Mitigation |
 |---|---|---|---|
 | SBERT cold start delays | High | 4 | Health ping + loading message |
-| pgvector slow on Neon free tier | Medium | 1 | Add IVFFlat index |
+| pgvector slow on Neon free tier | Medium | Deployment readiness | Verify final PostgreSQL/pgvector setup and add IVFFlat/HNSW index if needed |
 | Tier 3 stale `under_review_topics` | Medium | 4 | Add TTL / expires_at |
 | L3 back navigation state loss | Medium | 4 | Use URL query params for L2 state |
 | Real topic data not available at defense | High | 6 | Obtain data early |
-| Render backend cold starts | High | 2 | Health ping service |
+| Render/backend cold starts | High | Deployment readiness | Verify hosting tier and add health ping service if needed |
 | Mobile usability (student persona) | Medium | 6 | Make warning banner dismissible |
 | Multiple active submissions per student | Low | 3 | Confirm business rule |
 | Supervisor assignment workflow unclear | Medium | 3 | Confirm who creates assignments |
