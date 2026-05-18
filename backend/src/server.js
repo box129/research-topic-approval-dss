@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const multer = require('multer');
+const cookieParser = require('cookie-parser');
 const fs = require('fs');
 const path = require('path');
 const config = require('./config/env');
@@ -10,7 +11,9 @@ const logger = require('./config/logger');
 // Lazy-load the similarity controller to avoid Prisma initialization blocking
 let similarityController;
 let topicImportController;
+let authController;
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler.middleware');
+const { requireAuth } = require('./middleware/auth.middleware');
 
 const app = express();
 const IMPORT_UPLOAD_LIMIT_BYTES = 5 * 1024 * 1024;
@@ -64,6 +67,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Rate limiting
 const limiter = rateLimit({
@@ -121,6 +125,33 @@ const getTopicImportController = () => {
   }
   return topicImportController;
 };
+
+const getAuthController = () => {
+  if (!authController) {
+    authController = require('./controllers/auth.controller');
+  }
+  return authController;
+};
+
+app.post('/api/v1/auth/login', (req, res, next) => {
+  getAuthController().login(req, res, next);
+});
+
+app.post('/api/v1/auth/logout', (req, res, next) => {
+  getAuthController().logout(req, res, next);
+});
+
+app.get('/api/v1/auth/me', requireAuth, (req, res, next) => {
+  getAuthController().me(req, res, next);
+});
+
+app.post('/api/v1/auth/forgot-password', (req, res, next) => {
+  getAuthController().forgotPassword(req, res, next);
+});
+
+app.post('/api/v1/auth/reset-password', (req, res, next) => {
+  getAuthController().resetPassword(req, res, next);
+});
 
 const previewImportRouteHandler = (req, res, next) => {
   getTopicImportController().previewTopicImport(req, res, next);

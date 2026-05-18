@@ -36,6 +36,3 @@ build/
 
 # Local generated import fixtures and upload temp files
 /tmp/
-
-# Prisma
-prisma/migrations/
