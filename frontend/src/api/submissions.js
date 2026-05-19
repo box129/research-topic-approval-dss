@@ -9,3 +9,8 @@ export async function listSubmissions() {
   const response = await apiClient.get('/submissions');
   return response.data?.data?.submissions || [];
 }
+
+export async function listLecturerPendingSubmissions() {
+  const response = await apiClient.get('/lecturer/submissions');
+  return response.data?.data?.submissions || [];
+}

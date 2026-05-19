@@ -6,6 +6,7 @@ jest.mock('../services/auth.service', () => ({
 
 jest.mock('../services/submission.service', () => ({
   createSubmission: jest.fn(),
+  listLecturerPendingSubmissions: jest.fn(),
   listStudentSubmissions: jest.fn()
 }));
 
@@ -18,6 +19,14 @@ const studentUser = {
   name: 'Student Demo',
   email: 'student.demo@uniosun.edu.ng',
   role: 'student',
+  status: 'active'
+};
+
+const lecturerUser = {
+  id: 8,
+  name: 'Lecturer Demo',
+  email: 'lecturer.demo@uniosun.edu.ng',
+  role: 'lecturer',
   status: 'active'
 };
 
@@ -172,5 +181,84 @@ describe('Submission API routes', () => {
     expect(submissionService.listStudentSubmissions).toHaveBeenCalledWith({
       user: studentUser
     });
+  });
+
+  test('lecturer can list pending review submissions', async () => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+    submissionService.listLecturerPendingSubmissions.mockResolvedValue([
+      {
+        id: 1,
+        student_name: 'Student Demo',
+        student_email: 'student.demo@uniosun.edu.ng',
+        title: 'Knowledge of malaria prevention among undergraduate public health students',
+        status: 'pending_review'
+      }
+    ]);
+
+    const response = await request(app)
+      .get('/api/v1/lecturer/submissions')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .expect(200);
+
+    expect(response.body).toMatchObject({
+      status: 'success',
+      data: {
+        submissions: [
+          {
+            id: 1,
+            student_name: 'Student Demo',
+            student_email: 'student.demo@uniosun.edu.ng',
+            status: 'pending_review'
+          }
+        ]
+      }
+    });
+    expect(submissionService.listLecturerPendingSubmissions).toHaveBeenCalledWith({
+      user: lecturerUser
+    });
+  });
+
+  test('unauthenticated lecturer queue request is rejected', async () => {
+    authService.authenticateToken.mockRejectedValue({
+      statusCode: 401,
+      code: 'AUTHENTICATION_REQUIRED',
+      message: 'Authentication required.'
+    });
+
+    const response = await request(app)
+      .get('/api/v1/lecturer/submissions')
+      .expect(401);
+
+    expect(response.body).toMatchObject({
+      status: 'error',
+      details: {
+        error_code: 'AUTHENTICATION_REQUIRED'
+      }
+    });
+    expect(submissionService.listLecturerPendingSubmissions).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    'student',
+    'admin'
+  ])('%s cannot access lecturer pending queue', async (role) => {
+    authService.authenticateToken.mockResolvedValue({
+      id: 2,
+      role,
+      status: 'active'
+    });
+
+    const response = await request(app)
+      .get('/api/v1/lecturer/submissions')
+      .set('Cookie', [`rtadss_session=signed-${role}-token`])
+      .expect(403);
+
+    expect(response.body).toMatchObject({
+      status: 'error',
+      details: {
+        error_code: 'FORBIDDEN'
+      }
+    });
+    expect(submissionService.listLecturerPendingSubmissions).not.toHaveBeenCalled();
   });
 });
