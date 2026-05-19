@@ -12,8 +12,9 @@ const logger = require('./config/logger');
 let similarityController;
 let topicImportController;
 let authController;
+let submissionController;
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler.middleware');
-const { requireAuth } = require('./middleware/auth.middleware');
+const { requireAuth, requireRole } = require('./middleware/auth.middleware');
 
 const app = express();
 const IMPORT_UPLOAD_LIMIT_BYTES = 5 * 1024 * 1024;
@@ -133,6 +134,13 @@ const getAuthController = () => {
   return authController;
 };
 
+const getSubmissionController = () => {
+  if (!submissionController) {
+    submissionController = require('./controllers/submission.controller');
+  }
+  return submissionController;
+};
+
 app.post('/api/v1/auth/login', (req, res, next) => {
   getAuthController().login(req, res, next);
 });
@@ -151,6 +159,14 @@ app.post('/api/v1/auth/forgot-password', (req, res, next) => {
 
 app.post('/api/v1/auth/reset-password', (req, res, next) => {
   getAuthController().resetPassword(req, res, next);
+});
+
+app.get('/api/v1/submissions', requireAuth, requireRole('student'), (req, res, next) => {
+  getSubmissionController().listSubmissions(req, res, next);
+});
+
+app.post('/api/v1/submissions', requireAuth, requireRole('student'), (req, res, next) => {
+  getSubmissionController().createSubmission(req, res, next);
 });
 
 const previewImportRouteHandler = (req, res, next) => {

@@ -3,6 +3,8 @@ import V2PlaceholderPage from './common/V2PlaceholderPage';
 import StatCard from '../components/ui/StatCard';
 import PageHeader from '../components/ui/PageHeader';
 import AlertBanner from '../components/ui/AlertBanner';
+import SubmitTopicPage from './student/SubmitTopicPage';
+import MySubmissionsPage from './student/MySubmissionsPage';
 
 export function LecturerDashboardPage() {
   return (
@@ -65,13 +67,9 @@ export const LecturerResearchTrendsPage = () => (
   <V2PlaceholderPage title="Research Trends" dashboardPath="/lecturer/dashboard" />
 );
 
-export const StudentSubmitTopicPage = () => (
-  <PlaceholderPage title="Submit Topic" subtitle="St2 three-step submission shell" />
-);
+export const StudentSubmitTopicPage = SubmitTopicPage;
 
-export const StudentMySubmissionsPage = () => (
-  <PlaceholderPage title="My Submissions" subtitle="St3 submission history shell" />
-);
+export const StudentMySubmissionsPage = MySubmissionsPage;
 
 export const StudentCheckMyTopicPage = () => (
   <PlaceholderPage title="Check My Topic" subtitle="St4 student pre-check shell" />
