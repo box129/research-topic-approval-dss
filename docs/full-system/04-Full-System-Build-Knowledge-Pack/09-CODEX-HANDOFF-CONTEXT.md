@@ -9,7 +9,7 @@
 **Name:** Decision Support System for Undergraduate Research Topic Approval
 **Institution:** Department of Public Health, UNIOSUN (Osun State University)
 **Type:** Full-stack web application — role-based decision-support platform
-**Stack:** React 18 + Vite + Tailwind CSS (frontend) | Node.js + Express (backend) | Python FastAPI (SBERT microservice) | PostgreSQL + pgvector (Neon) | Vercel + Render (deployment)
+**Stack:** React 18 + Vite + Tailwind CSS (frontend) | Node.js + Express (backend) | Python FastAPI (SBERT microservice) | PostgreSQL with vector-ready topic data. Neon, Vercel, Render, and pgvector remain planned deployment/infrastructure targets that must be verified before final deployment.
 
 **Problem being solved:** The department has no formal system for tracking and approving undergraduate research topics. Lecturers manually search Excel files using keywords to check if a proposed topic is a duplicate. This is slow, inconsistent, and misses paraphrased duplicates entirely.
 
@@ -19,16 +19,16 @@
 
 ## MVP Status (Already Built — Do Not Rebuild)
 
-The MVP is complete and tagged as `v0.1-mvp`. It includes:
+The MVP is complete and preserved as the MVP/core proof tag `v0.1.0-mvp-core`. It includes:
 
 - ✅ Tri-algorithm similarity engine (Jaccard + TF-IDF + SBERT) running in parallel
-- ✅ PostgreSQL + pgvector with pre-computed SBERT embeddings
+- ✅ PostgreSQL/Prisma topic foundation with SBERT embedding support in the schema; final pgvector deployment details must be verified before production
 - ✅ Three database tiers: `historical_topics`, `current_session_topics`, `under_review_topics`
-- ✅ REST API: `POST /api/v1/check-similarity`, `POST /embed`, `GET /api/v1/health`
+- ✅ REST API: `POST /api/similarity/check`, `POST /api/v1/check-similarity`, `POST /embed`, `GET /api/v1/health`
 - ✅ React frontend: single check-similarity screen (L5 — lecturer standalone checker)
-- ✅ Risk classification: LOW < 30%, MEDIUM 30–60%, HIGH ≥ 60%
+- ✅ Risk classification exists, but 30%/60% remains a historical design assumption pending confirmation; do not change thresholds without an explicit settings/threshold PR
 - ✅ Graceful SBERT degradation (falls back to Jaccard + TF-IDF when Python service is down)
-- ✅ Response time < 1 second
+- ✅ Response time target under local/demo conditions; verify performance again during Phase 6 and deployment readiness checks
 
 ---
 
@@ -38,7 +38,7 @@ The MVP core is promoted into a complete role-based platform. Build these in ord
 
 ### Phase order
 1. Foundation (repo structure, design system, layout shell, shared components)
-2. Authentication (JWT, 3 roles, role routing, password reset)
+2. Authentication (httpOnly cookie-backed JWT, 3 roles, role routing, password reset)
 3. Student workflow (St1–St4: dashboard, submit, submissions, check)
 4. Lecturer workflow (L1–L6: dashboard, queue, review, decisions, check, supervisees)
 5. Admin workflow (A1–A5: dashboard, users, repository, settings, audit log)
@@ -68,25 +68,25 @@ Render a friendly "Coming soon" message. Do NOT return 404. Do NOT remove the na
 
 ```
 Frontend (React + Vite + Tailwind)
-  → Vercel (CDN, global edge)
+  → Planned target: Vercel (verify before final deployment)
   → Communicates with Backend via REST API
 
 Backend (Node.js + Express)
-  → Render (512 MB RAM)
-  → JWT authentication middleware
+  → Planned target: Render (RAM/service tier must be verified before final deployment)
+  → Cookie-backed JWT authentication middleware
   → Role-based access control (RBAC)
   → Communicates with DB and SBERT service
-  → Sends emails via Resend or SMTP
+  → Uses EmailService adapter with mock provider first; Resend/SMTP/Nodemailer are future adapter options, not PR #2
 
 SBERT Microservice (Python + FastAPI)
-  → Render (separate instance)
+  → Planned target: Render or equivalent separate instance; verify before final deployment
   → Accepts: POST /embed with topic text
   → Returns: 384-dimension embedding vector
   → Backend NEVER calls SBERT directly from frontend
 
-Database (PostgreSQL + pgvector, Neon)
+Database (PostgreSQL via Prisma; Neon/pgvector are planned targets to verify)
   → ORM: Prisma
-  → pgvector enabled for vector similarity search
+  → Vector search support planned; pgvector/index details must be verified before final deployment
   → Tables: users, submissions, decisions, similarity_results,
             notifications, audit_log, academic_sessions,
             categories, system_settings,
@@ -98,16 +98,19 @@ Database (PostgreSQL + pgvector, Neon)
 ## Role-Based Routing
 
 ```
-POST /api/v1/auth/login → returns {token, role}
+POST /api/v1/auth/login → sets `rtadss_session` httpOnly cookie and returns safe user profile + role
+GET /api/v1/auth/me → returns current safe user profile from cookie-backed session
+POST /api/v1/auth/logout → clears `rtadss_session`
 
 role === "lecturer" → redirect to /lecturer/dashboard
 role === "student"  → redirect to /student/dashboard
 role === "admin"    → redirect to /admin/dashboard
 ```
 
-- All `/lecturer/*`, `/student/*`, `/admin/*` routes require valid JWT
+- All `/lecturer/*`, `/student/*`, `/admin/*` routes require valid cookie-backed authentication
 - Unauthenticated: redirect to `/login` (store intended route for post-login redirect)
 - Cross-role access: redirect to own dashboard silently (no 403 page)
+- Frontend must not store or decode JWTs in localStorage/sessionStorage. Role routing uses the login response user profile and/or `GET /api/v1/auth/me` with `withCredentials: true`.
 - Profile lives in avatar dropdown top-right — not a nav item
 
 ---
@@ -129,8 +132,8 @@ Dashboard | User Management | Topic Repository | System Settings | Audit Log | R
 
 ### Similarity Engine
 - NEVER change the three algorithms or remove any one of them
-- NEVER change the default risk thresholds (30%, 60%) in code — they must be configurable via admin settings
-- ALWAYS run the three algorithms in parallel (not sequential) to maintain < 1s response time
+- NEVER change risk thresholds or scoring logic without explicit approval. The 30%/60% values are historical design assumptions pending confirmation and should be resolved later in a dedicated settings/threshold PR.
+- ALWAYS run the three algorithms in parallel (not sequential) to preserve the response-time target; verify actual timing during Phase 6
 - ALWAYS implement graceful degradation: if SBERT is unavailable, continue with Jaccard + TF-IDF, set `sbert_available: false` in the response, show yellow warning banner
 
 ### Student-Facing Results (D26 Rule — Critical)
@@ -189,23 +192,25 @@ Email templates are editable by admin in A4 System Settings.
 ## Implementation Order Within Each Phase
 
 For each phase, follow this order:
-1. Database migrations (Prisma schema + `prisma migrate dev`)
+1. Database migrations (Prisma schema + committed `prisma migrate dev` migrations)
 2. Backend API routes (with Postman/REST tests)
 3. Frontend components
 4. Frontend screen integration
 5. End-to-end test of the workflow
+
+The project previously used `prisma db push`, but v1 schema work now uses committed Prisma migrations. Treat `prisma db push` as legacy/local-only/experimental after the migration transition. Do not auto-reset an existing local database if Prisma detects drift; stop and ask for confirmation first.
 
 ---
 
 ## What Codex Must NOT Change Without Permission
 
 1. The tri-algorithm similarity engine code
-2. The `POST /api/v1/check-similarity` endpoint signature
+2. The `POST /api/similarity/check` and `POST /api/v1/check-similarity` endpoint signatures
 3. The `POST /embed` SBERT endpoint
-4. The risk threshold logic (30% / 60% defaults)
-5. The pgvector embedding column structure (`vector(384)`)
+4. The risk threshold/scoring logic unless a dedicated settings/threshold PR explicitly approves it
+5. The embedding column structure and vector deployment assumptions without verification
 6. The gold standard test dataset and results
-7. The `v0.1-mvp` git tag
+7. The `v0.1.0-mvp-core` git tag
 
 ---
 

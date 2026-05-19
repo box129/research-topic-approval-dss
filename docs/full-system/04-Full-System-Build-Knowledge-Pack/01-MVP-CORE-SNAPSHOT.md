@@ -29,12 +29,14 @@ The MVP is a functional proof-of-concept that demonstrates tri-algorithm similar
 - Stop word removal
 - Tokenisation
 
-**Risk classification:**
+**Risk classification, historical design assumption pending confirmation:**
 - 🟢 LOW: max similarity < 30%
 - 🟡 MEDIUM: max similarity 30–60%
 - 🔴 HIGH: max similarity ≥ 60%
 
 Risk is determined by the highest score across all three algorithms for the best-matching topic.
+
+Threshold values are a known documentation/implementation conflict. Do not change thresholds or scoring without explicit approval in a dedicated settings/threshold PR.
 
 **Results output:**
 - Top 5 similar topics with similarity percentages
@@ -44,7 +46,7 @@ Risk is determined by the highest score across all three algorithms for the best
 
 ### Database (MVP State)
 
-- PostgreSQL + pgvector (Neon free tier)
+- PostgreSQL with vector-ready design; Neon and pgvector are assumed deployment/data-stack targets that must be verified before final deployment.
 - Three tables: `historical_topics`, `current_session_topics`, `under_review_topics`
 - Each table has an `embedding vector(384)` column for pre-computed SBERT embeddings
 - 60 curated sample topics (not real UNIOSUN data)
@@ -58,7 +60,7 @@ Risk is determined by the highest score across all three algorithms for the best
 | POST | `/embed` | Internal SBERT microservice — backend calls this |
 | GET | `/api/v1/health` | Health check — returns API + DB + SBERT status |
 
-**Response time target:** < 1 second (500–700 ms typical)
+**Response time target:** under 1 second. Treat any 500-700 ms figure as observed under local/demo conditions only; verify again during Phase 6.
 
 ### Frontend (MVP State)
 
@@ -71,9 +73,9 @@ Risk is determined by the highest score across all three algorithms for the best
 
 ### Infrastructure
 
-- Frontend: Vercel (React SPA, global CDN)
-- Backend: Render (Node.js Express + Python FastAPI, 512 MB RAM each)
-- Database: Neon (PostgreSQL + pgvector, 3 GB storage)
+- Frontend: planned Vercel target (React SPA, global CDN)
+- Backend: planned Render target (Node.js Express + Python FastAPI; memory plan must be verified)
+- Database: planned Neon target (PostgreSQL/vector support and storage limits must be verified)
 - Cost: $0 (free tier)
 
 ### Testing & Validation
@@ -81,7 +83,7 @@ Risk is determined by the highest score across all three algorithms for the best
 - Gold standard dataset: 100 topic pairs (50 duplicate pairs, 50 unique pairs)
 - Manual validation by subject matter experts
 - Metrics: precision ≥ 80%, recall ≥ 80%, accuracy 85–90%
-- Speed tests: < 1 second response time validated
+- Speed tests: target response time should be verified under Phase 6 conditions before final claims.
 - Per-algorithm comparison completed (Jaccard vs TF-IDF vs SBERT)
 
 ---
@@ -90,7 +92,7 @@ Risk is determined by the highest score across all three algorithms for the best
 
 | Limitation | Impact | Resolution in v1.0 |
 |---|---|---|
-| No authentication | Anyone can access; no role separation | Add JWT auth with 3 roles |
+| No authentication | Anyone can access; no role separation | Add httpOnly cookie auth with 3 roles |
 | No approval workflow | Lecturer sees results but cannot record a decision in the system | Add approve/reject/request-changes actions |
 | No Tier 2 (current session) | Cannot check against topics approved this session | Add current_session_topics tier |
 | No Tier 3 (concurrent reviews) | Cannot detect when two lecturers review similar topics simultaneously | Add under_review_topics tier with real-time check |
@@ -107,15 +109,15 @@ Risk is determined by the highest score across all three algorithms for the best
 
 The following must not be broken or removed during the full-system build:
 
-1. **The tri-algorithm engine** — Jaccard, TF-IDF, and SBERT must continue running in parallel. Do not remove any algorithm. Do not change the risk thresholds (30%, 60%) without admin configuration.
+1. **The tri-algorithm engine** — Jaccard, TF-IDF, and SBERT must continue running in parallel. Do not remove any algorithm. Do not change scoring thresholds without explicit approval.
 
 2. **The SBERT microservice isolation** — SBERT runs in a separate Python FastAPI service. This is an architectural decision (ADR #2) made for language separation and failure isolation. The system must gracefully degrade to Jaccard + TF-IDF only when SBERT is unavailable — it must not fail completely.
 
-3. **The pgvector embedding storage** — The `embedding vector(384)` column on topic tables must be preserved. Pre-computed SBERT embeddings enable fast similarity queries. Do not remove pgvector.
+3. **The embedding storage design** — Topic embeddings must be preserved. Any pgvector-specific deployment detail must be verified before final deployment.
 
-4. **The < 1 second response time target** — The three algorithms run in parallel (not sequentially) to hit this target. Do not serialise them.
+4. **The response time target** — The three algorithms run in parallel (not sequentially) to support the target response time. Do not serialise them.
 
-5. **The risk classification thresholds** — LOW < 30%, MEDIUM 30–60%, HIGH ≥ 60%. These are configurable by admin in v1.0 but the defaults must remain as specified.
+5. **The risk classification thresholds** — Threshold values are a known documentation/implementation conflict. Treat 30/60 as a historical design assumption pending confirmation, not an implementation instruction.
 
 6. **The topic input validation** — 7–24 words, 50–180 characters. This is documented in the design spec and validated in the MVP. It must be enforced consistently across all topic input surfaces (L5, St2, St4).
 

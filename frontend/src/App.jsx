@@ -1,4 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import ProtectedRoute from './auth/ProtectedRoute';
+import PublicAuthRoute from './auth/PublicAuthRoute';
 import AppLayout from './layouts/AppLayout';
 import LoginPage from './pages/auth/LoginPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
@@ -29,11 +31,11 @@ function App() {
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
 
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/login" element={<PublicAuthRoute><LoginPage /></PublicAuthRoute>} />
+      <Route path="/forgot-password" element={<PublicAuthRoute><ForgotPasswordPage /></PublicAuthRoute>} />
+      <Route path="/reset-password" element={<PublicAuthRoute><ResetPasswordPage /></PublicAuthRoute>} />
 
-      <Route path="/lecturer" element={<AppLayout role="lecturer" />}>
+      <Route path="/lecturer" element={<ProtectedRoute role="lecturer"><AppLayout role="lecturer" /></ProtectedRoute>}>
         <Route index element={<Navigate to="/lecturer/dashboard" replace />} />
         <Route path="dashboard" element={<LecturerDashboardPage />} />
         <Route path="pending-reviews" element={<LecturerPendingReviewsPage />} />
@@ -44,7 +46,7 @@ function App() {
         <Route path="research-trends" element={<LecturerResearchTrendsPage />} />
       </Route>
 
-      <Route path="/student" element={<AppLayout role="student" />}>
+      <Route path="/student" element={<ProtectedRoute role="student"><AppLayout role="student" /></ProtectedRoute>}>
         <Route index element={<Navigate to="/student/dashboard" replace />} />
         <Route path="dashboard" element={<StudentDashboardPage />} />
         <Route path="submit-topic" element={<StudentSubmitTopicPage />} />
@@ -53,7 +55,7 @@ function App() {
         <Route path="research-explorer" element={<StudentResearchExplorerPage />} />
       </Route>
 
-      <Route path="/admin" element={<AppLayout role="admin" />}>
+      <Route path="/admin" element={<ProtectedRoute role="admin"><AppLayout role="admin" /></ProtectedRoute>}>
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboardPage />} />
         <Route path="user-management" element={<AdminUserManagementPage />} />

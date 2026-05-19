@@ -11,24 +11,89 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  STUDENT
+  LECTURER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+model User {
+  id                    Int             @id @default(autoincrement())
+  name                  String          @db.VarChar(200)
+  email                 String          @unique @db.VarChar(200)
+  passwordHash          String          @map("password_hash") @db.Text
+  role                  Role
+  status                UserStatus      @default(ACTIVE)
+  resetTokenHash        String?         @map("reset_token_hash") @db.Text
+  resetTokenExpiresAt   DateTime?       @map("reset_token_expires_at")
+  updatedSystemSettings SystemSetting[] @relation("SystemSettingUpdatedBy")
+  createdAt             DateTime        @default(now()) @map("created_at")
+  updatedAt             DateTime        @updatedAt @map("updated_at")
+
+  @@index([role])
+  @@index([status])
+  @@map("users")
+}
+
+model AcademicSession {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique @db.VarChar(100)
+  startDate DateTime? @map("start_date") @db.Date
+  endDate   DateTime? @map("end_date") @db.Date
+  isCurrent Boolean   @default(false) @map("is_current")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@index([isCurrent])
+  @@map("academic_sessions")
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @db.VarChar(100)
+  sortOrder Int      @default(0) @map("sort_order")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([isActive])
+  @@index([sortOrder])
+  @@map("categories")
+}
+
+model SystemSetting {
+  key         String   @id @db.VarChar(100)
+  value       String   @db.Text
+  updatedById Int?     @map("updated_by_id")
+  updatedBy   User?    @relation("SystemSettingUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}
+
 model HistoricalTopic {
-  id             Int       @id @default(autoincrement())
-  title          String    @db.Text
-  keywords       String?   @db.Text
-  sessionYear    String    @map("session_year")
-  supervisorName String    @map("supervisor_name")
+  id             Int      @id @default(autoincrement())
+  title          String   @db.Text
+  keywords       String?  @db.Text
+  sessionYear    String   @map("session_year")
+  supervisorName String   @map("supervisor_name")
   category       String?
-  population     String?   @db.Text
-  location       String?   @db.Text
-  studyFocus     String?   @map("study_focus") @db.Text
-  rawRecord      Json?     @map("raw_record")
-  importWarnings Json?     @map("import_warnings")
-  sourceType     String?   @map("source_type")
-  sourceFilename String?   @map("source_filename") @db.Text
-  importBatchId  String?   @map("import_batch_id")
+  population     String?  @db.Text
+  location       String?  @db.Text
+  studyFocus     String?  @map("study_focus") @db.Text
+  rawRecord      Json?    @map("raw_record")
+  importWarnings Json?    @map("import_warnings")
+  sourceType     String?  @map("source_type")
+  sourceFilename String?  @map("source_filename") @db.Text
+  importBatchId  String?  @map("import_batch_id")
   embedding      Json?
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   @@index([category])
   @@index([sessionYear])

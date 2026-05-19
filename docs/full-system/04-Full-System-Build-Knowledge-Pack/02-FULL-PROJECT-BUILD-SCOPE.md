@@ -54,7 +54,7 @@ This project has three build layers. The primary implementation target is **v1.0
 
 ### Authentication (all screens)
 - Login, Forgot Password, Reset Password
-- JWT-based authentication
+- httpOnly cookie-based authentication
 - Role detection and silent routing post-login
 
 ### Student workflow (St1–St4)
@@ -79,7 +79,7 @@ This project has three build layers. The primary implementation target is **v1.0
 - A5 — Audit Log
 
 ### Backend additions needed for v1.0
-- User authentication (JWT + bcrypt)
+- User authentication (httpOnly cookie session + bcrypt)
 - Role-based access control (RBAC)
 - Submission management (create, status tracking)
 - Decision recording (approve/reject/request changes)
@@ -90,8 +90,9 @@ This project has three build layers. The primary implementation target is **v1.0
 
 **Status:** 🎯 Build now. This is the primary target.
 
-**Screen count:** 18 screens (3 auth + 7 lecturer + 5 student + 3 admin — A6 is v2.0)
-Note: A1–A5 are v1.0, A6 (Reports) is v2.0.
+**Build Now screen count:** 18 screens = 3 auth + 6 lecturer (L1-L6) + 4 student (St1-St4) + 5 admin (A1-A5).
+**Placeholder-only screen count:** 3 screens = L7, St5, A6.
+**Total documented screens:** 21 screens.
 
 ---
 

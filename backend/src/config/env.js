@@ -5,6 +5,10 @@ require('dotenv').config();
  */
 function validateEnv() {
   const required = ['DATABASE_URL'];
+  if (process.env.NODE_ENV === 'production') {
+    required.push('JWT_SECRET');
+  }
+
   const missing = required.filter(key => !process.env[key]);
   
   if (missing.length > 0) {
@@ -48,8 +52,18 @@ const config = {
   
   // CORS configuration
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-    credentials: process.env.CORS_CREDENTIALS === 'true' || true
+    origin: process.env.FRONTEND_URL || process.env.CORS_ORIGIN || 'http://localhost:5173',
+    credentials: process.env.CORS_CREDENTIALS !== 'false'
+  },
+
+  // Auth configuration
+  auth: {
+    jwtSecret: process.env.JWT_SECRET || 'local-dev-auth-secret-change-before-production',
+    jwtExpiresIn: process.env.JWT_EXPIRES_IN || '24h',
+    cookieName: process.env.AUTH_COOKIE_NAME || 'rtadss_session',
+    cookieSecure: process.env.NODE_ENV === 'production',
+    resetTokenExpiresMinutes: parseInt(process.env.RESET_TOKEN_EXPIRES_MINUTES, 10) || 30,
+    frontendUrl: process.env.FRONTEND_URL || process.env.CORS_ORIGIN || 'http://localhost:5173'
   },
   
   // Logging configuration
