@@ -1,0 +1,11 @@
+import apiClient from './client';
+
+export async function createSubmission(payload) {
+  const response = await apiClient.post('/submissions', payload);
+  return response.data?.data?.submission;
+}
+
+export async function listSubmissions() {
+  const response = await apiClient.get('/submissions');
+  return response.data?.data?.submissions || [];
+}

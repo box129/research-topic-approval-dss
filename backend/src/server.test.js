@@ -129,6 +129,35 @@ describe('Server Integration Tests', () => {
     });
   });
 
+  describe('Submission API Routes', () => {
+    test('should reject unauthenticated submission list requests', async () => {
+      const response = await request(app)
+        .get('/api/v1/submissions')
+        .expect(401);
+
+      expect(response.body).toMatchObject({
+        status: 'error',
+        details: {
+          error_code: 'AUTHENTICATION_REQUIRED'
+        }
+      });
+    });
+
+    test('should keep similarity endpoint available after submission route wiring', async () => {
+      const response = await request(app)
+        .post('/api/similarity/check')
+        .send({})
+        .expect(400);
+
+      expect(response.body).toMatchObject({
+        status: 'error',
+        details: {
+          error_code: 'MISSING_FIELD'
+        }
+      });
+    });
+  });
+
   describe('404 Handler', () => {
     test('should return 404 for non-existent routes', async () => {
       const response = await request(app)
