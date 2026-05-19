@@ -18,6 +18,8 @@ NODE_ENV=development
 
 `JWT_SECRET` must be a real secret outside local development.
 
+Use the backend port shown in the backend console as the source of truth. The repo default and frontend proxy currently use `3000`, but some local environments may start the backend on another port such as `8080`. If the console shows a different port, use that port for direct backend checks and align the frontend proxy before browser-based smoke testing.
+
 ## 2. Migration Application
 
 From `backend/`, apply the already committed Prisma migrations:
@@ -69,8 +71,11 @@ npm run dev
 Confirm the backend is available:
 
 ```powershell
-Invoke-RestMethod http://localhost:3000/health
+$backendUrl = "http://localhost:3000"
+Invoke-RestMethod "$backendUrl/health"
 ```
+
+If the backend console shows a different port, update `$backendUrl` before running the check.
 
 ## 6. Frontend Startup
 
@@ -244,4 +249,3 @@ Expected result:
 - The route loads.
 - Submitting a valid topic still calls the existing similarity API.
 - Existing similarity scoring, thresholds, and endpoint behavior are unchanged.
-
