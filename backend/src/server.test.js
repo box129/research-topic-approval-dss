@@ -143,9 +143,36 @@ describe('Server Integration Tests', () => {
       });
     });
 
+    test('should reject unauthenticated lecturer pending queue requests', async () => {
+      const response = await request(app)
+        .get('/api/v1/lecturer/submissions')
+        .expect(401);
+
+      expect(response.body).toMatchObject({
+        status: 'error',
+        details: {
+          error_code: 'AUTHENTICATION_REQUIRED'
+        }
+      });
+    });
+
     test('should keep similarity endpoint available after submission route wiring', async () => {
       const response = await request(app)
         .post('/api/similarity/check')
+        .send({})
+        .expect(400);
+
+      expect(response.body).toMatchObject({
+        status: 'error',
+        details: {
+          error_code: 'MISSING_FIELD'
+        }
+      });
+    });
+
+    test('should keep v1 similarity endpoint available after lecturer queue route wiring', async () => {
+      const response = await request(app)
+        .post('/api/v1/check-similarity')
         .send({})
         .expect(400);
 

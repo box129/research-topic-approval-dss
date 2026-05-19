@@ -33,7 +33,7 @@ function normalizeKeywords(value) {
   return normalizeOptionalText(value);
 }
 
-function serializeSubmission(submission) {
+function serializeSubmission(submission, { includeStudent = Boolean(submission?.student) } = {}) {
   if (!submission) {
     return null;
   }
@@ -47,6 +47,10 @@ function serializeSubmission(submission) {
     category: submission.category,
     keywords: submission.keywords,
     status: String(submission.status || '').toLowerCase(),
+    ...(includeStudent ? {
+      student_name: submission.student?.name || null,
+      student_email: submission.student?.email || null
+    } : {}),
     submitted_at: submission.submittedAt?.toISOString?.() || submission.submittedAt,
     created_at: submission.createdAt?.toISOString?.() || submission.createdAt,
     updated_at: submission.updatedAt?.toISOString?.() || submission.updatedAt
@@ -60,6 +64,16 @@ function assertStudentUser(user) {
 
   if (user.role !== 'student') {
     throw new SubmissionServiceError('Only students can access submissions.', 403, 'FORBIDDEN');
+  }
+}
+
+function assertLecturerUser(user) {
+  if (!user) {
+    throw new SubmissionServiceError('Authentication required.', 401, 'AUTHENTICATION_REQUIRED');
+  }
+
+  if (user.role !== 'lecturer') {
+    throw new SubmissionServiceError('Only lecturers can access the review queue.', 403, 'FORBIDDEN');
   }
 }
 
@@ -141,12 +155,37 @@ function createSubmissionService({ prismaClient = prisma } = {}) {
       }
     });
 
+    return submissions.map((submission) => serializeSubmission(submission, { includeStudent: true }));
+  };
+
+  const listLecturerPendingSubmissions = async ({ user }) => {
+    assertLecturerUser(user);
+
+    const submissions = await prismaClient.submission.findMany({
+      where: {
+        status: 'PENDING_REVIEW'
+      },
+      orderBy: {
+        submittedAt: 'asc'
+      },
+      include: {
+        session: true,
+        student: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
+      }
+    });
+
     return submissions.map(serializeSubmission);
   };
 
   return {
     createSubmission,
-    listStudentSubmissions
+    listStudentSubmissions,
+    listLecturerPendingSubmissions
   };
 }
 
@@ -157,5 +196,6 @@ module.exports = {
   MAX_TITLE_WORDS,
   MIN_TITLE_WORDS,
   serializeSubmission,
+  assertLecturerUser,
   SubmissionServiceError
 };

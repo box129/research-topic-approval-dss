@@ -3,6 +3,7 @@ import V2PlaceholderPage from './common/V2PlaceholderPage';
 import StatCard from '../components/ui/StatCard';
 import PageHeader from '../components/ui/PageHeader';
 import AlertBanner from '../components/ui/AlertBanner';
+import PendingReviewsPage from './lecturer/PendingReviewsPage';
 import SubmitTopicPage from './student/SubmitTopicPage';
 import MySubmissionsPage from './student/MySubmissionsPage';
 
@@ -47,9 +48,7 @@ export function AdminDashboardPage() {
   );
 }
 
-export const LecturerPendingReviewsPage = () => (
-  <PlaceholderPage title="Pending Reviews" subtitle="L2 queue shell" />
-);
+export const LecturerPendingReviewsPage = PendingReviewsPage;
 
 export const LecturerReviewDecisionPage = () => (
   <PlaceholderPage title="Similarity Results and Decision" subtitle="L3 decision screen shell" />

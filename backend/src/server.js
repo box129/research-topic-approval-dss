@@ -169,6 +169,10 @@ app.post('/api/v1/submissions', requireAuth, requireRole('student'), (req, res, 
   getSubmissionController().createSubmission(req, res, next);
 });
 
+app.get('/api/v1/lecturer/submissions', requireAuth, requireRole('lecturer'), (req, res, next) => {
+  getSubmissionController().listLecturerPendingSubmissions(req, res, next);
+});
+
 const previewImportRouteHandler = (req, res, next) => {
   getTopicImportController().previewTopicImport(req, res, next);
 };

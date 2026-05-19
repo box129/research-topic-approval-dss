@@ -46,7 +46,25 @@ async function listSubmissions(req, res) {
   }
 }
 
+async function listLecturerPendingSubmissions(req, res) {
+  try {
+    const submissions = await submissionService.listLecturerPendingSubmissions({
+      user: req.user
+    });
+
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        submissions
+      }
+    });
+  } catch (error) {
+    return sendSubmissionError(res, error);
+  }
+}
+
 module.exports = {
   createSubmission,
-  listSubmissions
+  listSubmissions,
+  listLecturerPendingSubmissions
 };

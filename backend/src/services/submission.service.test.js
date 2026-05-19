@@ -23,6 +23,11 @@ const studentUser = {
   role: 'student'
 };
 
+const lecturerUser = {
+  id: 9,
+  role: 'lecturer'
+};
+
 const validInput = {
   title: 'Knowledge of malaria prevention among undergraduate public health students',
   category: 'Public Health',
@@ -193,6 +198,76 @@ describe('submission.service', () => {
     });
   });
 
+  test('lecturer can list pending review submissions with student details', async () => {
+    const submittedAt = new Date('2026-05-19T10:00:00Z');
+    const prisma = createPrismaMock({
+      submission: {
+        findMany: jest.fn().mockResolvedValue([
+          {
+            id: 21,
+            studentId: studentUser.id,
+            sessionId: 3,
+            session: { id: 3, name: '2025/2026' },
+            student: {
+              name: 'Student Demo',
+              email: 'student.demo@uniosun.edu.ng'
+            },
+            title: validInput.title,
+            category: validInput.category,
+            keywords: validInput.keywords,
+            status: 'PENDING_REVIEW',
+            submittedAt,
+            createdAt: submittedAt,
+            updatedAt: submittedAt
+          }
+        ])
+      }
+    });
+    const service = createSubmissionService({ prismaClient: prisma });
+
+    const result = await service.listLecturerPendingSubmissions({ user: lecturerUser });
+
+    expect(prisma.submission.findMany).toHaveBeenCalledWith({
+      where: {
+        status: 'PENDING_REVIEW'
+      },
+      orderBy: {
+        submittedAt: 'asc'
+      },
+      include: {
+        session: true,
+        student: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
+      }
+    });
+    expect(result).toEqual([
+      expect.objectContaining({
+        id: 21,
+        status: 'pending_review',
+        student_name: 'Student Demo',
+        student_email: 'student.demo@uniosun.edu.ng'
+      })
+    ]);
+  });
+
+  test.each([
+    'student',
+    'admin'
+  ])('%s cannot list lecturer pending submissions', async (role) => {
+    const service = createSubmissionService({ prismaClient: createPrismaMock() });
+
+    await expect(service.listLecturerPendingSubmissions({
+      user: { id: 8, role }
+    })).rejects.toMatchObject({
+      statusCode: 403,
+      code: 'FORBIDDEN'
+    });
+  });
+
   test('serializes submission dates and status for API responses', () => {
     const date = new Date('2026-05-19T10:00:00Z');
 
@@ -205,11 +280,17 @@ describe('submission.service', () => {
       category: null,
       keywords: null,
       status: 'PENDING_REVIEW',
+      student: {
+        name: 'Student Demo',
+        email: 'student.demo@uniosun.edu.ng'
+      },
       submittedAt: date,
       createdAt: date,
       updatedAt: date
     })).toMatchObject({
       status: 'pending_review',
+      student_name: 'Student Demo',
+      student_email: 'student.demo@uniosun.edu.ng',
       submitted_at: '2026-05-19T10:00:00.000Z'
     });
   });
