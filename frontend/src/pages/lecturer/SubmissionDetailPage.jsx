@@ -4,6 +4,8 @@ import PageHeader from '../../components/ui/PageHeader';
 import ErrorState from '../../components/ui/ErrorState';
 import LoadingState from '../../components/ui/LoadingState';
 import StatusBadge from '../../components/ui/StatusBadge';
+import ResultsDisplay from '../../components/features/Results/ResultsDisplay';
+import { runSimilarityCheck } from '../../api/similarity';
 import {
   getLecturerSubmission,
   updateLecturerSubmissionStatus
@@ -36,6 +38,11 @@ function SubmissionDetailPage() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [similarityResults, setSimilarityResults] = useState(null);
+  const [similarityStatus, setSimilarityStatus] = useState('');
+  const [similarityNotice, setSimilarityNotice] = useState('');
+  const [similarityError, setSimilarityError] = useState('');
+  const [isCheckingSimilarity, setIsCheckingSimilarity] = useState(false);
 
   const loadSubmission = useCallback(async () => {
     setIsLoading(true);
@@ -68,6 +75,34 @@ function SubmissionDetailPage() {
       setError(err.response?.data?.message || 'Unable to update submission status.');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleSimilarityCheck = async () => {
+    if (!submission?.title) {
+      setSimilarityError('Submission title is required before running a similarity check.');
+      return;
+    }
+
+    setIsCheckingSimilarity(true);
+    setSimilarityError('');
+    setSimilarityNotice('');
+    setSimilarityStatus('');
+    setSimilarityResults(null);
+
+    try {
+      const response = await runSimilarityCheck({
+        topic: submission.title,
+        keywords: submission.keywords || ''
+      });
+
+      setSimilarityStatus(response.status);
+      setSimilarityNotice(response.message || '');
+      setSimilarityResults(response.results);
+    } catch (err) {
+      setSimilarityError(err.response?.data?.message || err.message || 'Unable to run similarity check.');
+    } finally {
+      setIsCheckingSimilarity(false);
     }
   };
 
@@ -134,6 +169,49 @@ function SubmissionDetailPage() {
               <DetailItem label="Academic Session" value={submission.session_name} />
               <DetailItem label="Submitted Date" value={formatDate(submission.submitted_at)} />
             </dl>
+          </section>
+
+          <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-gray-950">Similarity Pre-check</h3>
+                <p className="mt-1 text-sm text-gray-600">
+                  Run the existing MVP similarity checker against this submitted topic. Results are shown temporarily and do not change the submission status.
+                </p>
+              </div>
+              <button
+                type="button"
+                disabled={isCheckingSimilarity}
+                onClick={handleSimilarityCheck}
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isCheckingSimilarity ? 'Checking...' : 'Run Similarity Check'}
+              </button>
+            </div>
+
+            {isCheckingSimilarity && (
+              <div className="mt-5">
+                <LoadingState label="Running similarity check" />
+              </div>
+            )}
+
+            {similarityError && (
+              <div className="mt-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {similarityError}
+              </div>
+            )}
+
+            {similarityStatus === 'partial_success' && similarityNotice && (
+              <div className="mt-5 rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                {similarityNotice}
+              </div>
+            )}
+
+            {similarityResults && (
+              <div className="mt-6 rounded-lg border border-gray-100 bg-gray-50">
+                <ResultsDisplay results={similarityResults} />
+              </div>
+            )}
           </section>
 
           <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
