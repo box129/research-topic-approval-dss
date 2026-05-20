@@ -7,7 +7,8 @@ jest.mock('../services/auth.service', () => ({
 jest.mock('../services/submission.service', () => ({
   createSubmission: jest.fn(),
   listLecturerPendingSubmissions: jest.fn(),
-  listStudentSubmissions: jest.fn()
+  listStudentSubmissions: jest.fn(),
+  updateLecturerSubmissionStatus: jest.fn()
 }));
 
 const authService = require('../services/auth.service');
@@ -260,5 +261,138 @@ describe('Submission API routes', () => {
       }
     });
     expect(submissionService.listLecturerPendingSubmissions).not.toHaveBeenCalled();
+  });
+
+  test('lecturer can approve a pending submission', async () => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+    submissionService.updateLecturerSubmissionStatus.mockResolvedValue({
+      id: 1,
+      student_name: 'Student Demo',
+      student_email: 'student.demo@uniosun.edu.ng',
+      title: 'Knowledge of malaria prevention among undergraduate public health students',
+      status: 'approved'
+    });
+
+    const response = await request(app)
+      .patch('/api/v1/lecturer/submissions/1/status')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .send({ status: 'approved' })
+      .expect(200);
+
+    expect(response.body).toMatchObject({
+      status: 'success',
+      data: {
+        submission: {
+          id: 1,
+          status: 'approved',
+          student_name: 'Student Demo'
+        }
+      }
+    });
+    expect(submissionService.updateLecturerSubmissionStatus).toHaveBeenCalledWith({
+      user: lecturerUser,
+      submissionId: '1',
+      status: 'approved'
+    });
+  });
+
+  test.each([
+    'rejected',
+    'awaiting_revision'
+  ])('lecturer can update a pending submission to %s', async (status) => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+    submissionService.updateLecturerSubmissionStatus.mockResolvedValue({
+      id: 1,
+      status
+    });
+
+    const response = await request(app)
+      .patch('/api/v1/lecturer/submissions/1/status')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .send({ status })
+      .expect(200);
+
+    expect(response.body).toMatchObject({
+      status: 'success',
+      data: {
+        submission: {
+          id: 1,
+          status
+        }
+      }
+    });
+  });
+
+  test('unauthenticated lecturer status update is rejected', async () => {
+    authService.authenticateToken.mockRejectedValue({
+      statusCode: 401,
+      code: 'AUTHENTICATION_REQUIRED',
+      message: 'Authentication required.'
+    });
+
+    const response = await request(app)
+      .patch('/api/v1/lecturer/submissions/1/status')
+      .send({ status: 'approved' })
+      .expect(401);
+
+    expect(response.body).toMatchObject({
+      status: 'error',
+      details: {
+        error_code: 'AUTHENTICATION_REQUIRED'
+      }
+    });
+    expect(submissionService.updateLecturerSubmissionStatus).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    'student',
+    'admin'
+  ])('%s cannot update lecturer submission status', async (role) => {
+    authService.authenticateToken.mockResolvedValue({
+      id: 2,
+      role,
+      status: 'active'
+    });
+
+    const response = await request(app)
+      .patch('/api/v1/lecturer/submissions/1/status')
+      .set('Cookie', [`rtadss_session=signed-${role}-token`])
+      .send({ status: 'approved' })
+      .expect(403);
+
+    expect(response.body).toMatchObject({
+      status: 'error',
+      details: {
+        error_code: 'FORBIDDEN'
+      }
+    });
+    expect(submissionService.updateLecturerSubmissionStatus).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ['INVALID_SUBMISSION_STATUS', 400],
+    ['SUBMISSION_NOT_FOUND', 404],
+    ['SUBMISSION_NOT_PENDING', 400]
+  ])('lecturer status update returns service error %s', async (errorCode, statusCode) => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+    submissionService.updateLecturerSubmissionStatus.mockRejectedValue({
+      statusCode,
+      code: errorCode,
+      field: errorCode === 'SUBMISSION_NOT_FOUND' ? undefined : 'status',
+      message: 'Submission update failed.'
+    });
+
+    const response = await request(app)
+      .patch('/api/v1/lecturer/submissions/1/status')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .send({ status: 'approved' })
+      .expect(statusCode);
+
+    expect(response.body).toMatchObject({
+      status: 'error',
+      details: {
+        error_code: errorCode
+      }
+    });
   });
 });

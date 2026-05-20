@@ -4,7 +4,10 @@ import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
 import LoadingState from '../../components/ui/LoadingState';
 import StatusBadge from '../../components/ui/StatusBadge';
-import { listLecturerPendingSubmissions } from '../../api/submissions';
+import {
+  listLecturerPendingSubmissions,
+  updateLecturerSubmissionStatus
+} from '../../api/submissions';
 
 function formatDate(value) {
   if (!value) {
@@ -21,6 +24,8 @@ function PendingReviewsPage() {
   const [submissions, setSubmissions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [updatingId, setUpdatingId] = useState(null);
 
   const loadSubmissions = useCallback(async () => {
     setIsLoading(true);
@@ -35,6 +40,27 @@ function PendingReviewsPage() {
     }
   }, []);
 
+  const handleStatusUpdate = async (submission, status, confirmLabel, successLabel) => {
+    const confirmed = window.confirm(`${confirmLabel} this submission?`);
+    if (!confirmed) {
+      return;
+    }
+
+    setUpdatingId(submission.id);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      await updateLecturerSubmissionStatus(submission.id, status);
+      setSuccessMessage(`Submission ${successLabel} successfully.`);
+      await loadSubmissions();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Unable to update submission status.');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   useEffect(() => {
     loadSubmissions();
   }, [loadSubmissions]);
@@ -47,6 +73,12 @@ function PendingReviewsPage() {
       />
 
       {isLoading && <LoadingState label="Loading pending reviews" />}
+
+      {!isLoading && successMessage && (
+        <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          {successMessage}
+        </div>
+      )}
 
       {!isLoading && error && (
         <ErrorState
@@ -83,6 +115,9 @@ function PendingReviewsPage() {
                 <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                   Submitted
                 </th>
+                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -110,6 +145,34 @@ function PendingReviewsPage() {
                   </td>
                   <td className="px-4 py-4 align-top text-sm text-gray-600">
                     {formatDate(submission.submitted_at)}
+                  </td>
+                  <td className="px-4 py-4 align-top">
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        disabled={updatingId === submission.id}
+                        onClick={() => handleStatusUpdate(submission, 'approved', 'Approve', 'approved')}
+                        className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        type="button"
+                        disabled={updatingId === submission.id}
+                        onClick={() => handleStatusUpdate(submission, 'awaiting_revision', 'Request revision for', 'marked as awaiting revision')}
+                        className="rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        Request Revision
+                      </button>
+                      <button
+                        type="button"
+                        disabled={updatingId === submission.id}
+                        onClick={() => handleStatusUpdate(submission, 'rejected', 'Reject', 'rejected')}
+                        className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        Reject
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
