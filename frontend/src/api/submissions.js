@@ -15,6 +15,11 @@ export async function listLecturerPendingSubmissions() {
   return response.data?.data?.submissions || [];
 }
 
+export async function getLecturerSubmission(submissionId) {
+  const response = await apiClient.get(`/lecturer/submissions/${submissionId}`);
+  return response.data?.data?.submission;
+}
+
 export async function updateLecturerSubmissionStatus(submissionId, status) {
   const response = await apiClient.patch(`/lecturer/submissions/${submissionId}/status`, { status });
   return response.data?.data?.submission;

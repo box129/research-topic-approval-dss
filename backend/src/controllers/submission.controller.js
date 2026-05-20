@@ -63,6 +63,24 @@ async function listLecturerPendingSubmissions(req, res) {
   }
 }
 
+async function getLecturerSubmission(req, res) {
+  try {
+    const submission = await submissionService.getLecturerSubmission({
+      user: req.user,
+      submissionId: req.params.id
+    });
+
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        submission
+      }
+    });
+  } catch (error) {
+    return sendSubmissionError(res, error);
+  }
+}
+
 async function updateLecturerSubmissionStatus(req, res) {
   try {
     const submission = await submissionService.updateLecturerSubmissionStatus({
@@ -86,5 +104,6 @@ module.exports = {
   createSubmission,
   listSubmissions,
   listLecturerPendingSubmissions,
+  getLecturerSubmission,
   updateLecturerSubmissionStatus
 };

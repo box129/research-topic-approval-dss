@@ -208,6 +208,30 @@ function createSubmissionService({ prismaClient = prisma } = {}) {
     return submissions.map(serializeSubmission);
   };
 
+  const getLecturerSubmission = async ({ user, submissionId }) => {
+    assertLecturerUser(user);
+    const id = parseSubmissionId(submissionId);
+
+    const submission = await prismaClient.submission.findUnique({
+      where: { id },
+      include: {
+        session: true,
+        student: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    if (!submission) {
+      throw new SubmissionServiceError('Submission was not found.', 404, 'SUBMISSION_NOT_FOUND');
+    }
+
+    return serializeSubmission(submission);
+  };
+
   const updateLecturerSubmissionStatus = async ({ user, submissionId, status }) => {
     assertLecturerUser(user);
     const id = parseSubmissionId(submissionId);
@@ -257,6 +281,7 @@ function createSubmissionService({ prismaClient = prisma } = {}) {
     createSubmission,
     listStudentSubmissions,
     listLecturerPendingSubmissions,
+    getLecturerSubmission,
     updateLecturerSubmissionStatus
   };
 }
