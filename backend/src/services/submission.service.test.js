@@ -12,7 +12,9 @@ function createPrismaMock(overrides = {}) {
     },
     submission: {
       create: jest.fn(),
+      findUnique: jest.fn(),
       findMany: jest.fn(),
+      update: jest.fn(),
       ...overrides.submission
     }
   };
@@ -262,6 +264,147 @@ describe('submission.service', () => {
 
     await expect(service.listLecturerPendingSubmissions({
       user: { id: 8, role }
+    })).rejects.toMatchObject({
+      statusCode: 403,
+      code: 'FORBIDDEN'
+    });
+  });
+
+  test.each([
+    ['approved', 'APPROVED'],
+    ['rejected', 'REJECTED'],
+    ['awaiting_revision', 'AWAITING_REVISION']
+  ])('lecturer can update pending submission to %s', async (clientStatus, prismaStatus) => {
+    const updatedAt = new Date('2026-05-19T12:00:00Z');
+    const prisma = createPrismaMock({
+      submission: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 21,
+          status: 'PENDING_REVIEW'
+        }),
+        update: jest.fn().mockResolvedValue({
+          id: 21,
+          studentId: studentUser.id,
+          sessionId: 3,
+          session: { id: 3, name: '2025/2026' },
+          student: {
+            name: 'Student Demo',
+            email: 'student.demo@uniosun.edu.ng'
+          },
+          title: validInput.title,
+          category: validInput.category,
+          keywords: validInput.keywords,
+          status: prismaStatus,
+          submittedAt: updatedAt,
+          createdAt: updatedAt,
+          updatedAt
+        })
+      }
+    });
+    const service = createSubmissionService({ prismaClient: prisma });
+
+    const result = await service.updateLecturerSubmissionStatus({
+      user: lecturerUser,
+      submissionId: 21,
+      status: clientStatus
+    });
+
+    expect(prisma.submission.findUnique).toHaveBeenCalledWith({
+      where: { id: 21 },
+      select: {
+        id: true,
+        status: true
+      }
+    });
+    expect(prisma.submission.update).toHaveBeenCalledWith({
+      where: { id: 21 },
+      data: {
+        status: prismaStatus
+      },
+      include: {
+        session: true,
+        student: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
+      }
+    });
+    expect(result).toMatchObject({
+      id: 21,
+      status: clientStatus,
+      student_name: 'Student Demo',
+      student_email: 'student.demo@uniosun.edu.ng'
+    });
+  });
+
+  test('rejects invalid lecturer status updates', async () => {
+    const service = createSubmissionService({ prismaClient: createPrismaMock() });
+
+    await expect(service.updateLecturerSubmissionStatus({
+      user: lecturerUser,
+      submissionId: 21,
+      status: 'pending_review'
+    })).rejects.toMatchObject({
+      statusCode: 400,
+      code: 'INVALID_SUBMISSION_STATUS',
+      field: 'status'
+    });
+  });
+
+  test('returns 404 for nonexistent lecturer status update target', async () => {
+    const prisma = createPrismaMock({
+      submission: {
+        findUnique: jest.fn().mockResolvedValue(null)
+      }
+    });
+    const service = createSubmissionService({ prismaClient: prisma });
+
+    await expect(service.updateLecturerSubmissionStatus({
+      user: lecturerUser,
+      submissionId: 999,
+      status: 'approved'
+    })).rejects.toMatchObject({
+      statusCode: 404,
+      code: 'SUBMISSION_NOT_FOUND'
+    });
+  });
+
+  test('does not update non-pending submissions again', async () => {
+    const prisma = createPrismaMock({
+      submission: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 21,
+          status: 'APPROVED'
+        }),
+        update: jest.fn()
+      }
+    });
+    const service = createSubmissionService({ prismaClient: prisma });
+
+    await expect(service.updateLecturerSubmissionStatus({
+      user: lecturerUser,
+      submissionId: 21,
+      status: 'rejected'
+    })).rejects.toMatchObject({
+      statusCode: 400,
+      code: 'SUBMISSION_NOT_PENDING',
+      field: 'status'
+    });
+    expect(prisma.submission.update).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    'student',
+    'admin'
+  ])('%s cannot update lecturer submission status', async (role) => {
+    const service = createSubmissionService({ prismaClient: createPrismaMock() });
+
+    await expect(service.updateLecturerSubmissionStatus({
+      user: { id: 8, role },
+      submissionId: 21,
+      status: 'approved'
     })).rejects.toMatchObject({
       statusCode: 403,
       code: 'FORBIDDEN'

@@ -2,6 +2,11 @@ const prisma = require('../config/database');
 
 const MIN_TITLE_WORDS = 7;
 const MAX_TITLE_WORDS = 24;
+const LECTURER_STATUS_UPDATES = {
+  approved: 'APPROVED',
+  rejected: 'REJECTED',
+  awaiting_revision: 'AWAITING_REVISION'
+};
 
 class SubmissionServiceError extends Error {
   constructor(message, statusCode, code, field) {
@@ -106,6 +111,27 @@ function validateSubmissionInput({ title }) {
   return normalizedTitle;
 }
 
+function parseSubmissionId(value) {
+  const submissionId = Number(value);
+
+  if (!Number.isInteger(submissionId) || submissionId <= 0) {
+    throw new SubmissionServiceError('Submission id is invalid.', 400, 'INVALID_SUBMISSION_ID', 'id');
+  }
+
+  return submissionId;
+}
+
+function parseLecturerStatusUpdate(value) {
+  const normalizedStatus = String(value || '').trim().toLowerCase();
+  const prismaStatus = LECTURER_STATUS_UPDATES[normalizedStatus];
+
+  if (!prismaStatus) {
+    throw new SubmissionServiceError('Submission status is invalid.', 400, 'INVALID_SUBMISSION_STATUS', 'status');
+  }
+
+  return prismaStatus;
+}
+
 function createSubmissionService({ prismaClient = prisma } = {}) {
   const getCurrentSessionId = async () => {
     const session = await prismaClient.academicSession.findFirst({
@@ -182,10 +208,56 @@ function createSubmissionService({ prismaClient = prisma } = {}) {
     return submissions.map(serializeSubmission);
   };
 
+  const updateLecturerSubmissionStatus = async ({ user, submissionId, status }) => {
+    assertLecturerUser(user);
+    const id = parseSubmissionId(submissionId);
+    const nextStatus = parseLecturerStatusUpdate(status);
+
+    const existingSubmission = await prismaClient.submission.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        status: true
+      }
+    });
+
+    if (!existingSubmission) {
+      throw new SubmissionServiceError('Submission was not found.', 404, 'SUBMISSION_NOT_FOUND');
+    }
+
+    if (existingSubmission.status !== 'PENDING_REVIEW') {
+      throw new SubmissionServiceError(
+        'Only pending review submissions can be updated.',
+        400,
+        'SUBMISSION_NOT_PENDING',
+        'status'
+      );
+    }
+
+    const updatedSubmission = await prismaClient.submission.update({
+      where: { id },
+      data: {
+        status: nextStatus
+      },
+      include: {
+        session: true,
+        student: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    return serializeSubmission(updatedSubmission);
+  };
+
   return {
     createSubmission,
     listStudentSubmissions,
-    listLecturerPendingSubmissions
+    listLecturerPendingSubmissions,
+    updateLecturerSubmissionStatus
   };
 }
 
@@ -197,5 +269,6 @@ module.exports = {
   MIN_TITLE_WORDS,
   serializeSubmission,
   assertLecturerUser,
+  LECTURER_STATUS_UPDATES,
   SubmissionServiceError
 };
