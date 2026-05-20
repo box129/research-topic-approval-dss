@@ -6,6 +6,7 @@ jest.mock('../services/auth.service', () => ({
 
 jest.mock('../services/submission.service', () => ({
   createSubmission: jest.fn(),
+  getLecturerSubmission: jest.fn(),
   listLecturerPendingSubmissions: jest.fn(),
   listStudentSubmissions: jest.fn(),
   updateLecturerSubmissionStatus: jest.fn()
@@ -261,6 +262,109 @@ describe('Submission API routes', () => {
       }
     });
     expect(submissionService.listLecturerPendingSubmissions).not.toHaveBeenCalled();
+  });
+
+  test('lecturer can fetch submission detail', async () => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+    submissionService.getLecturerSubmission.mockResolvedValue({
+      id: 1,
+      student_name: 'Student Demo',
+      student_email: 'student.demo@uniosun.edu.ng',
+      session_name: '2025/2026',
+      title: 'Knowledge of malaria prevention among undergraduate public health students',
+      status: 'approved'
+    });
+
+    const response = await request(app)
+      .get('/api/v1/lecturer/submissions/1')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .expect(200);
+
+    expect(response.body).toMatchObject({
+      status: 'success',
+      data: {
+        submission: {
+          id: 1,
+          student_name: 'Student Demo',
+          student_email: 'student.demo@uniosun.edu.ng',
+          session_name: '2025/2026',
+          status: 'approved'
+        }
+      }
+    });
+    expect(submissionService.getLecturerSubmission).toHaveBeenCalledWith({
+      user: lecturerUser,
+      submissionId: '1'
+    });
+  });
+
+  test('unauthenticated lecturer detail request is rejected', async () => {
+    authService.authenticateToken.mockRejectedValue({
+      statusCode: 401,
+      code: 'AUTHENTICATION_REQUIRED',
+      message: 'Authentication required.'
+    });
+
+    const response = await request(app)
+      .get('/api/v1/lecturer/submissions/1')
+      .expect(401);
+
+    expect(response.body).toMatchObject({
+      status: 'error',
+      details: {
+        error_code: 'AUTHENTICATION_REQUIRED'
+      }
+    });
+    expect(submissionService.getLecturerSubmission).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    'student',
+    'admin'
+  ])('%s cannot fetch lecturer submission detail', async (role) => {
+    authService.authenticateToken.mockResolvedValue({
+      id: 2,
+      role,
+      status: 'active'
+    });
+
+    const response = await request(app)
+      .get('/api/v1/lecturer/submissions/1')
+      .set('Cookie', [`rtadss_session=signed-${role}-token`])
+      .expect(403);
+
+    expect(response.body).toMatchObject({
+      status: 'error',
+      details: {
+        error_code: 'FORBIDDEN'
+      }
+    });
+    expect(submissionService.getLecturerSubmission).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ['INVALID_SUBMISSION_ID', 400],
+    ['SUBMISSION_NOT_FOUND', 404]
+  ])('lecturer detail returns service error %s', async (errorCode, statusCode) => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+    submissionService.getLecturerSubmission.mockRejectedValue({
+      statusCode,
+      code: errorCode,
+      field: errorCode === 'INVALID_SUBMISSION_ID' ? 'id' : undefined,
+      message: 'Submission detail failed.'
+    });
+
+    const response = await request(app)
+      .get('/api/v1/lecturer/submissions/1')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .expect(statusCode);
+
+    expect(response.body).toMatchObject({
+      status: 'error',
+      details: {
+        error_code: errorCode
+      }
+    });
   });
 
   test('lecturer can approve a pending submission', async () => {

@@ -156,6 +156,19 @@ describe('Server Integration Tests', () => {
       });
     });
 
+    test('should reject unauthenticated lecturer detail requests', async () => {
+      const response = await request(app)
+        .get('/api/v1/lecturer/submissions/1')
+        .expect(401);
+
+      expect(response.body).toMatchObject({
+        status: 'error',
+        details: {
+          error_code: 'AUTHENTICATION_REQUIRED'
+        }
+      });
+    });
+
     test('should reject unauthenticated lecturer status update requests', async () => {
       const response = await request(app)
         .patch('/api/v1/lecturer/submissions/1/status')

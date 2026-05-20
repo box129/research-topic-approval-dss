@@ -173,6 +173,10 @@ app.get('/api/v1/lecturer/submissions', requireAuth, requireRole('lecturer'), (r
   getSubmissionController().listLecturerPendingSubmissions(req, res, next);
 });
 
+app.get('/api/v1/lecturer/submissions/:id', requireAuth, requireRole('lecturer'), (req, res, next) => {
+  getSubmissionController().getLecturerSubmission(req, res, next);
+});
+
 app.patch('/api/v1/lecturer/submissions/:id/status', requireAuth, requireRole('lecturer'), (req, res, next) => {
   getSubmissionController().updateLecturerSubmissionStatus(req, res, next);
 });

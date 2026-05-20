@@ -4,6 +4,7 @@ import StatCard from '../components/ui/StatCard';
 import PageHeader from '../components/ui/PageHeader';
 import AlertBanner from '../components/ui/AlertBanner';
 import PendingReviewsPage from './lecturer/PendingReviewsPage';
+import SubmissionDetailPage from './lecturer/SubmissionDetailPage';
 import SubmitTopicPage from './student/SubmitTopicPage';
 import MySubmissionsPage from './student/MySubmissionsPage';
 
@@ -50,9 +51,7 @@ export function AdminDashboardPage() {
 
 export const LecturerPendingReviewsPage = PendingReviewsPage;
 
-export const LecturerReviewDecisionPage = () => (
-  <PlaceholderPage title="Similarity Results and Decision" subtitle="L3 decision screen shell" />
-);
+export const LecturerReviewDecisionPage = SubmissionDetailPage;
 
 export const LecturerMyDecisionsPage = () => (
   <PlaceholderPage title="My Decisions" subtitle="L4 decision history shell" />

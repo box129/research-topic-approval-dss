@@ -270,6 +270,102 @@ describe('submission.service', () => {
     });
   });
 
+  test('lecturer can fetch submission detail by id', async () => {
+    const submittedAt = new Date('2026-05-19T10:00:00Z');
+    const prisma = createPrismaMock({
+      submission: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 21,
+          studentId: studentUser.id,
+          sessionId: 3,
+          session: { id: 3, name: '2025/2026' },
+          student: {
+            name: 'Student Demo',
+            email: 'student.demo@uniosun.edu.ng'
+          },
+          title: validInput.title,
+          category: validInput.category,
+          keywords: validInput.keywords,
+          status: 'APPROVED',
+          submittedAt,
+          createdAt: submittedAt,
+          updatedAt: submittedAt
+        })
+      }
+    });
+    const service = createSubmissionService({ prismaClient: prisma });
+
+    const result = await service.getLecturerSubmission({
+      user: lecturerUser,
+      submissionId: 21
+    });
+
+    expect(prisma.submission.findUnique).toHaveBeenCalledWith({
+      where: { id: 21 },
+      include: {
+        session: true,
+        student: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
+      }
+    });
+    expect(result).toMatchObject({
+      id: 21,
+      status: 'approved',
+      session_name: '2025/2026',
+      student_name: 'Student Demo',
+      student_email: 'student.demo@uniosun.edu.ng'
+    });
+  });
+
+  test('lecturer detail fetch rejects invalid id', async () => {
+    const service = createSubmissionService({ prismaClient: createPrismaMock() });
+
+    await expect(service.getLecturerSubmission({
+      user: lecturerUser,
+      submissionId: 'abc'
+    })).rejects.toMatchObject({
+      statusCode: 400,
+      code: 'INVALID_SUBMISSION_ID',
+      field: 'id'
+    });
+  });
+
+  test('lecturer detail fetch returns 404 for nonexistent submission', async () => {
+    const prisma = createPrismaMock({
+      submission: {
+        findUnique: jest.fn().mockResolvedValue(null)
+      }
+    });
+    const service = createSubmissionService({ prismaClient: prisma });
+
+    await expect(service.getLecturerSubmission({
+      user: lecturerUser,
+      submissionId: 999
+    })).rejects.toMatchObject({
+      statusCode: 404,
+      code: 'SUBMISSION_NOT_FOUND'
+    });
+  });
+
+  test.each([
+    'student',
+    'admin'
+  ])('%s cannot fetch lecturer submission detail', async (role) => {
+    const service = createSubmissionService({ prismaClient: createPrismaMock() });
+
+    await expect(service.getLecturerSubmission({
+      user: { id: 8, role },
+      submissionId: 21
+    })).rejects.toMatchObject({
+      statusCode: 403,
+      code: 'FORBIDDEN'
+    });
+  });
+
   test.each([
     ['approved', 'APPROVED'],
     ['rejected', 'REJECTED'],

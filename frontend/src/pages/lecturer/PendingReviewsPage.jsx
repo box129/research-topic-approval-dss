@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import PageHeader from '../../components/ui/PageHeader';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
@@ -124,7 +125,12 @@ function PendingReviewsPage() {
               {submissions.map((submission) => (
                 <tr key={submission.id}>
                   <td className="px-4 py-4 align-top">
-                    <p className="font-medium text-gray-950">{submission.title}</p>
+                    <Link
+                      to={`/lecturer/pending-reviews/${submission.id}`}
+                      className="font-medium text-emerald-700 hover:text-emerald-800 hover:underline"
+                    >
+                      {submission.title}
+                    </Link>
                     {submission.keywords && (
                       <p className="mt-1 text-sm text-gray-500">Keywords: {submission.keywords}</p>
                     )}
@@ -172,6 +178,12 @@ function PendingReviewsPage() {
                       >
                         Reject
                       </button>
+                      <Link
+                        to={`/lecturer/pending-reviews/${submission.id}`}
+                        className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                      >
+                        View Details
+                      </Link>
                     </div>
                   </td>
                 </tr>
