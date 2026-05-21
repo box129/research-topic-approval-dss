@@ -15,7 +15,8 @@
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
     "prisma:seed": "node prisma/seed.js",
-    "prisma:seed:auth-demo": "node prisma/seed-auth-demo.js"
+    "prisma:seed:auth-demo": "node prisma/seed-auth-demo.js",
+    "prisma:seed:demo-comparison": "node prisma/seed-demo-comparison-topics.js"
   },
   "keywords": [
     "express",

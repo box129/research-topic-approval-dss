@@ -1,0 +1,104 @@
+{
+  "historical": [
+    {
+      "title": "Assessment of Health Education Campaigns on Malaria Prevention Practices among Undergraduate Students in Osogbo",
+      "keywords": "malaria prevention, health education campaigns, undergraduate students, Osogbo",
+      "sessionYear": "2022/2023",
+      "supervisorName": "Dr. Adeyemi",
+      "category": "Public Health",
+      "population": "Undergraduate students",
+      "location": "Osogbo",
+      "studyFocus": "Effect of health education campaigns on malaria prevention practices"
+    },
+    {
+      "title": "Influence of Public Health Campaigns on Malaria Prevention Behaviour among University Students in Osun State",
+      "keywords": "public health campaigns, malaria prevention behaviour, university students, Osun State",
+      "sessionYear": "2021/2022",
+      "supervisorName": "Dr. Balogun",
+      "category": "Health Promotion",
+      "population": "University students",
+      "location": "Osun State",
+      "studyFocus": "Campaign influence on malaria prevention behaviour"
+    },
+    {
+      "title": "Knowledge and Practice of Malaria Prevention among Mothers of Under-Five Children in Osogbo",
+      "keywords": "malaria prevention, mothers, under-five children, Osogbo",
+      "sessionYear": "2020/2021",
+      "supervisorName": "Dr. Ibrahim",
+      "category": "Maternal and Child Health",
+      "population": "Mothers of under-five children",
+      "location": "Osogbo",
+      "studyFocus": "Knowledge and practice of malaria prevention"
+    },
+    {
+      "title": "Assessment of Sleep Hygiene and Academic Performance among Undergraduate Students in Osogbo",
+      "keywords": "sleep hygiene, academic performance, undergraduate students, Osogbo",
+      "sessionYear": "2023/2024",
+      "supervisorName": "Dr. Okafor",
+      "category": "Student Health",
+      "population": "Undergraduate students",
+      "location": "Osogbo",
+      "studyFocus": "Sleep hygiene and academic performance"
+    },
+    {
+      "title": "Malaria Prevention Practices among Undergraduate Students in Lagos State",
+      "keywords": "malaria prevention practices, undergraduate students, Lagos State",
+      "sessionYear": "2019/2020",
+      "supervisorName": "Dr. Nwachukwu",
+      "category": "Public Health",
+      "population": "Undergraduate students",
+      "location": "Lagos State",
+      "studyFocus": "Malaria prevention practices"
+    },
+    {
+      "title": "Machine Learning Algorithms for Stock Market Prediction",
+      "keywords": "machine learning, stock market, prediction algorithms, financial forecasting",
+      "sessionYear": "2022/2023",
+      "supervisorName": "Dr. Williams",
+      "category": "Computer Science",
+      "population": "Historical stock market datasets",
+      "location": "Nigeria",
+      "studyFocus": "Algorithmic stock market prediction"
+    }
+  ],
+  "currentSession": [
+    {
+      "title": "Effect of School Health Campaigns on Malaria Prevention among Undergraduate Students in Osun State",
+      "keywords": "school health campaigns, malaria prevention, undergraduate students, Osun State",
+      "sessionYear": "2025/2026",
+      "supervisorName": "Dr. Musa",
+      "category": "Public Health",
+      "population": "Undergraduate students",
+      "location": "Osun State",
+      "studyFocus": "School health campaign effect on malaria prevention",
+      "studentId": "DEMO-CURRENT-001",
+      "approvedDate": "2026-05-01T00:00:00.000Z"
+    }
+  ],
+  "underReview": [
+    {
+      "title": "Awareness Campaigns and Malaria Prevention Practices among Students in Osogbo Tertiary Institutions",
+      "keywords": "awareness campaigns, malaria prevention practices, students, Osogbo tertiary institutions",
+      "sessionYear": "2025/2026",
+      "supervisorName": "Dr. Adebayo",
+      "category": "Public Health",
+      "population": "Tertiary institution students",
+      "location": "Osogbo",
+      "studyFocus": "Awareness campaigns and malaria prevention practices",
+      "reviewingLecturer": "Dr. Adebayo",
+      "reviewStartedAtHoursAgo": 2
+    },
+    {
+      "title": "Communication Strategies for Malaria Prevention among University Students in Ile-Ife",
+      "keywords": "communication strategies, malaria prevention, university students, Ile-Ife",
+      "sessionYear": "2025/2026",
+      "supervisorName": "Dr. Falade",
+      "category": "Health Communication",
+      "population": "University students",
+      "location": "Ile-Ife",
+      "studyFocus": "Communication strategies for malaria prevention",
+      "reviewingLecturer": "Dr. Falade",
+      "reviewStartedAtHoursAgo": 12
+    }
+  ]
+}
