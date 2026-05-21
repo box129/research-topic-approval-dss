@@ -1,4 +1,5 @@
 import axios from 'axios';
+import apiClient from './client';
 
 function mapFypTier1Matches(matches = []) {
   return matches.map((match) => ({
@@ -63,6 +64,19 @@ export async function runSimilarityCheck({ topic, keywords }) {
     topic,
     keywords: keywords || ''
   });
+
+  return {
+    status: response.data?.status,
+    message: response.data?.message,
+    results: mapSimilarityResponse(response.data)
+  };
+}
+
+export async function runLecturerSubmissionSimilarityCheck(submissionId) {
+  const response = await apiClient.post(
+    `/lecturer/submissions/${submissionId}/similarity-check`,
+    {}
+  );
 
   return {
     status: response.data?.status,

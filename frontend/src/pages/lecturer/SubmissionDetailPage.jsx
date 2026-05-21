@@ -5,7 +5,7 @@ import ErrorState from '../../components/ui/ErrorState';
 import LoadingState from '../../components/ui/LoadingState';
 import StatusBadge from '../../components/ui/StatusBadge';
 import ResultsDisplay from '../../components/features/Results/ResultsDisplay';
-import { runSimilarityCheck } from '../../api/similarity';
+import { runLecturerSubmissionSimilarityCheck } from '../../api/similarity';
 import {
   getLecturerSubmission,
   updateLecturerSubmissionStatus
@@ -79,8 +79,8 @@ function SubmissionDetailPage() {
   };
 
   const handleSimilarityCheck = async () => {
-    if (!submission?.title) {
-      setSimilarityError('Submission title is required before running a similarity check.');
+    if (!submission?.id) {
+      setSimilarityError('Submission id is required before running a similarity check.');
       return;
     }
 
@@ -91,10 +91,7 @@ function SubmissionDetailPage() {
     setSimilarityResults(null);
 
     try {
-      const response = await runSimilarityCheck({
-        topic: submission.title,
-        keywords: submission.keywords || ''
-      });
+      const response = await runLecturerSubmissionSimilarityCheck(submission.id);
 
       setSimilarityStatus(response.status);
       setSimilarityNotice(response.message || '');
