@@ -13,6 +13,7 @@ let similarityController;
 let topicImportController;
 let authController;
 let submissionController;
+let lecturerSimilarityController;
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler.middleware');
 const { requireAuth, requireRole } = require('./middleware/auth.middleware');
 
@@ -141,6 +142,13 @@ const getSubmissionController = () => {
   return submissionController;
 };
 
+const getLecturerSimilarityController = () => {
+  if (!lecturerSimilarityController) {
+    lecturerSimilarityController = require('./controllers/lecturerSimilarity.controller');
+  }
+  return lecturerSimilarityController;
+};
+
 app.post('/api/v1/auth/login', (req, res, next) => {
   getAuthController().login(req, res, next);
 });
@@ -175,6 +183,10 @@ app.get('/api/v1/lecturer/submissions', requireAuth, requireRole('lecturer'), (r
 
 app.get('/api/v1/lecturer/submissions/:id', requireAuth, requireRole('lecturer'), (req, res, next) => {
   getSubmissionController().getLecturerSubmission(req, res, next);
+});
+
+app.post('/api/v1/lecturer/submissions/:id/similarity-check', requireAuth, requireRole('lecturer'), (req, res, next) => {
+  getLecturerSimilarityController().checkLecturerSubmissionSimilarity(req, res, next);
 });
 
 app.patch('/api/v1/lecturer/submissions/:id/status', requireAuth, requireRole('lecturer'), (req, res, next) => {
