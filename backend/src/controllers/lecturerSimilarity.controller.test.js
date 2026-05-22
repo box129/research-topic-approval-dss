@@ -9,12 +9,24 @@ jest.mock('../services/submission.service', () => ({
   updateLecturerSubmissionStatus: jest.fn()
 }));
 
+jest.mock('../services/similaritySnapshot.service', () => ({
+  createSnapshotFromSimilarityResponse: jest.fn()
+}));
+
 jest.mock('./similarity.controller', () => ({
   checkSimilarity: jest.fn()
 }));
 
+jest.mock('../config/logger', () => ({
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+  debug: jest.fn()
+}));
+
 const authService = require('../services/auth.service');
 const submissionService = require('../services/submission.service');
+const similaritySnapshotService = require('../services/similaritySnapshot.service');
 const similarityController = require('./similarity.controller');
 const app = require('../server');
 
@@ -44,6 +56,7 @@ function mockSimilaritySuccess() {
 describe('Lecturer similarity wrapper route', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    similaritySnapshotService.createSnapshotFromSimilarityResponse.mockResolvedValue({ id: 20 });
     mockSimilaritySuccess();
   });
 
@@ -74,6 +87,11 @@ describe('Lecturer similarity wrapper route', () => {
       submissionId: '4'
     });
     expect(similarityController.checkSimilarity).toHaveBeenCalledTimes(1);
+    expect(similaritySnapshotService.createSnapshotFromSimilarityResponse).toHaveBeenCalledWith({
+      submissionId: 4,
+      checkedById: lecturerUser.id,
+      similarityResponse: response.body
+    });
   });
 
   test('wrapper uses submission title and keywords for the similarity request', async () => {
@@ -137,6 +155,7 @@ describe('Lecturer similarity wrapper route', () => {
     });
     expect(submissionService.getLecturerSubmission).not.toHaveBeenCalled();
     expect(similarityController.checkSimilarity).not.toHaveBeenCalled();
+    expect(similaritySnapshotService.createSnapshotFromSimilarityResponse).not.toHaveBeenCalled();
   });
 
   test.each([
@@ -162,6 +181,7 @@ describe('Lecturer similarity wrapper route', () => {
     });
     expect(submissionService.getLecturerSubmission).not.toHaveBeenCalled();
     expect(similarityController.checkSimilarity).not.toHaveBeenCalled();
+    expect(similaritySnapshotService.createSnapshotFromSimilarityResponse).not.toHaveBeenCalled();
   });
 
   test.each([
@@ -188,6 +208,7 @@ describe('Lecturer similarity wrapper route', () => {
       }
     });
     expect(similarityController.checkSimilarity).not.toHaveBeenCalled();
+    expect(similaritySnapshotService.createSnapshotFromSimilarityResponse).not.toHaveBeenCalled();
   });
 
   test('wrapper does not mutate submission status', async () => {
@@ -205,5 +226,91 @@ describe('Lecturer similarity wrapper route', () => {
       .expect(200);
 
     expect(submissionService.updateLecturerSubmissionStatus).not.toHaveBeenCalled();
+  });
+
+  test('wrapper creates snapshot after partial_success similarity check', async () => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+    submissionService.getLecturerSubmission.mockResolvedValue({
+      id: 8,
+      title: 'Awareness of malaria prevention practices among university students',
+      keywords: 'malaria, prevention',
+      status: 'pending_review'
+    });
+    similarityController.checkSimilarity.mockImplementation((req, res) => res.status(200).json({
+      status: 'partial_success',
+      message: 'SBERT semantic analysis unavailable. Showing lexical similarity only (Jaccard, TF-IDF).',
+      data: {
+        input_topic: req.body.topic,
+        overall_risk: 'LOW',
+        max_similarity: 0,
+        tier1_historical: [],
+        tier2_current: [],
+        tier3_under_review: []
+      }
+    }));
+
+    const response = await request(app)
+      .post('/api/v1/lecturer/submissions/8/similarity-check')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .expect(200);
+
+    expect(response.body.status).toBe('partial_success');
+    expect(similaritySnapshotService.createSnapshotFromSimilarityResponse).toHaveBeenCalledWith({
+      submissionId: 8,
+      checkedById: lecturerUser.id,
+      similarityResponse: response.body
+    });
+  });
+
+  test('wrapper does not create snapshot for similarity error response', async () => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+    submissionService.getLecturerSubmission.mockResolvedValue({
+      id: 9,
+      title: 'Malformed similarity topic',
+      keywords: '',
+      status: 'pending_review'
+    });
+    similarityController.checkSimilarity.mockImplementation((req, res) => res.status(400).json({
+      status: 'error',
+      message: 'Topic is required.',
+      details: {
+        error_code: 'MISSING_FIELD'
+      }
+    }));
+
+    const response = await request(app)
+      .post('/api/v1/lecturer/submissions/9/similarity-check')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .expect(400);
+
+    expect(response.body.status).toBe('error');
+    expect(similaritySnapshotService.createSnapshotFromSimilarityResponse).toHaveBeenCalledWith({
+      submissionId: 9,
+      checkedById: lecturerUser.id,
+      similarityResponse: response.body
+    });
+  });
+
+  test('snapshot storage failure still returns similarity response', async () => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+    submissionService.getLecturerSubmission.mockResolvedValue({
+      id: 10,
+      title: 'Factors affecting malaria prevention among students in Osogbo',
+      keywords: 'malaria, prevention',
+      status: 'pending_review'
+    });
+    similaritySnapshotService.createSnapshotFromSimilarityResponse.mockRejectedValue(new Error('Snapshot insert failed'));
+
+    const response = await request(app)
+      .post('/api/v1/lecturer/submissions/10/similarity-check')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .expect(200);
+
+    expect(response.body).toMatchObject({
+      status: 'success',
+      data: {
+        overall_risk: 'LOW'
+      }
+    });
   });
 });
