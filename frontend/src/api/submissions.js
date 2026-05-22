@@ -20,8 +20,8 @@ export async function getLecturerSubmission(submissionId) {
   return response.data?.data?.submission;
 }
 
-export async function updateLecturerSubmissionStatus(submissionId, status) {
-  const response = await apiClient.patch(`/lecturer/submissions/${submissionId}/status`, { status });
+export async function updateLecturerSubmissionStatus(submissionId, status, reason) {
+  const response = await apiClient.patch(`/lecturer/submissions/${submissionId}/status`, { status, reason });
   return response.data?.data?.submission;
 }
 

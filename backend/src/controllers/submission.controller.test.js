@@ -374,7 +374,11 @@ describe('Submission API routes', () => {
       student_name: 'Student Demo',
       student_email: 'student.demo@uniosun.edu.ng',
       title: 'Knowledge of malaria prevention among undergraduate public health students',
-      status: 'approved'
+      status: 'approved',
+      decision_reason: null,
+      decided_by_id: lecturerUser.id,
+      decided_by_name: 'Lecturer Demo',
+      decided_at: '2026-05-22T10:00:00.000Z'
     });
 
     const response = await request(app)
@@ -389,31 +393,40 @@ describe('Submission API routes', () => {
         submission: {
           id: 1,
           status: 'approved',
-          student_name: 'Student Demo'
+          student_name: 'Student Demo',
+          decision_reason: null,
+          decided_by_id: lecturerUser.id,
+          decided_by_name: 'Lecturer Demo',
+          decided_at: '2026-05-22T10:00:00.000Z'
         }
       }
     });
     expect(submissionService.updateLecturerSubmissionStatus).toHaveBeenCalledWith({
       user: lecturerUser,
       submissionId: '1',
-      status: 'approved'
+      status: 'approved',
+      reason: undefined
     });
   });
 
   test.each([
-    'rejected',
-    'awaiting_revision'
-  ])('lecturer can update a pending submission to %s', async (status) => {
+    ['rejected', 'Topic is too similar to approved work.'],
+    ['awaiting_revision', 'Please narrow the population.']
+  ])('lecturer can update a pending submission to %s', async (status, reason) => {
     authService.authenticateToken.mockResolvedValue(lecturerUser);
     submissionService.updateLecturerSubmissionStatus.mockResolvedValue({
       id: 1,
-      status
+      status,
+      decision_reason: reason,
+      decided_by_id: lecturerUser.id,
+      decided_by_name: 'Lecturer Demo',
+      decided_at: '2026-05-22T10:00:00.000Z'
     });
 
     const response = await request(app)
       .patch('/api/v1/lecturer/submissions/1/status')
       .set('Cookie', ['rtadss_session=signed-lecturer-token'])
-      .send({ status })
+      .send({ status, reason })
       .expect(200);
 
     expect(response.body).toMatchObject({
@@ -421,9 +434,17 @@ describe('Submission API routes', () => {
       data: {
         submission: {
           id: 1,
-          status
+          status,
+          decision_reason: reason,
+          decided_by_id: lecturerUser.id
         }
       }
+    });
+    expect(submissionService.updateLecturerSubmissionStatus).toHaveBeenCalledWith({
+      user: lecturerUser,
+      submissionId: '1',
+      status,
+      reason
     });
   });
 
@@ -475,6 +496,7 @@ describe('Submission API routes', () => {
 
   test.each([
     ['INVALID_SUBMISSION_STATUS', 400],
+    ['DECISION_REASON_REQUIRED', 400],
     ['SUBMISSION_NOT_FOUND', 404],
     ['SUBMISSION_NOT_PENDING', 400]
   ])('lecturer status update returns service error %s', async (errorCode, statusCode) => {
@@ -482,7 +504,11 @@ describe('Submission API routes', () => {
     submissionService.updateLecturerSubmissionStatus.mockRejectedValue({
       statusCode,
       code: errorCode,
-      field: errorCode === 'SUBMISSION_NOT_FOUND' ? undefined : 'status',
+      field: errorCode === 'SUBMISSION_NOT_FOUND'
+        ? undefined
+        : errorCode === 'DECISION_REASON_REQUIRED'
+          ? 'reason'
+          : 'status',
       message: 'Submission update failed.'
     });
 

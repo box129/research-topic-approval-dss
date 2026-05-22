@@ -38,7 +38,14 @@ function normalizeKeywords(value) {
   return normalizeOptionalText(value);
 }
 
-function serializeSubmission(submission, { includeStudent = Boolean(submission?.student) } = {}) {
+function normalizeDecisionReason(value) {
+  return normalizeOptionalText(value);
+}
+
+function serializeSubmission(submission, {
+  includeStudent = Boolean(submission?.student),
+  includeDecision = false
+} = {}) {
   if (!submission) {
     return null;
   }
@@ -52,6 +59,12 @@ function serializeSubmission(submission, { includeStudent = Boolean(submission?.
     category: submission.category,
     keywords: submission.keywords,
     status: String(submission.status || '').toLowerCase(),
+    ...(includeDecision ? {
+      decision_reason: submission.decisionReason || null,
+      decided_by_id: submission.decidedById || null,
+      decided_by_name: submission.decidedBy?.name || null,
+      decided_at: submission.decidedAt?.toISOString?.() || submission.decidedAt || null
+    } : {}),
     ...(includeStudent ? {
       student_name: submission.student?.name || null,
       student_email: submission.student?.email || null
@@ -130,6 +143,21 @@ function parseLecturerStatusUpdate(value) {
   }
 
   return prismaStatus;
+}
+
+function validateDecisionReason({ status, reason }) {
+  const normalizedReason = normalizeDecisionReason(reason);
+
+  if (status === 'REJECTED' && !normalizedReason) {
+    throw new SubmissionServiceError(
+      'Decision rationale is required when rejecting a submission.',
+      400,
+      'DECISION_REASON_REQUIRED',
+      'reason'
+    );
+  }
+
+  return normalizedReason;
 }
 
 function createSubmissionService({ prismaClient = prisma } = {}) {
@@ -216,6 +244,11 @@ function createSubmissionService({ prismaClient = prisma } = {}) {
       where: { id },
       include: {
         session: true,
+        decidedBy: {
+          select: {
+            name: true
+          }
+        },
         student: {
           select: {
             name: true,
@@ -229,10 +262,10 @@ function createSubmissionService({ prismaClient = prisma } = {}) {
       throw new SubmissionServiceError('Submission was not found.', 404, 'SUBMISSION_NOT_FOUND');
     }
 
-    return serializeSubmission(submission);
+    return serializeSubmission(submission, { includeDecision: true });
   };
 
-  const updateLecturerSubmissionStatus = async ({ user, submissionId, status }) => {
+  const updateLecturerSubmissionStatus = async ({ user, submissionId, status, reason }) => {
     assertLecturerUser(user);
     const id = parseSubmissionId(submissionId);
     const nextStatus = parseLecturerStatusUpdate(status);
@@ -258,13 +291,26 @@ function createSubmissionService({ prismaClient = prisma } = {}) {
       );
     }
 
+    const decisionReason = validateDecisionReason({
+      status: nextStatus,
+      reason
+    });
+
     const updatedSubmission = await prismaClient.submission.update({
       where: { id },
       data: {
-        status: nextStatus
+        status: nextStatus,
+        decisionReason,
+        decidedById: user.id,
+        decidedAt: new Date()
       },
       include: {
         session: true,
+        decidedBy: {
+          select: {
+            name: true
+          }
+        },
         student: {
           select: {
             name: true,
@@ -274,7 +320,7 @@ function createSubmissionService({ prismaClient = prisma } = {}) {
       }
     });
 
-    return serializeSubmission(updatedSubmission);
+    return serializeSubmission(updatedSubmission, { includeDecision: true });
   };
 
   return {
@@ -295,5 +341,6 @@ module.exports = {
   serializeSubmission,
   assertLecturerUser,
   LECTURER_STATUS_UPDATES,
+  validateDecisionReason,
   SubmissionServiceError
 };

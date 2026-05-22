@@ -170,14 +170,12 @@ function PendingReviewsPage() {
                       >
                         Request Revision
                       </button>
-                      <button
-                        type="button"
-                        disabled={updatingId === submission.id}
-                        onClick={() => handleStatusUpdate(submission, 'rejected', 'Reject', 'rejected')}
-                        className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      <Link
+                        to={`/lecturer/pending-reviews/${submission.id}`}
+                        className="rounded-md border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50"
                       >
-                        Reject
-                      </button>
+                        Reject in Detail
+                      </Link>
                       <Link
                         to={`/lecturer/pending-reviews/${submission.id}`}
                         className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"

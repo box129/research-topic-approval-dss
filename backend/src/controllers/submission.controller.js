@@ -86,7 +86,8 @@ async function updateLecturerSubmissionStatus(req, res) {
     const submission = await submissionService.updateLecturerSubmissionStatus({
       user: req.user,
       submissionId: req.params.id,
-      status: req.body?.status
+      status: req.body?.status,
+      reason: req.body?.reason
     });
 
     return res.status(200).json({

@@ -70,6 +70,8 @@ function SubmissionDetailPage() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [decisionReason, setDecisionReason] = useState('');
+  const [decisionReasonError, setDecisionReasonError] = useState('');
   const [similarityResults, setSimilarityResults] = useState(null);
   const [similarityStatus, setSimilarityStatus] = useState('');
   const [similarityNotice, setSimilarityNotice] = useState('');
@@ -109,7 +111,14 @@ function SubmissionDetailPage() {
     }
   }, [topicId]);
 
-  const handleStatusUpdate = async (status, confirmLabel, successLabel) => {
+  const handleStatusUpdate = async (status, confirmLabel, successLabel, { requireReason = false } = {}) => {
+    const normalizedReason = decisionReason.trim();
+
+    if (requireReason && !normalizedReason) {
+      setDecisionReasonError('Decision rationale is required when rejecting a submission.');
+      return;
+    }
+
     const confirmed = window.confirm(`${confirmLabel} this submission?`);
     if (!confirmed) {
       return;
@@ -117,12 +126,14 @@ function SubmissionDetailPage() {
 
     setIsUpdating(true);
     setError('');
+    setDecisionReasonError('');
     setSuccessMessage('');
 
     try {
-      const updatedSubmission = await updateLecturerSubmissionStatus(topicId, status);
+      const updatedSubmission = await updateLecturerSubmissionStatus(topicId, status, normalizedReason);
       setSubmission(updatedSubmission);
       setSuccessMessage(`Submission ${successLabel} successfully.`);
+      setDecisionReason('');
     } catch (err) {
       setError(err.response?.data?.message || 'Unable to update submission status.');
     } finally {
@@ -373,6 +384,32 @@ function SubmissionDetailPage() {
             </div>
 
             <div className="mt-5 flex flex-wrap gap-3">
+              <div className="w-full">
+                <label htmlFor="decision-rationale" className="block text-sm font-semibold text-gray-900">
+                  Decision rationale / comment
+                </label>
+                <p className="mt-1 text-sm text-gray-600">
+                  This is a lecturer-provided rationale, not an automatic similarity decision. It is required when rejecting a topic.
+                </p>
+                <textarea
+                  id="decision-rationale"
+                  rows={4}
+                  value={decisionReason}
+                  disabled={!canUpdateStatus || isUpdating}
+                  onChange={(event) => {
+                    setDecisionReason(event.target.value);
+                    if (decisionReasonError) {
+                      setDecisionReasonError('');
+                    }
+                  }}
+                  className="mt-3 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                  placeholder="Add the reason for this decision..."
+                />
+                {decisionReasonError && (
+                  <p className="mt-2 text-sm text-red-700">{decisionReasonError}</p>
+                )}
+              </div>
+
               <button
                 type="button"
                 disabled={!canUpdateStatus || isUpdating}
@@ -392,12 +429,22 @@ function SubmissionDetailPage() {
               <button
                 type="button"
                 disabled={!canUpdateStatus || isUpdating}
-                onClick={() => handleStatusUpdate('rejected', 'Reject', 'rejected')}
+                onClick={() => handleStatusUpdate('rejected', 'Reject', 'rejected', { requireReason: true })}
                 className="rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Reject
               </button>
             </div>
+
+            {!canUpdateStatus && submission.decision_reason && (
+              <div className="mt-5 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+                <p className="font-semibold text-gray-900">Stored lecturer rationale</p>
+                <p className="mt-1">{submission.decision_reason}</p>
+                <p className="mt-2 text-xs text-gray-500">
+                  Decided by {submission.decided_by_name || 'Unknown lecturer'} on {formatDate(submission.decided_at)}
+                </p>
+              </div>
+            )}
           </section>
         </div>
       )}
