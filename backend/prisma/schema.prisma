@@ -39,6 +39,7 @@ model User {
   resetTokenHash           String?                   @map("reset_token_hash") @db.Text
   resetTokenExpiresAt      DateTime?                 @map("reset_token_expires_at")
   studentSubmissions       Submission[]              @relation("StudentSubmissions")
+  submissionDecisions      Submission[]              @relation("SubmissionDecisions")
   similarityCheckSnapshots SimilarityCheckSnapshot[]
   updatedSystemSettings    SystemSetting[]           @relation("SystemSettingUpdatedBy")
   createdAt                DateTime                  @default(now()) @map("created_at")
@@ -96,6 +97,10 @@ model Submission {
   category                 String?                   @db.Text
   keywords                 String?                   @db.Text
   status                   SubmissionStatus          @default(PENDING_REVIEW)
+  decisionReason           String?                   @map("decision_reason") @db.Text
+  decidedById              Int?                      @map("decided_by_id")
+  decidedBy                User?                     @relation("SubmissionDecisions", fields: [decidedById], references: [id], onDelete: Restrict)
+  decidedAt                DateTime?                 @map("decided_at")
   similarityCheckSnapshots SimilarityCheckSnapshot[]
   submittedAt              DateTime                  @default(now()) @map("submitted_at")
   createdAt                DateTime                  @default(now()) @map("created_at")
@@ -104,6 +109,7 @@ model Submission {
   @@index([studentId])
   @@index([sessionId])
   @@index([status])
+  @@index([decidedById])
   @@index([submittedAt])
   @@map("submissions")
 }

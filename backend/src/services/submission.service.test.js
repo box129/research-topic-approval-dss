@@ -287,6 +287,10 @@ describe('submission.service', () => {
           category: validInput.category,
           keywords: validInput.keywords,
           status: 'APPROVED',
+          decisionReason: null,
+          decidedById: null,
+          decidedBy: null,
+          decidedAt: null,
           submittedAt,
           createdAt: submittedAt,
           updatedAt: submittedAt
@@ -304,6 +308,11 @@ describe('submission.service', () => {
       where: { id: 21 },
       include: {
         session: true,
+        decidedBy: {
+          select: {
+            name: true
+          }
+        },
         student: {
           select: {
             name: true,
@@ -317,7 +326,11 @@ describe('submission.service', () => {
       status: 'approved',
       session_name: '2025/2026',
       student_name: 'Student Demo',
-      student_email: 'student.demo@uniosun.edu.ng'
+      student_email: 'student.demo@uniosun.edu.ng',
+      decision_reason: null,
+      decided_by_id: null,
+      decided_by_name: null,
+      decided_at: null
     });
   });
 
@@ -367,11 +380,12 @@ describe('submission.service', () => {
   });
 
   test.each([
-    ['approved', 'APPROVED'],
-    ['rejected', 'REJECTED'],
-    ['awaiting_revision', 'AWAITING_REVISION']
-  ])('lecturer can update pending submission to %s', async (clientStatus, prismaStatus) => {
+    ['approved', 'APPROVED', undefined, null],
+    ['rejected', 'REJECTED', '  Topic is too similar to approved work.  ', 'Topic is too similar to approved work.'],
+    ['awaiting_revision', 'AWAITING_REVISION', undefined, null]
+  ])('lecturer can update pending submission to %s', async (clientStatus, prismaStatus, reason, expectedReason) => {
     const updatedAt = new Date('2026-05-19T12:00:00Z');
+    const decidedAt = new Date('2026-05-19T12:05:00Z');
     const prisma = createPrismaMock({
       submission: {
         findUnique: jest.fn().mockResolvedValue({
@@ -391,6 +405,12 @@ describe('submission.service', () => {
           category: validInput.category,
           keywords: validInput.keywords,
           status: prismaStatus,
+          decisionReason: expectedReason,
+          decidedById: lecturerUser.id,
+          decidedBy: {
+            name: 'Lecturer Demo'
+          },
+          decidedAt,
           submittedAt: updatedAt,
           createdAt: updatedAt,
           updatedAt
@@ -402,7 +422,8 @@ describe('submission.service', () => {
     const result = await service.updateLecturerSubmissionStatus({
       user: lecturerUser,
       submissionId: 21,
-      status: clientStatus
+      status: clientStatus,
+      reason
     });
 
     expect(prisma.submission.findUnique).toHaveBeenCalledWith({
@@ -415,10 +436,18 @@ describe('submission.service', () => {
     expect(prisma.submission.update).toHaveBeenCalledWith({
       where: { id: 21 },
       data: {
-        status: prismaStatus
+        status: prismaStatus,
+        decisionReason: expectedReason,
+        decidedById: lecturerUser.id,
+        decidedAt: expect.any(Date)
       },
       include: {
         session: true,
+        decidedBy: {
+          select: {
+            name: true
+          }
+        },
         student: {
           select: {
             name: true,
@@ -430,9 +459,66 @@ describe('submission.service', () => {
     expect(result).toMatchObject({
       id: 21,
       status: clientStatus,
+      decision_reason: expectedReason,
+      decided_by_id: lecturerUser.id,
+      decided_by_name: 'Lecturer Demo',
+      decided_at: '2026-05-19T12:05:00.000Z',
       student_name: 'Student Demo',
       student_email: 'student.demo@uniosun.edu.ng'
     });
+  });
+
+  test('rejects rejected status without a decision reason', async () => {
+    const prisma = createPrismaMock({
+      submission: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 21,
+          status: 'PENDING_REVIEW'
+        }),
+        update: jest.fn()
+      }
+    });
+    const service = createSubmissionService({ prismaClient: prisma });
+
+    await expect(service.updateLecturerSubmissionStatus({
+      user: lecturerUser,
+      submissionId: 21,
+      status: 'rejected',
+      reason: '   '
+    })).rejects.toMatchObject({
+      statusCode: 400,
+      code: 'DECISION_REASON_REQUIRED',
+      field: 'reason'
+    });
+    expect(prisma.submission.update).not.toHaveBeenCalled();
+  });
+
+  test('does not expose decision fields unless requested', () => {
+    const date = new Date('2026-05-19T10:00:00Z');
+
+    const submission = serializeSubmission({
+      id: 22,
+      studentId: studentUser.id,
+      sessionId: null,
+      session: null,
+      title: validInput.title,
+      category: null,
+      keywords: null,
+      status: 'REJECTED',
+      decisionReason: 'Too similar.',
+      decidedById: lecturerUser.id,
+      decidedBy: {
+        name: 'Lecturer Demo'
+      },
+      decidedAt: date,
+      submittedAt: date,
+      createdAt: date,
+      updatedAt: date
+    });
+
+    expect(submission).not.toHaveProperty('decision_reason');
+    expect(submission).not.toHaveProperty('decided_by_id');
+    expect(submission).not.toHaveProperty('decided_at');
   });
 
   test('rejects invalid lecturer status updates', async () => {
