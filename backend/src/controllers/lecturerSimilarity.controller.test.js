@@ -10,7 +10,8 @@ jest.mock('../services/submission.service', () => ({
 }));
 
 jest.mock('../services/similaritySnapshot.service', () => ({
-  createSnapshotFromSimilarityResponse: jest.fn()
+  createSnapshotFromSimilarityResponse: jest.fn(),
+  listSnapshotsForSubmission: jest.fn()
 }));
 
 jest.mock('./similarity.controller', () => ({
@@ -57,6 +58,7 @@ describe('Lecturer similarity wrapper route', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     similaritySnapshotService.createSnapshotFromSimilarityResponse.mockResolvedValue({ id: 20 });
+    similaritySnapshotService.listSnapshotsForSubmission.mockResolvedValue([]);
     mockSimilaritySuccess();
   });
 
@@ -312,5 +314,176 @@ describe('Lecturer similarity wrapper route', () => {
         overall_risk: 'LOW'
       }
     });
+  });
+
+  test('lecturer can list similarity snapshots for a valid submission id', async () => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+    submissionService.getLecturerSubmission.mockResolvedValue({
+      id: 11,
+      title: 'Assessment of malaria prevention practices among undergraduate students',
+      keywords: 'malaria, prevention',
+      status: 'pending_review'
+    });
+    similaritySnapshotService.listSnapshotsForSubmission.mockResolvedValue([
+      {
+        id: 30,
+        checked_by: {
+          id: lecturerUser.id,
+          name: lecturerUser.name,
+          email: lecturerUser.email
+        },
+        response_status: 'success',
+        overall_risk: 'HIGH',
+        max_similarity: 81.4,
+        recommendation: 'High similarity detected.',
+        result_summary: {
+          tierCounts: {
+            historical: 5,
+            currentSession: 1,
+            underReview: 2
+          }
+        },
+        created_at: '2026-05-22T12:00:00.000Z'
+      }
+    ]);
+
+    const response = await request(app)
+      .get('/api/v1/lecturer/submissions/11/similarity-snapshots')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .expect(200);
+
+    expect(response.body).toEqual({
+      status: 'success',
+      data: {
+        submission_id: 11,
+        snapshots: [
+          {
+            id: 30,
+            checked_by: {
+              id: lecturerUser.id,
+              name: lecturerUser.name,
+              email: lecturerUser.email
+            },
+            response_status: 'success',
+            overall_risk: 'HIGH',
+            max_similarity: 81.4,
+            recommendation: 'High similarity detected.',
+            result_summary: {
+              tierCounts: {
+                historical: 5,
+                currentSession: 1,
+                underReview: 2
+              }
+            },
+            created_at: '2026-05-22T12:00:00.000Z'
+          }
+        ]
+      }
+    });
+    expect(submissionService.getLecturerSubmission).toHaveBeenCalledWith({
+      user: lecturerUser,
+      submissionId: '11'
+    });
+    expect(similaritySnapshotService.listSnapshotsForSubmission).toHaveBeenCalledWith({
+      submissionId: 11
+    });
+    expect(similaritySnapshotService.createSnapshotFromSimilarityResponse).not.toHaveBeenCalled();
+    expect(submissionService.updateLecturerSubmissionStatus).not.toHaveBeenCalled();
+  });
+
+  test('lecturer snapshot history returns an empty list when no snapshots exist', async () => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+    submissionService.getLecturerSubmission.mockResolvedValue({
+      id: 12,
+      title: 'Assessment of malaria prevention practices among undergraduate students',
+      keywords: null,
+      status: 'pending_review'
+    });
+    similaritySnapshotService.listSnapshotsForSubmission.mockResolvedValue([]);
+
+    const response = await request(app)
+      .get('/api/v1/lecturer/submissions/12/similarity-snapshots')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .expect(200);
+
+    expect(response.body).toEqual({
+      status: 'success',
+      data: {
+        submission_id: 12,
+        snapshots: []
+      }
+    });
+  });
+
+  test('unauthenticated snapshot history request is rejected', async () => {
+    authService.authenticateToken.mockRejectedValue({
+      statusCode: 401,
+      code: 'AUTHENTICATION_REQUIRED',
+      message: 'Authentication required.'
+    });
+
+    const response = await request(app)
+      .get('/api/v1/lecturer/submissions/11/similarity-snapshots')
+      .expect(401);
+
+    expect(response.body).toMatchObject({
+      status: 'error',
+      details: {
+        error_code: 'AUTHENTICATION_REQUIRED'
+      }
+    });
+    expect(submissionService.getLecturerSubmission).not.toHaveBeenCalled();
+    expect(similaritySnapshotService.listSnapshotsForSubmission).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    'student',
+    'admin'
+  ])('%s snapshot history request is rejected', async (role) => {
+    authService.authenticateToken.mockResolvedValue({
+      id: 2,
+      role,
+      status: 'active'
+    });
+
+    const response = await request(app)
+      .get('/api/v1/lecturer/submissions/11/similarity-snapshots')
+      .set('Cookie', [`rtadss_session=signed-${role}-token`])
+      .expect(403);
+
+    expect(response.body).toMatchObject({
+      status: 'error',
+      details: {
+        error_code: 'FORBIDDEN'
+      }
+    });
+    expect(submissionService.getLecturerSubmission).not.toHaveBeenCalled();
+    expect(similaritySnapshotService.listSnapshotsForSubmission).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ['INVALID_SUBMISSION_ID', 400],
+    ['SUBMISSION_NOT_FOUND', 404]
+  ])('snapshot history returns service error %s', async (errorCode, statusCode) => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+    submissionService.getLecturerSubmission.mockRejectedValue({
+      statusCode,
+      code: errorCode,
+      field: errorCode === 'INVALID_SUBMISSION_ID' ? 'id' : undefined,
+      message: 'Submission snapshot history failed.'
+    });
+
+    const response = await request(app)
+      .get('/api/v1/lecturer/submissions/abc/similarity-snapshots')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .expect(statusCode);
+
+    expect(response.body).toMatchObject({
+      status: 'error',
+      details: {
+        error_code: errorCode
+      }
+    });
+    expect(similaritySnapshotService.listSnapshotsForSubmission).not.toHaveBeenCalled();
   });
 });

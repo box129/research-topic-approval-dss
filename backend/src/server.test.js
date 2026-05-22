@@ -196,6 +196,19 @@ describe('Server Integration Tests', () => {
       });
     });
 
+    test('should reject unauthenticated lecturer similarity snapshot history requests', async () => {
+      const response = await request(app)
+        .get('/api/v1/lecturer/submissions/1/similarity-snapshots')
+        .expect(401);
+
+      expect(response.body).toMatchObject({
+        status: 'error',
+        details: {
+          error_code: 'AUTHENTICATION_REQUIRED'
+        }
+      });
+    });
+
     test('should keep similarity endpoint available after submission route wiring', async () => {
       const response = await request(app)
         .post('/api/similarity/check')
