@@ -30,18 +30,19 @@ enum SubmissionStatus {
 }
 
 model User {
-  id                    Int             @id @default(autoincrement())
-  name                  String          @db.VarChar(200)
-  email                 String          @unique @db.VarChar(200)
-  passwordHash          String          @map("password_hash") @db.Text
-  role                  Role
-  status                UserStatus      @default(ACTIVE)
-  resetTokenHash        String?         @map("reset_token_hash") @db.Text
-  resetTokenExpiresAt   DateTime?       @map("reset_token_expires_at")
-  studentSubmissions    Submission[]    @relation("StudentSubmissions")
-  updatedSystemSettings SystemSetting[] @relation("SystemSettingUpdatedBy")
-  createdAt             DateTime        @default(now()) @map("created_at")
-  updatedAt             DateTime        @updatedAt @map("updated_at")
+  id                       Int                       @id @default(autoincrement())
+  name                     String                    @db.VarChar(200)
+  email                    String                    @unique @db.VarChar(200)
+  passwordHash             String                    @map("password_hash") @db.Text
+  role                     Role
+  status                   UserStatus                @default(ACTIVE)
+  resetTokenHash           String?                   @map("reset_token_hash") @db.Text
+  resetTokenExpiresAt      DateTime?                 @map("reset_token_expires_at")
+  studentSubmissions       Submission[]              @relation("StudentSubmissions")
+  similarityCheckSnapshots SimilarityCheckSnapshot[]
+  updatedSystemSettings    SystemSetting[]           @relation("SystemSettingUpdatedBy")
+  createdAt                DateTime                  @default(now()) @map("created_at")
+  updatedAt                DateTime                  @updatedAt @map("updated_at")
 
   @@index([role])
   @@index([status])
@@ -49,14 +50,14 @@ model User {
 }
 
 model AcademicSession {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique @db.VarChar(100)
-  startDate DateTime? @map("start_date") @db.Date
-  endDate   DateTime? @map("end_date") @db.Date
-  isCurrent Boolean   @default(false) @map("is_current")
+  id          Int          @id @default(autoincrement())
+  name        String       @unique @db.VarChar(100)
+  startDate   DateTime?    @map("start_date") @db.Date
+  endDate     DateTime?    @map("end_date") @db.Date
+  isCurrent   Boolean      @default(false) @map("is_current")
   submissions Submission[]
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
 
   @@index([isCurrent])
   @@map("academic_sessions")
@@ -86,24 +87,44 @@ model SystemSetting {
 }
 
 model Submission {
-  id          Int              @id @default(autoincrement())
-  studentId   Int              @map("student_id")
-  student     User             @relation("StudentSubmissions", fields: [studentId], references: [id], onDelete: Cascade)
-  sessionId   Int?             @map("session_id")
-  session     AcademicSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
-  title       String           @db.Text
-  category    String?          @db.Text
-  keywords    String?          @db.Text
-  status      SubmissionStatus @default(PENDING_REVIEW)
-  submittedAt DateTime         @default(now()) @map("submitted_at")
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedAt   DateTime         @updatedAt @map("updated_at")
+  id                       Int                       @id @default(autoincrement())
+  studentId                Int                       @map("student_id")
+  student                  User                      @relation("StudentSubmissions", fields: [studentId], references: [id], onDelete: Cascade)
+  sessionId                Int?                      @map("session_id")
+  session                  AcademicSession?          @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  title                    String                    @db.Text
+  category                 String?                   @db.Text
+  keywords                 String?                   @db.Text
+  status                   SubmissionStatus          @default(PENDING_REVIEW)
+  similarityCheckSnapshots SimilarityCheckSnapshot[]
+  submittedAt              DateTime                  @default(now()) @map("submitted_at")
+  createdAt                DateTime                  @default(now()) @map("created_at")
+  updatedAt                DateTime                  @updatedAt @map("updated_at")
 
   @@index([studentId])
   @@index([sessionId])
   @@index([status])
   @@index([submittedAt])
   @@map("submissions")
+}
+
+model SimilarityCheckSnapshot {
+  id             Int        @id @default(autoincrement())
+  submissionId   Int        @map("submission_id")
+  submission     Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  checkedById    Int        @map("checked_by_id")
+  checkedBy      User       @relation(fields: [checkedById], references: [id], onDelete: Restrict)
+  responseStatus String     @map("response_status") @db.VarChar(50)
+  overallRisk    String?    @map("overall_risk") @db.VarChar(50)
+  maxSimilarity  Float?     @map("max_similarity")
+  recommendation String?    @db.Text
+  resultSummary  Json?      @map("result_summary")
+  createdAt      DateTime   @default(now()) @map("created_at")
+
+  @@index([submissionId])
+  @@index([checkedById])
+  @@index([createdAt])
+  @@map("similarity_check_snapshots")
 }
 
 model HistoricalTopic {

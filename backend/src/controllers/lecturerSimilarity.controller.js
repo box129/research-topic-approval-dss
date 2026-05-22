@@ -1,5 +1,7 @@
 const submissionService = require('../services/submission.service');
+const similaritySnapshotService = require('../services/similaritySnapshot.service');
 const similarityController = require('./similarity.controller');
+const logger = require('../config/logger');
 
 function sendLecturerSimilarityError(res, error) {
   return res.status(error.statusCode || 500).json({
@@ -19,13 +21,36 @@ async function checkLecturerSubmissionSimilarity(req, res, next) {
       submissionId: req.params.id
     });
 
+    const snapshotResponse = Object.create(res);
+    snapshotResponse.status = (statusCode) => {
+      res.status(statusCode);
+      return snapshotResponse;
+    };
+    snapshotResponse.json = async (similarityResponse) => {
+      try {
+        await similaritySnapshotService.createSnapshotFromSimilarityResponse({
+          submissionId: submission.id,
+          checkedById: req.user.id,
+          similarityResponse
+        });
+      } catch (error) {
+        logger.warn('Failed to store lecturer similarity snapshot', {
+          submissionId: submission.id,
+          checkedById: req.user.id,
+          error: error.message
+        });
+      }
+
+      return res.json(similarityResponse);
+    };
+
     return similarityController.checkSimilarity({
       ...req,
       body: {
         topic: submission.title,
         keywords: submission.keywords || ''
       }
-    }, res, next);
+    }, snapshotResponse, next);
   } catch (error) {
     return sendLecturerSimilarityError(res, error);
   }
