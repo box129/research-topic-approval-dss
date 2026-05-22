@@ -24,3 +24,8 @@ export async function updateLecturerSubmissionStatus(submissionId, status) {
   const response = await apiClient.patch(`/lecturer/submissions/${submissionId}/status`, { status });
   return response.data?.data?.submission;
 }
+
+export async function listLecturerSubmissionSimilaritySnapshots(submissionId) {
+  const response = await apiClient.get(`/lecturer/submissions/${submissionId}/similarity-snapshots`);
+  return response.data?.data?.snapshots || [];
+}
