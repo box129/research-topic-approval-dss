@@ -2,13 +2,16 @@ const {
   createSimilaritySnapshotService,
   buildResultSummary,
   shouldStoreSimilarityResponse,
+  serializeSimilaritySnapshot,
+  DEFAULT_SNAPSHOT_HISTORY_LIMIT,
   MAX_TOP_MATCHES_PER_TIER
 } = require('./similaritySnapshot.service');
 
 function createPrismaMock() {
   return {
     similarityCheckSnapshot: {
-      create: jest.fn()
+      create: jest.fn(),
+      findMany: jest.fn()
     }
   };
 }
@@ -163,5 +166,120 @@ describe('similaritySnapshot.service', () => {
     expect(snapshotData.resultSummary).toHaveProperty('topMatches');
     expect(snapshotData.resultSummary).not.toHaveProperty('tier1_historical');
     expect(snapshotData.resultSummary).not.toHaveProperty('input_topic');
+  });
+
+  test('serializes snapshot with checker details', () => {
+    const createdAt = new Date('2026-05-22T12:00:00Z');
+
+    expect(serializeSimilaritySnapshot({
+      id: 21,
+      checkedById: 8,
+      checkedBy: {
+        id: 8,
+        name: 'Lecturer Demo',
+        email: 'lecturer.demo@uniosun.edu.ng'
+      },
+      responseStatus: 'success',
+      overallRisk: 'HIGH',
+      maxSimilarity: 81.4,
+      recommendation: 'High similarity detected.',
+      resultSummary: {
+        tierCounts: {
+          historical: 3,
+          currentSession: 1,
+          underReview: 2
+        }
+      },
+      createdAt
+    })).toEqual({
+      id: 21,
+      checked_by: {
+        id: 8,
+        name: 'Lecturer Demo',
+        email: 'lecturer.demo@uniosun.edu.ng'
+      },
+      response_status: 'success',
+      overall_risk: 'HIGH',
+      max_similarity: 81.4,
+      recommendation: 'High similarity detected.',
+      result_summary: {
+        tierCounts: {
+          historical: 3,
+          currentSession: 1,
+          underReview: 2
+        }
+      },
+      created_at: '2026-05-22T12:00:00.000Z'
+    });
+  });
+
+  test('lists snapshots for submission newest first with checker details', async () => {
+    const prisma = createPrismaMock();
+    const newest = new Date('2026-05-22T12:30:00Z');
+    prisma.similarityCheckSnapshot.findMany.mockResolvedValue([
+      {
+        id: 31,
+        checkedById: 8,
+        checkedBy: {
+          id: 8,
+          name: 'Lecturer Demo',
+          email: 'lecturer.demo@uniosun.edu.ng'
+        },
+        responseStatus: 'success',
+        overallRisk: 'HIGH',
+        maxSimilarity: 81.4,
+        recommendation: 'High similarity detected.',
+        resultSummary: { tierCounts: { historical: 5 } },
+        createdAt: newest
+      }
+    ]);
+    const service = createSimilaritySnapshotService({ prismaClient: prisma });
+
+    const snapshots = await service.listSnapshotsForSubmission({
+      submissionId: 5
+    });
+
+    expect(prisma.similarityCheckSnapshot.findMany).toHaveBeenCalledWith({
+      where: {
+        submissionId: 5
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: DEFAULT_SNAPSHOT_HISTORY_LIMIT,
+      include: {
+        checkedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
+    });
+    expect(snapshots).toEqual([
+      expect.objectContaining({
+        id: 31,
+        response_status: 'success',
+        checked_by: {
+          id: 8,
+          name: 'Lecturer Demo',
+          email: 'lecturer.demo@uniosun.edu.ng'
+        }
+      })
+    ]);
+  });
+
+  test('allows custom snapshot list limit', async () => {
+    const prisma = createPrismaMock();
+    prisma.similarityCheckSnapshot.findMany.mockResolvedValue([]);
+    const service = createSimilaritySnapshotService({ prismaClient: prisma });
+
+    await service.listSnapshotsForSubmission({
+      submissionId: 5,
+      limit: 3
+    });
+
+    expect(prisma.similarityCheckSnapshot.findMany.mock.calls[0][0].take).toBe(3);
   });
 });

@@ -2,6 +2,7 @@ const prisma = require('../config/database');
 
 const STORABLE_RESPONSE_STATUSES = new Set(['success', 'partial_success']);
 const MAX_TOP_MATCHES_PER_TIER = 3;
+const DEFAULT_SNAPSHOT_HISTORY_LIMIT = 10;
 
 function asArray(value) {
   return Array.isArray(value) ? value : [];
@@ -67,6 +68,27 @@ function shouldStoreSimilarityResponse(similarityResponse) {
   return STORABLE_RESPONSE_STATUSES.has(similarityResponse?.status);
 }
 
+function serializeSimilaritySnapshot(snapshot) {
+  if (!snapshot) {
+    return null;
+  }
+
+  return {
+    id: snapshot.id,
+    checked_by: {
+      id: snapshot.checkedBy?.id || snapshot.checkedById,
+      name: snapshot.checkedBy?.name || null,
+      email: snapshot.checkedBy?.email || null
+    },
+    response_status: snapshot.responseStatus,
+    overall_risk: snapshot.overallRisk,
+    max_similarity: snapshot.maxSimilarity,
+    recommendation: snapshot.recommendation,
+    result_summary: snapshot.resultSummary,
+    created_at: snapshot.createdAt?.toISOString?.() || snapshot.createdAt
+  };
+}
+
 function createSimilaritySnapshotService({ prismaClient = prisma } = {}) {
   const createSnapshotFromSimilarityResponse = async ({
     submissionId,
@@ -92,8 +114,35 @@ function createSimilaritySnapshotService({ prismaClient = prisma } = {}) {
     });
   };
 
+  const listSnapshotsForSubmission = async ({
+    submissionId,
+    limit = DEFAULT_SNAPSHOT_HISTORY_LIMIT
+  }) => {
+    const snapshots = await prismaClient.similarityCheckSnapshot.findMany({
+      where: {
+        submissionId
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: limit,
+      include: {
+        checkedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    return snapshots.map(serializeSimilaritySnapshot);
+  };
+
   return {
-    createSnapshotFromSimilarityResponse
+    createSnapshotFromSimilarityResponse,
+    listSnapshotsForSubmission
   };
 }
 
@@ -102,5 +151,7 @@ module.exports = {
   createSimilaritySnapshotService,
   buildResultSummary,
   shouldStoreSimilarityResponse,
-  MAX_TOP_MATCHES_PER_TIER
+  serializeSimilaritySnapshot,
+  MAX_TOP_MATCHES_PER_TIER,
+  DEFAULT_SNAPSHOT_HISTORY_LIMIT
 };

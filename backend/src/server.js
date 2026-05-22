@@ -189,6 +189,10 @@ app.post('/api/v1/lecturer/submissions/:id/similarity-check', requireAuth, requi
   getLecturerSimilarityController().checkLecturerSubmissionSimilarity(req, res, next);
 });
 
+app.get('/api/v1/lecturer/submissions/:id/similarity-snapshots', requireAuth, requireRole('lecturer'), (req, res, next) => {
+  getLecturerSimilarityController().listLecturerSubmissionSimilaritySnapshots(req, res, next);
+});
+
 app.patch('/api/v1/lecturer/submissions/:id/status', requireAuth, requireRole('lecturer'), (req, res, next) => {
   getSubmissionController().updateLecturerSubmissionStatus(req, res, next);
 });

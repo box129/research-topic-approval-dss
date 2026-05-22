@@ -56,6 +56,30 @@ async function checkLecturerSubmissionSimilarity(req, res, next) {
   }
 }
 
+async function listLecturerSubmissionSimilaritySnapshots(req, res) {
+  try {
+    const submission = await submissionService.getLecturerSubmission({
+      user: req.user,
+      submissionId: req.params.id
+    });
+
+    const snapshots = await similaritySnapshotService.listSnapshotsForSubmission({
+      submissionId: submission.id
+    });
+
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        submission_id: submission.id,
+        snapshots
+      }
+    });
+  } catch (error) {
+    return sendLecturerSimilarityError(res, error);
+  }
+}
+
 module.exports = {
-  checkLecturerSubmissionSimilarity
+  checkLecturerSubmissionSimilarity,
+  listLecturerSubmissionSimilaritySnapshots
 };
