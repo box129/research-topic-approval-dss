@@ -159,7 +159,9 @@ describe('Submission API routes', () => {
         id: 1,
         student_id: studentUser.id,
         title: 'Knowledge of malaria prevention among undergraduate public health students',
-        status: 'pending_review'
+        status: 'rejected',
+        decision_reason: 'Topic is too similar to approved work.',
+        decided_at: '2026-05-22T13:30:00.000Z'
       }
     ]);
 
@@ -175,11 +177,16 @@ describe('Submission API routes', () => {
           {
             id: 1,
             student_id: studentUser.id,
-            status: 'pending_review'
+            status: 'rejected',
+            decision_reason: 'Topic is too similar to approved work.',
+            decided_at: '2026-05-22T13:30:00.000Z'
           }
         ]
       }
     });
+    expect(response.body.data.submissions[0]).not.toHaveProperty('decided_by_id');
+    expect(response.body.data.submissions[0]).not.toHaveProperty('decided_by_name');
+    expect(response.body.data.submissions[0]).not.toHaveProperty('similarity_snapshots');
     expect(submissionService.listStudentSubmissions).toHaveBeenCalledWith({
       user: studentUser
     });

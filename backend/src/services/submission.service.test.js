@@ -178,14 +178,41 @@ describe('submission.service', () => {
   });
 
   test('student list only queries authenticated student submissions', async () => {
+    const decidedAt = new Date('2026-05-22T13:30:00Z');
     const prisma = createPrismaMock({
       submission: {
-        findMany: jest.fn().mockResolvedValue([])
+        findMany: jest.fn().mockResolvedValue([
+          {
+            id: 31,
+            studentId: studentUser.id,
+            sessionId: 3,
+            session: { id: 3, name: '2025/2026' },
+            title: validInput.title,
+            category: validInput.category,
+            keywords: validInput.keywords,
+            status: 'REJECTED',
+            decisionReason: 'Topic is too similar to approved work.',
+            decidedById: lecturerUser.id,
+            decidedBy: {
+              name: 'Lecturer Demo'
+            },
+            decidedAt,
+            similarityCheckSnapshots: [
+              {
+                id: 99,
+                overallRisk: 'HIGH'
+              }
+            ],
+            submittedAt: decidedAt,
+            createdAt: decidedAt,
+            updatedAt: decidedAt
+          }
+        ])
       }
     });
     const service = createSubmissionService({ prismaClient: prisma });
 
-    await service.listStudentSubmissions({ user: studentUser });
+    const result = await service.listStudentSubmissions({ user: studentUser });
 
     expect(prisma.submission.findMany).toHaveBeenCalledWith({
       where: {
@@ -198,6 +225,19 @@ describe('submission.service', () => {
         session: true
       }
     });
+    expect(result).toEqual([
+      expect.objectContaining({
+        id: 31,
+        student_id: studentUser.id,
+        status: 'rejected',
+        decision_reason: 'Topic is too similar to approved work.',
+        decided_at: '2026-05-22T13:30:00.000Z'
+      })
+    ]);
+    expect(result[0]).not.toHaveProperty('decided_by_id');
+    expect(result[0]).not.toHaveProperty('decided_by_name');
+    expect(result[0]).not.toHaveProperty('similarityCheckSnapshots');
+    expect(result[0]).not.toHaveProperty('similarity_snapshots');
   });
 
   test('lecturer can list pending review submissions with student details', async () => {
@@ -519,6 +559,37 @@ describe('submission.service', () => {
     expect(submission).not.toHaveProperty('decision_reason');
     expect(submission).not.toHaveProperty('decided_by_id');
     expect(submission).not.toHaveProperty('decided_at');
+  });
+
+  test('can expose student-safe decision feedback without lecturer identity', () => {
+    const date = new Date('2026-05-19T10:00:00Z');
+
+    const submission = serializeSubmission({
+      id: 23,
+      studentId: studentUser.id,
+      sessionId: null,
+      session: null,
+      title: validInput.title,
+      category: null,
+      keywords: null,
+      status: 'AWAITING_REVISION',
+      decisionReason: 'Please narrow the study population.',
+      decidedById: lecturerUser.id,
+      decidedBy: {
+        name: 'Lecturer Demo'
+      },
+      decidedAt: date,
+      submittedAt: date,
+      createdAt: date,
+      updatedAt: date
+    }, { includeDecision: true });
+
+    expect(submission).toMatchObject({
+      decision_reason: 'Please narrow the study population.',
+      decided_at: '2026-05-19T10:00:00.000Z'
+    });
+    expect(submission).not.toHaveProperty('decided_by_id');
+    expect(submission).not.toHaveProperty('decided_by_name');
   });
 
   test('rejects invalid lecturer status updates', async () => {

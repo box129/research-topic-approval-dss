@@ -44,7 +44,8 @@ function normalizeDecisionReason(value) {
 
 function serializeSubmission(submission, {
   includeStudent = Boolean(submission?.student),
-  includeDecision = false
+  includeDecision = false,
+  includeDecisionActor = false
 } = {}) {
   if (!submission) {
     return null;
@@ -61,9 +62,11 @@ function serializeSubmission(submission, {
     status: String(submission.status || '').toLowerCase(),
     ...(includeDecision ? {
       decision_reason: submission.decisionReason || null,
-      decided_by_id: submission.decidedById || null,
-      decided_by_name: submission.decidedBy?.name || null,
       decided_at: submission.decidedAt?.toISOString?.() || submission.decidedAt || null
+    } : {}),
+    ...(includeDecision && includeDecisionActor ? {
+      decided_by_id: submission.decidedById || null,
+      decided_by_name: submission.decidedBy?.name || null
     } : {}),
     ...(includeStudent ? {
       student_name: submission.student?.name || null,
@@ -209,7 +212,10 @@ function createSubmissionService({ prismaClient = prisma } = {}) {
       }
     });
 
-    return submissions.map((submission) => serializeSubmission(submission, { includeStudent: true }));
+    return submissions.map((submission) => serializeSubmission(submission, {
+      includeStudent: true,
+      includeDecision: true
+    }));
   };
 
   const listLecturerPendingSubmissions = async ({ user }) => {
@@ -262,7 +268,10 @@ function createSubmissionService({ prismaClient = prisma } = {}) {
       throw new SubmissionServiceError('Submission was not found.', 404, 'SUBMISSION_NOT_FOUND');
     }
 
-    return serializeSubmission(submission, { includeDecision: true });
+    return serializeSubmission(submission, {
+      includeDecision: true,
+      includeDecisionActor: true
+    });
   };
 
   const updateLecturerSubmissionStatus = async ({ user, submissionId, status, reason }) => {
@@ -320,7 +329,10 @@ function createSubmissionService({ prismaClient = prisma } = {}) {
       }
     });
 
-    return serializeSubmission(updatedSubmission, { includeDecision: true });
+    return serializeSubmission(updatedSubmission, {
+      includeDecision: true,
+      includeDecisionActor: true
+    });
   };
 
   return {

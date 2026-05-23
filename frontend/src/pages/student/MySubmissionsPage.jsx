@@ -18,6 +18,16 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
+const DECIDED_STATUSES = new Set(['approved', 'rejected', 'awaiting_revision']);
+
+function shouldShowFeedback(submission) {
+  return DECIDED_STATUSES.has(String(submission.status || '').toLowerCase());
+}
+
+function getFeedbackText(submission) {
+  return submission.decision_reason || 'No additional comment was provided.';
+}
+
 function MySubmissionsPage() {
   const [submissions, setSubmissions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -95,9 +105,23 @@ function MySubmissionsPage() {
                     {submission.keywords && (
                       <p className="mt-1 text-sm text-gray-500">Keywords: {submission.keywords}</p>
                     )}
+                    {shouldShowFeedback(submission) && (
+                      <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                        <p className="font-semibold text-gray-900">Lecturer feedback</p>
+                        <p className="mt-1">{getFeedbackText(submission)}</p>
+                        {submission.decided_at && (
+                          <p className="mt-2 text-xs text-gray-500">
+                            Decision recorded {formatDate(submission.decided_at)}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-4 align-top">
                     <StatusBadge status={submission.status} />
+                    {String(submission.status || '').toLowerCase() === 'pending_review' && (
+                      <p className="mt-2 text-xs text-gray-500">Awaiting lecturer review.</p>
+                    )}
                   </td>
                   <td className="px-4 py-4 align-top text-sm text-gray-600">
                     {submission.category || 'Uncategorised'}
