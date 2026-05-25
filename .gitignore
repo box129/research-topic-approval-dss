@@ -1,4 +1,8 @@
 
+# Temporary Figma MCP screenshots
+/img/
+figma_*.png
+
 # Dependencies
 
 node_modules/

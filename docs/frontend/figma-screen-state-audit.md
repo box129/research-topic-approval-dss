@@ -1,0 +1,48 @@
+# Frontend Figma Screen State Audit
+
+## Purpose of the audit
+This document captures the initial frontend screen/state audit for the Figma frame inspected from the UNIOSUN Topic Similarity System design. It is intended to track the first screen as a frontend planning artifact, identify reusable component candidates, and record visual and implementation notes without changing any existing UI code yet.
+
+## Screen/state inventory table
+
+| Screen Group | Screen ID | Screen Name | State Name | Role | Purpose | v1.0/v2.0 | Main UI Sections | Reusable Components | Data Needed | Visual Notes | State Notes | Implementation Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Authentication | AUTH-01 | Login | Default | Shared | Allows students, lecturers, and admins to sign in | v1.0 | Left brand/info hero panel; right login form panel | AuthSplitLayout, AuthBrandPanel, LoginForm, TextInput, PasswordInput, PrimaryButton, FeatureBulletList, AuthFooterNote | email, password | Two-column split; deep green hero panel with branding and feature highlights; white/light form panel; gold/orange CTA button; clear spacing and section separation | Default login state. Other possible states may need separate Figma frames or implementation states: Loading, Invalid credentials, Required field validation, Forgot password / recovery flow, if designed | Build initial layout as an authentication page state with a split hero/form layout. Defer error and recovery state implementation until corresponding designs or requirements are available. |
+| Authentication | AUTH-01-S1 | Login | Invalid credentials | Shared | Shows failed sign-in feedback for incorrect credentials | v1.0 | Left brand/info hero panel; right login form with inline error banner and red field outlines | AuthSplitLayout, AuthBrandPanel, LoginForm, TextInput, PasswordInput, PrimaryButton, AuthFooterNote, InlineErrorBanner | email, password, error message | Red error alert above form; red-outlined input fields; layout same as default login | Login failure state after an incorrect email or password entry | Reuse login layout; add inline form error handling and field validation styling. |
+| Authentication | AUTH-01-S2 | Login | Account locked | Shared | Indicates the account is locked after multiple failed sign-in attempts | v1.0 | Left brand/info hero panel; right login form with top warning banner and disabled sign-in action | AuthSplitLayout, AuthBrandPanel, LoginForm, TextInput, PasswordInput, PrimaryButton, AuthFooterNote, WarningBanner | status message, lock reason | Red top warning bar with lock icon; disabled sign-in button; subtle disabled field style | Locked account state after 5 failed attempts | Implement a disabled login state with a prominent warning and next-step guidance. |
+| Authentication | AUTH-POP-01 | Login | Signing in / processing | Shared | Indicates sign-in is in progress | v1.0 | Compact processing overlay / toast panel | AuthModal, StatusIndicator, PrimaryButton | none | Small modal with "Signing in..." and processing state label | Transient processing state during authentication | Render as an overlay/modal state during form submission. |
+| Authentication | AUTH-POP-02 | Forgot Password | Request reset | Shared | Allows users to request a password reset link | v2.0 | Modal panel with email input, description, and send button | AuthModal, PasswordResetRequestForm, TextInput, PrimaryButton, SecondaryLink | email | White modal on dark background; strong heading; gold CTA button | Password reset request form state | Treat as a separate modal or recovery page; requires email input and send action. |
+| Authentication | AUTH-POP-03 | Forgot Password | Check your inbox | Shared | Confirms reset email was sent successfully | v2.0 | Modal panel with success icon, message, resend link, and back action | AuthModal, StatusNotification, SecondaryButton, SecondaryLink | email, expiry duration | Green success icon and confirmation text; card style | Post-reset request confirmation state | Show after successful password reset request submission. |
+| Authentication | AUTH-POP-04 | Reset Password | Set new password | Shared | Collects and validates a new password after reset | v2.0 | Modal panel with new password, confirm field, criteria checklist, and update button | AuthModal, PasswordInput, PasswordCriteriaList, PrimaryButton, SecondaryLink | new password, confirm password | Green heading; checklist for requirements; large update CTA | Password reset form state | Requires validation and password strength criteria display. |
+| Authentication | AUTH-POP-05 | Reset Password | Password updated | Shared | Confirms the password has been changed successfully | v2.0 | Modal panel with success icon, confirmation message, and sign-in CTA | AuthModal, StatusNotification, PrimaryButton | none | Green check icon; concise confirmation; gold CTA | Success terminal state in reset flow | Show after a successful password update and prompt return to sign-in. |
+| Authentication | AUTH-POP-06 | Reset Password | Validation error | Shared | Displays inline validation feedback for a password mismatch | v2.0 | Modal panel with new password fields and red validation message | AuthModal, PasswordInput, PasswordCriteriaList, InlineErrorText, PrimaryButton | new password, confirm password, error message | Red underline and error text under confirmation field | Password reset form validation failure state | Implement inline field validation and error feedback in the reset form. |
+| Authentication | AUTH-POP-07 | Reset Password | Link expired | Shared | Informs user a reset link is invalid or expired | v2.0 | Modal panel with warning icon, expiration message, and retry CTA | AuthModal, WarningNotification, PrimaryButton, SecondaryLink | expiration notice | Yellow warning icon; tinted note box; retry button | Password reset expiration / recovery error state | Provide a way to request a new reset link and return to sign-in. |
+
+## v1.0/v2.0 classification rules
+- **v1.0** indicates core authentication screens required for initial launch and baseline user access.
+- **v2.0** indicates optional enhancements, alternate states, or expanded flows that can be deferred until after initial auth functionality is implemented.
+- Screens are classified as v1.0 when they represent a primary user entry point or essential form state.
+- Screens are classified as v2.0 when they represent recovery flows, additional role-specific variations, or advanced visual refinements not required for first delivery.
+
+## Component candidates discovered so far
+- `AuthSplitLayout`
+- `AuthBrandPanel`
+- `LoginForm`
+- `TextInput`
+- `PasswordInput`
+- `PrimaryButton`
+- `FeatureBulletList`
+- `AuthFooterNote`
+
+## Notes for visual matching
+- Use the left panel hero styling to match the dark green/forest aesthetic and brand messaging.
+- The right panel should feel clean, white, and spaced for a login form experience.
+- Accent colors include gold/orange for the primary CTA and subtle dark charcoal for headings.
+- Ensure typography hierarchy matches the screen: bold product title, smaller description, and clear form labels.
+- Spacing should separate the hero content from the login form visually while preserving an integrated split-screen layout.
+
+## Notes about screen states
+- This entry represents the default login state only.
+- Other states such as loading, invalid credentials, required field validation, and password recovery are noted as possible additions.
+- No alternate login or role-specific variants are present in this frame; it is treated as a shared authentication entry point.
+- Future audit entries should add state-specific rows if Figma frames for those states are provided.
