@@ -1,11 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../components/ui/PageHeader';
-import EmptyState from '../../components/ui/EmptyState';
+import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import ErrorState from '../../components/ui/ErrorState';
+import InfoCallout from '../../components/ui/InfoCallout';
 import LoadingState from '../../components/ui/LoadingState';
+import MetricCard from '../../components/ui/MetricCard';
+import PrimaryButton from '../../components/ui/PrimaryButton';
+import SecondaryButton from '../../components/ui/SecondaryButton';
 import StatusBadge from '../../components/ui/StatusBadge';
 import { listSubmissions } from '../../api/submissions';
+import StudentDashboardLayout from '../../layouts/StudentDashboardLayout';
 
 function formatDate(value) {
   if (!value) {
@@ -20,18 +25,84 @@ function formatDate(value) {
 
 const DECIDED_STATUSES = new Set(['approved', 'rejected', 'awaiting_revision']);
 
+function normalizeStatus(status) {
+  return String(status || 'pending_review').toLowerCase();
+}
+
 function shouldShowFeedback(submission) {
-  return DECIDED_STATUSES.has(String(submission.status || '').toLowerCase());
+  return DECIDED_STATUSES.has(normalizeStatus(submission.status));
 }
 
 function getFeedbackText(submission) {
   return submission.decision_reason || 'No additional comment was provided.';
 }
 
+function getStatusSummary(submission) {
+  const status = normalizeStatus(submission.status);
+
+  if (status === 'pending_review') {
+    return {
+      title: 'Pending review',
+      message: 'Your submission is waiting for a lecturer decision.',
+      variant: 'info'
+    };
+  }
+
+  if (status === 'awaiting_revision') {
+    return {
+      title: 'Awaiting revision',
+      message: 'Review the feedback below before preparing your next submission.',
+      variant: 'warning'
+    };
+  }
+
+  if (status === 'approved') {
+    return {
+      title: 'Approved',
+      message: 'This submission has been approved.',
+      variant: 'success'
+    };
+  }
+
+  if (status === 'rejected') {
+    return {
+      title: 'Not approved',
+      message: 'Review the feedback below before deciding on your next step.',
+      variant: 'danger'
+    };
+  }
+
+  return {
+    title: 'Submission status available',
+    message: 'This submission has a recorded status in your history.',
+    variant: 'info'
+  };
+}
+
+function getCounts(submissions) {
+  return submissions.reduce((counts, submission) => {
+    const status = normalizeStatus(submission.status);
+
+    return {
+      total: counts.total + 1,
+      pending: counts.pending + (status === 'pending_review' ? 1 : 0),
+      awaitingRevision: counts.awaitingRevision + (status === 'awaiting_revision' ? 1 : 0),
+      approved: counts.approved + (status === 'approved' ? 1 : 0)
+    };
+  }, {
+    total: 0,
+    pending: 0,
+    awaitingRevision: 0,
+    approved: 0
+  });
+}
+
 function MySubmissionsPage() {
+  const navigate = useNavigate();
   const [submissions, setSubmissions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const counts = useMemo(() => getCounts(submissions), [submissions]);
 
   const loadSubmissions = useCallback(async () => {
     setIsLoading(true);
@@ -50,10 +121,16 @@ function MySubmissionsPage() {
   }, [loadSubmissions]);
 
   return (
-    <>
+    <StudentDashboardLayout>
       <PageHeader
+        action={(
+          <SecondaryButton type="button" onClick={() => navigate('/student/submit-topic')}>
+            Submit Topic
+          </SecondaryButton>
+        )}
+        eyebrow="Student portal"
         title="My Submissions"
-        subtitle="Track topics you have submitted for review."
+        subtitle="Track your submitted topics, review status, and student-safe feedback."
       />
 
       {isLoading && <LoadingState label="Loading submissions" />}
@@ -67,75 +144,91 @@ function MySubmissionsPage() {
       )}
 
       {!isLoading && !error && submissions.length === 0 && (
-        <EmptyState
+        <EmptyStatePanel
           title="No submissions yet"
           message="Submit your first research topic when you are ready for lecturer review."
           action={(
-            <Link to="/student/submit-topic" className="inline-flex rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+            <PrimaryButton type="button" onClick={() => navigate('/student/submit-topic')}>
               Submit Topic
-            </Link>
+            </PrimaryButton>
           )}
         />
       )}
 
       {!isLoading && !error && submissions.length > 0 && (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Topic
-                </th>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Status
-                </th>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Category
-                </th>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Submitted
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {submissions.map((submission) => (
-                <tr key={submission.id}>
-                  <td className="px-4 py-4 align-top">
-                    <p className="font-medium text-gray-950">{submission.title}</p>
-                    {submission.keywords && (
-                      <p className="mt-1 text-sm text-gray-500">Keywords: {submission.keywords}</p>
-                    )}
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <MetricCard label="Total" value={counts.total} helper="All submitted topics" />
+            <MetricCard label="Pending" value={counts.pending} helper="Awaiting review" tone="info" />
+            <MetricCard label="Awaiting revision" value={counts.awaitingRevision} helper="Needs follow-up" tone="warning" />
+            <MetricCard label="Approved" value={counts.approved} helper="Ready to continue" tone="success" />
+          </div>
+
+          <section className="space-y-4" aria-label="Submission history">
+            {submissions.map((submission) => {
+              const statusSummary = getStatusSummary(submission);
+
+              return (
+                <article key={submission.id} className="rounded-card border border-border-subtle bg-white p-5 shadow-card">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                        Submission history
+                      </p>
+                      <h2 className="mt-1 text-lg font-semibold text-text-primary">{submission.title}</h2>
+                    </div>
+                    <StatusBadge status={submission.status} />
+                  </div>
+
+                  <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                    <div>
+                      <dt className="font-medium text-text-muted">Category</dt>
+                      <dd className="mt-1 text-text-primary">{submission.category || 'Uncategorised'}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-text-muted">Submitted</dt>
+                      <dd className="mt-1 text-text-primary">
+                        {formatDate(submission.submitted_at || submission.created_at)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-text-muted">Session</dt>
+                      <dd className="mt-1 text-text-primary">{submission.session_name || 'Not available'}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-text-muted">Keywords</dt>
+                      <dd className="mt-1 text-text-primary">{submission.keywords || 'Not provided'}</dd>
+                    </div>
+                  </dl>
+
+                  <div className="mt-4 space-y-3">
+                    <InfoCallout
+                      variant={statusSummary.variant}
+                      title={statusSummary.title}
+                      message={statusSummary.message}
+                    />
+
                     {shouldShowFeedback(submission) && (
-                      <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
-                        <p className="font-semibold text-gray-900">Lecturer feedback</p>
-                        <p className="mt-1">{getFeedbackText(submission)}</p>
+                      <InfoCallout
+                        variant={statusSummary.variant}
+                        title="Decision feedback"
+                        message={getFeedbackText(submission)}
+                      >
                         {submission.decided_at && (
-                          <p className="mt-2 text-xs text-gray-500">
+                          <p className="text-xs">
                             Decision recorded {formatDate(submission.decided_at)}
                           </p>
                         )}
-                      </div>
+                      </InfoCallout>
                     )}
-                  </td>
-                  <td className="px-4 py-4 align-top">
-                    <StatusBadge status={submission.status} />
-                    {String(submission.status || '').toLowerCase() === 'pending_review' && (
-                      <p className="mt-2 text-xs text-gray-500">Awaiting lecturer review.</p>
-                    )}
-                  </td>
-                  <td className="px-4 py-4 align-top text-sm text-gray-600">
-                    {submission.category || 'Uncategorised'}
-                  </td>
-                  <td className="px-4 py-4 align-top text-sm text-gray-600">
-                    {formatDate(submission.submitted_at)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </article>
+              );
+            })}
+          </section>
+        </>
       )}
-    </>
+    </StudentDashboardLayout>
   );
 }
 
