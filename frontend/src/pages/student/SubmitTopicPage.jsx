@@ -1,7 +1,12 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../../components/ui/PageHeader';
+import InfoCallout from '../../components/ui/InfoCallout';
+import PrimaryButton from '../../components/ui/PrimaryButton';
+import TextAreaInput from '../../components/ui/TextAreaInput';
+import TextInput from '../../components/ui/TextInput';
 import { createSubmission } from '../../api/submissions';
+import StudentDashboardLayout from '../../layouts/StudentDashboardLayout';
 
 const MIN_TITLE_WORDS = 7;
 const MAX_TITLE_WORDS = 24;
@@ -55,95 +60,92 @@ function SubmitTopicPage() {
   };
 
   return (
-    <>
+    <StudentDashboardLayout>
       <PageHeader
+        eyebrow="Student portal"
         title="Submit Topic"
-        subtitle="Submit a topic for lecturer review."
+        subtitle="Share your proposed research topic for lecturer review."
       />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
-        <form onSubmit={handleSubmit} className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <label htmlFor="topic-title" className="block text-sm font-medium text-gray-900">
-            Research topic title
-          </label>
-          <textarea
-            id="topic-title"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            rows={5}
-            className="mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-            placeholder="Enter your proposed research topic"
-          />
-          <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
-            <span>{wordCount} words</span>
-            <span>{MIN_TITLE_WORDS}-{MAX_TITLE_WORDS} words required</span>
-          </div>
+        <form onSubmit={handleSubmit} className="rounded-card border border-border-subtle bg-white p-6 shadow-card">
+          <div className="space-y-5">
+            <InfoCallout
+              title="Before you submit"
+              message="Use a clear, specific title. Category and keywords are optional, but they can help reviewers understand the research area."
+            />
 
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
             <div>
-              <label htmlFor="topic-category" className="block text-sm font-medium text-gray-900">
-                Category
-              </label>
-              <input
-                id="topic-category"
-                value={category}
-                onChange={(event) => setCategory(event.target.value)}
-                className="mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-                placeholder="Optional"
+              <TextAreaInput
+                id="topic-title"
+                label="Research topic title"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                disabled={isSubmitting}
+                rows={5}
+                placeholder="Enter your proposed research topic"
+                helperText="Write the complete topic title you want reviewed."
               />
+              <div className="mt-2 flex items-center justify-between gap-3 text-xs text-text-muted">
+                <span>{wordCount} words</span>
+                <span>{MIN_TITLE_WORDS}-{MAX_TITLE_WORDS} words required</span>
+              </div>
             </div>
 
-            <div>
-              <label htmlFor="topic-keywords" className="block text-sm font-medium text-gray-900">
-                Keywords
-              </label>
-              <input
+            <div className="grid gap-4 md:grid-cols-2">
+              <TextInput
+                id="topic-category"
+                label="Category"
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+                disabled={isSubmitting}
+                placeholder="Optional"
+              />
+
+              <TextInput
                 id="topic-keywords"
+                label="Keywords"
                 value={keywords}
                 onChange={(event) => setKeywords(event.target.value)}
-                className="mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                disabled={isSubmitting}
                 placeholder="Optional, comma-separated"
               />
             </div>
-          </div>
 
-          {error && (
-            <div className="mt-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-              {error}
+            {error && (
+              <InfoCallout variant="danger" message={error} />
+            )}
+
+            {createdSubmission && (
+              <InfoCallout variant="success" title="Topic submitted for review.">
+                <Link to="/student/my-submissions" className="font-semibold underline">
+                  View my submissions
+                </Link>
+              </InfoCallout>
+            )}
+
+            <div className="flex justify-end">
+              <PrimaryButton
+                type="submit"
+                disabled={isSubmitting}
+                isLoading={isSubmitting}
+              >
+                Submit for Review
+              </PrimaryButton>
             </div>
-          )}
-
-          {createdSubmission && (
-            <div className="mt-5 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-              Topic submitted for review.
-              {' '}
-              <Link to="/student/my-submissions" className="font-semibold underline">
-                View my submissions
-              </Link>
-            </div>
-          )}
-
-          <div className="mt-6 flex justify-end">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-gray-300"
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit for Review'}
-            </button>
           </div>
         </form>
 
-        <aside className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">After submission</h2>
-          <ul className="mt-4 space-y-3 text-sm text-gray-700">
+        <aside className="rounded-card border border-border-subtle bg-white p-6 shadow-card">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-text-muted">After submission</h2>
+          <ul className="mt-4 space-y-3 text-sm text-text-secondary">
             <li>Your topic will be saved with pending review status.</li>
             <li>You can track it from My Submissions.</li>
             <li>Your lecturer will review it through the approval workflow.</li>
           </ul>
         </aside>
       </div>
-    </>
+    </StudentDashboardLayout>
   );
 }
 
