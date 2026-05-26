@@ -1,32 +1,78 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import PageHeader from '../../components/ui/PageHeader';
-import EmptyState from '../../components/ui/EmptyState';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { listLecturerPendingSubmissions } from '../../api/submissions';
+import DashboardStatusCard from '../../components/ui/DashboardStatusCard';
+import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import ErrorState from '../../components/ui/ErrorState';
+import FilterDropdown from '../../components/ui/FilterDropdown';
+import InfoCallout from '../../components/ui/InfoCallout';
+import LecturerDashboardLayout from '../../layouts/LecturerDashboardLayout';
 import LoadingState from '../../components/ui/LoadingState';
+import PageHeader from '../../components/ui/PageHeader';
+import PrimaryButton from '../../components/ui/PrimaryButton';
+import SearchInput from '../../components/ui/SearchInput';
+import SecondaryButton from '../../components/ui/SecondaryButton';
 import StatusBadge from '../../components/ui/StatusBadge';
-import {
-  listLecturerPendingSubmissions,
-  updateLecturerSubmissionStatus
-} from '../../api/submissions';
+import TableShell from '../../components/ui/TableShell';
 
 function formatDate(value) {
   if (!value) {
     return 'Not submitted';
   }
 
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return 'Not submitted';
+  }
+
   return new Intl.DateTimeFormat('en', {
     dateStyle: 'medium',
     timeStyle: 'short'
-  }).format(new Date(value));
+  }).format(date);
+}
+
+function getSubmittedTimestamp(submission) {
+  const rawDate = submission?.submitted_at || submission?.created_at;
+  const timestamp = rawDate ? new Date(rawDate).getTime() : 0;
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function normalizeText(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function matchesSearch(submission, query) {
+  const normalizedQuery = normalizeText(query);
+
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  return [
+    submission.title,
+    submission.student_name,
+    submission.student_email,
+    submission.category,
+    submission.keywords,
+    submission.session_name
+  ].some((value) => normalizeText(value).includes(normalizedQuery));
+}
+
+function buildCategoryOptions(submissions) {
+  return [...new Set(submissions.map((submission) => submission.category).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b))
+    .map((category) => ({ label: category, value: category }));
 }
 
 function PendingReviewsPage() {
+  const navigate = useNavigate();
   const [submissions, setSubmissions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [updatingId, setUpdatingId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [sortOrder, setSortOrder] = useState('oldest');
 
   const loadSubmissions = useCallback(async () => {
     setIsLoading(true);
@@ -41,45 +87,42 @@ function PendingReviewsPage() {
     }
   }, []);
 
-  const handleStatusUpdate = async (submission, status, confirmLabel, successLabel) => {
-    const confirmed = window.confirm(`${confirmLabel} this submission?`);
-    if (!confirmed) {
-      return;
-    }
-
-    setUpdatingId(submission.id);
-    setError('');
-    setSuccessMessage('');
-
-    try {
-      await updateLecturerSubmissionStatus(submission.id, status);
-      setSuccessMessage(`Submission ${successLabel} successfully.`);
-      await loadSubmissions();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Unable to update submission status.');
-    } finally {
-      setUpdatingId(null);
-    }
-  };
-
   useEffect(() => {
     loadSubmissions();
   }, [loadSubmissions]);
 
+  const categoryOptions = useMemo(() => buildCategoryOptions(submissions), [submissions]);
+
+  const filteredSubmissions = useMemo(() => {
+    return submissions
+      .filter((submission) => !categoryFilter || submission.category === categoryFilter)
+      .filter((submission) => matchesSearch(submission, searchTerm))
+      .sort((first, second) => {
+        const firstTimestamp = getSubmittedTimestamp(first);
+        const secondTimestamp = getSubmittedTimestamp(second);
+
+        return sortOrder === 'newest'
+          ? secondTimestamp - firstTimestamp
+          : firstTimestamp - secondTimestamp;
+      });
+  }, [categoryFilter, searchTerm, sortOrder, submissions]);
+
+  const hasActiveFilters = Boolean(searchTerm || categoryFilter);
+
   return (
-    <>
+    <LecturerDashboardLayout>
       <PageHeader
+        eyebrow="Lecturer Queue"
         title="Pending Reviews"
-        subtitle="Review submitted student topics waiting for lecturer action."
+        subtitle="Browse submitted student topics waiting for lecturer review. Decisions stay in the existing detail workflow."
+        action={(
+          <SecondaryButton type="button" onClick={() => navigate('/lecturer/dashboard')}>
+            Back to Dashboard
+          </SecondaryButton>
+        )}
       />
 
       {isLoading && <LoadingState label="Loading pending reviews" />}
-
-      {!isLoading && successMessage && (
-        <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {successMessage}
-        </div>
-      )}
 
       {!isLoading && error && (
         <ErrorState
@@ -89,108 +132,185 @@ function PendingReviewsPage() {
         />
       )}
 
-      {!isLoading && !error && submissions.length === 0 && (
-        <EmptyState
-          title="No pending reviews"
-          message="Student submissions with pending review status will appear here."
-        />
-      )}
+      {!isLoading && !error && (
+        <>
+          <section className="grid gap-4 md:grid-cols-3">
+            <DashboardStatusCard
+              label="Pending Reviews"
+              value={submissions.length}
+              helper="Loaded from the existing lecturer pending submissions API"
+            />
+            <DashboardStatusCard
+              label="Visible After Filters"
+              value={filteredSubmissions.length}
+              helper="Calculated locally from the loaded queue"
+            />
+            <DashboardStatusCard
+              label="Similarity Summary"
+              value="Not connected yet"
+              helper="Risk labels and score summaries are not returned for this queue"
+            />
+          </section>
 
-      {!isLoading && !error && submissions.length > 0 && (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Topic
-                </th>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Student
-                </th>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Status
-                </th>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Category
-                </th>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Submitted
-                </th>
-                <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {submissions.map((submission) => (
-                <tr key={submission.id}>
-                  <td className="px-4 py-4 align-top">
-                    <Link
-                      to={`/lecturer/pending-reviews/${submission.id}`}
-                      className="font-medium text-emerald-700 hover:text-emerald-800 hover:underline"
+          <InfoCallout
+            title="Read-only queue"
+            message="Open a submission to review details and record a decision. This queue does not approve, reject, request revision, run similarity checks, or save snapshots."
+          />
+
+          {submissions.length === 0 && (
+            <EmptyStatePanel
+              title="No pending reviews"
+              message="Student submissions with pending review status will appear here when they are ready for lecturer action."
+              action={(
+                <SecondaryButton type="button" onClick={loadSubmissions}>
+                  Refresh Queue
+                </SecondaryButton>
+              )}
+            />
+          )}
+
+          {submissions.length > 0 && (
+            <>
+              <section className="rounded-card border border-border-subtle bg-white p-4 shadow-card">
+                <div className="grid gap-4 lg:grid-cols-[minmax(240px,1fr)_220px_220px]">
+                  <SearchInput
+                    id="pending-review-search"
+                    label="Search queue"
+                    placeholder="Search topic, student, category, keywords, or session"
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                  />
+                  <FilterDropdown
+                    id="pending-review-category"
+                    label="Category"
+                    placeholder="All categories"
+                    value={categoryFilter}
+                    options={categoryOptions}
+                    onChange={(event) => setCategoryFilter(event.target.value)}
+                  />
+                  <FilterDropdown
+                    id="pending-review-sort"
+                    label="Sort"
+                    value={sortOrder}
+                    options={[
+                      { label: 'Oldest submitted', value: 'oldest' },
+                      { label: 'Newest submitted', value: 'newest' }
+                    ]}
+                    onChange={(event) => setSortOrder(event.target.value)}
+                  />
+                </div>
+                <p className="mt-3 text-sm text-text-muted">
+                  Search, filter, and sort are client-side only and use the already-loaded queue data.
+                </p>
+              </section>
+
+              {filteredSubmissions.length === 0 && (
+                <EmptyStatePanel
+                  title="No matching pending reviews"
+                  message="No loaded submissions match the current search or category filter. Clear the controls to return to the full queue."
+                  action={(
+                    <SecondaryButton
+                      type="button"
+                      onClick={() => {
+                        setSearchTerm('');
+                        setCategoryFilter('');
+                      }}
                     >
-                      {submission.title}
-                    </Link>
-                    {submission.keywords && (
-                      <p className="mt-1 text-sm text-gray-500">Keywords: {submission.keywords}</p>
-                    )}
-                  </td>
-                  <td className="px-4 py-4 align-top">
-                    <p className="text-sm font-medium text-gray-900">
-                      {submission.student_name || 'Unnamed student'}
-                    </p>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {submission.student_email || 'No email available'}
-                    </p>
-                  </td>
-                  <td className="px-4 py-4 align-top">
-                    <StatusBadge status={submission.status} />
-                  </td>
-                  <td className="px-4 py-4 align-top text-sm text-gray-600">
-                    {submission.category || 'Uncategorised'}
-                  </td>
-                  <td className="px-4 py-4 align-top text-sm text-gray-600">
-                    {formatDate(submission.submitted_at)}
-                  </td>
-                  <td className="px-4 py-4 align-top">
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        disabled={updatingId === submission.id}
-                        onClick={() => handleStatusUpdate(submission, 'approved', 'Approve', 'approved')}
-                        className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        type="button"
-                        disabled={updatingId === submission.id}
-                        onClick={() => handleStatusUpdate(submission, 'awaiting_revision', 'Request revision for', 'marked as awaiting revision')}
-                        className="rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        Request Revision
-                      </button>
-                      <Link
-                        to={`/lecturer/pending-reviews/${submission.id}`}
-                        className="rounded-md border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50"
-                      >
-                        Reject in Detail
-                      </Link>
-                      <Link
-                        to={`/lecturer/pending-reviews/${submission.id}`}
-                        className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                      >
-                        View Details
-                      </Link>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                      Clear Filters
+                    </SecondaryButton>
+                  )}
+                />
+              )}
+
+              {filteredSubmissions.length > 0 && (
+                <TableShell
+                  title="Review Queue"
+                  subtitle="Open a row to continue in the existing submission detail workflow."
+                  actions={(
+                    <PrimaryButton type="button" onClick={loadSubmissions}>
+                      Refresh Queue
+                    </PrimaryButton>
+                  )}
+                >
+                  <table className="min-w-full divide-y divide-border-subtle">
+                    <thead className="bg-surface-muted">
+                      <tr>
+                        <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted">
+                          Topic
+                        </th>
+                        <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted">
+                          Student
+                        </th>
+                        <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted">
+                          Category
+                        </th>
+                        <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted">
+                          Submitted
+                        </th>
+                        <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted">
+                          Status
+                        </th>
+                        <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border-subtle bg-white">
+                      {filteredSubmissions.map((submission) => (
+                        <tr key={submission.id} className="align-top">
+                          <td className="px-4 py-4">
+                            <p className="font-medium text-text-primary">{submission.title}</p>
+                            {submission.keywords && (
+                              <p className="mt-1 text-sm text-text-secondary">Keywords: {submission.keywords}</p>
+                            )}
+                            {submission.session_name && (
+                              <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-text-muted">
+                                {submission.session_name}
+                              </p>
+                            )}
+                          </td>
+                          <td className="px-4 py-4">
+                            <p className="text-sm font-medium text-text-primary">
+                              {submission.student_name || 'Unnamed student'}
+                            </p>
+                            <p className="mt-1 text-sm text-text-secondary">
+                              {submission.student_email || 'No email available'}
+                            </p>
+                          </td>
+                          <td className="px-4 py-4 text-sm text-text-secondary">
+                            {submission.category || 'Uncategorised'}
+                          </td>
+                          <td className="px-4 py-4 text-sm text-text-secondary">
+                            {formatDate(submission.submitted_at || submission.created_at)}
+                          </td>
+                          <td className="px-4 py-4">
+                            <StatusBadge status={submission.status} />
+                          </td>
+                          <td className="px-4 py-4">
+                            <SecondaryButton
+                              type="button"
+                              onClick={() => navigate(`/lecturer/pending-reviews/${submission.id}`)}
+                            >
+                              Open Review
+                            </SecondaryButton>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </TableShell>
+              )}
+
+              <InfoCallout
+                title="Not connected yet"
+                message="Queue ownership, bulk tools, score summaries, and advanced list controls require data that is not available from the current pending submissions API."
+                variant={hasActiveFilters ? 'info' : 'warning'}
+              />
+            </>
+          )}
+        </>
       )}
-    </>
+    </LecturerDashboardLayout>
   );
 }
 
