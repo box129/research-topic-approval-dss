@@ -1,11 +1,12 @@
 import PropTypes from 'prop-types';
 
-function PageHeader({ title, subtitle, action }) {
+function PageHeader({ action, eyebrow, subtitle, title }) {
   return (
-    <div className="mb-6 flex flex-col gap-3 border-b border-gray-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+    <div className="mb-6 flex flex-col gap-3 border-b border-border-subtle pb-5 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 className="text-2xl font-bold text-gray-950">{title}</h1>
-        {subtitle && <p className="mt-1 max-w-3xl text-sm text-gray-600">{subtitle}</p>}
+        {eyebrow && <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">{eyebrow}</p>}
+        <h1 className="text-2xl font-bold text-text-primary">{title}</h1>
+        {subtitle && <p className="mt-1 max-w-3xl text-sm text-text-secondary">{subtitle}</p>}
       </div>
       {action && <div className="flex-shrink-0">{action}</div>}
     </div>
@@ -13,9 +14,10 @@ function PageHeader({ title, subtitle, action }) {
 }
 
 PageHeader.propTypes = {
-  title: PropTypes.string.isRequired,
+  action: PropTypes.node,
+  eyebrow: PropTypes.string,
   subtitle: PropTypes.string,
-  action: PropTypes.node
+  title: PropTypes.string.isRequired
 };
 
 export default PageHeader;

@@ -1,13 +1,8 @@
 import PropTypes from 'prop-types';
+import MetricCard from './MetricCard';
 
 function StatCard({ label, value, helper }) {
-  return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-      <p className="text-sm font-medium text-gray-600">{label}</p>
-      <p className="mt-2 text-3xl font-bold text-gray-950">{value}</p>
-      {helper && <p className="mt-1 text-xs text-gray-500">{helper}</p>}
-    </div>
-  );
+  return <MetricCard label={label} value={value} helper={helper} />;
 }
 
 StatCard.propTypes = {

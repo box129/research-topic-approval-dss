@@ -2,10 +2,86 @@
 
 @theme {
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+  --color-brand-green: #047857;
+  --color-brand-green-dark: #065f46;
+  --color-brand-green-light: #d1fae5;
+  --color-brand-gold: #d97706;
+  --color-brand-gold-dark: #b45309;
+  --color-brand-gold-light: #fef3c7;
+
+  --color-surface-page: #f9fafb;
+  --color-surface-card: #ffffff;
+  --color-surface-muted: #f3f4f6;
+  --color-border-subtle: #e5e7eb;
+  --color-border-strong: #d1d5db;
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-muted: #6b7280;
+  --color-text-inverse: #ffffff;
+
+  --color-feedback-success: #047857;
+  --color-feedback-success-bg: #ecfdf5;
+  --color-feedback-success-border: #a7f3d0;
+  --color-feedback-warning: #b45309;
+  --color-feedback-warning-bg: #fffbeb;
+  --color-feedback-warning-border: #fde68a;
+  --color-feedback-danger: #b91c1c;
+  --color-feedback-danger-bg: #fef2f2;
+  --color-feedback-danger-border: #fecaca;
+  --color-feedback-info: #1d4ed8;
+  --color-feedback-info-bg: #eff6ff;
+  --color-feedback-info-border: #bfdbfe;
+
+  --color-risk-low: #047857;
+  --color-risk-low-bg: #ecfdf5;
+  --color-risk-low-border: #a7f3d0;
+  --color-risk-medium: #b45309;
+  --color-risk-medium-bg: #fffbeb;
+  --color-risk-medium-border: #fde68a;
+  --color-risk-high: #b91c1c;
+  --color-risk-high-bg: #fef2f2;
+  --color-risk-high-border: #fecaca;
+
+  --color-status-pending: #1d4ed8;
+  --color-status-pending-bg: #eff6ff;
+  --color-status-approved: #047857;
+  --color-status-approved-bg: #ecfdf5;
+  --color-status-rejected: #b91c1c;
+  --color-status-rejected-bg: #fef2f2;
+  --color-status-revision: #b45309;
+  --color-status-revision-bg: #fffbeb;
+  --color-status-neutral: #4b5563;
+  --color-status-neutral-bg: #f3f4f6;
+
+  --shadow-card: 0 1px 2px 0 rgb(17 24 39 / 0.05);
+  --shadow-card-hover: 0 8px 24px -18px rgb(17 24 39 / 0.35);
+  --shadow-modal: 0 24px 60px -20px rgb(17 24 39 / 0.45);
+
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-card: 0.5rem;
+  --radius-input: 0.375rem;
+  --radius-badge: 9999px;
+}
+
+:root {
+  --ui-focus-ring: 0 0 0 3px rgb(4 120 87 / 0.16);
+  --ui-card-bg: var(--color-surface-card);
+  --ui-card-border: var(--color-border-subtle);
+  --ui-card-shadow: var(--shadow-card);
+  --ui-input-bg: var(--color-surface-card);
+  --ui-input-border: var(--color-border-strong);
+  --ui-input-focus-border: var(--color-brand-green);
+  --ui-table-header-bg: var(--color-surface-muted);
+  --ui-table-border: var(--color-border-subtle);
+  --ui-badge-radius: var(--radius-badge);
 }
 
 html, body {
-  background-color: #f9fafb;
+  background-color: var(--color-surface-page);
 }
 
 @layer utilities {
