@@ -1,18 +1,19 @@
 import PropTypes from 'prop-types';
+import SecondaryButton from './SecondaryButton';
 
 function ErrorState({ title = 'Something went wrong', message, onRetry }) {
   return (
-    <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-      <h2 className="font-semibold text-red-900">{title}</h2>
-      {message && <p className="mt-2 text-sm text-red-800">{message}</p>}
+    <div className="rounded-card border border-feedback-danger-border bg-feedback-danger-bg p-6 shadow-card">
+      <h2 className="font-semibold text-feedback-danger">{title}</h2>
+      {message && <p className="mt-2 text-sm text-feedback-danger">{message}</p>}
       {onRetry && (
-        <button
+        <SecondaryButton
           type="button"
           onClick={onRetry}
-          className="mt-4 rounded-md bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800"
+          className="mt-4 border-feedback-danger-border text-feedback-danger hover:bg-red-50"
         >
           Try again
-        </button>
+        </SecondaryButton>
       )}
     </div>
   );

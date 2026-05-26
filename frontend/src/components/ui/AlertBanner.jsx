@@ -1,15 +1,15 @@
 import PropTypes from 'prop-types';
 
 const VARIANT_CLASSES = {
-  info: 'border-blue-200 bg-blue-50 text-blue-900',
-  success: 'border-emerald-200 bg-emerald-50 text-emerald-900',
-  warning: 'border-amber-200 bg-amber-50 text-amber-900',
-  error: 'border-red-200 bg-red-50 text-red-900'
+  info: 'border-feedback-info-border bg-feedback-info-bg text-feedback-info',
+  success: 'border-feedback-success-border bg-feedback-success-bg text-feedback-success',
+  warning: 'border-feedback-warning-border bg-feedback-warning-bg text-feedback-warning',
+  error: 'border-feedback-danger-border bg-feedback-danger-bg text-feedback-danger'
 };
 
 function AlertBanner({ variant = 'info', message }) {
   return (
-    <div className={`rounded-lg border p-4 text-sm ${VARIANT_CLASSES[variant] || VARIANT_CLASSES.info}`}>
+    <div className={`rounded-card border p-4 text-sm ${VARIANT_CLASSES[variant] || VARIANT_CLASSES.info}`}>
       {message}
     </div>
   );
