@@ -8,6 +8,7 @@ import SubmissionDetailPage from './lecturer/SubmissionDetailPage';
 import DashboardPage from './student/DashboardPage';
 import SubmitTopicPage from './student/SubmitTopicPage';
 import MySubmissionsPage from './student/MySubmissionsPage';
+import CheckMyTopicPage from './student/CheckMyTopicPage';
 
 export function LecturerDashboardPage() {
   return (
@@ -60,9 +61,7 @@ export const StudentSubmitTopicPage = SubmitTopicPage;
 
 export const StudentMySubmissionsPage = MySubmissionsPage;
 
-export const StudentCheckMyTopicPage = () => (
-  <PlaceholderPage title="Check My Topic" subtitle="St4 student pre-check shell" />
-);
+export const StudentCheckMyTopicPage = CheckMyTopicPage;
 
 export const StudentResearchExplorerPage = () => (
   <V2PlaceholderPage title="Research Explorer" dashboardPath="/student/dashboard" />
