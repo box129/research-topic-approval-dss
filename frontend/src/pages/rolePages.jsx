@@ -1,7 +1,6 @@
 import PlaceholderPage from './common/PlaceholderPage';
 import V2PlaceholderPage from './common/V2PlaceholderPage';
-import StatCard from '../components/ui/StatCard';
-import PageHeader from '../components/ui/PageHeader';
+import AdminDashboard from './admin/DashboardPage';
 import LecturerDashboard from './lecturer/DashboardPage';
 import PendingReviewsPage from './lecturer/PendingReviewsPage';
 import SubmissionDetailPage from './lecturer/SubmissionDetailPage';
@@ -15,18 +14,7 @@ export const LecturerDashboardPage = LecturerDashboard;
 
 export const StudentDashboardPage = DashboardPage;
 
-export function AdminDashboardPage() {
-  return (
-    <>
-      <PageHeader title="Admin Dashboard" subtitle="System health, activity, and usage metrics will be connected in the admin workflow PR." />
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatCard label="API" value="Ready" helper="Health endpoint exists" />
-        <StatCard label="Database" value="-" helper="Health aggregation deferred" />
-        <StatCard label="SBERT" value="-" helper="Health aggregation deferred" />
-      </div>
-    </>
-  );
-}
+export const AdminDashboardPage = AdminDashboard;
 
 export const LecturerPendingReviewsPage = PendingReviewsPage;
 
