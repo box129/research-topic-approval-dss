@@ -1,8 +1,12 @@
 import { useRef, useState } from 'react';
 import axios from 'axios';
+import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
+import InfoCallout from '../../components/ui/InfoCallout';
 import PageHeader from '../../components/ui/PageHeader';
+import SecondaryButton from '../../components/ui/SecondaryButton';
 import TopicForm from '../../components/features/TopicInput/TopicForm';
 import ResultsDisplay from '../../components/features/Results/ResultsDisplay';
+import LecturerDashboardLayout from '../../layouts/LecturerDashboardLayout';
 
 function CheckSimilarityPage() {
   const [results, setResults] = useState(null);
@@ -139,21 +143,35 @@ function CheckSimilarityPage() {
   };
 
   return (
-    <>
+    <LecturerDashboardLayout>
       <PageHeader
+        eyebrow="Lecturer tools"
         title="Check Similarity"
-        subtitle="The MVP similarity checker is preserved here as the lecturer standalone checker."
+        subtitle="Run an advisory manual similarity check without changing a submission, snapshot, or lecturer decision."
       />
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(320px,420px)_1fr]">
-        <div>
+      <div className="grid gap-6 xl:grid-cols-[minmax(320px,420px)_1fr]">
+        <div className="space-y-4">
+          <InfoCallout
+            title="Manual check only"
+            message="This standalone check uses the general similarity endpoint and does not approve, reject, block, or save a topic."
+          />
+          <InfoCallout
+            variant="info"
+            title="Similarity evidence is advisory"
+            message="Use the result to guide a discussion or review. Formal decisions remain on the submission detail workflow."
+          />
           <TopicForm onSubmit={handleSubmit} isLoading={isLoading} />
         </div>
 
         <div>
           {error && !results && (
-            <div className="mb-8 rounded-lg border-l-4 border-red-500 bg-red-50 p-4 shadow-sm" data-testid="error-display">
-              <p className="text-sm font-medium text-red-700">{error}</p>
+            <div data-testid="error-display" className="mb-6">
+              <InfoCallout
+                variant="danger"
+                title="Unable to check similarity"
+                message={error}
+              />
             </div>
           )}
 
@@ -161,27 +179,28 @@ function CheckSimilarityPage() {
             <div data-testid="results-container" className="animate-fade-in">
               <ResultsDisplay results={results} />
               <div className="pb-8 pt-4 text-center">
-                <button
+                <SecondaryButton
                   type="button"
                   onClick={handleReset}
                   data-testid="reset-button"
-                  className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white shadow-md transition-colors hover:bg-blue-700"
                 >
                   Check Another Topic
-                </button>
+                </SecondaryButton>
               </div>
             </div>
           )}
 
           {!results && !error && (
-            <div className="flex min-h-[360px] flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-white p-10 text-center text-gray-500">
-              <p className="text-lg font-medium">Awaiting submission</p>
-              <p className="mt-2 text-sm">Fill out the form to check topic similarity.</p>
-            </div>
+            <EmptyStatePanel
+              title={isLoading ? 'Checking similarity' : 'Awaiting manual check'}
+              message={isLoading
+                ? 'The topic is being compared against existing records. No submission status will change.'
+                : 'Fill out the form to view advisory similarity guidance. Nothing is saved from this standalone check.'}
+            />
           )}
         </div>
       </div>
-    </>
+    </LecturerDashboardLayout>
   );
 }
 
