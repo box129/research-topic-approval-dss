@@ -12,7 +12,7 @@ export const roleNavigation = {
     { label: 'Submit Topic', path: '/student/submit-topic' },
     { label: 'My Submissions', path: '/student/my-submissions' },
     { label: 'Check My Topic', path: '/student/check-my-topic' },
-    { label: 'Research Explorer', path: '/student/research-explorer', soon: true }
+    { label: 'Research Explorer', path: '/student/research-explorer' }
   ],
   admin: [
     { label: 'Dashboard', path: '/admin/dashboard' },
