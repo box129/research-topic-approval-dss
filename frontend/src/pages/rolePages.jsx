@@ -5,6 +5,7 @@ import PageHeader from '../components/ui/PageHeader';
 import AlertBanner from '../components/ui/AlertBanner';
 import PendingReviewsPage from './lecturer/PendingReviewsPage';
 import SubmissionDetailPage from './lecturer/SubmissionDetailPage';
+import DashboardPage from './student/DashboardPage';
 import SubmitTopicPage from './student/SubmitTopicPage';
 import MySubmissionsPage from './student/MySubmissionsPage';
 
@@ -24,17 +25,7 @@ export function LecturerDashboardPage() {
   );
 }
 
-export function StudentDashboardPage() {
-  return (
-    <>
-      <PageHeader title="Student Dashboard" subtitle="Student topic status and notifications will be connected in the student workflow PR." />
-      <div className="grid gap-4 md:grid-cols-2">
-        <StatCard label="Active Topic" value="-" helper="No submission data connected yet" />
-        <StatCard label="Notifications" value="-" helper="Mock email and notification service deferred" />
-      </div>
-    </>
-  );
-}
+export const StudentDashboardPage = DashboardPage;
 
 export function AdminDashboardPage() {
   return (
