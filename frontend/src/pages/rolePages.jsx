@@ -2,7 +2,7 @@ import PlaceholderPage from './common/PlaceholderPage';
 import V2PlaceholderPage from './common/V2PlaceholderPage';
 import StatCard from '../components/ui/StatCard';
 import PageHeader from '../components/ui/PageHeader';
-import AlertBanner from '../components/ui/AlertBanner';
+import LecturerDashboard from './lecturer/DashboardPage';
 import PendingReviewsPage from './lecturer/PendingReviewsPage';
 import SubmissionDetailPage from './lecturer/SubmissionDetailPage';
 import DashboardPage from './student/DashboardPage';
@@ -11,21 +11,7 @@ import MySubmissionsPage from './student/MySubmissionsPage';
 import CheckMyTopicPage from './student/CheckMyTopicPage';
 import ResearchExplorerPage from './student/ResearchExplorerPage';
 
-export function LecturerDashboardPage() {
-  return (
-    <>
-      <PageHeader title="Lecturer Dashboard" subtitle="Review workload and quick actions will be connected in the lecturer workflow PR." />
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatCard label="Pending Reviews" value="-" helper="Requires submissions workflow" />
-        <StatCard label="Approved This Session" value="-" helper="Requires decision workflow" />
-        <StatCard label="Rejected This Session" value="-" helper="Requires decision workflow" />
-      </div>
-      <div className="mt-6">
-        <AlertBanner variant="info" message="This is the v1.0 route shell. Auth, submissions, and decisions are intentionally deferred." />
-      </div>
-    </>
-  );
-}
+export const LecturerDashboardPage = LecturerDashboard;
 
 export const StudentDashboardPage = DashboardPage;
 
