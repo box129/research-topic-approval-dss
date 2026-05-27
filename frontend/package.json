@@ -10,6 +10,8 @@
     "preview": "vite preview",
     "smoke:browser": "playwright test tests/smoke/figma-ui-visibility.spec.js",
     "smoke:browser:headed": "playwright test tests/smoke/figma-ui-visibility.spec.js --headed",
+    "smoke:figma-ui": "playwright test tests/smoke/figma-ui-flow.spec.js",
+    "smoke:figma-ui:headed": "playwright test tests/smoke/figma-ui-flow.spec.js --headed",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage"
