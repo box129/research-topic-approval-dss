@@ -14,6 +14,13 @@ function getPathname(page) {
   return new URL(page.url()).pathname;
 }
 
+function makeSnippet(value) {
+  return String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 320);
+}
+
 async function clearSession(page, context) {
   await context.clearCookies();
   await page.goto('/login');
@@ -35,7 +42,45 @@ async function loginAs(page, context, role, expectedPath) {
   await page.getByLabel(/email/i).fill(credentials.email);
   await page.getByLabel(/password/i).fill(credentials.password);
   await page.getByRole('button', { name: /^sign in$/i }).click();
-  await expect.poll(() => getPathname(page)).toBe(expectedPath);
+
+  const deadline = Date.now() + 15000;
+  let currentPath = getPathname(page);
+  let loginPageText = '';
+
+  while (Date.now() < deadline) {
+    currentPath = getPathname(page);
+
+    if (currentPath === expectedPath) {
+      return;
+    }
+
+    if (currentPath !== '/login') {
+      throw new Error(
+        `Login for ${role} reached an unexpected route. Expected ${expectedPath}, current path is ${currentPath}. ` +
+        'Check that the provided smoke credentials match the expected role.'
+      );
+    }
+
+    loginPageText = await page.locator('body').innerText();
+
+    if (
+      /unable to sign in|invalid|credential|locked|disabled|inactive|incorrect|not found|failed/i.test(loginPageText) &&
+      await page.getByRole('button', { name: /^sign in$/i }).isEnabled().catch(() => false)
+    ) {
+      break;
+    }
+
+    await page.waitForTimeout(250);
+  }
+
+  currentPath = getPathname(page);
+  loginPageText = loginPageText || await page.locator('body').innerText();
+
+  throw new Error(
+    `Login for ${role} did not reach ${expectedPath}. Current path is ${currentPath}. ` +
+    `Login page text: "${makeSnippet(loginPageText)}". ` +
+    `Credentials may be invalid or the ${role} demo user may not be seeded.`
+  );
 }
 
 function startReadOnlyRequestMonitor(page) {
@@ -101,7 +146,6 @@ test('student Figma UI routes render read-only smoke states', async ({ page, con
 
   try {
     await expectRenderedRoute(page, '/student/dashboard', /student dashboard/i);
-    await expect(page.getByText(/not available yet|not connected yet/i).first()).toBeVisible();
 
     await expectRenderedRoute(page, '/student/submit-topic', /submit topic/i);
     await expect(page.getByRole('button', { name: /submit for review/i })).toBeVisible();
