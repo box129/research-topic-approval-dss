@@ -93,8 +93,9 @@ describe('End-to-End User Flow Tests', () => {
     renderAppAt('/student/check-my-topic');
 
     expect(await screen.findByRole('heading', { name: /check my topic/i })).toBeInTheDocument();
-    expect(screen.getAllByText(/student portal/i).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText(/research topic approval/i)).toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: /student navigation/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^check my topic$/i })).toHaveAttribute('href', '/student/check-my-topic');
+    expect(screen.getByText(/research similarity system/i)).toBeInTheDocument();
     expect(screen.getByText(/pre-check only/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/enter your research topic/i)).toBeInTheDocument();
   });
