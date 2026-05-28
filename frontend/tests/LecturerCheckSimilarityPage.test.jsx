@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axios from 'axios';
 import CheckSimilarityPage from '../src/pages/lecturer/CheckSimilarityPage';
@@ -36,10 +36,20 @@ function buildFypResponse({ risk = 'LOW', maxSimilarity = 24, status = 'success'
 }
 
 async function submitTopic(user) {
-  await user.type(screen.getByPlaceholderText(/enter your research topic/i), validTopic);
-  await user.selectOptions(screen.getByLabelText(/research area/i), validCategory);
-  await user.type(screen.getByLabelText(/keywords/i), validKeywords);
-  await user.click(screen.getByRole('button', { name: /check similarity/i }));
+  const topicInput = screen.getByPlaceholderText(/enter your research topic/i);
+  const categoryInput = screen.getByLabelText(/research area/i);
+  const keywordsInput = screen.getByLabelText(/keywords/i);
+  const submitButton = screen.getByRole('button', { name: /check similarity/i });
+
+  fireEvent.change(topicInput, { target: { value: validTopic } });
+  fireEvent.change(categoryInput, { target: { value: validCategory } });
+  fireEvent.change(keywordsInput, { target: { value: validKeywords } });
+
+  await waitFor(() => {
+    expect(submitButton).toBeEnabled();
+  });
+
+  await user.click(submitButton);
 }
 
 function postedPaths() {
@@ -51,10 +61,12 @@ describe('Lecturer CheckSimilarityPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    axios.post.mockReset();
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
+    axios.post.mockReset();
     consoleErrorSpy.mockRestore();
   });
 
@@ -200,15 +212,13 @@ describe('Lecturer CheckSimilarityPage', () => {
       request: {}
     });
 
-    await user.type(screen.getByPlaceholderText(/enter your research topic/i), validTopic);
-    await user.click(screen.getByRole('button', { name: /check similarity/i }));
+    await submitTopic(user);
 
     expect(await screen.findByText(/no response from server/i)).toBeInTheDocument();
 
     axios.post.mockRejectedValueOnce(new Error('Invalid response format from server'));
 
-    await user.type(screen.getByPlaceholderText(/enter your research topic/i), validTopic);
-    await user.click(screen.getByRole('button', { name: /check similarity/i }));
+    await submitTopic(user);
 
     expect(await screen.findByText(/invalid response format from server/i)).toBeInTheDocument();
   });
