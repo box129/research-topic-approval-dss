@@ -134,7 +134,7 @@ function PendingReviewsPage() {
 
       {!isLoading && !error && (
         <>
-          <section className="grid gap-4 md:grid-cols-3">
+          <section className="grid gap-4 rounded-[1.25rem] border border-emerald-100 bg-white/80 p-4 shadow-card md:grid-cols-3">
             <DashboardStatusCard
               label="Pending Reviews"
               value={submissions.length}
@@ -171,7 +171,7 @@ function PendingReviewsPage() {
 
           {submissions.length > 0 && (
             <>
-              <section className="rounded-card border border-border-subtle bg-white p-4 shadow-card">
+              <section className="rounded-[1.25rem] border border-emerald-100 bg-white p-5 shadow-card sm:p-6">
                 <div className="grid gap-4 lg:grid-cols-[minmax(240px,1fr)_220px_220px]">
                   <SearchInput
                     id="pending-review-search"
@@ -223,15 +223,16 @@ function PendingReviewsPage() {
               )}
 
               {filteredSubmissions.length > 0 && (
-                <TableShell
-                  title="Review Queue"
-                  subtitle="Open a row to continue in the existing submission detail workflow."
-                  actions={(
-                    <PrimaryButton type="button" onClick={loadSubmissions}>
-                      Refresh Queue
-                    </PrimaryButton>
-                  )}
-                >
+                <div className="rounded-[1.25rem] border border-emerald-100 bg-white p-2 shadow-card">
+                  <TableShell
+                    title="Review Queue"
+                    subtitle="Open a row to continue in the existing submission detail workflow."
+                    actions={(
+                      <PrimaryButton type="button" onClick={loadSubmissions}>
+                        Refresh Queue
+                      </PrimaryButton>
+                    )}
+                  >
                   <table className="min-w-full divide-y divide-border-subtle">
                     <thead className="bg-surface-muted">
                       <tr>
@@ -257,9 +258,9 @@ function PendingReviewsPage() {
                     </thead>
                     <tbody className="divide-y divide-border-subtle bg-white">
                       {filteredSubmissions.map((submission) => (
-                        <tr key={submission.id} className="align-top">
-                          <td className="px-4 py-4">
-                            <p className="font-medium text-text-primary">{submission.title}</p>
+                        <tr key={submission.id} className="align-top transition-colors hover:bg-[#f7fbf4]">
+                          <td className="px-4 py-5">
+                            <p className="font-semibold leading-snug text-text-primary">{submission.title}</p>
                             {submission.keywords && (
                               <p className="mt-1 text-sm text-text-secondary">Keywords: {submission.keywords}</p>
                             )}
@@ -269,7 +270,7 @@ function PendingReviewsPage() {
                               </p>
                             )}
                           </td>
-                          <td className="px-4 py-4">
+                          <td className="px-4 py-5">
                             <p className="text-sm font-medium text-text-primary">
                               {submission.student_name || 'Unnamed student'}
                             </p>
@@ -277,16 +278,16 @@ function PendingReviewsPage() {
                               {submission.student_email || 'No email available'}
                             </p>
                           </td>
-                          <td className="px-4 py-4 text-sm text-text-secondary">
+                          <td className="px-4 py-5 text-sm text-text-secondary">
                             {submission.category || 'Uncategorised'}
                           </td>
-                          <td className="px-4 py-4 text-sm text-text-secondary">
+                          <td className="px-4 py-5 text-sm text-text-secondary">
                             {formatDate(submission.submitted_at || submission.created_at)}
                           </td>
-                          <td className="px-4 py-4">
+                          <td className="px-4 py-5">
                             <StatusBadge status={submission.status} />
                           </td>
-                          <td className="px-4 py-4">
+                          <td className="px-4 py-5">
                             <SecondaryButton
                               type="button"
                               onClick={() => navigate(`/lecturer/pending-reviews/${submission.id}`)}
@@ -298,7 +299,8 @@ function PendingReviewsPage() {
                       ))}
                     </tbody>
                   </table>
-                </TableShell>
+                  </TableShell>
+                </div>
               )}
 
               <InfoCallout

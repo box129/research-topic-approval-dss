@@ -150,21 +150,27 @@ function CheckSimilarityPage() {
         subtitle="Run an advisory manual similarity check without changing a submission, snapshot, or lecturer decision."
       />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(320px,420px)_1fr]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(320px,440px)_1fr]">
         <div className="space-y-4">
-          <InfoCallout
-            title="Manual check only"
-            message="This standalone check uses the general similarity endpoint and does not approve, reject, block, or save a topic."
-          />
-          <InfoCallout
-            variant="info"
-            title="Similarity evidence is advisory"
-            message="Use the result to guide a discussion or review. Formal decisions remain on the submission detail workflow."
-          />
-          <TopicForm onSubmit={handleSubmit} isLoading={isLoading} />
+          <div className="rounded-[1.25rem] border border-emerald-100 bg-white p-5 shadow-card">
+            <div className="space-y-4">
+              <InfoCallout
+                title="Manual check only"
+                message="This standalone check uses the general similarity endpoint and does not approve, reject, block, or save a topic."
+              />
+              <InfoCallout
+                variant="info"
+                title="Similarity evidence is advisory"
+                message="Use the result to guide a discussion or review. Formal decisions remain on the submission detail workflow."
+              />
+            </div>
+          </div>
+          <div className="rounded-[1.25rem] border border-border-subtle bg-white p-4 shadow-card sm:p-5">
+            <TopicForm onSubmit={handleSubmit} isLoading={isLoading} />
+          </div>
         </div>
 
-        <div>
+        <div className="min-w-0 rounded-[1.25rem] border border-emerald-100 bg-white/80 p-4 shadow-card sm:p-5">
           {error && !results && (
             <div data-testid="error-display" className="mb-6">
               <InfoCallout
@@ -178,7 +184,7 @@ function CheckSimilarityPage() {
           {results && (
             <div data-testid="results-container" className="animate-fade-in">
               <ResultsDisplay results={results} />
-              <div className="pb-8 pt-4 text-center">
+              <div className="pb-4 pt-5 text-center">
                 <SecondaryButton
                   type="button"
                   onClick={handleReset}
