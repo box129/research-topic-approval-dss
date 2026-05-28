@@ -162,21 +162,27 @@ function CheckMyTopicPage() {
         subtitle="Run a private pre-check before deciding whether to submit a topic for lecturer review."
       />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(320px,420px)_1fr]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(320px,440px)_1fr]">
         <div className="space-y-4">
-          <InfoCallout
-            title="Pre-check only"
-            message="This check does not submit your topic for lecturer approval, save a result, or create a decision record."
-          />
-          <InfoCallout
-            variant="info"
-            title="Final approval remains lecturer-controlled"
-            message="Use the feedback to refine your idea. Formal review still happens after you submit a topic."
-          />
-          <TopicForm onSubmit={handleSubmit} isLoading={isLoading} />
+          <div className="rounded-[1.25rem] border border-emerald-100 bg-white p-5 shadow-card">
+            <div className="space-y-4">
+              <InfoCallout
+                title="Pre-check only"
+                message="This check does not submit your topic for lecturer approval, save a result, or create a decision record."
+              />
+              <InfoCallout
+                variant="info"
+                title="Final approval remains lecturer-controlled"
+                message="Use the feedback to refine your idea. Formal review still happens after you submit a topic."
+              />
+            </div>
+          </div>
+          <div className="rounded-[1.25rem] border border-border-subtle bg-white p-4 shadow-card sm:p-5">
+            <TopicForm onSubmit={handleSubmit} isLoading={isLoading} />
+          </div>
         </div>
 
-        <div>
+        <div className="min-w-0 rounded-[1.25rem] border border-emerald-100 bg-white/80 p-4 shadow-card sm:p-5">
           {error && !results && (
             <InfoCallout
               variant="danger"
@@ -189,7 +195,7 @@ function CheckMyTopicPage() {
           {results && (
             <div data-testid="student-results-container" className="animate-fade-in">
               <ResultsDisplay results={results} />
-              <div className="pb-8 pt-4 text-center">
+              <div className="pb-4 pt-5 text-center">
                 <SecondaryButton type="button" onClick={handleReset} data-testid="reset-button">
                   Check Another Topic
                 </SecondaryButton>

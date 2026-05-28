@@ -157,7 +157,7 @@ function MySubmissionsPage() {
 
       {!isLoading && !error && submissions.length > 0 && (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 rounded-[1.25rem] border border-emerald-100 bg-white/80 p-4 shadow-card sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard label="Total" value={counts.total} helper="All submitted topics" />
             <MetricCard label="Pending" value={counts.pending} helper="Awaiting review" tone="info" />
             <MetricCard label="Awaiting revision" value={counts.awaitingRevision} helper="Needs follow-up" tone="warning" />
@@ -169,58 +169,60 @@ function MySubmissionsPage() {
               const statusSummary = getStatusSummary(submission);
 
               return (
-                <article key={submission.id} className="rounded-card border border-border-subtle bg-white p-5 shadow-card">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                <article key={submission.id} className="overflow-hidden rounded-[1.25rem] border border-border-subtle bg-white shadow-card">
+                  <div className="border-l-4 border-brand-green p-5 sm:p-6">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="max-w-4xl">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
                         Submission history
-                      </p>
-                      <h2 className="mt-1 text-lg font-semibold text-text-primary">{submission.title}</h2>
+                        </p>
+                        <h2 className="mt-2 text-xl font-semibold leading-snug text-text-primary">{submission.title}</h2>
+                      </div>
+                      <StatusBadge status={submission.status} />
                     </div>
-                    <StatusBadge status={submission.status} />
-                  </div>
 
-                  <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                    <div>
-                      <dt className="font-medium text-text-muted">Category</dt>
-                      <dd className="mt-1 text-text-primary">{submission.category || 'Uncategorised'}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-medium text-text-muted">Submitted</dt>
-                      <dd className="mt-1 text-text-primary">
-                        {formatDate(submission.submitted_at || submission.created_at)}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="font-medium text-text-muted">Session</dt>
-                      <dd className="mt-1 text-text-primary">{submission.session_name || 'Not available'}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-medium text-text-muted">Keywords</dt>
-                      <dd className="mt-1 text-text-primary">{submission.keywords || 'Not provided'}</dd>
-                    </div>
-                  </dl>
+                    <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                      <div className="rounded-card bg-surface-muted/60 p-3">
+                        <dt className="font-medium text-text-muted">Category</dt>
+                        <dd className="mt-1 text-text-primary">{submission.category || 'Uncategorised'}</dd>
+                      </div>
+                      <div className="rounded-card bg-surface-muted/60 p-3">
+                        <dt className="font-medium text-text-muted">Submitted</dt>
+                        <dd className="mt-1 text-text-primary">
+                          {formatDate(submission.submitted_at || submission.created_at)}
+                        </dd>
+                      </div>
+                      <div className="rounded-card bg-surface-muted/60 p-3">
+                        <dt className="font-medium text-text-muted">Session</dt>
+                        <dd className="mt-1 text-text-primary">{submission.session_name || 'Not available'}</dd>
+                      </div>
+                      <div className="rounded-card bg-surface-muted/60 p-3">
+                        <dt className="font-medium text-text-muted">Keywords</dt>
+                        <dd className="mt-1 text-text-primary">{submission.keywords || 'Not provided'}</dd>
+                      </div>
+                    </dl>
 
-                  <div className="mt-4 space-y-3">
-                    <InfoCallout
-                      variant={statusSummary.variant}
-                      title={statusSummary.title}
-                      message={statusSummary.message}
-                    />
-
-                    {shouldShowFeedback(submission) && (
+                    <div className="mt-5 space-y-3">
                       <InfoCallout
                         variant={statusSummary.variant}
-                        title="Decision feedback"
-                        message={getFeedbackText(submission)}
-                      >
-                        {submission.decided_at && (
-                          <p className="text-xs">
-                            Decision recorded {formatDate(submission.decided_at)}
-                          </p>
-                        )}
-                      </InfoCallout>
-                    )}
+                        title={statusSummary.title}
+                        message={statusSummary.message}
+                      />
+
+                      {shouldShowFeedback(submission) && (
+                        <InfoCallout
+                          variant={statusSummary.variant}
+                          title="Decision feedback"
+                          message={getFeedbackText(submission)}
+                        >
+                          {submission.decided_at && (
+                            <p className="text-xs">
+                              Decision recorded {formatDate(submission.decided_at)}
+                            </p>
+                          )}
+                        </InfoCallout>
+                      )}
+                    </div>
                   </div>
                 </article>
               );
