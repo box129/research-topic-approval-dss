@@ -35,10 +35,10 @@ describe('LoginPage', () => {
   it('renders AUTH-01 split login content and forgot-password link', () => {
     renderLoginPage();
 
-    expect(screen.getByText(/research topic approval dss/i)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /sign in/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /research topic similarity detection system/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /welcome back/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/university email address/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/secure password/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /forgot password/i })).toHaveAttribute('href', '/forgot-password');
     expect(screen.getByText(/^No role selector$/i)).toBeInTheDocument();
   });

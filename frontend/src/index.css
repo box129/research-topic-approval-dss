@@ -88,6 +88,23 @@ html, body {
   .animate-fade-in {
     animation: fadeIn 0.3s ease-in-out;
   }
+
+  .auth-login-submit {
+    background-color: var(--color-brand-gold) !important;
+    color: var(--color-text-primary) !important;
+    box-shadow: 0 14px 30px -18px rgb(180 83 9 / 0.65);
+  }
+
+  .auth-login-submit:hover {
+    background-color: var(--color-brand-gold-dark) !important;
+    color: var(--color-text-inverse) !important;
+  }
+
+  .auth-login-submit:disabled {
+    background-color: #e5e7eb !important;
+    color: #9ca3af !important;
+    box-shadow: none;
+  }
 }
 
 @keyframes fadeIn {

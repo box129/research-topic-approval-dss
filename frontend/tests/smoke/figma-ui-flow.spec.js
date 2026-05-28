@@ -132,7 +132,7 @@ async function expectRenderedRoute(page, path, heading) {
 test('login page renders the Figma-informed auth shell', async ({ page }) => {
   await page.goto('/login');
 
-  await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible();
   await expect(page.getByLabel(/email/i)).toBeVisible();
   await expect(page.getByLabel(/password/i)).toBeVisible();
   await expect(page.getByRole('link', { name: /forgot password/i })).toHaveAttribute('href', '/forgot-password');
