@@ -151,20 +151,22 @@ function StudentDashboardPage() {
 
       {!isLoading && !error && !currentSubmission && (
         <>
-          <EmptyStatePanel
-            title="No topic submitted yet"
-            message="Start by submitting a proposed research topic or checking a topic idea before submission."
-            action={(
-              <div className="flex flex-col justify-center gap-3 sm:flex-row">
-                <PrimaryButton type="button" onClick={() => navigate('/student/submit-topic')}>
-                  Submit Topic
-                </PrimaryButton>
-                <SecondaryButton type="button" onClick={() => navigate('/student/check-my-topic')}>
-                  Check My Topic
-                </SecondaryButton>
-              </div>
-            )}
-          />
+          <section className="rounded-[1.25rem] border border-emerald-100 bg-white/90 p-4 shadow-card sm:p-8">
+            <EmptyStatePanel
+              title="No topic submitted yet"
+              message="Start by submitting a proposed research topic or checking a topic idea before submission."
+              action={(
+                <div className="flex flex-col justify-center gap-3 sm:flex-row">
+                  <PrimaryButton type="button" onClick={() => navigate('/student/submit-topic')}>
+                    Submit Topic
+                  </PrimaryButton>
+                  <SecondaryButton type="button" onClick={() => navigate('/student/check-my-topic')}>
+                    Check My Topic
+                  </SecondaryButton>
+                </div>
+              )}
+            />
+          </section>
 
           <InfoCallout
             title="Before you submit"
@@ -175,35 +177,41 @@ function StudentDashboardPage() {
 
       {!isLoading && !error && currentSubmission && (
         <>
-          <section className="rounded-card border border-border-subtle bg-white p-6 shadow-card">
-            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-wide text-text-muted">Current Topic</p>
-                <h2 className="mt-2 text-xl font-semibold text-text-primary">{currentSubmission.title}</h2>
-                <p className="mt-2 text-sm text-text-secondary">
+          <section className="overflow-hidden rounded-[1.5rem] border border-brand-gold-light bg-[#fff9e8] shadow-[0_18px_55px_-35px_rgb(180_83_9_/_0.55)]">
+            <div className="p-5 sm:p-7 lg:p-8">
+              <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                <div className="max-w-4xl">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-gold-dark">Current Topic</p>
+                  <h2 className="mt-3 text-2xl font-bold leading-tight text-text-primary sm:text-3xl">
+                    {currentSubmission.title}
+                  </h2>
+                  <p className="mt-3 max-w-3xl text-sm leading-6 text-text-secondary">
                   {currentSubmission.category || 'Uncategorised'}
                   {currentSubmission.keywords ? ` - Keywords: ${currentSubmission.keywords}` : ''}
-                </p>
+                  </p>
+                </div>
+                <div className="shrink-0">
+                  <StatusBadge status={currentSubmission.status} />
+                </div>
               </div>
-              <StatusBadge status={currentSubmission.status} />
-            </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
-              <DashboardStatusCard
-                label="Submitted"
-                value={formatDate(currentSubmission.submitted_at || currentSubmission.created_at)}
-                helper="From your latest submission record"
-              />
-              <DashboardStatusCard
-                label="Decision Date"
-                value={showDecisionDate ? formatDate(currentSubmission.decided_at) : 'Not available yet'}
-                helper="Shown when a lecturer decision is recorded"
-              />
-              <DashboardStatusCard
-                label="Similarity Score"
-                value="Not available yet"
-                helper="Detailed similarity data is not exposed on this dashboard yet"
-              />
+              <div className="mt-7 grid gap-4 md:grid-cols-3">
+                <DashboardStatusCard
+                  label="Submitted"
+                  value={formatDate(currentSubmission.submitted_at || currentSubmission.created_at)}
+                  helper="From your latest submission record"
+                />
+                <DashboardStatusCard
+                  label="Decision Date"
+                  value={showDecisionDate ? formatDate(currentSubmission.decided_at) : 'Not available yet'}
+                  helper="Shown when a lecturer decision is recorded"
+                />
+                <DashboardStatusCard
+                  label="Similarity Score"
+                  value="Not available yet"
+                  helper="Detailed similarity data is not exposed on this dashboard yet"
+                />
+              </div>
             </div>
           </section>
 
@@ -214,7 +222,7 @@ function StudentDashboardPage() {
           />
 
           <section className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-card border border-border-subtle bg-white p-5 shadow-card">
+            <div className="rounded-[1.25rem] border border-emerald-100 bg-white p-6 shadow-card">
               <h3 className="font-semibold text-text-primary">Quick Actions</h3>
               <p className="mt-2 text-sm text-text-secondary">
                 Open your submission history for the complete record and lecturer feedback.
