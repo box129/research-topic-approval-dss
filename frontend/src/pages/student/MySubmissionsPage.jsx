@@ -5,7 +5,6 @@ import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import ErrorState from '../../components/ui/ErrorState';
 import InfoCallout from '../../components/ui/InfoCallout';
 import LoadingState from '../../components/ui/LoadingState';
-import MetricCard from '../../components/ui/MetricCard';
 import PrimaryButton from '../../components/ui/PrimaryButton';
 import SecondaryButton from '../../components/ui/SecondaryButton';
 import StatusBadge from '../../components/ui/StatusBadge';
@@ -103,6 +102,32 @@ function MySubmissionsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const counts = useMemo(() => getCounts(submissions), [submissions]);
+  const summaryCards = useMemo(() => [
+    {
+      label: 'Total',
+      value: counts.total,
+      helper: 'All submitted topics',
+      tone: 'border-brand-green/25 bg-white'
+    },
+    {
+      label: 'Pending',
+      value: counts.pending,
+      helper: 'Awaiting review',
+      tone: 'border-sky-200 bg-sky-50/80'
+    },
+    {
+      label: 'Awaiting revision',
+      value: counts.awaitingRevision,
+      helper: 'Needs follow-up',
+      tone: 'border-amber-200 bg-amber-50/80'
+    },
+    {
+      label: 'Approved',
+      value: counts.approved,
+      helper: 'Ready to continue',
+      tone: 'border-emerald-200 bg-emerald-50/80'
+    }
+  ], [counts]);
 
   const loadSubmissions = useCallback(async () => {
     setIsLoading(true);
@@ -157,52 +182,94 @@ function MySubmissionsPage() {
 
       {!isLoading && !error && submissions.length > 0 && (
         <>
-          <div className="grid gap-4 rounded-[1.25rem] border border-emerald-100 bg-white/80 p-4 shadow-card sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard label="Total" value={counts.total} helper="All submitted topics" />
-            <MetricCard label="Pending" value={counts.pending} helper="Awaiting review" tone="info" />
-            <MetricCard label="Awaiting revision" value={counts.awaitingRevision} helper="Needs follow-up" tone="warning" />
-            <MetricCard label="Approved" value={counts.approved} helper="Ready to continue" tone="success" />
+          <div className="rounded-[1.75rem] border border-emerald-100 bg-white/85 p-4 shadow-card sm:p-5">
+            <div className="flex flex-col gap-2 border-b border-emerald-50 pb-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                  Submission overview
+                </p>
+                <h2 className="mt-1 text-2xl font-semibold text-text-primary">Review history at a glance</h2>
+              </div>
+              <p className="max-w-xl text-sm text-text-secondary">
+                Counts reflect only your submitted topics and student-visible review state.
+              </p>
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {summaryCards.map((card) => (
+                <div
+                  key={card.label}
+                  className={`rounded-[1.25rem] border px-4 py-3 ${card.tone}`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-semibold text-text-primary">{card.label}</p>
+                    <span className="rounded-full bg-white/80 px-3 py-1 text-lg font-semibold text-brand-green shadow-sm">
+                      {card.value}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs font-medium text-text-muted">{card.helper}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <section className="space-y-4" aria-label="Submission history">
+          <section className="rounded-[1.75rem] border border-emerald-100 bg-[#fbfdf8] p-4 shadow-card sm:p-5" aria-label="Submission history">
+            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                  Timeline
+                </p>
+                <h2 className="text-xl font-semibold text-text-primary">Submission history</h2>
+              </div>
+              <p className="text-sm text-text-secondary">
+                Feedback is shown only when a decision is visible to you.
+              </p>
+            </div>
+
+            <div className="space-y-4">
             {submissions.map((submission) => {
               const statusSummary = getStatusSummary(submission);
 
               return (
-                <article key={submission.id} className="overflow-hidden rounded-[1.25rem] border border-border-subtle bg-white shadow-card">
-                  <div className="border-l-4 border-brand-green p-5 sm:p-6">
+                <article key={submission.id} className="overflow-hidden rounded-[1.4rem] border border-emerald-100 bg-white shadow-card">
+                  <div className="grid gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_minmax(240px,0.34fr)]">
+                    <div>
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="max-w-4xl">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
-                        Submission history
+                        <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                          Student record
                         </p>
                         <h2 className="mt-2 text-xl font-semibold leading-snug text-text-primary">{submission.title}</h2>
                       </div>
                       <StatusBadge status={submission.status} />
                     </div>
 
-                    <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                      <div className="rounded-card bg-surface-muted/60 p-3">
+                    <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
+                      <div className="rounded-[1rem] border border-emerald-50 bg-[#f6fbf1] p-3">
                         <dt className="font-medium text-text-muted">Category</dt>
                         <dd className="mt-1 text-text-primary">{submission.category || 'Uncategorised'}</dd>
                       </div>
-                      <div className="rounded-card bg-surface-muted/60 p-3">
+                      <div className="rounded-[1rem] border border-emerald-50 bg-[#f6fbf1] p-3">
                         <dt className="font-medium text-text-muted">Submitted</dt>
                         <dd className="mt-1 text-text-primary">
                           {formatDate(submission.submitted_at || submission.created_at)}
                         </dd>
                       </div>
-                      <div className="rounded-card bg-surface-muted/60 p-3">
+                      <div className="rounded-[1rem] border border-emerald-50 bg-[#f6fbf1] p-3">
                         <dt className="font-medium text-text-muted">Session</dt>
                         <dd className="mt-1 text-text-primary">{submission.session_name || 'Not available'}</dd>
                       </div>
-                      <div className="rounded-card bg-surface-muted/60 p-3">
+                      <div className="rounded-[1rem] border border-emerald-50 bg-[#f6fbf1] p-3">
                         <dt className="font-medium text-text-muted">Keywords</dt>
                         <dd className="mt-1 text-text-primary">{submission.keywords || 'Not provided'}</dd>
                       </div>
                     </dl>
+                    </div>
 
-                    <div className="mt-5 space-y-3">
+                    <div className="space-y-3 rounded-[1.2rem] border border-emerald-50 bg-[#fbfdf8] p-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                        Review state
+                      </p>
                       <InfoCallout
                         variant={statusSummary.variant}
                         title={statusSummary.title}
@@ -227,6 +294,7 @@ function MySubmissionsPage() {
                 </article>
               );
             })}
+            </div>
           </section>
         </>
       )}

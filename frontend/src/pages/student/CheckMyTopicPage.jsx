@@ -162,10 +162,20 @@ function CheckMyTopicPage() {
         subtitle="Run a private pre-check before deciding whether to submit a topic for lecturer review."
       />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(320px,440px)_1fr]">
-        <div className="space-y-4">
-          <div className="rounded-[1.25rem] border border-emerald-100 bg-white p-5 shadow-card">
-            <div className="space-y-4">
+      <section className="overflow-hidden rounded-[1.75rem] border border-emerald-100 bg-white shadow-card">
+        <div className="grid gap-0 xl:grid-cols-[minmax(320px,0.42fr)_minmax(0,0.58fr)]">
+          <aside className="border-b border-emerald-100 bg-[#f6fbf1] p-5 sm:p-6 xl:border-b-0 xl:border-r">
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+              Private checker
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold leading-tight text-text-primary">
+              Compare an idea before formal review
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-text-secondary">
+              The checker is advisory. It helps you refine a topic without saving a submission or starting a review workflow.
+            </p>
+
+            <div className="mt-5 space-y-3">
               <InfoCallout
                 title="Pre-check only"
                 message="This check does not submit your topic for lecturer approval, save a result, or create a decision record."
@@ -176,43 +186,78 @@ function CheckMyTopicPage() {
                 message="Use the feedback to refine your idea. Formal review still happens after you submit a topic."
               />
             </div>
-          </div>
-          <div className="rounded-[1.25rem] border border-border-subtle bg-white p-4 shadow-card sm:p-5">
-            <TopicForm onSubmit={handleSubmit} isLoading={isLoading} />
-          </div>
-        </div>
 
-        <div className="min-w-0 rounded-[1.25rem] border border-emerald-100 bg-white/80 p-4 shadow-card sm:p-5">
-          {error && !results && (
-            <InfoCallout
-              variant="danger"
-              title="Unable to check topic"
-              message={error}
-              className="mb-6"
-            />
-          )}
-
-          {results && (
-            <div data-testid="student-results-container" className="animate-fade-in">
-              <ResultsDisplay results={results} />
-              <div className="pb-4 pt-5 text-center">
-                <SecondaryButton type="button" onClick={handleReset} data-testid="reset-button">
-                  Check Another Topic
-                </SecondaryButton>
-              </div>
+            <div className="mt-5 rounded-[1rem] border border-dashed border-brand-green-light bg-white/75 p-4 text-sm text-text-secondary">
+              <p className="font-semibold text-text-primary">What happens here</p>
+              <ul className="mt-3 space-y-2">
+                <li>Enter a topic, category, and keywords.</li>
+                <li>Review the advisory similarity result.</li>
+                <li>Nothing is attached to your submission history.</li>
+              </ul>
             </div>
-          )}
+          </aside>
 
-          {!results && !error && (
-            <EmptyStatePanel
-              title={isLoading ? 'Checking topic' : 'Awaiting topic check'}
-              message={isLoading
-                ? 'Your topic is being compared against existing records.'
-                : 'Fill out the form to see similarity guidance. Nothing is saved from this pre-check.'}
-            />
-          )}
+          <div className="grid gap-5 p-4 sm:p-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(280px,1.08fr)] xl:grid-cols-1 2xl:grid-cols-[minmax(0,0.92fr)_minmax(320px,1.08fr)]">
+            <div className="rounded-[1.35rem] border border-border-subtle bg-white p-4 shadow-sm sm:p-5">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                    Topic details
+                  </p>
+                  <h2 className="text-xl font-semibold text-text-primary">Similarity pre-check</h2>
+                </div>
+                <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                  Not saved
+                </span>
+              </div>
+            <TopicForm onSubmit={handleSubmit} isLoading={isLoading} />
+            </div>
+
+            <div className="min-w-0 rounded-[1.35rem] border border-emerald-100 bg-[#fbfdf8] p-4 shadow-sm sm:p-5">
+              <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                    Advisory result
+                  </p>
+                  <h2 className="text-xl font-semibold text-text-primary">Guidance panel</h2>
+                </div>
+                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-text-muted shadow-sm">
+                  No decision action
+                </span>
+              </div>
+
+              {error && !results && (
+                <InfoCallout
+                  variant="danger"
+                  title="Unable to check topic"
+                  message={error}
+                  className="mb-6"
+                />
+              )}
+
+              {results && (
+                <div data-testid="student-results-container" className="animate-fade-in">
+                  <ResultsDisplay results={results} />
+                  <div className="pb-4 pt-5 text-center">
+                    <SecondaryButton type="button" onClick={handleReset} data-testid="reset-button">
+                      Check Another Topic
+                    </SecondaryButton>
+                  </div>
+                </div>
+              )}
+
+              {!results && !error && (
+                <EmptyStatePanel
+                  title={isLoading ? 'Checking topic' : 'Awaiting topic check'}
+                  message={isLoading
+                    ? 'Your topic is being compared against existing records.'
+                    : 'Fill out the form to see similarity guidance. Nothing is saved from this pre-check.'}
+                />
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
     </StudentDashboardLayout>
   );
 }
