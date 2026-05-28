@@ -143,11 +143,13 @@ describe('SubmitTopicPage', () => {
     expect(await screen.findByText('Unable to submit topic.')).toBeInTheDocument();
   });
 
-  it('does not expose similarity, risk, or pre-check UI', () => {
+  it('does not expose similarity, risk, or functional pre-check UI', () => {
     renderSubmitTopicPage();
 
     expect(screen.queryByText(/similarity/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/risk/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/pre-check/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/pre-check/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/coming later/i).length).toBeGreaterThan(0);
+    expect(screen.queryByRole('button', { name: /pre-check/i })).not.toBeInTheDocument();
   });
 });

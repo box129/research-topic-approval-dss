@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 function StudentDashboardLayout({ children, className = '' }) {
   return (
     <div className={[
-      '-mx-2 -my-2 min-h-[calc(100vh-7rem)] space-y-7 rounded-[1.5rem] bg-[#f1f8ec] p-4 sm:-mx-3 sm:p-6 lg:p-8',
+      'mx-auto w-full max-w-[70rem] space-y-8 rounded-[2rem] bg-[#f3faee]/80 px-4 py-6 sm:px-7 sm:py-8 lg:px-10 lg:py-10',
       className
     ].filter(Boolean).join(' ')}>
       {children}
