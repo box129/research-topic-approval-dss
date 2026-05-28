@@ -1,18 +1,14 @@
 import PropTypes from 'prop-types';
 import { Outlet } from 'react-router-dom';
-import Sidebar from './Sidebar';
-import Topbar from './Topbar';
+import AuthenticatedTopNav from './AuthenticatedTopNav';
 
 function AppLayout({ role }) {
   return (
-    <div className="min-h-screen bg-gray-50 lg:flex">
-      <Sidebar role={role} />
-      <div className="min-w-0 flex-1">
-        <Topbar role={role} />
-        <main className="mx-auto max-w-7xl px-5 py-6">
-          <Outlet />
-        </main>
-      </div>
+    <div className="min-h-screen bg-[#eef7e8]">
+      <AuthenticatedTopNav role={role} />
+      <main className="mx-auto w-full max-w-[78rem] px-4 py-8 sm:px-6 lg:py-10">
+        <Outlet />
+      </main>
     </div>
   );
 }
