@@ -4,7 +4,7 @@ test('renders the login page without crashing', async ({ page }, testInfo) => {
   await page.goto('/');
 
   await expect(page.locator('body')).toBeVisible();
-  await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible();
   await expect(page.getByLabel(/email/i)).toBeVisible();
   await expect(page.getByLabel(/password/i)).toBeVisible();
   await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible();
