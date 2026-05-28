@@ -79,7 +79,7 @@ function LecturerDashboardPage() {
 
       {!isLoading && !error && (
         <>
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <section className="grid gap-4 rounded-[1.25rem] border border-emerald-100 bg-white/80 p-4 shadow-card md:grid-cols-2 xl:grid-cols-4">
             <DashboardStatusCard
               label="Pending Reviews"
               value={submissions.length}
@@ -108,21 +108,23 @@ function LecturerDashboardPage() {
             message="This dashboard uses only the existing pending review queue. Similarity risk, activity, workload, and trend analytics are shown as unavailable until a safe dashboard API exists."
           />
 
-          <section className="rounded-card border border-border-subtle bg-white p-6 shadow-card">
-            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-text-primary">Pending Review Queue</h2>
-                <p className="mt-1 text-sm text-text-secondary">
+          <section className="overflow-hidden rounded-[1.5rem] border border-emerald-100 bg-white shadow-[0_18px_55px_-35px_rgb(4_120_87_/_0.45)]">
+            <div className="border-b border-border-subtle bg-[#fbfff7] p-5 sm:p-7">
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-text-primary">Pending Review Queue</h2>
+                  <p className="mt-2 max-w-3xl text-sm leading-6 text-text-secondary">
                   Review the oldest pending submissions first, or open the full queue for the complete table.
-                </p>
+                  </p>
+                </div>
+                <PrimaryButton type="button" onClick={() => navigate('/lecturer/pending-reviews')}>
+                  View All Pending Reviews
+                </PrimaryButton>
               </div>
-              <PrimaryButton type="button" onClick={() => navigate('/lecturer/pending-reviews')}>
-                View All Pending Reviews
-              </PrimaryButton>
             </div>
 
             {submissions.length === 0 && (
-              <div className="mt-6">
+              <div className="p-5 sm:p-7">
                 <EmptyStatePanel
                   title="No pending reviews"
                   message="Student submissions with pending review status will appear here when they are ready for lecturer action."
@@ -136,14 +138,14 @@ function LecturerDashboardPage() {
             )}
 
             {previewSubmissions.length > 0 && (
-              <div className="mt-6 grid gap-4">
+              <div className="grid gap-4 p-5 sm:p-7">
                 {previewSubmissions.map((submission) => (
                   <article
                     key={submission.id}
-                    className="rounded-card border border-border-subtle bg-surface-muted p-4"
+                    className="rounded-[1rem] border border-border-subtle bg-white p-5 shadow-card"
                   >
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                      <div>
+                      <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <StatusBadge status={submission.status} />
                           {submission.session_name && (
@@ -152,8 +154,8 @@ function LecturerDashboardPage() {
                             </span>
                           )}
                         </div>
-                        <h3 className="mt-3 text-base font-semibold text-text-primary">{submission.title}</h3>
-                        <p className="mt-2 text-sm text-text-secondary">
+                        <h3 className="mt-3 text-lg font-semibold leading-snug text-text-primary">{submission.title}</h3>
+                        <p className="mt-2 text-sm leading-6 text-text-secondary">
                           {submission.category || 'Uncategorised'}
                           {submission.keywords ? ` - Keywords: ${submission.keywords}` : ''}
                         </p>
