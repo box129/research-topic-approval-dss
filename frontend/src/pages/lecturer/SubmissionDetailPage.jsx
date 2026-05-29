@@ -39,7 +39,7 @@ function formatDate(value) {
 
 function DetailItem({ label, value }) {
   return (
-    <div className="rounded-card bg-surface-muted/70 p-3">
+    <div className="rounded-[1rem] border border-emerald-50 bg-[#f6fbf1] p-3">
       <dt className="text-xs font-semibold uppercase tracking-wide text-text-muted">{label}</dt>
       <dd className="mt-1 text-sm text-text-primary">{value || 'Not provided'}</dd>
     </div>
@@ -240,9 +240,9 @@ function SubmissionDetailPage() {
 
       {!isLoading && submission && (
         <div className="space-y-7">
-          <section className="overflow-hidden rounded-[1.5rem] border border-emerald-100 bg-white shadow-card">
-            <div className="bg-[#fbfff7] p-5 sm:p-7">
-              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <section className="overflow-hidden rounded-[1.8rem] border border-emerald-100 bg-white shadow-[0_22px_70px_-42px_rgb(4_120_87_/_0.55)]">
+            <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.34fr)]">
+              <div className="bg-[#f6fbf1] p-5 sm:p-7">
                 <div className="max-w-4xl">
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-green">Submitted Topic</p>
                   <h2 className="mt-3 text-2xl font-bold leading-tight text-text-primary sm:text-3xl">{submission.title}</h2>
@@ -250,10 +250,19 @@ function SubmissionDetailPage() {
                   Similarity evidence is advisory. Final decisions remain lecturer-controlled.
                   </p>
                 </div>
-                <div className="shrink-0">
+              </div>
+
+              <aside className="border-t border-emerald-100 p-5 sm:p-7 lg:border-l lg:border-t-0">
+                <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                  Review state
+                </p>
+                <div className="mt-3">
                   <StatusBadge status={submission.status} />
                 </div>
-              </div>
+                <p className="mt-4 text-sm leading-6 text-text-secondary">
+                  Decisions remain available only through the existing lecturer decision panel below.
+                </p>
+              </aside>
             </div>
 
             <div className="p-5 sm:p-7">
@@ -275,18 +284,35 @@ function SubmissionDetailPage() {
                 />
               </div>
 
-              <dl className="mt-6 grid gap-4 md:grid-cols-2">
-                <DetailItem label="Student Name" value={submission.student_name} />
-                <DetailItem label="Student Email" value={submission.student_email} />
-                <DetailItem label="Keywords" value={submission.keywords} />
-                <DetailItem label="Created Date" value={formatDate(submission.created_at)} />
-              </dl>
+              <div className="mt-6 rounded-[1.35rem] border border-emerald-100 bg-white p-4">
+                <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                      Researcher profile
+                    </p>
+                    <h3 className="text-lg font-semibold text-text-primary">Student and topic metadata</h3>
+                  </div>
+                  <span className="w-fit rounded-full bg-[#f6fbf1] px-3 py-1 text-xs font-semibold text-text-muted">
+                    API returned fields
+                  </span>
+                </div>
+                <dl className="grid gap-4 md:grid-cols-2">
+                  <DetailItem label="Student Name" value={submission.student_name} />
+                  <DetailItem label="Student Email" value={submission.student_email} />
+                  <DetailItem label="Keywords" value={submission.keywords} />
+                  <DetailItem label="Created Date" value={formatDate(submission.created_at)} />
+                </dl>
+              </div>
             </div>
           </section>
 
-          <section className="rounded-[1.5rem] border border-emerald-100 bg-white p-5 shadow-card sm:p-7">
-            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <section className="overflow-hidden rounded-[1.6rem] border border-emerald-100 bg-white shadow-card">
+            <div className="border-b border-emerald-100 bg-[#fbfdf8] p-5 sm:p-7">
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                  Evidence history
+                </p>
                 <h3 className="text-lg font-semibold text-text-primary">Similarity Check History</h3>
                 <p className="mt-1 text-sm text-text-secondary">
                   Saved similarity evidence from previous lecturer checks. This is not a final approval decision.
@@ -295,10 +321,13 @@ function SubmissionDetailPage() {
               <SecondaryButton type="button" disabled={isLoadingSnapshots} onClick={loadSnapshotHistory}>
                 {isLoadingSnapshots ? 'Refreshing...' : 'Refresh History'}
               </SecondaryButton>
+              </div>
             </div>
 
+            <div className="p-5 sm:p-7">
+
             {isLoadingSnapshots && (
-              <div className="mt-5">
+              <div>
                 <LoadingState label="Loading similarity history" />
               </div>
             )}
@@ -318,7 +347,6 @@ function SubmissionDetailPage() {
 
             {!isLoadingSnapshots && !snapshotError && snapshotHistory.length === 0 && (
               <InfoCallout
-                className="mt-5"
                 title="No saved similarity checks"
                 message="No similarity checks have been saved for this submission yet."
               />
@@ -330,7 +358,7 @@ function SubmissionDetailPage() {
                   const tierCounts = snapshot.result_summary?.tierCounts || {};
 
                   return (
-                    <article key={snapshot.id} className="rounded-[1rem] border border-border-subtle bg-[#f7fbf4] p-5">
+                    <article key={snapshot.id} className="rounded-[1.25rem] border border-emerald-100 bg-[#f7fbf4] p-5">
                       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
@@ -366,68 +394,91 @@ function SubmissionDetailPage() {
                 })}
               </div>
             )}
+            </div>
           </section>
 
-          <section className="rounded-[1.5rem] border border-emerald-100 bg-white p-5 shadow-card sm:p-7">
-            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-text-primary">Similarity Pre-check</h3>
-                <p className="mt-1 text-sm text-text-secondary">
+          <section className="overflow-hidden rounded-[1.6rem] border border-emerald-100 bg-white shadow-card">
+            <div className="grid gap-0 lg:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)]">
+              <div className="border-b border-emerald-100 bg-[#f6fbf1] p-5 sm:p-7 lg:border-b-0 lg:border-r">
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                  Similarity evidence
+                </p>
+                <h3 className="mt-2 text-xl font-semibold text-text-primary">Similarity Pre-check</h3>
+                <p className="mt-3 text-sm leading-6 text-text-secondary">
                   Run the existing lecturer similarity checker against this submitted topic. Results are temporary and do not change the submission status.
                 </p>
+                <div className="mt-5">
+                  <PrimaryButton type="button" disabled={isCheckingSimilarity} onClick={handleSimilarityCheck}>
+                    {isCheckingSimilarity ? 'Checking...' : 'Run Similarity Check'}
+                  </PrimaryButton>
+                </div>
               </div>
-              <PrimaryButton type="button" disabled={isCheckingSimilarity} onClick={handleSimilarityCheck}>
-                {isCheckingSimilarity ? 'Checking...' : 'Run Similarity Check'}
-              </PrimaryButton>
+
+              <div className="min-w-0 p-5 sm:p-7">
+                <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-text-muted">
+                  Check output
+                </p>
+
+                {isCheckingSimilarity && (
+                  <div>
+                    <LoadingState label="Running similarity check" />
+                  </div>
+                )}
+
+                {similarityError && (
+                  <InfoCallout
+                    title="Similarity check failed"
+                    message={similarityError}
+                    variant="danger"
+                  />
+                )}
+
+                {similarityStatus === 'partial_success' && similarityNotice && (
+                  <InfoCallout
+                    className="mb-5"
+                    title="Partial analysis"
+                    message={similarityNotice}
+                    variant="info"
+                  />
+                )}
+
+                {similarityResults && (
+                  <div className="rounded-[1rem] border border-border-subtle bg-surface-muted p-2">
+                    <ResultsDisplay results={similarityResults} />
+                  </div>
+                )}
+
+                {!isCheckingSimilarity && !similarityError && !similarityResults && (
+                  <InfoCallout
+                    title="No temporary check result"
+                    message="Run a similarity check when you need advisory evidence for this submitted topic."
+                  />
+                )}
+              </div>
             </div>
-
-            {isCheckingSimilarity && (
-              <div className="mt-5">
-                <LoadingState label="Running similarity check" />
-              </div>
-            )}
-
-            {similarityError && (
-              <InfoCallout
-                className="mt-5"
-                title="Similarity check failed"
-                message={similarityError}
-                variant="danger"
-              />
-            )}
-
-            {similarityStatus === 'partial_success' && similarityNotice && (
-              <InfoCallout
-                className="mt-5"
-                title="Partial analysis"
-                message={similarityNotice}
-                variant="info"
-              />
-            )}
-
-            {similarityResults && (
-              <div className="mt-6 rounded-[1rem] border border-border-subtle bg-surface-muted p-2">
-                <ResultsDisplay results={similarityResults} />
-              </div>
-            )}
           </section>
 
-          <section className="rounded-[1.5rem] border border-emerald-100 bg-white p-5 shadow-card sm:p-7">
-            <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-text-primary">Lecturer Decision</h3>
-                <p className="mt-1 text-sm text-text-secondary">
-                  This updates only the submission status. Similarity results, lifecycle writes, emails, audit trail, and reporting remain out of scope.
-                </p>
+          <section className="overflow-hidden rounded-[1.6rem] border border-emerald-100 bg-white shadow-card">
+            <div className="border-b border-emerald-100 bg-[#fbfdf8] p-5 sm:p-7">
+              <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                    Controlled action
+                  </p>
+                  <h3 className="text-lg font-semibold text-text-primary">Lecturer Decision</h3>
+                  <p className="mt-1 text-sm text-text-secondary">
+                    This updates only the submission status. Similarity results, lifecycle writes, emails, audit trail, and reporting remain out of scope.
+                  </p>
+                </div>
+                {!canUpdateStatus && (
+                  <p className="text-sm font-medium text-text-muted">
+                    Actions are disabled because this submission is no longer pending review.
+                  </p>
+                )}
               </div>
-              {!canUpdateStatus && (
-                <p className="text-sm font-medium text-text-muted">
-                  Actions are disabled because this submission is no longer pending review.
-                </p>
-              )}
             </div>
 
-            <div className="mt-5 space-y-4">
+            <div className="space-y-4 p-5 sm:p-7">
               <TextAreaInput
                 id="decision-rationale"
                 label="Decision rationale / comment"
@@ -474,7 +525,7 @@ function SubmissionDetailPage() {
 
             {!canUpdateStatus && submission.decision_reason && (
               <InfoCallout
-                className="mt-5"
+                className="mx-5 mb-5 sm:mx-7 sm:mb-7"
                 title="Stored lecturer rationale"
                 message={submission.decision_reason}
               >
