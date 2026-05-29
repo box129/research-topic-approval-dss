@@ -150,10 +150,20 @@ function CheckSimilarityPage() {
         subtitle="Run an advisory manual similarity check without changing a submission, snapshot, or lecturer decision."
       />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(320px,440px)_1fr]">
-        <div className="space-y-4">
-          <div className="rounded-[1.25rem] border border-emerald-100 bg-white p-5 shadow-card">
-            <div className="space-y-4">
+      <section className="overflow-hidden rounded-[1.8rem] border border-emerald-100 bg-white shadow-[0_22px_70px_-42px_rgb(4_120_87_/_0.55)]">
+        <div className="grid gap-0 xl:grid-cols-[minmax(320px,0.38fr)_minmax(0,0.62fr)]">
+          <aside className="border-b border-emerald-100 bg-[#f6fbf1] p-5 sm:p-7 xl:border-b-0 xl:border-r">
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+              Advisory workspace
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold leading-tight text-text-primary">
+              Run a standalone topic comparison
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-text-secondary">
+              This page supports manual review conversations without starting or changing any submission workflow.
+            </p>
+
+            <div className="mt-5 space-y-3">
               <InfoCallout
                 title="Manual check only"
                 message="This standalone check uses the general similarity endpoint and does not approve, reject, block, or save a topic."
@@ -164,48 +174,83 @@ function CheckSimilarityPage() {
                 message="Use the result to guide a discussion or review. Formal decisions remain on the submission detail workflow."
               />
             </div>
-          </div>
-          <div className="rounded-[1.25rem] border border-border-subtle bg-white p-4 shadow-card sm:p-5">
-            <TopicForm onSubmit={handleSubmit} isLoading={isLoading} />
-          </div>
-        </div>
 
-        <div className="min-w-0 rounded-[1.25rem] border border-emerald-100 bg-white/80 p-4 shadow-card sm:p-5">
-          {error && !results && (
-            <div data-testid="error-display" className="mb-6">
-              <InfoCallout
-                variant="danger"
-                title="Unable to check similarity"
-                message={error}
-              />
+            <div className="mt-5 rounded-[1.15rem] border border-dashed border-brand-green-light bg-white/75 p-4 text-sm text-text-secondary">
+              <p className="font-semibold text-text-primary">What stays unchanged</p>
+              <ul className="mt-3 space-y-2">
+                <li>The same public similarity endpoint is used.</li>
+                <li>The result is local to this screen.</li>
+                <li>No snapshot or lecturer decision is created.</li>
+              </ul>
             </div>
-          )}
+          </aside>
 
-          {results && (
-            <div data-testid="results-container" className="animate-fade-in">
-              <ResultsDisplay results={results} />
-              <div className="pb-4 pt-5 text-center">
-                <SecondaryButton
-                  type="button"
-                  onClick={handleReset}
-                  data-testid="reset-button"
-                >
-                  Check Another Topic
-                </SecondaryButton>
+          <div className="grid gap-5 p-4 sm:p-6 2xl:grid-cols-[minmax(0,0.9fr)_minmax(320px,1.1fr)]">
+            <div className="rounded-[1.35rem] border border-border-subtle bg-white p-4 shadow-sm sm:p-5">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                    Topic input
+                  </p>
+                  <h2 className="text-xl font-semibold text-text-primary">Manual review form</h2>
+                </div>
+                <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                  Not saved
+                </span>
               </div>
+            <TopicForm onSubmit={handleSubmit} isLoading={isLoading} />
             </div>
-          )}
 
-          {!results && !error && (
-            <EmptyStatePanel
-              title={isLoading ? 'Checking similarity' : 'Awaiting manual check'}
-              message={isLoading
-                ? 'The topic is being compared against existing records. No submission status will change.'
-                : 'Fill out the form to view advisory similarity guidance. Nothing is saved from this standalone check.'}
-            />
-          )}
+            <div className="min-w-0 rounded-[1.35rem] border border-emerald-100 bg-[#fbfdf8] p-4 shadow-sm sm:p-5">
+              <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                    Similarity output
+                  </p>
+                  <h2 className="text-xl font-semibold text-text-primary">Advisory result area</h2>
+                </div>
+                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-text-muted shadow-sm">
+                  No status update
+                </span>
+              </div>
+
+              {error && !results && (
+                <div data-testid="error-display" className="mb-6">
+                  <InfoCallout
+                    variant="danger"
+                    title="Unable to check similarity"
+                    message={error}
+                  />
+                </div>
+              )}
+
+              {results && (
+                <div data-testid="results-container" className="animate-fade-in">
+                  <ResultsDisplay results={results} />
+                  <div className="pb-4 pt-5 text-center">
+                    <SecondaryButton
+                      type="button"
+                      onClick={handleReset}
+                      data-testid="reset-button"
+                    >
+                      Check Another Topic
+                    </SecondaryButton>
+                  </div>
+                </div>
+              )}
+
+              {!results && !error && (
+                <EmptyStatePanel
+                  title={isLoading ? 'Checking similarity' : 'Awaiting manual check'}
+                  message={isLoading
+                    ? 'The topic is being compared against existing records. No submission status will change.'
+                    : 'Fill out the form to view advisory similarity guidance. Nothing is saved from this standalone check.'}
+                />
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
     </LecturerDashboardLayout>
   );
 }
