@@ -1,7 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TopicForm from '../src/components/features/TopicInput/TopicForm';
+
+function fillTopic(value) {
+  const textarea = screen.getByPlaceholderText(/enter your research topic/i);
+  fireEvent.change(textarea, { target: { value } });
+  return textarea;
+}
+
+function fillKeywords(value) {
+  const keywordsInput = screen.getByPlaceholderText(/e.g., machine learning/i);
+  fireEvent.change(keywordsInput, { target: { value } });
+  return keywordsInput;
+}
+
+function selectCategory(value) {
+  const categorySelect = screen.getByLabelText(/research area/i);
+  fireEvent.change(categorySelect, { target: { value } });
+  return categorySelect;
+}
 
 describe('TopicForm Component', () => {
   let mockOnSubmit;
@@ -61,8 +79,7 @@ describe('TopicForm Component', () => {
     it('5. shows red border when word count < 7', async () => {
       render(<TopicForm onSubmit={mockOnSubmit} />);
       
-      const textarea = screen.getByPlaceholderText(/enter your research topic/i);
-      await user.type(textarea, 'Machine learning AI');
+      const textarea = fillTopic('Machine learning AI');
       
       expect(textarea).toHaveClass('border-red-500');
       expect(screen.getByText(/too short: 3 words/i)).toBeInTheDocument();
@@ -71,9 +88,8 @@ describe('TopicForm Component', () => {
     it('6. shows red border when word count > 24', async () => {
       render(<TopicForm onSubmit={mockOnSubmit} />);
       
-      const textarea = screen.getByPlaceholderText(/enter your research topic/i);
       const longText = 'one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty twentyone twentytwo twentythree twentyfour twentyfive';
-      await user.type(textarea, longText);
+      const textarea = fillTopic(longText);
       
       expect(textarea).toHaveClass('border-red-500');
       expect(screen.getByText(/too long: 25 words/i)).toBeInTheDocument();
@@ -82,8 +98,7 @@ describe('TopicForm Component', () => {
     it('7. shows green border when word count 7-24', async () => {
       render(<TopicForm onSubmit={mockOnSubmit} />);
       
-      const textarea = screen.getByPlaceholderText(/enter your research topic/i);
-      await user.type(textarea, 'Machine learning algorithms for natural language processing tasks');
+      const textarea = fillTopic('Machine learning algorithms for natural language processing tasks');
       
       expect(textarea).toHaveClass('border-green-500');
       expect(screen.getByText(/valid topic length/i)).toBeInTheDocument();
@@ -99,8 +114,7 @@ describe('TopicForm Component', () => {
     it('9. enables submit button when valid', async () => {
       render(<TopicForm onSubmit={mockOnSubmit} />);
       
-      const textarea = screen.getByPlaceholderText(/enter your research topic/i);
-      await user.type(textarea, 'Machine learning algorithms for natural language processing tasks');
+      fillTopic('Machine learning algorithms for natural language processing tasks');
       
       const submitButton = screen.getByRole('button', { name: /check similarity/i });
       expect(submitButton).not.toBeDisabled();
@@ -149,9 +163,8 @@ describe('TopicForm Component', () => {
       mockOnSubmit.mockResolvedValue();
       render(<TopicForm onSubmit={mockOnSubmit} />);
       
-      const textarea = screen.getByPlaceholderText(/enter your research topic/i);
       const validTopic = 'Machine learning algorithms for natural language processing tasks';
-      await user.type(textarea, validTopic);
+      fillTopic(validTopic);
       
       const submitButton = screen.getByRole('button', { name: /check similarity/i });
       await user.click(submitButton);
@@ -183,8 +196,7 @@ describe('TopicForm Component', () => {
       
       render(<TopicForm onSubmit={mockOnSubmit} />);
       
-      const textarea = screen.getByPlaceholderText(/enter your research topic/i);
-      await user.type(textarea, 'Machine learning algorithms for natural language processing tasks');
+      fillTopic('Machine learning algorithms for natural language processing tasks');
       
       const submitButton = screen.getByRole('button', { name: /check similarity/i });
       await user.click(submitButton);
@@ -233,10 +245,8 @@ describe('TopicForm Component', () => {
       mockOnSubmit.mockResolvedValue();
       render(<TopicForm onSubmit={mockOnSubmit} />);
       
-      const textarea = screen.getByPlaceholderText(/enter your research topic/i);
-      
       // Type with extra whitespace
-      await user.type(textarea, '  Machine learning algorithms for natural language processing  ');
+      fillTopic('  Machine learning algorithms for natural language processing  ');
       
       const submitButton = screen.getByRole('button', { name: /check similarity/i });
       await user.click(submitButton);
@@ -258,13 +268,9 @@ describe('TopicForm Component', () => {
       mockOnSubmit.mockResolvedValue();
       render(<TopicForm onSubmit={mockOnSubmit} />);
       
-      const textarea = screen.getByPlaceholderText(/enter your research topic/i);
-      const keywordsInput = screen.getByPlaceholderText(/e.g., machine learning/i);
-      const categorySelect = screen.getByLabelText(/research area/i);
-      
-      await user.type(textarea, 'Machine learning algorithms for natural language processing tasks');
-      await user.type(keywordsInput, 'AI, neural networks, deep learning');
-      await user.selectOptions(categorySelect, 'Epidemiology');
+      fillTopic('Machine learning algorithms for natural language processing tasks');
+      fillKeywords('AI, neural networks, deep learning');
+      selectCategory('Epidemiology');
       
       const submitButton = screen.getByRole('button', { name: /check similarity/i });
       await user.click(submitButton);
@@ -282,13 +288,9 @@ describe('TopicForm Component', () => {
       mockOnSubmit.mockResolvedValue();
       render(<TopicForm onSubmit={mockOnSubmit} />);
       
-      const textarea = screen.getByPlaceholderText(/enter your research topic/i);
-      const keywordsInput = screen.getByPlaceholderText(/e.g., machine learning/i);
-      const categorySelect = screen.getByLabelText(/research area/i);
-      
-      await user.type(textarea, 'Machine learning algorithms for natural language processing tasks');
-      await user.type(keywordsInput, 'AI, neural networks');
-      await user.selectOptions(categorySelect, 'Infectious Diseases');
+      const textarea = fillTopic('Machine learning algorithms for natural language processing tasks');
+      const keywordsInput = fillKeywords('AI, neural networks');
+      const categorySelect = selectCategory('Infectious Diseases');
       
       const submitButton = screen.getByRole('button', { name: /check similarity/i });
       await user.click(submitButton);
@@ -315,8 +317,7 @@ describe('TopicForm Component', () => {
     it('shows validation message for minimum word count', async () => {
       render(<TopicForm onSubmit={mockOnSubmit} />);
       
-      const textarea = screen.getByPlaceholderText(/enter your research topic/i);
-      await user.type(textarea, 'Machine learning AI');
+      fillTopic('Machine learning AI');
       
       expect(screen.getByText(/too short: 3 words \(minimum 7\)/i)).toBeInTheDocument();
     });
@@ -324,9 +325,8 @@ describe('TopicForm Component', () => {
     it('shows validation message for maximum word count', async () => {
       render(<TopicForm onSubmit={mockOnSubmit} />);
       
-      const textarea = screen.getByPlaceholderText(/enter your research topic/i);
       const longText = Array(26).fill('word').join(' ');
-      await user.type(textarea, longText);
+      fillTopic(longText);
       
       expect(screen.getByText(/too long: 26 words \(maximum 24\)/i)).toBeInTheDocument();
     });
@@ -334,10 +334,8 @@ describe('TopicForm Component', () => {
     it('handles character count guideline warnings', async () => {
       render(<TopicForm onSubmit={mockOnSubmit} />);
       
-      const textarea = screen.getByPlaceholderText(/enter your research topic/i);
-      
       // Type text with less than 50 characters but valid word count
-      await user.type(textarea, 'AI ML NLP DL CV RL GAN');
+      fillTopic('AI ML NLP DL CV RL GAN');
       
       // Should show character guideline warning
       expect(screen.getByText(/character count outside guideline/i)).toBeInTheDocument();
@@ -346,8 +344,7 @@ describe('TopicForm Component', () => {
     it('prevents submission with invalid word count', async () => {
       render(<TopicForm onSubmit={mockOnSubmit} />);
       
-      const textarea = screen.getByPlaceholderText(/enter your research topic/i);
-      await user.type(textarea, 'Too short');
+      fillTopic('Too short');
       
       const submitButton = screen.getByRole('button', { name: /check similarity/i });
       
@@ -365,7 +362,7 @@ describe('TopicForm Component', () => {
       const textarea = screen.getByPlaceholderText(/enter your research topic/i);
       
       // Type valid input to enable submit
-      await user.type(textarea, 'Machine learning algorithms for natural language processing');
+      fillTopic('Machine learning algorithms for natural language processing');
       const submitButton = screen.getByRole('button', { name: /check similarity/i });
       await user.click(submitButton);
       
@@ -385,8 +382,7 @@ describe('TopicForm Component', () => {
     it('handles multiple spaces between words correctly', async () => {
       render(<TopicForm onSubmit={mockOnSubmit} />);
       
-      const textarea = screen.getByPlaceholderText(/enter your research topic/i);
-      await user.type(textarea, 'Machine    learning    algorithms    for    natural    language    processing');
+      fillTopic('Machine    learning    algorithms    for    natural    language    processing');
       
       // Should count as 7 words despite multiple spaces
       expect(screen.getByText(/7 \/ 7-24 words/i)).toBeInTheDocument();
@@ -405,7 +401,7 @@ describe('TopicForm Component', () => {
       render(<TopicForm onSubmit={mockOnSubmit} />);
       
       const textarea = screen.getByPlaceholderText(/enter your research topic/i);
-      await user.type(textarea, 'Machine learning algorithms for natural language processing tasks');
+      fillTopic('Machine learning algorithms for natural language processing tasks');
       
       // Find the form and submit it
       const form = textarea.closest('form');
