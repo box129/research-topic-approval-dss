@@ -79,28 +79,78 @@ function LecturerDashboardPage() {
 
       {!isLoading && !error && (
         <>
-          <section className="grid gap-4 rounded-[1.25rem] border border-emerald-100 bg-white/80 p-4 shadow-card md:grid-cols-2 xl:grid-cols-4">
-            <DashboardStatusCard
-              label="Pending Reviews"
-              value={submissions.length}
-              helper="Loaded from the existing pending review queue"
-            />
-            <DashboardStatusCard
-              label="High-risk Alerts"
-              value="Not available yet"
-              helper="Risk summaries are not connected to the dashboard"
-              tone="warning"
-            />
-            <DashboardStatusCard
-              label="Decision Metrics"
-              value="Not available yet"
-              helper="Approved, rejected, and revision counts need a dashboard endpoint"
-            />
-            <DashboardStatusCard
-              label="Recent Activity"
-              value="Not connected yet"
-              helper="Activity feed data is not available from the current API"
-            />
+          <section className="overflow-hidden rounded-[1.8rem] border border-emerald-100 bg-white shadow-[0_22px_70px_-42px_rgb(4_120_87_/_0.55)]">
+            <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.36fr)]">
+              <div className="bg-[#f6fbf1] p-5 sm:p-7">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                      Lecturer overview
+                    </p>
+                    <h2 className="mt-2 text-3xl font-semibold leading-tight text-text-primary">
+                      Welcome back to your review desk
+                    </h2>
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-text-secondary">
+                      Use the loaded pending queue to triage student submissions while unavailable dashboard analytics remain clearly marked.
+                    </p>
+                  </div>
+                  <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-text-muted shadow-sm">
+                    Queue data only
+                  </span>
+                </div>
+
+                <div className="mt-6 grid gap-4 md:grid-cols-2">
+                  <DashboardStatusCard
+                    label="Pending Reviews"
+                    value={submissions.length}
+                    helper="Loaded from the existing pending review queue"
+                  />
+                  <DashboardStatusCard
+                    label="High-risk Alerts"
+                    value="Not available yet"
+                    helper="Risk summaries are not connected to the dashboard"
+                    tone="warning"
+                  />
+                  <DashboardStatusCard
+                    label="Decision Metrics"
+                    value="Not available yet"
+                    helper="Approved, rejected, and revision counts need a dashboard endpoint"
+                  />
+                  <DashboardStatusCard
+                    label="Recent Activity"
+                    value="Not connected yet"
+                    helper="Activity feed data is not available from the current API"
+                  />
+                </div>
+              </div>
+
+              <aside className="border-t border-emerald-100 p-5 sm:p-7 xl:border-l xl:border-t-0">
+                <div className="rounded-[1.25rem] border border-emerald-100 bg-[#fbfdf8] p-5">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                    Quick actions
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold text-text-primary">Move through reviews</h2>
+                  <p className="mt-3 text-sm leading-6 text-text-secondary">
+                    Open the queue for review details or run an advisory similarity check separately.
+                  </p>
+                  <div className="mt-5 grid gap-3">
+                    <PrimaryButton type="button" onClick={() => navigate('/lecturer/pending-reviews')}>
+                      Open Pending Queue
+                    </PrimaryButton>
+                    <SecondaryButton type="button" onClick={() => navigate('/lecturer/check-similarity')}>
+                      Open Similarity Checker
+                    </SecondaryButton>
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-[1.25rem] border border-dashed border-brand-green-light bg-[#f6fbf1] p-4 text-sm text-text-secondary">
+                  <p className="font-semibold text-text-primary">Dashboard scope</p>
+                  <p className="mt-2">
+                    Workload, trend, and activity cards stay unavailable until a safe dashboard endpoint exists.
+                  </p>
+                </div>
+              </aside>
+            </div>
           </section>
 
           <InfoCallout
@@ -108,10 +158,13 @@ function LecturerDashboardPage() {
             message="This dashboard uses only the existing pending review queue. Similarity risk, activity, workload, and trend analytics are shown as unavailable until a safe dashboard API exists."
           />
 
-          <section className="overflow-hidden rounded-[1.5rem] border border-emerald-100 bg-white shadow-[0_18px_55px_-35px_rgb(4_120_87_/_0.45)]">
+          <section className="overflow-hidden rounded-[1.75rem] border border-emerald-100 bg-white shadow-[0_18px_55px_-35px_rgb(4_120_87_/_0.45)]">
             <div className="border-b border-border-subtle bg-[#fbfff7] p-5 sm:p-7">
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                    Review queue preview
+                  </p>
                   <h2 className="text-xl font-bold text-text-primary">Pending Review Queue</h2>
                   <p className="mt-2 max-w-3xl text-sm leading-6 text-text-secondary">
                   Review the oldest pending submissions first, or open the full queue for the complete table.
@@ -142,9 +195,9 @@ function LecturerDashboardPage() {
                 {previewSubmissions.map((submission) => (
                   <article
                     key={submission.id}
-                    className="rounded-[1rem] border border-border-subtle bg-white p-5 shadow-card"
+                    className="rounded-[1.25rem] border border-emerald-100 bg-white p-4 shadow-card sm:p-5"
                   >
-                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <StatusBadge status={submission.status} />
@@ -159,13 +212,15 @@ function LecturerDashboardPage() {
                           {submission.category || 'Uncategorised'}
                           {submission.keywords ? ` - Keywords: ${submission.keywords}` : ''}
                         </p>
-                        <p className="mt-2 text-sm text-text-secondary">
-                          {submission.student_name || 'Unnamed student'}
-                          {submission.student_email ? ` (${submission.student_email})` : ''}
-                        </p>
-                        <p className="mt-2 text-xs font-medium uppercase tracking-wide text-text-muted">
-                          Submitted {formatDate(submission.submitted_at || submission.created_at)}
-                        </p>
+                        <div className="mt-3 grid gap-2 text-sm text-text-secondary sm:grid-cols-2">
+                          <p>
+                            {submission.student_name || 'Unnamed student'}
+                            {submission.student_email ? ` (${submission.student_email})` : ''}
+                          </p>
+                          <p className="text-xs font-medium uppercase tracking-wide text-text-muted sm:text-right">
+                            Submitted {formatDate(submission.submitted_at || submission.created_at)}
+                          </p>
+                        </div>
                       </div>
                       <SecondaryButton
                         type="button"

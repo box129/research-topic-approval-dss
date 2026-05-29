@@ -134,22 +134,54 @@ function PendingReviewsPage() {
 
       {!isLoading && !error && (
         <>
-          <section className="grid gap-4 rounded-[1.25rem] border border-emerald-100 bg-white/80 p-4 shadow-card md:grid-cols-3">
-            <DashboardStatusCard
-              label="Pending Reviews"
-              value={submissions.length}
-              helper="Loaded from the existing lecturer pending submissions API"
-            />
-            <DashboardStatusCard
-              label="Visible After Filters"
-              value={filteredSubmissions.length}
-              helper="Calculated locally from the loaded queue"
-            />
-            <DashboardStatusCard
-              label="Similarity Summary"
-              value="Not connected yet"
-              helper="Risk labels and score summaries are not returned for this queue"
-            />
+          <section className="overflow-hidden rounded-[1.8rem] border border-emerald-100 bg-white shadow-card">
+            <div className="bg-[#f6fbf1] p-5 sm:p-7">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                    Queue overview
+                  </p>
+                  <h2 className="mt-2 text-3xl font-semibold leading-tight text-text-primary">
+                    Pending Reviews
+                  </h2>
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-text-secondary">
+                    Review loaded student submissions without queue-level decisions or unsupported workflow shortcuts.
+                  </p>
+                </div>
+                <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-text-muted shadow-sm">
+                  Read-only loaded queue
+                </span>
+              </div>
+
+              <div className="mt-6 rounded-[1.15rem] bg-white/75 p-1 shadow-inner">
+                <div className="grid gap-1 sm:grid-cols-2">
+                  <div className="rounded-[0.95rem] bg-brand-green px-4 py-3 text-center text-sm font-semibold text-white">
+                    Loaded queue ({submissions.length})
+                  </div>
+                  <div className="rounded-[0.95rem] px-4 py-3 text-center text-sm font-semibold text-text-secondary">
+                    Visible after filters ({filteredSubmissions.length})
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-4 md:grid-cols-3">
+                <DashboardStatusCard
+                  label="Pending Reviews"
+                  value={submissions.length}
+                  helper="Loaded from the existing lecturer pending submissions API"
+                />
+                <DashboardStatusCard
+                  label="Visible After Filters"
+                  value={filteredSubmissions.length}
+                  helper="Calculated locally from the loaded queue"
+                />
+                <DashboardStatusCard
+                  label="Similarity Summary"
+                  value="Not connected yet"
+                  helper="Risk labels and score summaries are not returned for this queue"
+                />
+              </div>
+            </div>
           </section>
 
           <InfoCallout
@@ -158,21 +190,35 @@ function PendingReviewsPage() {
           />
 
           {submissions.length === 0 && (
-            <EmptyStatePanel
-              title="No pending reviews"
-              message="Student submissions with pending review status will appear here when they are ready for lecturer action."
-              action={(
-                <SecondaryButton type="button" onClick={loadSubmissions}>
-                  Refresh Queue
-                </SecondaryButton>
-              )}
-            />
+            <section className="rounded-[1.75rem] border border-emerald-100 bg-white p-5 shadow-card sm:p-7">
+              <EmptyStatePanel
+                title="No pending reviews"
+                message="Student submissions with pending review status will appear here when they are ready for lecturer action."
+                action={(
+                  <SecondaryButton type="button" onClick={loadSubmissions}>
+                    Refresh Queue
+                  </SecondaryButton>
+                )}
+              />
+            </section>
           )}
 
           {submissions.length > 0 && (
             <>
-              <section className="rounded-[1.25rem] border border-emerald-100 bg-white p-5 shadow-card sm:p-6">
-                <div className="grid gap-4 lg:grid-cols-[minmax(240px,1fr)_220px_220px]">
+              <section className="rounded-[1.5rem] border border-emerald-100 bg-white p-5 shadow-card sm:p-6">
+                <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                      Queue controls
+                    </p>
+                    <h2 className="text-xl font-semibold text-text-primary">Search and sort loaded reviews</h2>
+                  </div>
+                  <span className="w-fit rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                    Client-side only
+                  </span>
+                </div>
+
+                <div className="grid gap-4 lg:grid-cols-[minmax(260px,1fr)_220px_220px]">
                   <SearchInput
                     id="pending-review-search"
                     label="Search queue"
@@ -223,7 +269,7 @@ function PendingReviewsPage() {
               )}
 
               {filteredSubmissions.length > 0 && (
-                <div className="rounded-[1.25rem] border border-emerald-100 bg-white p-2 shadow-card">
+                <div className="rounded-[1.5rem] border border-emerald-100 bg-white p-2 shadow-card">
                   <TableShell
                     title="Review Queue"
                     subtitle="Open a row to continue in the existing submission detail workflow."
@@ -234,7 +280,7 @@ function PendingReviewsPage() {
                     )}
                   >
                   <table className="min-w-full divide-y divide-border-subtle">
-                    <thead className="bg-surface-muted">
+                    <thead className="bg-[#f6fbf1]">
                       <tr>
                         <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted">
                           Topic
@@ -259,7 +305,7 @@ function PendingReviewsPage() {
                     <tbody className="divide-y divide-border-subtle bg-white">
                       {filteredSubmissions.map((submission) => (
                         <tr key={submission.id} className="align-top transition-colors hover:bg-[#f7fbf4]">
-                          <td className="px-4 py-5">
+                          <td className="px-4 py-4">
                             <p className="font-semibold leading-snug text-text-primary">{submission.title}</p>
                             {submission.keywords && (
                               <p className="mt-1 text-sm text-text-secondary">Keywords: {submission.keywords}</p>
@@ -270,7 +316,7 @@ function PendingReviewsPage() {
                               </p>
                             )}
                           </td>
-                          <td className="px-4 py-5">
+                          <td className="px-4 py-4">
                             <p className="text-sm font-medium text-text-primary">
                               {submission.student_name || 'Unnamed student'}
                             </p>
@@ -278,16 +324,16 @@ function PendingReviewsPage() {
                               {submission.student_email || 'No email available'}
                             </p>
                           </td>
-                          <td className="px-4 py-5 text-sm text-text-secondary">
+                          <td className="px-4 py-4 text-sm text-text-secondary">
                             {submission.category || 'Uncategorised'}
                           </td>
-                          <td className="px-4 py-5 text-sm text-text-secondary">
+                          <td className="px-4 py-4 text-sm text-text-secondary">
                             {formatDate(submission.submitted_at || submission.created_at)}
                           </td>
-                          <td className="px-4 py-5">
+                          <td className="px-4 py-4">
                             <StatusBadge status={submission.status} />
                           </td>
-                          <td className="px-4 py-5">
+                          <td className="px-4 py-4">
                             <SecondaryButton
                               type="button"
                               onClick={() => navigate(`/lecturer/pending-reviews/${submission.id}`)}
