@@ -17,8 +17,8 @@ function AuthenticatedTopNav({ role }) {
   };
 
   return (
-    <header className="sticky top-0 z-20 border-b border-emerald-950/20 bg-emerald-900 text-white shadow-lg shadow-emerald-950/10">
-      <div className="mx-auto flex min-h-16 w-full max-w-[78rem] flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+    <header className="relative z-20 border-b border-emerald-950/20 bg-emerald-900 text-white shadow-lg shadow-emerald-950/10">
+      <div className="mx-auto flex min-h-16 w-full max-w-[78rem] flex-col gap-3 px-4 py-3 sm:px-6 xl:flex-row xl:items-center xl:justify-between xl:gap-6">
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white text-xs font-black text-emerald-900">
@@ -32,7 +32,7 @@ function AuthenticatedTopNav({ role }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 lg:hidden">
+          <div className="flex items-center gap-3 xl:hidden">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-400 text-sm font-black text-emerald-950">
               {initials}
             </div>
@@ -41,7 +41,7 @@ function AuthenticatedTopNav({ role }) {
 
         <nav
           aria-label={`${roleLabel} navigation`}
-          className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 lg:mx-0 lg:min-w-0 lg:flex-1 lg:justify-center lg:pb-0"
+          className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 md:flex-wrap md:justify-center md:overflow-visible xl:mx-0 xl:min-w-0 xl:flex-1 xl:flex-nowrap xl:pb-0"
         >
           {items.map((item) => (
             <NavLink
@@ -64,7 +64,7 @@ function AuthenticatedTopNav({ role }) {
           ))}
         </nav>
 
-        <div className="hidden shrink-0 items-center gap-3 lg:flex">
+        <div className="hidden shrink-0 items-center gap-3 xl:flex">
           <div className="text-right">
             <p className="text-sm font-bold leading-tight">{displayName}</p>
             <p className="text-[0.68rem] font-semibold leading-tight text-emerald-100">
@@ -86,7 +86,7 @@ function AuthenticatedTopNav({ role }) {
         <button
           type="button"
           onClick={handleLogout}
-          className="w-fit rounded-md px-3 py-2 text-sm font-semibold text-emerald-50 transition-colors hover:bg-white/10 hover:text-white lg:hidden"
+          className="w-fit rounded-md px-3 py-2 text-sm font-semibold text-emerald-50 transition-colors hover:bg-white/10 hover:text-white xl:hidden"
         >
           Logout
         </button>
