@@ -68,11 +68,11 @@ function LoginPage() {
           </li>
           <li className="flex gap-3">
             <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-gold-light" />
-            <span>Real-time concurrent review alerts</span>
+            <span>Role-based topic approval workflows</span>
           </li>
         </ul>
         <p className="text-[0.68rem] font-medium uppercase tracking-[0.2em] text-emerald-100/70">
-          Osun State University &copy; 2027
+          Osun State University &copy; 2026
         </p>
       </div>
     </div>
