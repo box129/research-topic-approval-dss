@@ -51,3 +51,6 @@ build/
 
 Thumbs.db
 
+
+# Reference-only visual prototypes
+reference/prototypeFyp/
