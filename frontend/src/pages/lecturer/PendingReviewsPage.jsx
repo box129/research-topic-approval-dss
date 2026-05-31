@@ -134,8 +134,8 @@ function PendingReviewsPage() {
 
       {!isLoading && !error && (
         <>
-          <section className="overflow-hidden rounded-[1.8rem] border border-emerald-100 bg-white shadow-card">
-            <div className="bg-[#f6fbf1] p-5 sm:p-7">
+          <section className="overflow-hidden rounded-[1.8rem] border border-emerald-100 bg-white shadow-[0_22px_70px_-48px_rgb(4_120_87_/_0.5)]">
+            <div className="border-l-4 border-l-brand-gold bg-[linear-gradient(145deg,#f6fbf1,#fffdf7)] p-5 sm:p-7">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
@@ -205,7 +205,7 @@ function PendingReviewsPage() {
 
           {submissions.length > 0 && (
             <>
-              <section className="rounded-[1.5rem] border border-emerald-100 bg-white p-5 shadow-card sm:p-6">
+              <section className="rounded-[1.5rem] border border-emerald-100 bg-[#fbfdf8] p-5 shadow-card sm:p-6">
                 <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
@@ -271,6 +271,7 @@ function PendingReviewsPage() {
               {filteredSubmissions.length > 0 && (
                 <div className="rounded-[1.5rem] border border-emerald-100 bg-white p-2 shadow-card">
                   <TableShell
+                    className="rounded-[1.15rem]"
                     title="Review Queue"
                     subtitle="Open a row to continue in the existing submission detail workflow."
                     actions={(

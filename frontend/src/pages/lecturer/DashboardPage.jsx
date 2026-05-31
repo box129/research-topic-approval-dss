@@ -81,7 +81,7 @@ function LecturerDashboardPage() {
         <>
           <section className="overflow-hidden rounded-[1.8rem] border border-emerald-100 bg-white shadow-[0_22px_70px_-42px_rgb(4_120_87_/_0.55)]">
             <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.36fr)]">
-              <div className="bg-[#f6fbf1] p-5 sm:p-7">
+              <div className="bg-[linear-gradient(145deg,#f6fbf1,#fffdf7)] p-5 sm:p-7">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
@@ -97,6 +97,21 @@ function LecturerDashboardPage() {
                   <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-text-muted shadow-sm">
                     Queue data only
                   </span>
+                </div>
+
+                <div className="mt-6 flex flex-wrap gap-2" aria-label="Lecturer review workflow">
+                  {[
+                    '1. Triage loaded queue',
+                    '2. Open submission details',
+                    '3. Record a controlled decision'
+                  ].map((step) => (
+                    <span
+                      key={step}
+                      className="rounded-full border border-emerald-100 bg-white/85 px-3 py-1.5 text-xs font-semibold text-text-secondary shadow-sm"
+                    >
+                      {step}
+                    </span>
+                  ))}
                 </div>
 
                 <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -125,7 +140,7 @@ function LecturerDashboardPage() {
               </div>
 
               <aside className="border-t border-emerald-100 p-5 sm:p-7 xl:border-l xl:border-t-0">
-                <div className="rounded-[1.25rem] border border-emerald-100 bg-[#fbfdf8] p-5">
+                <div className="rounded-[1.25rem] border border-emerald-100 border-l-4 border-l-brand-gold bg-[#fbfdf8] p-5">
                   <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
                     Quick actions
                   </p>
@@ -159,7 +174,7 @@ function LecturerDashboardPage() {
           />
 
           <section className="overflow-hidden rounded-[1.75rem] border border-emerald-100 bg-white shadow-[0_18px_55px_-35px_rgb(4_120_87_/_0.45)]">
-            <div className="border-b border-border-subtle bg-[#fbfff7] p-5 sm:p-7">
+            <div className="border-b border-border-subtle bg-[linear-gradient(135deg,#fbfff7,#fffdf7)] p-5 sm:p-7">
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">

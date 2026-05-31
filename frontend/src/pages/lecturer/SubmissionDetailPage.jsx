@@ -212,6 +212,24 @@ function SubmissionDetailPage() {
         )}
       />
 
+      <ol className="grid gap-3 rounded-[1.35rem] border border-emerald-100 bg-white/85 p-3 shadow-card sm:grid-cols-3" aria-label="Submission review workflow">
+        {[
+          ['1', 'Submission', 'Review API-returned topic fields'],
+          ['2', 'Evidence', 'Inspect saved and temporary checks'],
+          ['3', 'Decision', 'Use controlled status actions']
+        ].map(([number, label, helper]) => (
+          <li key={label} className="flex gap-3 rounded-[1rem] border border-emerald-50 bg-[#f7fbf4] p-3">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-green text-xs font-bold text-white">
+              {number}
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-text-primary">{label}</p>
+              <p className="mt-1 text-xs leading-5 text-text-muted">{helper}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+
       {isLoading && <LoadingState label="Loading submission details" />}
 
       {!isLoading && error && !submission && (
@@ -240,7 +258,7 @@ function SubmissionDetailPage() {
 
       {!isLoading && submission && (
         <div className="space-y-7">
-          <section className="overflow-hidden rounded-[1.8rem] border border-emerald-100 bg-white shadow-[0_22px_70px_-42px_rgb(4_120_87_/_0.55)]">
+          <section className="overflow-hidden rounded-[1.8rem] border border-emerald-100 border-t-4 border-t-brand-gold bg-white shadow-[0_22px_70px_-42px_rgb(4_120_87_/_0.55)]">
             <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.34fr)]">
               <div className="bg-[#f6fbf1] p-5 sm:p-7">
                 <div className="max-w-4xl">
@@ -307,7 +325,7 @@ function SubmissionDetailPage() {
           </section>
 
           <section className="overflow-hidden rounded-[1.6rem] border border-emerald-100 bg-white shadow-card">
-            <div className="border-b border-emerald-100 bg-[#fbfdf8] p-5 sm:p-7">
+            <div className="border-b border-emerald-100 bg-[linear-gradient(135deg,#fbfdf8,#fffdf7)] p-5 sm:p-7">
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
@@ -399,7 +417,7 @@ function SubmissionDetailPage() {
 
           <section className="overflow-hidden rounded-[1.6rem] border border-emerald-100 bg-white shadow-card">
             <div className="grid gap-0 lg:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)]">
-              <div className="border-b border-emerald-100 bg-[#f6fbf1] p-5 sm:p-7 lg:border-b-0 lg:border-r">
+              <div className="border-b border-emerald-100 bg-[linear-gradient(145deg,#f6fbf1,#fffdf7)] p-5 sm:p-7 lg:border-b-0 lg:border-r">
                 <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
                   Similarity evidence
                 </p>
@@ -458,8 +476,8 @@ function SubmissionDetailPage() {
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-[1.6rem] border border-emerald-100 bg-white shadow-card">
-            <div className="border-b border-emerald-100 bg-[#fbfdf8] p-5 sm:p-7">
+          <section className="overflow-hidden rounded-[1.6rem] border border-emerald-100 border-l-4 border-l-brand-gold bg-white shadow-card">
+            <div className="border-b border-emerald-100 bg-[linear-gradient(135deg,#fbfdf8,#fffdf7)] p-5 sm:p-7">
               <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
