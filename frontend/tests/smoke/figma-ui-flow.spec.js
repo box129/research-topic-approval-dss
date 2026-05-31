@@ -231,6 +231,23 @@ test('admin Figma UI route renders honest dashboard shell', async ({ page, conte
     expect(bodyText).not.toMatch(/\bAudit Events\s+\d+\b/i);
     expect(bodyText).not.toMatch(/lecturer\.demo@|student\.demo@/i);
 
+    const placeholderRoutes = [
+      ['/admin/user-management', 'User Management'],
+      ['/admin/topic-repository', 'Topic Repository'],
+      ['/admin/system-settings', 'System Settings'],
+      ['/admin/audit-log', 'Audit Log'],
+      ['/admin/reports', 'Reports']
+    ];
+
+    for (const [path, heading] of placeholderRoutes) {
+      await page.goto(path);
+      await expect.poll(() => getPathname(page)).toBe(path);
+      await expect(page.getByRole('heading', { exact: true, level: 1, name: heading })).toBeVisible();
+      await expect(page.getByText('Presentation-only', { exact: true })).toBeVisible();
+      await expect(page.getByText(/not connected yet/i).first()).toBeVisible();
+      await expect(page.getByText(/deferred admin workflow/i)).toBeVisible();
+    }
+
     monitor.assertClean();
   } finally {
     monitor.stop();

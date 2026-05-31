@@ -1,6 +1,7 @@
 import PlaceholderPage from './common/PlaceholderPage';
 import V2PlaceholderPage from './common/V2PlaceholderPage';
 import AdminDashboard from './admin/DashboardPage';
+import AdminPlaceholderPage from './admin/PlaceholderPage';
 import LecturerDashboard from './lecturer/DashboardPage';
 import PendingReviewsPage from './lecturer/PendingReviewsPage';
 import SubmissionDetailPage from './lecturer/SubmissionDetailPage';
@@ -41,21 +42,42 @@ export const StudentCheckMyTopicPage = CheckMyTopicPage;
 export const StudentResearchExplorerPage = ResearchExplorerPage;
 
 export const AdminUserManagementPage = () => (
-  <PlaceholderPage title="User Management" subtitle="A2 user management shell" />
+  <AdminPlaceholderPage
+    title="User Management"
+    subtitle="Protected admin workspace for future account and role administration"
+    message="Account provisioning, role updates, and user records remain unavailable until a safe admin API and scoped workflow are approved."
+  />
 );
 
 export const AdminTopicRepositoryPage = () => (
-  <PlaceholderPage title="Topic Repository" subtitle="A3 import and topic repository shell" />
+  <AdminPlaceholderPage
+    title="Topic Repository"
+    subtitle="Protected admin workspace for future repository oversight"
+    message="Repository browsing, import controls, and topic administration remain unavailable until the real API behavior is defined and connected."
+  />
 );
 
 export const AdminSystemSettingsPage = () => (
-  <PlaceholderPage title="System Settings" subtitle="A4 configuration shell" />
+  <AdminPlaceholderPage
+    title="System Settings"
+    subtitle="Protected admin workspace for future configuration controls"
+    message="Configuration values and update actions remain unavailable until supported settings contracts and validation rules exist."
+  />
 );
 
 export const AdminAuditLogPage = () => (
-  <PlaceholderPage title="Audit Log" subtitle="A5 audit log shell" />
+  <AdminPlaceholderPage
+    title="Audit Log"
+    subtitle="Protected admin workspace for future audit visibility"
+    message="Audit records and filtering remain unavailable until a real audit API is connected. No activity entries are fabricated here."
+  />
 );
 
 export const AdminReportsPage = () => (
-  <V2PlaceholderPage title="Reports" dashboardPath="/admin/dashboard" />
+  <AdminPlaceholderPage
+    dashboardPath="/admin/dashboard"
+    title="Reports"
+    subtitle="Protected admin workspace for future reporting"
+    message="Reports, analytics, and exports remain unavailable until real data sources and approved reporting behavior are connected."
+  />
 );
