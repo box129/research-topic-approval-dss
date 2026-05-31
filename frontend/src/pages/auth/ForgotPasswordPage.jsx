@@ -1,6 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../../auth/AuthContext';
+import InfoCallout from '../../components/ui/InfoCallout';
+import PrimaryButton from '../../components/ui/PrimaryButton';
+import TextInput from '../../components/ui/TextInput';
+import AuthRecoveryLayout from '../../layouts/AuthRecoveryLayout';
 
 function ForgotPasswordPage() {
   const { forgotPassword } = useAuth();
@@ -26,44 +30,45 @@ function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-5">
-      <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-gray-950">Forgot password</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          Enter your email address and we will send a reset link if the account exists.
-        </p>
-        {message && (
-          <div className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-            {message}
-          </div>
-        )}
-        {error && (
-          <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-            {error}
-          </div>
-        )}
-        <form onSubmit={handleSubmit}>
-          <input
-            className="mt-6 w-full rounded-md border border-gray-300 px-3 py-2"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email"
-            required
-          />
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="mt-4 w-full rounded-md bg-emerald-700 px-4 py-2 font-medium text-white transition-colors hover:bg-emerald-800 disabled:bg-gray-300 disabled:text-gray-600"
-          >
-            {isSubmitting ? 'Sending...' : 'Send reset link'}
-          </button>
-        </form>
-        <Link to="/login" className="mt-5 inline-block text-sm font-medium text-emerald-700">
-          Back to sign in
-        </Link>
-      </div>
-    </div>
+    <AuthRecoveryLayout
+      eyebrow="Password recovery"
+      title="Forgot your password?"
+      description="Enter your university email address and we will send a reset link if the account exists."
+    >
+      <InfoCallout
+        className="mt-6"
+        title="University account recovery"
+        message="For privacy, the response does not confirm whether an account exists for the email address you submit."
+      />
+
+      {message && <InfoCallout className="mt-4" variant="success" message={message} />}
+      {error && <InfoCallout className="mt-4" variant="danger" message={error} />}
+
+      <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
+        <TextInput
+          id="forgot-password-email"
+          label="University Email Address"
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          autoComplete="email"
+          required
+          disabled={isSubmitting}
+        />
+        <PrimaryButton
+          type="submit"
+          disabled={isSubmitting}
+          fullWidth
+          className="auth-login-submit min-h-12"
+        >
+          {isSubmitting ? 'Sending...' : 'Send reset link'}
+        </PrimaryButton>
+      </form>
+
+      <Link to="/login" className="mt-6 inline-block text-sm font-semibold text-brand-gold-dark hover:text-brand-gold">
+        Back to sign in
+      </Link>
+    </AuthRecoveryLayout>
   );
 }
 
