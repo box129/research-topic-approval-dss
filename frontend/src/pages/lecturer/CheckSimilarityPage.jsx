@@ -152,7 +152,7 @@ function CheckSimilarityPage() {
 
       <section className="overflow-hidden rounded-[1.8rem] border border-emerald-100 bg-white shadow-[0_22px_70px_-42px_rgb(4_120_87_/_0.55)]">
         <div className="grid gap-0 xl:grid-cols-[minmax(320px,0.38fr)_minmax(0,0.62fr)]">
-          <aside className="border-b border-emerald-100 bg-[#f6fbf1] p-5 sm:p-7 xl:border-b-0 xl:border-r">
+          <aside className="border-b border-emerald-100 bg-[linear-gradient(145deg,#f6fbf1,#fffdf7)] p-5 sm:p-7 xl:border-b-0 xl:border-r">
             <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
               Advisory workspace
             </p>
@@ -183,10 +183,21 @@ function CheckSimilarityPage() {
                 <li>No snapshot or lecturer decision is created.</li>
               </ul>
             </div>
+
+            <div className="mt-4 flex flex-wrap gap-2" aria-label="Manual checker boundaries">
+              {['Advisory result', 'Local screen state', 'No decision write'].map((item) => (
+                <span
+                  key={item}
+                  className="rounded-full border border-emerald-100 bg-white px-3 py-1 text-xs font-semibold text-text-muted shadow-sm"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
           </aside>
 
-          <div className="grid gap-5 p-4 sm:p-6 2xl:grid-cols-[minmax(0,0.9fr)_minmax(320px,1.1fr)]">
-            <div className="rounded-[1.35rem] border border-border-subtle bg-white p-4 shadow-sm sm:p-5">
+          <div className="grid gap-5 bg-[#fbfdf8] p-4 sm:p-6 2xl:grid-cols-[minmax(0,0.9fr)_minmax(320px,1.1fr)]">
+            <div className="rounded-[1.35rem] border border-border-subtle border-t-4 border-t-brand-gold bg-white p-4 shadow-sm sm:p-5">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
