@@ -130,9 +130,9 @@ function DashboardPage() {
                 </span>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 xl:grid-cols-3">
                 {serviceHealthItems.map((item) => (
-                  <div key={item.label} className={`rounded-[1.15rem] border border-border-subtle border-l-4 bg-[#fbfdf9] shadow-sm ${item.accent}`}>
+                  <div key={item.label} className={`min-w-0 overflow-hidden rounded-[1.15rem] border border-border-subtle border-l-4 bg-[#fbfdf9] shadow-sm ${item.accent}`}>
                     <DashboardStatusCard
                       label={item.label}
                       value="Not connected yet"
@@ -202,8 +202,11 @@ function DashboardPage() {
           </p>
           <ul className="mt-4 space-y-3">
             {plannedStates.map((state) => (
-              <li key={state} className="rounded-card border border-border-subtle bg-surface-muted p-3 text-sm text-text-secondary">
-                {state}
+              <li key={state} className="flex flex-col gap-2 rounded-card border border-border-subtle bg-surface-muted p-3 text-sm text-text-secondary sm:flex-row sm:items-center sm:justify-between">
+                <span>{state}</span>
+                <span className="inline-flex w-fit shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-text-muted">
+                  Preview only
+                </span>
               </li>
             ))}
           </ul>
