@@ -36,7 +36,7 @@ describe('SubmitTopicPage', () => {
   it('renders the form, guidance, and submit button', () => {
     renderSubmitTopicPage();
 
-    expect(screen.getByRole('heading', { name: /submit topic/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /submit your research topic/i })).toBeInTheDocument();
     expect(screen.getByText(/before you submit/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/research topic title/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/category/i)).toBeInTheDocument();

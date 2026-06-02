@@ -147,7 +147,7 @@ test('student Figma UI routes render read-only smoke states', async ({ page, con
   try {
     await expectRenderedRoute(page, '/student/dashboard', /student dashboard/i);
 
-    await expectRenderedRoute(page, '/student/submit-topic', /submit topic/i);
+    await expectRenderedRoute(page, '/student/submit-topic', /submit your research topic/i);
     await expect(page.getByRole('button', { name: /submit for review/i })).toBeVisible();
 
     await expectRenderedRoute(page, '/student/my-submissions', /my submissions/i);
