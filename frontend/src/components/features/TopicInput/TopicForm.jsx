@@ -40,11 +40,12 @@ const sanitizeInput = (text) => {
  * @param {Function} props.onSubmit - Callback function when form is submitted
  * @param {boolean} props.isLoading - Loading state during API call
  */
-const TopicForm = ({ onSubmit, isLoading = false }) => {
+const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
   const [topic, setTopic] = useState('');
   const [keywords, setKeywords] = useState('');
   const [category, setCategory] = useState('');
   const [error, setError] = useState('');
+  const isStudentChecker = appearance === 'student-checker';
 
   /**
    * Count words in a string
@@ -161,12 +162,22 @@ const TopicForm = ({ onSubmit, isLoading = false }) => {
   const validation = getValidationStatus();
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">
-        Check Topic Similarity
-      </h2>
+    <div className={isStudentChecker
+      ? 'w-full bg-white'
+      : 'w-full max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md'
+    }>
+      {isStudentChecker ? (
+        <div className="mb-5">
+          <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#1B5E20]">Check your research topic</p>
+          <h2 className="mt-2 font-serif text-2xl font-semibold text-[#1B5E20]">Similarity pre-check</h2>
+        </div>
+      ) : (
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">
+          Check Topic Similarity
+        </h2>
+      )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className={isStudentChecker ? 'space-y-5' : 'space-y-6'}>
         {/* Topic Input */}
         <div>
           <label 
@@ -182,11 +193,11 @@ const TopicForm = ({ onSubmit, isLoading = false }) => {
             onChange={handleTopicChange}
             disabled={isLoading}
             placeholder="Enter your research topic (7-24 words)..."
-            rows={4}
+            rows={isStudentChecker ? 5 : 4}
             className={`
               w-full px-4 py-3 rounded-lg border-2 
               ${validation.borderColor}
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+              focus:outline-none focus:ring-2 ${isStudentChecker ? 'focus:ring-[#1B5E20]' : 'focus:ring-blue-500'} focus:border-transparent
               disabled:bg-gray-100 disabled:cursor-not-allowed
               transition-colors duration-200
               resize-none
@@ -261,12 +272,12 @@ const TopicForm = ({ onSubmit, isLoading = false }) => {
             value={category}
             onChange={handleCategoryChange}
             disabled={isLoading}
-            className="
+            className={`
               w-full px-4 py-3 rounded-lg border-2 border-gray-300 bg-white
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+              focus:outline-none focus:ring-2 ${isStudentChecker ? 'focus:ring-[#1B5E20]' : 'focus:ring-blue-500'} focus:border-transparent
               disabled:bg-gray-100 disabled:cursor-not-allowed
               transition-colors duration-200
-            "
+            `}
           >
             {RESEARCH_CATEGORIES.map((cat) => (
               <option key={cat} value={cat}>
@@ -296,12 +307,12 @@ const TopicForm = ({ onSubmit, isLoading = false }) => {
             onChange={handleKeywordsChange}
             disabled={isLoading}
             placeholder="e.g., machine learning, neural networks, AI"
-            className="
+            className={`
               w-full px-4 py-3 rounded-lg border-2 border-gray-300
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+              focus:outline-none focus:ring-2 ${isStudentChecker ? 'focus:ring-[#1B5E20]' : 'focus:ring-blue-500'} focus:border-transparent
               disabled:bg-gray-100 disabled:cursor-not-allowed
               transition-colors duration-200
-            "
+            `}
           />
           
           <p className="mt-1 text-sm text-gray-500">
@@ -338,7 +349,9 @@ const TopicForm = ({ onSubmit, isLoading = false }) => {
             transition-all duration-200
             ${!validation.isValid || isLoading
               ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-md hover:shadow-lg'
+              : isStudentChecker
+                ? 'bg-[#1B5E20] hover:bg-[#174F1C] active:bg-[#123F16] shadow-sm hover:shadow-md'
+                : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-md hover:shadow-lg'
             }
             disabled:opacity-50
             flex items-center justify-center
@@ -374,17 +387,24 @@ const TopicForm = ({ onSubmit, isLoading = false }) => {
         </button>
 
         {/* Help Text */}
-        <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-          <h3 className="text-sm font-semibold text-blue-900 mb-2">
-            💡 Tips for Best Results:
-          </h3>
-          <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-            <li>Use 7-24 words for your topic title</li>
-            <li>Be specific and descriptive</li>
-            <li>Include key technical terms</li>
-            <li>Add relevant keywords for better matching</li>
-          </ul>
-        </div>
+        {isStudentChecker ? (
+          <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 px-4 py-3 text-sm leading-6 text-text-secondary">
+            <p className="font-semibold text-[#1B5E20]">Validation benchmark</p>
+            <p>Use 7-24 clear words. Category and keywords are optional, but they can improve matching.</p>
+          </div>
+        ) : (
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+            <h3 className="text-sm font-semibold text-blue-900 mb-2">
+              💡 Tips for Best Results:
+            </h3>
+            <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+              <li>Use 7-24 words for your topic title</li>
+              <li>Be specific and descriptive</li>
+              <li>Include key technical terms</li>
+              <li>Add relevant keywords for better matching</li>
+            </ul>
+          </div>
+        )}
       </form>
     </div>
   );
@@ -392,7 +412,8 @@ const TopicForm = ({ onSubmit, isLoading = false }) => {
 
 TopicForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
-  isLoading: PropTypes.bool
+  isLoading: PropTypes.bool,
+  appearance: PropTypes.oneOf(['default', 'student-checker'])
 };
 
 export default TopicForm;

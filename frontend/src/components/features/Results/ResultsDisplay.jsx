@@ -72,9 +72,10 @@ const getAlgorithmBadgeColor = (algorithm) => {
  * @param {Array} props.results.tier3_matches - Under review matches (≥60%)
  * @param {boolean} props.results.sbert_available - Whether SBERT scores are available
  */
-const ResultsDisplay = ({ results }) => {
+const ResultsDisplay = ({ results, appearance = 'default' }) => {
   // Track which matches have expanded details
   const [expandedMatches, setExpandedMatches] = useState({});
+  const isStudentChecker = appearance === 'student-checker';
 
   // Risk level configuration
   const riskConfig = RISK_CONFIGS[results.risk_level] || RISK_CONFIGS.LOW;
@@ -113,7 +114,10 @@ const ResultsDisplay = ({ results }) => {
       <div
         key={matchKey}
         data-testid={`topic-match-${index}`}
-        className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+        className={isStudentChecker
+          ? 'rounded-xl border border-emerald-100 bg-white p-4 transition-shadow hover:shadow-md'
+          : 'p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow'
+        }
       >
         {/* Topic Title */}
         <h4 className="text-lg font-semibold text-gray-900 mb-2" data-testid={`topic-title-${index}`}>
@@ -215,7 +219,7 @@ const ResultsDisplay = ({ results }) => {
     if (!matches || matches.length === 0) return null;
 
     return (
-      <div className="mb-8" data-testid={`tier-section-${tierKey}`}>
+      <div className={isStudentChecker ? 'mb-6' : 'mb-8'} data-testid={`tier-section-${tierKey}`}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-bold text-gray-800" data-testid={`tier-title-${tierKey}`}>
             {tierTitle}
@@ -225,12 +229,91 @@ const ResultsDisplay = ({ results }) => {
           </span>
         </div>
         <p className="text-sm text-gray-600 mb-4">{tierDescription}</p>
-        <div className="space-y-3">
+        <div className={isStudentChecker ? 'grid gap-3 lg:grid-cols-2 xl:grid-cols-3' : 'space-y-3'}>
           {matches.map((match, index) => renderTopicMatch(match, index, tierKey))}
         </div>
       </div>
     );
   };
+
+  const totalMatches = (results.tier1_matches?.length || 0) +
+    (results.tier2_matches?.length || 0) +
+    (results.tier3_matches?.length || 0);
+
+  if (isStudentChecker) {
+    return (
+      <div className="w-full p-4 sm:p-6" data-testid="results-display">
+        <div className="grid gap-4 lg:grid-cols-[13rem_minmax(0,1fr)]">
+          <div className="rounded-xl border border-emerald-100 bg-[#fbfdf8] p-5 text-center">
+            <p className="text-xs font-bold uppercase tracking-[0.12em] text-text-muted">Similarity score</p>
+            <p className={`mt-2 text-5xl font-bold ${riskConfig.textColor}`} data-testid="max-similarity">
+              {formatScore(results.max_similarity)}
+            </p>
+            <p className="mt-2 text-xs leading-5 text-text-secondary">Highest combined similarity returned by the checker.</p>
+            <p className="sr-only" data-testid="summary-max-similarity">{formatScore(results.max_similarity)}</p>
+          </div>
+
+          <div
+            data-testid="risk-banner"
+            data-risk-level={results.risk_level}
+            className={`${riskConfig.bgColor} ${riskConfig.borderColor} rounded-xl border p-5`}
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.12em] opacity-70">Advisory risk level</p>
+            <h3 className={`mt-2 text-xl font-bold ${riskConfig.textColor}`} data-testid="risk-title">
+              {riskConfig.title}
+            </h3>
+            <p className={`mt-2 text-sm leading-6 ${riskConfig.textColor}`} data-testid="risk-recommendation">
+              {recommendation}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
+              <span className="rounded-full bg-white/75 px-3 py-1" data-testid="summary-risk">{results.risk_level}</span>
+              <span className="rounded-full bg-white/75 px-3 py-1" data-testid="summary-total-matches">
+                {totalMatches} {totalMatches === 1 ? 'match' : 'matches'} returned
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {!results.sbert_available && (
+          <div
+            data-testid="sbert-warning"
+            className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800"
+          >
+            <strong>Partial analysis:</strong> Semantic analysis is temporarily unavailable. Results are based on exact match and term weighting analysis.
+          </div>
+        )}
+
+        <div className="mt-6">
+          {renderTierSection(
+            'tier1',
+            'Similar Past Projects',
+            'The most similar topics from previous submission cycles. Review these to understand how your topic compares.',
+            results.tier1_matches
+          )}
+
+          {renderTierSection(
+            'tier2',
+            'Current Session Projects',
+            'Topics from current submissions with significant similarity to yours.',
+            results.tier2_matches
+          )}
+
+          {renderTierSection(
+            'tier3',
+            'Under Review Projects',
+            'Recently submitted topics under review that show some overlap with your submission.',
+            results.tier3_matches
+          )}
+
+          {totalMatches === 0 && (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-6 text-center" data-testid="no-matches">
+              <p className="font-medium text-[#1B5E20]">No similar topics found. Your topic appears unique.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto p-6" data-testid="results-display">
@@ -392,7 +475,8 @@ ResultsDisplay.propTypes = {
     tier2_matches: PropTypes.arrayOf(MATCH_SHAPE),
     tier3_matches: PropTypes.arrayOf(MATCH_SHAPE),
     sbert_available: PropTypes.bool.isRequired
-  }).isRequired
+  }).isRequired,
+  appearance: PropTypes.oneOf(['default', 'student-checker'])
 };
 
 export default ResultsDisplay;
