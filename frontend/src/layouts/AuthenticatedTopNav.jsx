@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { roleLabels, roleNavigation } from './navigation';
 
 function AuthenticatedTopNav({ role }) {
   const { logout, user } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
   const items = roleNavigation[role] || [];
   const roleLabel = roleLabels[role];
@@ -33,15 +34,27 @@ function AuthenticatedTopNav({ role }) {
   }, []);
 
   useEffect(() => {
-    const animationFrame = window.requestAnimationFrame(updateNavScrollState);
-
     window.addEventListener('resize', updateNavScrollState);
 
     return () => {
-      window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('resize', updateNavScrollState);
     };
-  }, [role, updateNavScrollState]);
+  }, [updateNavScrollState]);
+
+  useEffect(() => {
+    const activeLink = navRef.current?.querySelector('[aria-current="page"]');
+
+    activeLink?.scrollIntoView?.({
+      block: 'nearest',
+      inline: 'nearest'
+    });
+
+    const animationFrame = window.requestAnimationFrame(updateNavScrollState);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+    };
+  }, [location.pathname, role, updateNavScrollState]);
 
   const scrollNavigation = (direction) => {
     const nav = navRef.current;
@@ -61,11 +74,11 @@ function AuthenticatedTopNav({ role }) {
   };
 
   return (
-    <header className="relative z-20 border-b border-emerald-950/20 bg-emerald-900 text-white shadow-lg shadow-emerald-950/10">
-      <div className="mx-auto flex min-h-16 w-full max-w-[78rem] flex-col gap-3 px-4 py-3 sm:px-6 xl:flex-row xl:items-center xl:justify-between xl:gap-6">
+    <header className="relative z-20 border-b border-emerald-950/20 bg-[#1B5E20] text-white shadow-lg shadow-emerald-950/10">
+      <div className="mx-auto flex min-h-16 w-full max-w-[78rem] flex-col gap-1.5 px-4 py-2 sm:px-6 xl:flex-row xl:items-center xl:justify-between xl:gap-6 xl:py-3">
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white text-xs font-black text-emerald-900">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white text-xs font-black text-[#1B5E20]">
               U
             </div>
             <div className="min-w-0">
@@ -76,10 +89,23 @@ function AuthenticatedTopNav({ role }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 xl:hidden">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-400 text-sm font-black text-emerald-950">
+          <div className="flex shrink-0 items-center gap-2 xl:hidden">
+            <div className="hidden text-right sm:block">
+              <p className="max-w-40 truncate text-xs font-bold leading-tight">{displayName}</p>
+              <p className="text-[0.65rem] font-semibold leading-tight text-emerald-100">
+                {roleLabel}
+              </p>
+            </div>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-400 text-xs font-black text-emerald-950">
               {initials}
             </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="rounded-md border border-white/15 px-2 py-1.5 text-xs font-semibold text-emerald-50 transition-colors hover:bg-white/10 hover:text-white sm:px-3"
+            >
+              Logout
+            </button>
           </div>
         </div>
 
@@ -89,7 +115,7 @@ function AuthenticatedTopNav({ role }) {
             id={`${role}-navigation-links`}
             aria-label={`${roleLabel} navigation`}
             onScroll={updateNavScrollState}
-            className="-mx-1 flex scroll-smooth gap-1 overflow-x-auto px-1 pb-1 md:flex-wrap md:justify-center md:overflow-visible xl:mx-0 xl:min-w-0 xl:flex-nowrap xl:pb-0"
+            className="-mx-1 flex scroll-smooth gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden xl:mx-0 xl:min-w-0 xl:pb-0"
           >
             {items.map((item) => (
               <NavLink
@@ -113,36 +139,40 @@ function AuthenticatedTopNav({ role }) {
           </nav>
 
           {navScrollState.canScrollLeft && (
-            <div className="pointer-events-none absolute left-0 top-0 h-10 w-8 bg-gradient-to-r from-emerald-900 to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-[#1B5E20] via-[#1B5E20]/90 to-transparent" />
           )}
           {navScrollState.canScrollRight && (
-            <div className="pointer-events-none absolute right-0 top-0 h-10 w-8 bg-gradient-to-l from-emerald-900 to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-[#1B5E20] via-[#1B5E20]/90 to-transparent" />
+          )}
+
+          {navScrollState.canScrollLeft && (
+            <button
+              type="button"
+              aria-label="Scroll navigation left"
+              aria-controls={`${role}-navigation-links`}
+              onClick={() => scrollNavigation(-1)}
+              className="absolute left-0.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-[#1B5E20]/95 text-sm font-black text-white shadow transition-colors hover:bg-white/20"
+            >
+              &larr;
+            </button>
+          )}
+
+          {navScrollState.canScrollRight && (
+            <button
+              type="button"
+              aria-label="Scroll navigation right"
+              aria-controls={`${role}-navigation-links`}
+              onClick={() => scrollNavigation(1)}
+              className="absolute right-0.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-amber-300/70 bg-amber-400 text-sm font-black text-emerald-950 shadow transition-colors hover:bg-amber-300"
+            >
+              &rarr;
+            </button>
           )}
 
           {hasScrollableNavigation && (
-            <div className="mt-1 flex items-center justify-end gap-2 text-[0.68rem] font-semibold text-emerald-100">
-              <span>More navigation</span>
-              <button
-                type="button"
-                aria-label="Scroll navigation left"
-                aria-controls={`${role}-navigation-links`}
-                disabled={!navScrollState.canScrollLeft}
-                onClick={() => scrollNavigation(-1)}
-                className="flex h-6 w-7 items-center justify-center rounded border border-white/25 bg-white/10 text-sm font-black text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                &larr;
-              </button>
-              <button
-                type="button"
-                aria-label="Scroll navigation right"
-                aria-controls={`${role}-navigation-links`}
-                disabled={!navScrollState.canScrollRight}
-                onClick={() => scrollNavigation(1)}
-                className="flex h-6 w-7 items-center justify-center rounded border border-amber-300/70 bg-amber-400 text-sm font-black text-emerald-950 transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:border-white/25 disabled:bg-white/10 disabled:text-white disabled:opacity-40"
-              >
-                &rarr;
-              </button>
-            </div>
+            <span className="sr-only">
+              More navigation items are available horizontally.
+            </span>
           )}
         </div>
 
@@ -164,14 +194,6 @@ function AuthenticatedTopNav({ role }) {
             Logout
           </button>
         </div>
-
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="w-fit rounded-md px-3 py-2 text-sm font-semibold text-emerald-50 transition-colors hover:bg-white/10 hover:text-white xl:hidden"
-        >
-          Logout
-        </button>
       </div>
     </header>
   );
