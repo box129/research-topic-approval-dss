@@ -9,6 +9,14 @@ vi.mock('../src/api/submissions', () => ({
   listSubmissions: vi.fn()
 }));
 
+vi.mock('../src/auth/AuthContext', () => ({
+  useAuth: () => ({
+    user: {
+      name: 'Student Demo User'
+    }
+  })
+}));
+
 function LocationDisplay() {
   const location = useLocation();
   return <div data-testid="location-display">{location.pathname}</div>;
@@ -64,6 +72,7 @@ describe('StudentDashboardPage', () => {
     renderDashboard();
 
     expect(await screen.findByText(/knowledge of malaria prevention/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /welcome back, student demo user/i })).toBeInTheDocument();
     expect(screen.getByText(/pending review/i)).toBeInTheDocument();
     expect(screen.getByText(/lecturer review is pending/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /view my submissions/i })).toBeInTheDocument();
