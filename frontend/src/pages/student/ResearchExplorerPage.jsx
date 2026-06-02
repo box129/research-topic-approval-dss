@@ -1,38 +1,26 @@
 import { useNavigate } from 'react-router-dom';
-import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
-import FilterDropdown from '../../components/ui/FilterDropdown';
-import InfoCallout from '../../components/ui/InfoCallout';
-import MetricCard from '../../components/ui/MetricCard';
-import PageHeader from '../../components/ui/PageHeader';
 import PrimaryButton from '../../components/ui/PrimaryButton';
-import SearchInput from '../../components/ui/SearchInput';
 import SecondaryButton from '../../components/ui/SecondaryButton';
 import StudentDashboardLayout from '../../layouts/StudentDashboardLayout';
 
-const plannedInsightCards = [
+const discoveryCards = [
   {
-    label: 'Approved topics',
-    value: 'Not connected yet',
-    helper: 'Browsing will connect after a safe student read endpoint exists.',
-    tone: 'info'
+    label: 'Trending Research Keywords',
+    title: 'No trending data yet',
+    message: 'Keyword patterns will appear after approved-topic browsing is safely connected.',
+    indicator: '--'
   },
   {
-    label: 'Category discovery',
-    value: 'Not available yet',
-    helper: 'Category browsing is prepared but not connected to approved-topic data.',
-    tone: 'neutral'
+    label: 'Topic Distribution',
+    title: 'Waiting for topic approvals',
+    message: 'Category distribution needs approved-topic data before it can be shown.',
+    indicator: '+'
   },
   {
-    label: 'Keyword trends',
-    value: 'Coming later',
-    helper: 'Keyword summaries will use approved-topic data when available.',
-    tone: 'warning'
-  },
-  {
-    label: 'Underexplored areas',
-    value: 'No data available',
-    helper: 'Opportunity summaries require a safe approved-topic dataset.',
-    tone: 'success'
+    label: 'Underexplored Areas',
+    title: 'Explore areas will appear here',
+    message: 'Opportunity areas cannot be identified until a safe dataset is available.',
+    indicator: '?'
   }
 ];
 
@@ -40,186 +28,120 @@ function ResearchExplorerPage() {
   const navigate = useNavigate();
 
   return (
-    <StudentDashboardLayout>
-      <PageHeader
-        eyebrow="Student portal"
-        title="Research Explorer"
-        subtitle="Discover approved-topic patterns once a safe student browsing endpoint is available."
-      />
+    <StudentDashboardLayout open>
+      <header className="px-1 pt-1 sm:px-0">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary/70">Student portal</p>
+        <h1 className="mt-2 font-serif text-3xl font-semibold leading-tight text-[#1B5E20] sm:text-4xl">
+          Research Explorer
+        </h1>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-text-secondary">
+          Discover what&apos;s being researched, where the gaps are, and find inspiration for your topic.
+        </p>
+      </header>
 
-      <section className="overflow-hidden rounded-[1.8rem] border border-emerald-100 bg-white shadow-card">
-        <div className="grid gap-0 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
-          <div className="bg-[#f6fbf1] p-5 sm:p-7">
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
-              Explorer shell
-            </p>
-            <h2 className="mt-2 text-3xl font-semibold leading-tight text-text-primary">
-              Browse research patterns when approved-topic data is connected
-            </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-text-secondary">
-              The layout is prepared for discovery, filters, and topic browsing while staying honest about unavailable data.
-            </p>
-            <div className="mt-5">
-              <InfoCallout
-                title="Explorer-ready shell"
-                message="This page is prepared for approved-topic browsing, but no student-safe read endpoint is connected yet."
-              />
-            </div>
-          </div>
+      <aside className="rounded-2xl border border-emerald-200 bg-emerald-50/65 px-4 py-3 shadow-sm sm:px-5">
+        <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#1B5E20]">Explorer-ready shell</p>
+        <p className="mt-1 text-sm leading-6 text-text-secondary">
+          No student-safe read endpoint is connected yet. Discovery stays honest and empty until approved-topic
+          browsing can be exposed safely.
+        </p>
+      </aside>
 
-          <div className="border-t border-emerald-100 p-5 sm:p-7 lg:border-l lg:border-t-0">
-            <div className="rounded-[1.25rem] border border-dashed border-brand-green-light bg-[#fbfdf8] p-5 text-sm text-text-secondary">
-              <p className="font-semibold text-text-primary">Research discovery is planned</p>
-              <p className="mt-2">
-                Search, filters, and insight areas stay disabled until approved-topic data can be exposed safely.
-              </p>
-              <div className="mt-4 grid gap-2">
-                {['Search unavailable', 'Filters unavailable', 'Insights unavailable'].map((item) => (
-                  <span key={item} className="rounded-full bg-white px-3 py-2 text-xs font-semibold text-text-muted shadow-sm">
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-[1.5rem] border border-border-subtle bg-white p-5 shadow-card sm:p-6" aria-label="Explorer controls">
-        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
-              Discovery controls
-            </p>
-            <h2 className="text-xl font-semibold text-text-primary">Approved-topic browser</h2>
-          </div>
-          <span className="w-fit rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-            Disabled until connected
-          </span>
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(220px,1fr)]">
-          <SearchInput
-            id="research-explorer-search"
-            label="Search approved topics"
-            placeholder="Browsing is not connected yet"
-            disabled
-            helperText="Search will become available when approved-topic browsing is safely exposed."
-          />
-          <FilterDropdown
-            id="research-explorer-category"
-            label="Category"
-            placeholder="All categories"
-            disabled
-            helperText="Filters are disabled until approved-topic data is available."
-            options={[
-              { value: 'epidemiology', label: 'Epidemiology' },
-              { value: 'public-health', label: 'Public Health' }
-            ]}
-          />
-        </div>
-      </section>
-
-      <section className="grid gap-4 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-        <div className="rounded-[1.5rem] border border-emerald-100 bg-white p-5 shadow-card sm:p-6">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
-                Trending keywords
-              </p>
-              <h2 className="mt-1 text-xl font-semibold text-text-primary">Trend preview</h2>
-            </div>
-            <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-              Coming later
-            </span>
-          </div>
-          <div className="mt-5 grid gap-2">
-            {['Not connected yet', 'Not available yet', 'No data available'].map((item) => (
-              <div key={item} className="rounded-[1rem] border border-dashed border-emerald-100 bg-[#f6fbf1] px-4 py-3 text-sm font-medium text-text-muted">
-                {item}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-[1.5rem] border border-emerald-100 bg-white p-5 shadow-card sm:p-6">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
-                Topic distribution
-              </p>
-              <h2 className="mt-1 text-xl font-semibold text-text-primary">Category overview</h2>
-            </div>
-            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-text-muted shadow-sm">
-              No data available
-            </span>
-          </div>
-          <div className="mt-5 grid gap-4 sm:grid-cols-[140px_1fr] sm:items-center">
-            <div className="mx-auto flex h-32 w-32 items-center justify-center rounded-full border-[14px] border-dashed border-emerald-100 bg-[#f6fbf1] text-center text-xs font-semibold uppercase tracking-wide text-text-muted">
-              Pending
-            </div>
-            <div className="space-y-3">
-              {['Category coverage', 'Opportunity areas', 'Browsing availability'].map((item) => (
-                <div key={item} className="flex items-center justify-between gap-3 rounded-[1rem] bg-[#f6fbf1] px-4 py-3 text-sm">
-                  <span className="font-medium text-text-primary">{item}</span>
-                  <span className="text-text-muted">Not available yet</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {plannedInsightCards.map((card) => (
-          <MetricCard
+      <section className="grid gap-4 md:grid-cols-3" aria-label="Research discovery previews">
+        {discoveryCards.map((card) => (
+          <article
             key={card.label}
-            label={card.label}
-            value={card.value}
-            helper={card.helper}
-            tone={card.tone}
-          />
+            className="flex min-h-48 flex-col rounded-2xl border border-dashed border-emerald-200 bg-white/55 p-5 text-center sm:p-6"
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#1B5E20]">{card.label}</p>
+            <div className="flex flex-1 flex-col items-center justify-center py-4">
+              <span
+                aria-hidden="true"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-lg font-semibold text-emerald-700/65"
+              >
+                {card.indicator}
+              </span>
+              <h2 className="mt-3 font-serif text-lg font-semibold text-[#1B5E20]">{card.title}</h2>
+              <p className="mt-2 max-w-xs text-sm leading-6 text-text-secondary">{card.message}</p>
+            </div>
+          </article>
         ))}
-      </div>
+      </section>
 
-      <section className="rounded-[1.5rem] border border-emerald-100 bg-white p-5 shadow-card sm:p-6" aria-label="Approved-topic table shell">
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
-              Approved-topic table
-            </p>
-            <h2 className="text-xl font-semibold text-text-primary">Browsing area</h2>
-          </div>
-          <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-text-muted shadow-sm">
-            No rows available
-          </span>
+      <section className="rounded-2xl border border-dashed border-emerald-200 bg-white/65 px-5 py-10 text-center shadow-sm sm:px-8 sm:py-14">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-2xl font-light text-[#1B5E20]">
+          +
         </div>
-        <div className="overflow-hidden rounded-[1.15rem] border border-border-subtle">
-          <div className="grid grid-cols-[1.5fr_1fr_1fr] bg-[#f6fbf1] px-4 py-3 text-xs font-semibold uppercase tracking-wide text-text-muted">
-            <span>Topic title</span>
-            <span>Category</span>
-            <span>Availability</span>
+        <p className="mt-5 text-xs font-bold uppercase tracking-[0.12em] text-[#1B5E20]">Approved topics</p>
+        <h2 className="mt-2 font-serif text-2xl font-semibold text-[#1B5E20]">
+          No approved topic explorer data is available yet.
+        </h2>
+        <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-text-secondary">
+          No approved-topic browsing endpoint is currently connected. You can still check an idea privately or
+          submit a topic for review.
+        </p>
+        <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <PrimaryButton
+            type="button"
+            aria-label="Submit Topic"
+            className="!bg-[#1B5E20] hover:!bg-[#174F1C] focus-visible:!ring-[#1B5E20]"
+            onClick={() => navigate('/student/submit-topic')}
+          >
+            Submit a Topic
+          </PrimaryButton>
+          <SecondaryButton type="button" onClick={() => navigate('/student/check-my-topic')}>
+            Check My Topic
+          </SecondaryButton>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-amber-200 bg-amber-50/70 px-4 py-4 sm:px-5" aria-label="Planned explorer controls">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.12em] text-amber-700">Planned explorer controls</p>
+          <p className="mt-1 text-sm leading-6 text-text-secondary">
+            Search and category browsing remain disabled until approved-topic data is safely available.
+          </p>
+        </div>
+        <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">
+          <div>
+            <label htmlFor="research-explorer-search" className="text-xs font-semibold text-text-primary">
+              Search approved topics
+            </label>
+            <input
+              id="research-explorer-search"
+              type="search"
+              value=""
+              placeholder="Search unavailable"
+              disabled
+              readOnly
+              className="mt-1 w-full rounded-lg border border-amber-200 bg-white/70 px-3 py-2 text-sm text-text-muted disabled:cursor-not-allowed"
+            />
+            <p className="mt-1 text-xs leading-5 text-text-secondary">
+              Search will become available when approved-topic browsing is safely exposed.
+            </p>
           </div>
-          <div className="px-4 py-6 text-sm text-text-secondary">
-            Approved-topic browsing rows are unavailable until a safe endpoint is connected.
+          <div>
+            <label htmlFor="research-explorer-category" className="text-xs font-semibold text-text-primary">
+              Category
+            </label>
+            <select
+              id="research-explorer-category"
+              disabled
+              className="mt-1 w-full rounded-lg border border-amber-200 bg-white/70 px-3 py-2 text-sm text-text-muted disabled:cursor-not-allowed"
+            >
+              <option>All categories</option>
+            </select>
+            <p className="mt-1 text-xs leading-5 text-text-secondary">
+              Filters are disabled until approved-topic data is available.
+            </p>
           </div>
         </div>
       </section>
 
-      <EmptyStatePanel
-        title="No approved topic explorer data is available yet."
-        message="No approved-topic browsing endpoint is currently connected. You can still check an idea privately or submit a topic for review."
-        action={(
-          <div className="flex flex-col justify-center gap-3 sm:flex-row">
-            <PrimaryButton type="button" onClick={() => navigate('/student/check-my-topic')}>
-              Check My Topic
-            </PrimaryButton>
-            <SecondaryButton type="button" onClick={() => navigate('/student/submit-topic')}>
-              Submit Topic
-            </SecondaryButton>
-          </div>
-        )}
-      />
+      <p className="px-1 text-center text-xs leading-5 text-text-muted sm:px-0">
+        Category discovery, keyword trends, and opportunity summaries are planned explorer features. No topic records,
+        analytics, or recommendations are shown without a safe approved-topic dataset.
+      </p>
     </StudentDashboardLayout>
   );
 }
