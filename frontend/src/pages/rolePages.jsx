@@ -1,10 +1,11 @@
-import PlaceholderPage from './common/PlaceholderPage';
-import V2PlaceholderPage from './common/V2PlaceholderPage';
 import AdminDashboard from './admin/DashboardPage';
 import AdminPlaceholderPage from './admin/PlaceholderPage';
 import LecturerDashboard from './lecturer/DashboardPage';
+import LecturerMyDecisions from './lecturer/MyDecisionsPage';
 import PendingReviewsPage from './lecturer/PendingReviewsPage';
+import LecturerResearchTrends from './lecturer/ResearchTrendsPage';
 import SubmissionDetailPage from './lecturer/SubmissionDetailPage';
+import LecturerSupervisees from './lecturer/SuperviseesPage';
 import DashboardPage from './student/DashboardPage';
 import SubmitTopicPage from './student/SubmitTopicPage';
 import MySubmissionsPage from './student/MySubmissionsPage';
@@ -21,17 +22,11 @@ export const LecturerPendingReviewsPage = PendingReviewsPage;
 
 export const LecturerReviewDecisionPage = SubmissionDetailPage;
 
-export const LecturerMyDecisionsPage = () => (
-  <PlaceholderPage title="My Decisions" subtitle="L4 decision history shell" />
-);
+export const LecturerMyDecisionsPage = LecturerMyDecisions;
 
-export const LecturerSuperviseesPage = () => (
-  <PlaceholderPage title="Supervisees" subtitle="L6 supervisee overview shell" />
-);
+export const LecturerSuperviseesPage = LecturerSupervisees;
 
-export const LecturerResearchTrendsPage = () => (
-  <V2PlaceholderPage title="Research Trends" dashboardPath="/lecturer/dashboard" />
-);
+export const LecturerResearchTrendsPage = LecturerResearchTrends;
 
 export const StudentSubmitTopicPage = SubmitTopicPage;
 
