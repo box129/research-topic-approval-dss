@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listLecturerPendingSubmissions } from '../../api/submissions';
-import DashboardStatusCard from '../../components/ui/DashboardStatusCard';
 import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import ErrorState from '../../components/ui/ErrorState';
 import InfoCallout from '../../components/ui/InfoCallout';
@@ -27,6 +26,34 @@ function formatDate(value) {
     dateStyle: 'medium',
     timeStyle: 'short'
   }).format(date);
+}
+
+function DashboardSummaryCard({ badge, helper, label, tone = 'neutral', value }) {
+  const toneClasses = {
+    neutral: 'border-emerald-100 bg-white',
+    success: 'border-emerald-100 bg-[#f5fbf2]',
+    warning: 'border-amber-200 bg-[#fffaf0]',
+    muted: 'border-slate-200 bg-white/75'
+  };
+
+  const valueClass = typeof value === 'number'
+    ? 'text-4xl font-semibold text-[#1B5E20]'
+    : 'text-xl font-semibold leading-tight text-text-primary';
+
+  return (
+    <article className={`rounded-[1.35rem] border p-4 shadow-sm ${toneClasses[tone] || toneClasses.neutral}`}>
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">{label}</p>
+        {badge && (
+          <span className="rounded-full bg-white px-2.5 py-1 text-[0.68rem] font-bold uppercase tracking-wide text-[#1B5E20] shadow-sm">
+            {badge}
+          </span>
+        )}
+      </div>
+      <p className={`mt-4 ${valueClass}`}>{value}</p>
+      <p className="mt-2 text-sm leading-5 text-text-secondary">{helper}</p>
+    </article>
+  );
 }
 
 function LecturerDashboardPage() {
@@ -80,30 +107,30 @@ function LecturerDashboardPage() {
       {!isLoading && !error && (
         <>
           <section className="overflow-hidden rounded-[1.8rem] border border-emerald-100 bg-white shadow-[0_22px_70px_-42px_rgb(4_120_87_/_0.55)]">
-            <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.36fr)]">
-              <div className="bg-[linear-gradient(145deg,#f6fbf1,#fffdf7)] p-5 sm:p-7">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.34fr)]">
+              <div className="bg-[linear-gradient(145deg,#f4fbef,#fffdf7)] p-5 sm:p-7">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
-                      Lecturer overview
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#1B5E20]">
+                      Dashboard
                     </p>
-                    <h2 className="mt-2 text-3xl font-semibold leading-tight text-text-primary">
-                      Welcome back to your review desk
+                    <h2 className="mt-2 text-3xl font-semibold leading-tight text-[#1B5E20] sm:text-4xl">
+                      Welcome back to your review desk.
                     </h2>
-                    <p className="mt-3 max-w-2xl text-sm leading-6 text-text-secondary">
-                      Use the loaded pending queue to triage student submissions while unavailable dashboard analytics remain clearly marked.
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-text-secondary sm:text-base">
+                      Triage the existing pending-review queue and keep unsupported dashboard analytics clearly marked as unavailable.
                     </p>
                   </div>
-                  <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-text-muted shadow-sm">
-                    Queue data only
+                  <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#1B5E20] shadow-sm">
+                    Existing queue API
                   </span>
                 </div>
 
                 <div className="mt-6 flex flex-wrap gap-2" aria-label="Lecturer review workflow">
                   {[
-                    '1. Triage loaded queue',
-                    '2. Open submission details',
-                    '3. Record a controlled decision'
+                    'Review assigned topics',
+                    'Open submission details',
+                    'Decide in controlled workflow'
                   ].map((step) => (
                     <span
                       key={step}
@@ -114,34 +141,39 @@ function LecturerDashboardPage() {
                   ))}
                 </div>
 
-                <div className="mt-6 grid gap-4 md:grid-cols-2">
-                  <DashboardStatusCard
+                <div className="mt-6 grid gap-3 md:grid-cols-3">
+                  <DashboardSummaryCard
+                    badge={submissions.length > 0 ? 'Action required' : 'All caught up'}
                     label="Pending Reviews"
                     value={submissions.length}
                     helper="Loaded from the existing pending review queue"
+                    tone={submissions.length > 0 ? 'warning' : 'success'}
                   />
-                  <DashboardStatusCard
-                    label="High-risk Alerts"
+                  <DashboardSummaryCard
+                    badge="Unavailable"
+                    label="Risk Summary"
                     value="Not available yet"
                     helper="Risk summaries are not connected to the dashboard"
                     tone="warning"
                   />
-                  <DashboardStatusCard
+                  <DashboardSummaryCard
+                    badge="Endpoint needed"
                     label="Decision Metrics"
                     value="Not available yet"
                     helper="Approved, rejected, and revision counts need a dashboard endpoint"
+                    tone="muted"
                   />
-                  <DashboardStatusCard
-                    label="Recent Activity"
-                    value="Not connected yet"
-                    helper="Activity feed data is not available from the current API"
-                  />
+                </div>
+
+                <div className="mt-4 rounded-[1.15rem] border border-dashed border-emerald-100 bg-white/75 p-4 text-sm leading-6 text-text-secondary">
+                  <span className="font-semibold text-text-primary">Recent Activity:</span>{' '}
+                  Not connected yet. Activity-feed and recent-decision data are not available from the current API.
                 </div>
               </div>
 
               <aside className="border-t border-emerald-100 p-5 sm:p-7 xl:border-l xl:border-t-0">
                 <div className="rounded-[1.25rem] border border-emerald-100 border-l-4 border-l-brand-gold bg-[#fbfdf8] p-5">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[#1B5E20]">
                     Quick actions
                   </p>
                   <h2 className="mt-2 text-2xl font-semibold text-text-primary">Move through reviews</h2>
@@ -158,7 +190,7 @@ function LecturerDashboardPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 rounded-[1.25rem] border border-dashed border-brand-green-light bg-[#f6fbf1] p-4 text-sm text-text-secondary">
+                <div className="mt-4 rounded-[1.25rem] border border-dashed border-brand-green-light bg-[#f6fbf1] p-4 text-sm leading-6 text-text-secondary">
                   <p className="font-semibold text-text-primary">Dashboard scope</p>
                   <p className="mt-2">
                     Workload, trend, and activity cards stay unavailable until a safe dashboard endpoint exists.
@@ -177,7 +209,7 @@ function LecturerDashboardPage() {
             <div className="border-b border-border-subtle bg-[linear-gradient(135deg,#fbfff7,#fffdf7)] p-5 sm:p-7">
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[#1B5E20]">
                     Review queue preview
                   </p>
                   <h2 className="text-xl font-bold text-text-primary">Pending Review Queue</h2>
@@ -239,6 +271,7 @@ function LecturerDashboardPage() {
                       </div>
                       <SecondaryButton
                         type="button"
+                        className="w-full md:w-auto"
                         onClick={() => navigate(`/lecturer/pending-reviews/${submission.id}`)}
                       >
                         View Details
@@ -252,8 +285,8 @@ function LecturerDashboardPage() {
 
           <section className="grid gap-4 md:grid-cols-2">
             <InfoCallout
-              title="High-risk triage not connected yet"
-              message="The current dashboard does not receive risk scores or similarity summaries. Run checks from the existing review detail flow when reviewing a specific submission."
+              title="Dashboard metrics unavailable"
+              message="Risk summaries are shown inside review details after a lecturer check; queue-level scores and decision analytics still need a safe dashboard API."
               variant="warning"
             />
             <InfoCallout
