@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listLecturerPendingSubmissions } from '../../api/submissions';
-import DashboardStatusCard from '../../components/ui/DashboardStatusCard';
 import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import ErrorState from '../../components/ui/ErrorState';
 import FilterDropdown from '../../components/ui/FilterDropdown';
@@ -13,7 +12,6 @@ import PrimaryButton from '../../components/ui/PrimaryButton';
 import SearchInput from '../../components/ui/SearchInput';
 import SecondaryButton from '../../components/ui/SecondaryButton';
 import StatusBadge from '../../components/ui/StatusBadge';
-import TableShell from '../../components/ui/TableShell';
 
 function formatDate(value) {
   if (!value) {
@@ -63,6 +61,34 @@ function buildCategoryOptions(submissions) {
   return [...new Set(submissions.map((submission) => submission.category).filter(Boolean))]
     .sort((a, b) => a.localeCompare(b))
     .map((category) => ({ label: category, value: category }));
+}
+
+function QueueSummaryCard({ helper, label, value, tone = 'neutral' }) {
+  const toneClasses = {
+    neutral: 'border-emerald-100 bg-white',
+    success: 'border-emerald-100 bg-[#f5fbf2]',
+    warning: 'border-amber-200 bg-[#fffaf0]'
+  };
+
+  const valueClass = typeof value === 'number'
+    ? 'text-4xl font-semibold text-[#1B5E20]'
+    : 'text-xl font-semibold leading-tight text-text-primary';
+
+  return (
+    <article className={`rounded-[1.2rem] border p-4 shadow-sm ${toneClasses[tone] || toneClasses.neutral}`}>
+      <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">{label}</p>
+      <p className={`mt-3 ${valueClass}`}>{value}</p>
+      <p className="mt-2 text-sm leading-5 text-text-secondary">{helper}</p>
+    </article>
+  );
+}
+
+function QueueUnavailableBadge() {
+  return (
+    <span className="inline-flex w-fit rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+      Risk not returned
+    </span>
+  );
 }
 
 function PendingReviewsPage() {
@@ -135,50 +161,52 @@ function PendingReviewsPage() {
       {!isLoading && !error && (
         <>
           <section className="overflow-hidden rounded-[1.8rem] border border-emerald-100 bg-white shadow-[0_22px_70px_-48px_rgb(4_120_87_/_0.5)]">
-            <div className="border-l-4 border-l-brand-gold bg-[linear-gradient(145deg,#f6fbf1,#fffdf7)] p-5 sm:p-7">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div className="border-l-4 border-l-brand-gold bg-[linear-gradient(145deg,#f4fbef,#fffdf7)] p-5 sm:p-7">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#1B5E20]">
                     Queue overview
                   </p>
-                  <h2 className="mt-2 text-3xl font-semibold leading-tight text-text-primary">
+                  <h2 className="mt-2 text-3xl font-semibold leading-tight text-[#1B5E20]">
                     Pending Reviews
                   </h2>
-                  <p className="mt-3 max-w-2xl text-sm leading-6 text-text-secondary">
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-text-secondary sm:text-base">
                     Review loaded student submissions without queue-level decisions or unsupported workflow shortcuts.
                   </p>
                 </div>
-                <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-text-muted shadow-sm">
+                <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#1B5E20] shadow-sm">
                   Read-only loaded queue
                 </span>
               </div>
 
-              <div className="mt-6 rounded-[1.15rem] bg-white/75 p-1 shadow-inner">
+              <div className="mt-6 rounded-[1.15rem] bg-white/75 p-1 shadow-inner" aria-label="Pending review queue views">
                 <div className="grid gap-1 sm:grid-cols-2">
-                  <div className="rounded-[0.95rem] bg-brand-green px-4 py-3 text-center text-sm font-semibold text-white">
-                    Loaded queue ({submissions.length})
+                  <div className="rounded-[0.95rem] bg-[#1B5E20] px-4 py-3 text-center text-sm font-semibold text-white">
+                    My Assigned ({submissions.length})
                   </div>
                   <div className="rounded-[0.95rem] px-4 py-3 text-center text-sm font-semibold text-text-secondary">
-                    Visible after filters ({filteredSubmissions.length})
+                    Department view unavailable
                   </div>
                 </div>
               </div>
 
-              <div className="mt-5 grid gap-4 md:grid-cols-3">
-                <DashboardStatusCard
+              <div className="mt-5 grid gap-3 md:grid-cols-3">
+                <QueueSummaryCard
                   label="Pending Reviews"
                   value={submissions.length}
                   helper="Loaded from the existing lecturer pending submissions API"
+                  tone={submissions.length > 0 ? 'warning' : 'success'}
                 />
-                <DashboardStatusCard
+                <QueueSummaryCard
                   label="Visible After Filters"
                   value={filteredSubmissions.length}
                   helper="Calculated locally from the loaded queue"
                 />
-                <DashboardStatusCard
+                <QueueSummaryCard
                   label="Similarity Summary"
                   value="Not connected yet"
                   helper="Risk labels and score summaries are not returned for this queue"
+                  tone="warning"
                 />
               </div>
             </div>
@@ -208,7 +236,7 @@ function PendingReviewsPage() {
               <section className="rounded-[1.5rem] border border-emerald-100 bg-[#fbfdf8] p-5 shadow-card sm:p-6">
                 <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[#1B5E20]">
                       Queue controls
                     </p>
                     <h2 className="text-xl font-semibold text-text-primary">Search and sort loaded reviews</h2>
@@ -269,45 +297,45 @@ function PendingReviewsPage() {
               )}
 
               {filteredSubmissions.length > 0 && (
-                <div className="rounded-[1.5rem] border border-emerald-100 bg-white p-2 shadow-card">
-                  <TableShell
-                    className="rounded-[1.15rem]"
-                    title="Review Queue"
-                    subtitle="Open a row to continue in the existing submission detail workflow."
-                    actions={(
+                <section className="overflow-hidden rounded-[1.5rem] border border-emerald-100 bg-white shadow-card">
+                  <div className="flex flex-col gap-3 border-b border-border-subtle px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-[#1B5E20]">
+                        My assigned queue
+                      </p>
+                      <h2 className="mt-1 text-lg font-semibold text-text-primary">Review Queue</h2>
+                      <p className="mt-1 text-sm text-text-secondary">
+                        Open a row to continue in the existing submission detail workflow.
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0">
                       <PrimaryButton type="button" onClick={loadSubmissions}>
                         Refresh Queue
                       </PrimaryButton>
-                    )}
-                  >
-                  <table className="min-w-full divide-y divide-border-subtle">
-                    <thead className="bg-[#f6fbf1]">
-                      <tr>
-                        <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted">
-                          Topic
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted">
-                          Student
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted">
-                          Category
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted">
-                          Submitted
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted">
-                          Status
-                        </th>
-                        <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-muted">
-                          Action
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border-subtle bg-white">
+                    </div>
+                  </div>
+
+                  <div className="hidden grid-cols-[minmax(0,1.45fr)_minmax(170px,0.8fr)_minmax(120px,0.55fr)_minmax(130px,0.55fr)_minmax(130px,0.5fr)_minmax(120px,0.45fr)] gap-4 bg-[#f6fbf1] px-5 py-3 text-xs font-semibold uppercase tracking-wide text-text-muted lg:grid">
+                    <span>Topic title and evidence</span>
+                    <span>Student</span>
+                    <span>Category</span>
+                    <span>Submitted</span>
+                    <span>Status</span>
+                    <span>Action</span>
+                  </div>
+
+                  <div className="divide-y divide-border-subtle">
                       {filteredSubmissions.map((submission) => (
-                        <tr key={submission.id} className="align-top transition-colors hover:bg-[#f7fbf4]">
-                          <td className="px-4 py-4">
-                            <p className="font-semibold leading-snug text-text-primary">{submission.title}</p>
+                        <article
+                          key={submission.id}
+                          className="grid gap-4 px-5 py-5 transition-colors hover:bg-[#f7fbf4] lg:grid-cols-[minmax(0,1.45fr)_minmax(170px,0.8fr)_minmax(120px,0.55fr)_minmax(130px,0.55fr)_minmax(130px,0.5fr)_minmax(120px,0.45fr)] lg:items-center"
+                        >
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 lg:hidden">
+                              <StatusBadge status={submission.status} />
+                              <QueueUnavailableBadge />
+                            </div>
+                            <p className="mt-3 font-semibold leading-snug text-text-primary lg:mt-0">{submission.title}</p>
                             {submission.keywords && (
                               <p className="mt-1 text-sm text-text-secondary">Keywords: {submission.keywords}</p>
                             )}
@@ -316,38 +344,51 @@ function PendingReviewsPage() {
                                 {submission.session_name}
                               </p>
                             )}
-                          </td>
-                          <td className="px-4 py-4">
+                          </div>
+                          <div>
+                            <p className="text-[0.68rem] font-semibold uppercase tracking-wide text-text-muted lg:hidden">
+                              Student
+                            </p>
                             <p className="text-sm font-medium text-text-primary">
                               {submission.student_name || 'Unnamed student'}
                             </p>
                             <p className="mt-1 text-sm text-text-secondary">
                               {submission.student_email || 'No email available'}
                             </p>
-                          </td>
-                          <td className="px-4 py-4 text-sm text-text-secondary">
-                            {submission.category || 'Uncategorised'}
-                          </td>
-                          <td className="px-4 py-4 text-sm text-text-secondary">
-                            {formatDate(submission.submitted_at || submission.created_at)}
-                          </td>
-                          <td className="px-4 py-4">
+                          </div>
+                          <div>
+                            <p className="text-[0.68rem] font-semibold uppercase tracking-wide text-text-muted lg:hidden">
+                              Category
+                            </p>
+                            <p className="text-sm text-text-secondary">{submission.category || 'Uncategorised'}</p>
+                          </div>
+                          <div>
+                            <p className="text-[0.68rem] font-semibold uppercase tracking-wide text-text-muted lg:hidden">
+                              Submitted
+                            </p>
+                            <p className="text-sm text-text-secondary">
+                              {formatDate(submission.submitted_at || submission.created_at)}
+                            </p>
+                          </div>
+                          <div className="hidden lg:block">
                             <StatusBadge status={submission.status} />
-                          </td>
-                          <td className="px-4 py-4">
+                            <div className="mt-2">
+                              <QueueUnavailableBadge />
+                            </div>
+                          </div>
+                          <div>
                             <SecondaryButton
                               type="button"
+                              className="w-full lg:w-auto"
                               onClick={() => navigate(`/lecturer/pending-reviews/${submission.id}`)}
                             >
                               Open Review
                             </SecondaryButton>
-                          </td>
-                        </tr>
+                          </div>
+                        </article>
                       ))}
-                    </tbody>
-                  </table>
-                  </TableShell>
-                </div>
+                  </div>
+                </section>
               )}
 
               <InfoCallout
