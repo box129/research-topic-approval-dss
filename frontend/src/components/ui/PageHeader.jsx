@@ -6,7 +6,7 @@ function PageHeader({ action, eyebrow, subtitle, title }) {
       <div>
         {eyebrow && <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">{eyebrow}</p>}
         <h1 className="text-2xl font-bold text-text-primary">{title}</h1>
-        {subtitle && <p className="mt-1 max-w-3xl text-sm text-text-secondary">{subtitle}</p>}
+        {subtitle && <p className="mt-1 max-w-3xl whitespace-normal break-keep text-left text-sm tracking-normal text-text-secondary hyphens-none [word-spacing:normal]">{subtitle}</p>}
       </div>
       {action && <div className="flex-shrink-0">{action}</div>}
     </div>
