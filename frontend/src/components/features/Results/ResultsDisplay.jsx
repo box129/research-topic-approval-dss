@@ -75,7 +75,7 @@ const getAlgorithmBadgeColor = (algorithm) => {
 const ResultsDisplay = ({ results, appearance = 'default' }) => {
   // Track which matches have expanded details
   const [expandedMatches, setExpandedMatches] = useState({});
-  const isStudentChecker = appearance === 'student-checker';
+  const isCheckerShell = ['student-checker', 'lecturer-checker'].includes(appearance);
 
   // Risk level configuration
   const riskConfig = RISK_CONFIGS[results.risk_level] || RISK_CONFIGS.LOW;
@@ -114,7 +114,7 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
       <div
         key={matchKey}
         data-testid={`topic-match-${index}`}
-        className={isStudentChecker
+        className={isCheckerShell
           ? 'rounded-xl border border-emerald-100 bg-white p-4 transition-shadow hover:shadow-md'
           : 'p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow'
         }
@@ -219,7 +219,7 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
     if (!matches || matches.length === 0) return null;
 
     return (
-      <div className={isStudentChecker ? 'mb-6' : 'mb-8'} data-testid={`tier-section-${tierKey}`}>
+      <div className={isCheckerShell ? 'mb-6' : 'mb-8'} data-testid={`tier-section-${tierKey}`}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-bold text-gray-800" data-testid={`tier-title-${tierKey}`}>
             {tierTitle}
@@ -229,7 +229,7 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
           </span>
         </div>
         <p className="text-sm text-gray-600 mb-4">{tierDescription}</p>
-        <div className={isStudentChecker ? 'grid gap-3 lg:grid-cols-2 xl:grid-cols-3' : 'space-y-3'}>
+        <div className={isCheckerShell ? 'grid gap-3 lg:grid-cols-2 xl:grid-cols-3' : 'space-y-3'}>
           {matches.map((match, index) => renderTopicMatch(match, index, tierKey))}
         </div>
       </div>
@@ -240,7 +240,7 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
     (results.tier2_matches?.length || 0) +
     (results.tier3_matches?.length || 0);
 
-  if (isStudentChecker) {
+  if (isCheckerShell) {
     return (
       <div className="w-full p-4 sm:p-6" data-testid="results-display">
         <div className="grid gap-4 lg:grid-cols-[13rem_minmax(0,1fr)]">
@@ -476,7 +476,7 @@ ResultsDisplay.propTypes = {
     tier3_matches: PropTypes.arrayOf(MATCH_SHAPE),
     sbert_available: PropTypes.bool.isRequired
   }).isRequired,
-  appearance: PropTypes.oneOf(['default', 'student-checker'])
+  appearance: PropTypes.oneOf(['default', 'student-checker', 'lecturer-checker'])
 };
 
 export default ResultsDisplay;
