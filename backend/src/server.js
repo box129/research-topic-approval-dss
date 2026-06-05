@@ -15,6 +15,7 @@ let authController;
 let submissionController;
 let lecturerSimilarityController;
 let adminAuditLogController;
+let adminDashboardController;
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler.middleware');
 const { requireAuth, requireRole } = require('./middleware/auth.middleware');
 
@@ -157,6 +158,13 @@ const getAdminAuditLogController = () => {
   return adminAuditLogController;
 };
 
+const getAdminDashboardController = () => {
+  if (!adminDashboardController) {
+    adminDashboardController = require('./controllers/adminDashboard.controller');
+  }
+  return adminDashboardController;
+};
+
 app.post('/api/v1/auth/login', (req, res, next) => {
   getAuthController().login(req, res, next);
 });
@@ -203,6 +211,10 @@ app.get('/api/v1/lecturer/submissions/:id/similarity-snapshots', requireAuth, re
 
 app.patch('/api/v1/lecturer/submissions/:id/status', requireAuth, requireRole('lecturer'), (req, res, next) => {
   getSubmissionController().updateLecturerSubmissionStatus(req, res, next);
+});
+
+app.get('/api/v1/admin/dashboard/summary', requireAuth, requireRole('admin'), (req, res, next) => {
+  getAdminDashboardController().getDashboardSummary(req, res, next);
 });
 
 app.get('/api/v1/admin/audit-logs', requireAuth, requireRole('admin'), (req, res, next) => {

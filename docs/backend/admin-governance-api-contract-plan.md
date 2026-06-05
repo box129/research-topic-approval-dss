@@ -4,17 +4,18 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | `docs/admin-governance-api-contract-plan` |
-| Current commit hash | `6a4df0b` |
-| Date/time | `2026-06-05 16:37:00 +01:00` |
-| Scope | Backend/admin/governance API contract planning |
-| Change type | Documentation only |
-| Implementation status | No backend code, frontend code, Prisma migration, tests, routes, APIs, auth behavior, similarity behavior, thresholds, UI behavior, or package files are changed by this PR. |
+| Branch | `backend/admin-dashboard-summary-api` |
+| Current commit hash | `3e09d51` |
+| Date/time | `2026-06-05 17:49:12 +01:00` |
+| Scope | Admin read-only dashboard summary API and frontend dashboard connection |
+| Change type | Backend, frontend, tests, and documentation |
+| Implementation status | PR #97 adds a read-only admin dashboard summary endpoint and connects the admin dashboard to it. No Prisma migration, admin mutation, export workflow, auth behavior change, similarity behavior change, threshold change, package file change, fake metric, fake row, fake report, or fake health state is introduced. |
 
 Latest relevant PRs:
 
 | PR | Summary | Relevance |
 | --- | --- | --- |
+| #96 | feat: add audit log and admin import governance foundation | Added audit log model/service/read endpoints, hardened import routes, and established admin governance foundation. |
 | #94 | docs: add full worktree gap and benchmark audit | Identified unfinished admin/governance/backend areas and recommended contract-led backend work. |
 | #93 | polish: refine admin secondary placeholder pages | Confirmed admin secondary pages are protected, polished, and presentation-only. |
 | #92 | polish: refine admin dashboard visuals | Confirmed admin dashboard is an honest shell with no live metrics/API connection. |
@@ -46,6 +47,42 @@ Still deferred after PR #96:
 - Admin topic repository API.
 - Admin system settings API and settings mutations.
 - Admin reports/export generation.
+- Lecturer decision history, supervisees, and research trends APIs.
+- Production email and notifications.
+- Any similarity scoring or threshold changes.
+
+### Implementation Status After PR #97
+
+PR #97 implements the admin read-only console slice from this plan:
+
+- `GET /api/v1/admin/dashboard/summary` is added and protected by `requireAuth` plus `requireRole('admin')`.
+- `backend/src/services/adminDashboard.service.js` aggregates real read-only counts from existing tables:
+  - `User`
+  - `Submission`
+  - `HistoricalTopic`
+  - `CurrentSessionTopic`
+  - `UnderReviewTopic`
+  - `SimilarityCheckSnapshot`
+- `backend/src/controllers/adminDashboard.controller.js` returns the shared success envelope:
+  - `success`
+  - `data`
+  - `meta`
+- Section-level database read failures do not fabricate replacement counts. A failed section returns `status: "unavailable"`, nullable count fields, and a warning entry.
+- The dashboard service health section reports:
+  - API as available when the endpoint responds.
+  - Database as available only when dashboard count sections are read successfully.
+  - SBERT as `unknown` because this endpoint does not perform SBERT health checks.
+- The admin dashboard frontend now calls the read-only summary endpoint and renders loading, error, available, and partial-coverage states without fake fallback values.
+- No audit event is emitted for this read-only dashboard request.
+- No admin users, topic repository, settings, reports, export, import UI, notification, lecturer, or mutation endpoint is added.
+
+Still deferred after PR #97:
+
+- Admin users API and user mutations.
+- Admin topic repository API.
+- Admin system settings API and settings mutations.
+- Admin reports/export generation.
+- Audit log frontend connection.
 - Lecturer decision history, supervisees, and research trends APIs.
 - Production email and notifications.
 - Any similarity scoring or threshold changes.
@@ -98,10 +135,8 @@ Enums include:
 
 ### Missing Backend/Governance Areas
 
-These do not currently exist as implemented APIs/models/services in the inspected repository:
+These do not currently exist as implemented APIs/models/services in the inspected repository after PR #97:
 
-- Live admin dashboard summary endpoint.
-- Admin audit log model/service.
 - Admin user list/detail endpoint.
 - Admin topic repository list/detail/summary endpoint.
 - Admin reports endpoint and export workflow.
@@ -113,7 +148,7 @@ These do not currently exist as implemented APIs/models/services in the inspecte
 
 Import-specific gap:
 
-- Import preview/commit endpoints are present, but `docs/setup/import-workflow.md` states authorization/admin protection is not implemented for import endpoints yet.
+- Import preview/commit endpoints are present and admin-protected after PR #96. Frontend import UI, richer duplicate governance, and operational import workflow screens remain deferred.
 
 ## 3. Design Principles For The Next Backend Phase
 
@@ -347,6 +382,14 @@ Proposed endpoint:
 GET /api/v1/admin/dashboard/summary
 ```
 
+Implementation status after PR #97:
+
+- Implemented as a read-only admin endpoint.
+- Protected by `requireAuth` and `requireRole('admin')`.
+- No request body is accepted or required.
+- No records are created, updated, deleted, imported, exported, or audited by this endpoint.
+- Counts are read only from existing Prisma models and returned with honest availability metadata.
+
 ### Response Fields
 
 ```json
@@ -419,6 +462,13 @@ The existing dashboard shell already presents unavailable metrics honestly. Futu
 - Keep unavailable cards visible if the endpoint marks a section unknown/unavailable.
 - Preserve current admin route and top navigation.
 - Add loading/error/empty states without fake fallback numbers.
+
+Frontend implementation status after PR #97:
+
+- `frontend/src/pages/admin/DashboardPage.jsx` now renders returned read-only counts.
+- Loading and request-error states remain explicit.
+- Partial coverage warnings are shown when the endpoint marks a section unavailable.
+- Recent activity, reports, exports, import controls, settings changes, and audit-log UI remain deferred.
 
 ## 7. Contract Plan: Admin User Management Read-Only API
 
@@ -988,6 +1038,10 @@ Purpose:
 - Add `GET /api/v1/admin/dashboard/summary`.
 - Connect admin dashboard to real read-only data.
 
+Status:
+
+- Implemented by branch `backend/admin-dashboard-summary-api`.
+
 Likely files:
 
 - Backend admin dashboard controller/service/tests.
@@ -1212,9 +1266,9 @@ Must not include:
 
 This PR does not:
 
-- Add endpoints.
+- Add endpoints other than `GET /api/v1/admin/dashboard/summary`.
 - Add Prisma migrations.
-- Connect frontend pages.
+- Connect frontend pages other than the admin dashboard summary read.
 - Implement admin mutations.
 - Implement exports.
 - Implement an email provider.
@@ -1229,19 +1283,33 @@ This PR does not:
 
 ## 20. Verification
 
-Requested verification commands for this documentation-only PR:
+Requested verification commands for PR #97:
 
 ```powershell
+cd backend
+npm test -- --runInBand
+cd ..\frontend
+npm run build
+npm test -- --run tests/AdminDashboardPage.test.jsx
+npm test -- --run --maxWorkers=1 --minWorkers=1
+npm run smoke:figma-ui
+cd ..
 git diff --check
 git status --short
 git diff --stat
 git diff --name-only
 ```
 
-Expected changed file only:
+Expected implementation files:
 
 ```text
+backend/src/controllers/adminDashboard.controller.js
+backend/src/controllers/adminDashboard.controller.test.js
+backend/src/services/adminDashboard.service.js
+backend/src/services/adminDashboard.service.test.js
+backend/src/server.js
 docs/backend/admin-governance-api-contract-plan.md
+frontend/src/api/admin.js
+frontend/src/pages/admin/DashboardPage.jsx
+frontend/tests/AdminDashboardPage.test.jsx
 ```
-
-No frontend/backend test suite is required for this PR because it changes documentation only.
