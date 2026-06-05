@@ -21,6 +21,35 @@ Latest relevant PRs:
 | #91 | polish: refine lecturer secondary placeholder pages | Confirmed lecturer decisions, supervisees, and trends are placeholder/deferred pages. |
 | #90 | polish: refine lecturer similarity checker visuals | Confirmed manual lecturer checker is advisory and must not write decisions or snapshots. |
 
+### Implementation Status After PR #96
+
+PR #96 implements the first backend governance slice from this plan:
+
+- `AuditLog` Prisma model and migration are added.
+- `backend/src/services/auditLog.service.js` provides audit creation, safe non-blocking audit creation, metadata redaction, request context extraction, list pagination/filtering, and detail lookup.
+- Admin-only read endpoints are added:
+  - `GET /api/v1/admin/audit-logs`
+  - `GET /api/v1/admin/audit-logs/:id`
+- Existing import preview/commit routes are hardened with `requireAuth` and `requireRole('admin')`.
+- Admin-prefixed import aliases are added:
+  - `POST /api/v1/admin/import/topics/preview`
+  - `POST /api/v1/admin/import/topics/commit`
+- Current emitted audit events:
+  - `TOPIC_IMPORT_PREVIEWED`
+  - `TOPIC_IMPORT_COMMITTED`
+- Import audit metadata stores safe summary fields only, such as filename, sheet name, row counts, report counts, import batch id, and lifecycle insert summary. It does not store uploaded file contents or raw imported rows.
+
+Still deferred after PR #96:
+
+- Admin dashboard summary API.
+- Admin users API and user mutations.
+- Admin topic repository API.
+- Admin system settings API and settings mutations.
+- Admin reports/export generation.
+- Lecturer decision history, supervisees, and research trends APIs.
+- Production email and notifications.
+- Any similarity scoring or threshold changes.
+
 ## 2. Current Reality From Repository
 
 ### Existing Backend Behavior

@@ -14,6 +14,7 @@ let topicImportController;
 let authController;
 let submissionController;
 let lecturerSimilarityController;
+let adminAuditLogController;
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler.middleware');
 const { requireAuth, requireRole } = require('./middleware/auth.middleware');
 
@@ -149,6 +150,13 @@ const getLecturerSimilarityController = () => {
   return lecturerSimilarityController;
 };
 
+const getAdminAuditLogController = () => {
+  if (!adminAuditLogController) {
+    adminAuditLogController = require('./controllers/adminAuditLog.controller');
+  }
+  return adminAuditLogController;
+};
+
 app.post('/api/v1/auth/login', (req, res, next) => {
   getAuthController().login(req, res, next);
 });
@@ -197,6 +205,14 @@ app.patch('/api/v1/lecturer/submissions/:id/status', requireAuth, requireRole('l
   getSubmissionController().updateLecturerSubmissionStatus(req, res, next);
 });
 
+app.get('/api/v1/admin/audit-logs', requireAuth, requireRole('admin'), (req, res, next) => {
+  getAdminAuditLogController().listAuditLogs(req, res, next);
+});
+
+app.get('/api/v1/admin/audit-logs/:id', requireAuth, requireRole('admin'), (req, res, next) => {
+  getAdminAuditLogController().getAuditLogById(req, res, next);
+});
+
 const previewImportRouteHandler = (req, res, next) => {
   getTopicImportController().previewTopicImport(req, res, next);
 };
@@ -205,10 +221,14 @@ const commitImportRouteHandler = (req, res, next) => {
   getTopicImportController().commitTopicImport(req, res, next);
 };
 
-app.post('/api/import/topics/preview', importUploadMiddleware, previewImportRouteHandler);
-app.post('/api/import/topics/commit', importUploadMiddleware, commitImportRouteHandler);
-app.post('/api/v1/import/topics/preview', importUploadMiddleware, previewImportRouteHandler);
-app.post('/api/v1/import/topics/commit', importUploadMiddleware, commitImportRouteHandler);
+const adminImportMiddleware = [requireAuth, requireRole('admin'), importUploadMiddleware];
+
+app.post('/api/import/topics/preview', adminImportMiddleware, previewImportRouteHandler);
+app.post('/api/import/topics/commit', adminImportMiddleware, commitImportRouteHandler);
+app.post('/api/v1/import/topics/preview', adminImportMiddleware, previewImportRouteHandler);
+app.post('/api/v1/import/topics/commit', adminImportMiddleware, commitImportRouteHandler);
+app.post('/api/v1/admin/import/topics/preview', adminImportMiddleware, previewImportRouteHandler);
+app.post('/api/v1/admin/import/topics/commit', adminImportMiddleware, commitImportRouteHandler);
 
 // 404 handler (must be before error handler)
 app.use(notFoundHandler);

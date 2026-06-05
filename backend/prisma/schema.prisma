@@ -133,6 +133,28 @@ model SimilarityCheckSnapshot {
   @@map("similarity_check_snapshots")
 }
 
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  eventType  String   @map("event_type") @db.VarChar(100)
+  actorId    Int?     @map("actor_id")
+  actorRole  String?  @map("actor_role") @db.VarChar(50)
+  actorEmail String?  @map("actor_email") @db.VarChar(200)
+  targetType String?  @map("target_type") @db.VarChar(100)
+  targetId   String?  @map("target_id") @db.VarChar(100)
+  requestId  String?  @map("request_id") @db.VarChar(100)
+  ipAddress  String?  @map("ip_address") @db.VarChar(100)
+  userAgent  String?  @map("user_agent") @db.Text
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([eventType])
+  @@index([actorId])
+  @@index([actorRole])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
 model HistoricalTopic {
   id             Int      @id @default(autoincrement())
   title          String   @db.Text

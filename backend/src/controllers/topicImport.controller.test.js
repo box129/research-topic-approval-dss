@@ -6,6 +6,19 @@ jest.mock('../services/topicImportPersistence.service', () => ({
   persistNormalizedTopicImport: jest.fn()
 }));
 
+jest.mock('../services/auditLog.service', () => ({
+  AUDIT_EVENT_TYPES: {
+    TOPIC_IMPORT_PREVIEWED: 'TOPIC_IMPORT_PREVIEWED',
+    TOPIC_IMPORT_COMMITTED: 'TOPIC_IMPORT_COMMITTED'
+  },
+  buildAuditContextFromRequest: jest.fn(() => ({
+    actorId: 1,
+    actorRole: 'admin',
+    actorEmail: 'admin.demo@uniosun.edu.ng'
+  })),
+  createAuditLogSafely: jest.fn()
+}));
+
 jest.mock('fs/promises', () => ({
   unlink: jest.fn()
 }));
@@ -16,6 +29,7 @@ const {
 } = require('./topicImport.controller');
 const topicImportFileService = require('../services/topicImportFile.service');
 const topicImportPersistenceService = require('../services/topicImportPersistence.service');
+const auditLogService = require('../services/auditLog.service');
 const fs = require('fs/promises');
 
 function createResponse() {
@@ -97,6 +111,29 @@ describe('Topic Import Controller', () => {
         import_report: createSuccessImportResult().report
       }
     });
+    expect(auditLogService.createAuditLogSafely).toHaveBeenCalledWith({
+      eventType: 'TOPIC_IMPORT_PREVIEWED',
+      actorId: 1,
+      actorRole: 'admin',
+      actorEmail: 'admin.demo@uniosun.edu.ng',
+      targetType: 'TopicImport',
+      targetId: null,
+      metadata: {
+        mode: 'preview',
+        filename: 'topics.xlsx',
+        requestedSheetName: 'Topics',
+        parsedSheetName: 'Topics',
+        totalParsedRows: 1,
+        report: {
+          totalRows: 1,
+          acceptedRows: 1,
+          skippedRows: 0,
+          missingTitleRows: 0,
+          incompleteContextRows: 0,
+          duplicateTitleRows: 0
+        }
+      }
+    });
     expect(fs.unlink).toHaveBeenCalledWith('tmp/upload.xlsx');
     expect(next).not.toHaveBeenCalled();
   });
@@ -134,6 +171,43 @@ describe('Topic Import Controller', () => {
           attempted_records: 1,
           inserted_records: 1
         })
+      }
+    });
+    expect(auditLogService.createAuditLogSafely).toHaveBeenCalledWith({
+      eventType: 'TOPIC_IMPORT_COMMITTED',
+      actorId: 1,
+      actorRole: 'admin',
+      actorEmail: 'admin.demo@uniosun.edu.ng',
+      targetType: 'TopicImport',
+      targetId: 'import-1777777777777',
+      metadata: {
+        mode: 'commit',
+        filename: 'topics.xlsx',
+        sourceFilename: 'custom-name.xlsx',
+        sourceType: 'xlsx',
+        importBatchId: 'import-1777777777777',
+        requestedSheetName: null,
+        parsedSheetName: 'Topics',
+        totalParsedRows: 1,
+        importReport: {
+          totalRows: 1,
+          acceptedRows: 1,
+          skippedRows: 0,
+          missingTitleRows: 0,
+          incompleteContextRows: 0,
+          duplicateTitleRows: 0
+        },
+        persistenceReport: {
+          attemptedRecords: 1,
+          insertedRecords: 1,
+          failedRecords: 0,
+          skippedRecords: 0,
+          insertedByBucket: {
+            historical: 1,
+            current_session: 0,
+            under_review: 0
+          }
+        }
       }
     });
     expect(fs.unlink).toHaveBeenCalledWith('tmp/upload.xlsx');
