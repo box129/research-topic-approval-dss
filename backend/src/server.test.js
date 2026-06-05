@@ -93,39 +93,35 @@ describe('Server Integration Tests', () => {
   });
 
   describe('Import API Routes', () => {
-    test('should expose v1 preview import alias route', async () => {
+    test('should protect v1 preview import alias route', async () => {
       const response = await request(app)
         .post('/api/v1/import/topics/preview')
-        .expect(400);
+        .expect(401);
 
       expect(response.body).toHaveProperty('status', 'error');
-      expect(response.body.details).toHaveProperty('error_code', 'MISSING_FILE');
+      expect(response.body.details).toHaveProperty('error_code', 'AUTHENTICATION_REQUIRED');
     });
 
-    test('should expose v1 commit import alias route', async () => {
+    test('should protect v1 commit import alias route', async () => {
       const response = await request(app)
         .post('/api/v1/import/topics/commit')
-        .expect(400);
+        .expect(401);
 
       expect(response.body).toHaveProperty('status', 'error');
-      expect(response.body.details).toHaveProperty('error_code', 'MISSING_FILE');
+      expect(response.body.details).toHaveProperty('error_code', 'AUTHENTICATION_REQUIRED');
     });
 
-    test('should reject oversized import uploads with FYP-style error response', async () => {
-      const oversizedFile = Buffer.alloc((5 * 1024 * 1024) + 1);
-
+    test('should reject unauthenticated import uploads before file handling', async () => {
       const response = await request(app)
         .post('/api/import/topics/preview')
-        .attach('file', oversizedFile, {
-          filename: 'large.xlsx',
+        .attach('file', Buffer.from('xlsx-placeholder'), {
+          filename: 'topics.xlsx',
           contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         })
-        .expect(413);
+        .expect(401);
 
       expect(response.body).toHaveProperty('status', 'error');
-      expect(response.body).toHaveProperty('message', 'Import file is too large.');
-      expect(response.body.details).toHaveProperty('error_code', 'FILE_TOO_LARGE');
-      expect(response.body.details).toHaveProperty('field', 'file');
+      expect(response.body.details).toHaveProperty('error_code', 'AUTHENTICATION_REQUIRED');
     });
   });
 
