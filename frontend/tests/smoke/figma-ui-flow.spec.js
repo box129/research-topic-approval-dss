@@ -219,16 +219,15 @@ test('admin Figma UI route renders honest dashboard shell', async ({ page, conte
     await expect(page.getByText(/^Database$/i)).toBeVisible();
     await expect(page.getByText(/^SBERT$/i)).toBeVisible();
 
-    expect(await page.getByText('Not connected yet', { exact: true }).count()).toBeGreaterThanOrEqual(3);
-    expect(await page.getByText('Not available yet', { exact: true }).count()).toBeGreaterThanOrEqual(4);
-    await expect(page.getByText(/not live system status/i)).toBeVisible();
+    await expect(page.getByText(/admin metrics use a read-only summary endpoint/i)).toBeVisible();
+    await expect(page.getByText(/No fake values/i)).toBeVisible();
+    await expect(page.getByText(/SBERT health is not checked by this dashboard endpoint yet/i)).toBeVisible();
+    await expect(page.getByText(/recent activity is not displayed on this dashboard yet/i)).toBeVisible();
 
     const bodyText = await page.locator('body').innerText();
-    expect(bodyText).not.toMatch(/\bUsers\s+\d+\b/i);
-    expect(bodyText).not.toMatch(/\bTopics\s+\d+\b/i);
-    expect(bodyText).not.toMatch(/\bHigh-risk Topics\s+\d+\b/i);
     expect(bodyText).not.toMatch(/\bReports\s+\d+\b/i);
     expect(bodyText).not.toMatch(/\bAudit Events\s+\d+\b/i);
+    expect(bodyText).not.toMatch(/\bHigh-risk Topics\s+\d+\b/i);
     expect(bodyText).not.toMatch(/lecturer\.demo@|student\.demo@/i);
 
     const placeholderRoutes = [
@@ -245,7 +244,7 @@ test('admin Figma UI route renders honest dashboard shell', async ({ page, conte
       await expect(page.getByRole('heading', { exact: true, level: 1, name: heading })).toBeVisible();
       await expect(page.getByText('Presentation-only', { exact: true })).toBeVisible();
       await expect(page.getByText(/not connected yet/i).first()).toBeVisible();
-      await expect(page.getByText(/deferred admin workflow/i)).toBeVisible();
+      await expect(page.getByText(/deferred admin workflow/i).first()).toBeVisible();
     }
 
     monitor.assertClean();

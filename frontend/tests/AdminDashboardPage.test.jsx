@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import AdminDashboardPage from '../src/pages/admin/DashboardPage';
 import apiClient from '../src/api/client';
 import axios from 'axios';
+import { getAdminDashboardSummary } from '../src/api/admin';
 
 vi.mock('axios', () => ({
   default: {
@@ -22,83 +23,201 @@ vi.mock('../src/api/client', () => ({
   }
 }));
 
+vi.mock('../src/api/admin', () => ({
+  getAdminDashboardSummary: vi.fn()
+}));
+
+const summaryResponse = {
+  data: {
+    users: {
+      total: 6,
+      students: 3,
+      lecturers: 2,
+      admins: 1,
+      active: 5,
+      suspended: 1,
+      status: 'available'
+    },
+    submissions: {
+      total: 8,
+      pendingReview: 4,
+      awaitingRevision: 1,
+      approved: 2,
+      rejected: 1,
+      status: 'available'
+    },
+    topics: {
+      total: 45,
+      historical: 30,
+      currentSession: 10,
+      underReview: 5,
+      status: 'available'
+    },
+    similarityChecks: {
+      snapshots: 7,
+      highRisk: 1,
+      mediumRisk: 2,
+      lowRisk: 4,
+      status: 'available',
+      notes: ['Risk distribution includes stored lecturer similarity snapshots only.']
+    },
+    serviceHealth: {
+      api: {
+        status: 'available',
+        message: 'API process responded to the admin dashboard summary request.'
+      },
+      database: {
+        status: 'available',
+        message: 'Database counts were read from existing tables.'
+      },
+      sbert: {
+        status: 'unknown',
+        message: 'SBERT health is not checked by this dashboard endpoint yet.'
+      }
+    },
+    warnings: []
+  },
+  meta: {
+    generatedAt: '2026-06-05T15:37:00.000Z',
+    dataCoverage: 'Read-only counts from existing tables.'
+  }
+};
+
 describe('AdminDashboardPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', vi.fn());
+    getAdminDashboardSummary.mockResolvedValue(summaryResponse);
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it('renders the Admin Dashboard header and overview shell', () => {
+  it('renders the Admin Dashboard header and read-only overview shell', async () => {
     render(<AdminDashboardPage />);
 
     expect(screen.getByRole('heading', { name: /admin dashboard/i })).toBeInTheDocument();
-    expect(screen.getByText(/system oversight shell/i)).toBeInTheDocument();
-    expect(screen.getByText(/admin metrics are not connected yet/i)).toBeInTheDocument();
-    expect(screen.getByText(/presentation-only/i)).toBeInTheDocument();
+    expect(screen.getByText(/system oversight console/i)).toBeInTheDocument();
+    expect(screen.getByText(/admin metrics use a read-only summary endpoint/i)).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText(/read-only counts connected/i)).toBeInTheDocument();
+    });
   });
 
-  it('shows honest unavailable and not-connected placeholders', () => {
+  it('calls the dashboard summary API and renders returned real counts', async () => {
     render(<AdminDashboardPage />);
 
-    expect(screen.getAllByText(/not connected yet/i).length).toBeGreaterThanOrEqual(3);
-    expect(screen.getAllByText(/not available yet/i).length).toBeGreaterThanOrEqual(4);
-    expect(screen.getByText(/safe admin dashboard API exists/i)).toBeInTheDocument();
-    expect(screen.getByText(/recent activity is not connected yet/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(getAdminDashboardSummary).toHaveBeenCalledTimes(1);
+    });
+
+    expect(screen.getByText(/^6$/)).toBeInTheDocument();
+    expect(screen.getByText(/3 students, 2 lecturers, 1 admin/i)).toBeInTheDocument();
+    expect(screen.getByText(/^45$/)).toBeInTheDocument();
+    expect(screen.getByText(/30 historical, 10 current-session, 5 under-review topics/i)).toBeInTheDocument();
+    expect(screen.getByText(/^4$/)).toBeInTheDocument();
+    expect(screen.getByText(/8 total submissions/i)).toBeInTheDocument();
+    expect(screen.getByText(/^7$/)).toBeInTheDocument();
+    expect(screen.getByText(/1 high-risk, 2 medium-risk, 4 low-risk stored snapshots/i)).toBeInTheDocument();
   });
 
-  it('shows API, database, and SBERT health areas without claiming fake live status', () => {
+  it('shows API, database, and SBERT health without inventing SBERT status', async () => {
     render(<AdminDashboardPage />);
 
-    expect(screen.getByText(/^API$/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/^API$/i)).toBeInTheDocument();
+    });
+
     expect(screen.getByText(/^Database$/i)).toBeInTheDocument();
     expect(screen.getByText(/^SBERT$/i)).toBeInTheDocument();
-    expect(screen.queryByText(/^Ready$/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/SBERT health is not checked by this dashboard endpoint yet/i)).toBeInTheDocument();
     expect(screen.queryByText(/^Healthy$/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/^Online$/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/not live system status/i)).toBeInTheDocument();
   });
 
-  it('does not call fetch, axios, apiClient, or admin endpoints', () => {
+  it('renders partial coverage warnings when the API marks a section unavailable', async () => {
+    getAdminDashboardSummary.mockResolvedValue({
+      ...summaryResponse,
+      data: {
+        ...summaryResponse.data,
+        users: {
+          total: null,
+          students: null,
+          lecturers: null,
+          admins: null,
+          active: null,
+          suspended: null,
+          status: 'unavailable'
+        },
+        serviceHealth: {
+          ...summaryResponse.data.serviceHealth,
+          database: {
+            status: 'unavailable',
+            message: 'One or more database-backed dashboard sections could not be read.'
+          }
+        },
+        warnings: [
+          {
+            section: 'users',
+            code: 'ADMIN_DASHBOARD_USERS_UNAVAILABLE',
+            message: 'users counts are unavailable from the database.'
+          }
+        ]
+      }
+    });
+
     render(<AdminDashboardPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/partial dashboard coverage/i)).toBeInTheDocument();
+    });
+    expect(screen.getByText(/users counts are unavailable from the database/i)).toBeInTheDocument();
+    expect(screen.getByText(/User counts are unavailable from the read-only dashboard summary/i)).toBeInTheDocument();
+  });
+
+  it('shows an honest unavailable state when the read-only endpoint fails', async () => {
+    getAdminDashboardSummary.mockRejectedValue(new Error('network unavailable'));
+
+    render(<AdminDashboardPage />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/summary unavailable/i).length).toBeGreaterThanOrEqual(1);
+    });
+    expect(screen.getByText(/does not substitute fake data/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Unavailable/i).length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('does not call fetch, axios mutations, apiClient mutations, or unsupported admin endpoints', async () => {
+    render(<AdminDashboardPage />);
+
+    await waitFor(() => {
+      expect(getAdminDashboardSummary).toHaveBeenCalledTimes(1);
+    });
 
     expect(fetch).not.toHaveBeenCalled();
-    expect(axios.get).not.toHaveBeenCalled();
     expect(axios.post).not.toHaveBeenCalled();
-    expect(apiClient.get).not.toHaveBeenCalled();
+    expect(axios.patch).not.toHaveBeenCalled();
+    expect(axios.delete).not.toHaveBeenCalled();
     expect(apiClient.post).not.toHaveBeenCalled();
-
-    const calledPaths = [
-      ...axios.get.mock.calls,
-      ...axios.post.mock.calls,
-      ...apiClient.get.mock.calls,
-      ...apiClient.post.mock.calls
-    ].map(([path]) => path);
-
-    expect(calledPaths.some((path) => String(path).includes('/admin'))).toBe(false);
+    expect(apiClient.patch).not.toHaveBeenCalled();
+    expect(apiClient.delete).not.toHaveBeenCalled();
   });
 
-  it('does not expose fake counts or fake dashboard data', () => {
+  it('does not expose fake dashboard activity, reports, exports, or workflow links', async () => {
     render(<AdminDashboardPage />);
 
-    expect(screen.queryByText(/^128$/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/^42$/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/^7$/)).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/recent activity is not displayed on this dashboard yet/i)).toBeInTheDocument();
+    });
+
     expect(screen.queryByText(/critical high-risk submission/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/generated monthly report/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/user account created/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/approved two topics/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/workload trend/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/average similarity/i)).not.toBeInTheDocument();
-  });
-
-  it('keeps admin workflows deferred instead of adding navigation actions', () => {
-    render(<AdminDashboardPage />);
-
-    expect(screen.getByText(/user management, reports, audit logs, settings, data import/i)).toBeInTheDocument();
     expect(screen.queryAllByRole('link')).toHaveLength(0);
   });
 });
