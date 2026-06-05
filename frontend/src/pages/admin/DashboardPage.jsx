@@ -1,25 +1,35 @@
 import AdminDashboardLayout from '../../layouts/AdminDashboardLayout';
-import DashboardStatusCard from '../../components/ui/DashboardStatusCard';
 import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import InfoCallout from '../../components/ui/InfoCallout';
-import MetricCard from '../../components/ui/MetricCard';
 import StatusBadge from '../../components/ui/StatusBadge';
 
 const serviceHealthItems = [
   {
     label: 'API',
+    value: 'Not connected yet',
     helper: 'Live admin health aggregation is not connected yet.',
-    accent: 'border-emerald-500'
+    tone: 'success',
+    statusLabel: 'Not Connected',
+    border: 'border-l-emerald-500',
+    badge: 'bg-emerald-50 text-emerald-800'
   },
   {
     label: 'Database',
+    value: 'Not connected yet',
     helper: 'Database status requires a safe admin dashboard API.',
-    accent: 'border-amber-400'
+    tone: 'warning',
+    statusLabel: 'Unavailable',
+    border: 'border-l-amber-400',
+    badge: 'bg-amber-50 text-amber-800'
   },
   {
     label: 'SBERT',
+    value: 'Not connected yet',
     helper: 'Semantic engine status is planned for a future health endpoint.',
-    accent: 'border-sky-400'
+    tone: 'info',
+    statusLabel: 'Planned',
+    border: 'border-l-sky-400',
+    badge: 'bg-sky-50 text-sky-800'
   }
 ];
 
@@ -27,22 +37,22 @@ const metricItems = [
   {
     label: 'Users',
     helper: 'Student, lecturer, and admin counts are not connected yet.',
-    accent: 'border-emerald-600'
+    accent: 'border-l-emerald-600'
   },
   {
     label: 'Topics',
     helper: 'Topic repository totals are not available yet.',
-    accent: 'border-amber-500'
+    accent: 'border-l-amber-500'
   },
   {
     label: 'Pending Reviews',
     helper: 'Admin-level pending review metrics are not connected yet.',
-    accent: 'border-blue-500'
+    accent: 'border-l-blue-500'
   },
   {
     label: 'High-risk Topics',
     helper: 'Risk summaries are unavailable without a safe analytics API.',
-    accent: 'border-rose-400'
+    accent: 'border-l-rose-500'
   }
 ];
 
@@ -66,18 +76,57 @@ const deferredWorkflowItems = [
 ];
 
 const plannedStates = [
-  'System overview with live service health',
-  'Degraded health alert for semantic-analysis issues',
-  'Critical outage view for unavailable core services'
+  {
+    label: 'Normal system dashboard',
+    helper: 'ADMIN_01_S1 visual state, awaiting a safe live health feed.',
+    tone: 'bg-emerald-50 text-emerald-800 border-emerald-100'
+  },
+  {
+    label: 'Degraded semantic service state',
+    helper: 'ADMIN_01_S2 preview only; no SBERT outage is claimed here.',
+    tone: 'bg-amber-50 text-amber-800 border-amber-100'
+  },
+  {
+    label: 'Critical database unavailable state',
+    helper: 'ADMIN_01_S3 preview only; no database outage is claimed here.',
+    tone: 'bg-rose-50 text-rose-800 border-rose-100'
+  }
 ];
+
+function ServiceHealthCard({ item }) {
+  return (
+    <article className={`rounded-[1.1rem] border border-border-subtle border-l-4 ${item.border} bg-white p-4 shadow-sm`}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">{item.label}</p>
+          <p className="mt-2 text-lg font-semibold text-text-primary">{item.value}</p>
+        </div>
+        <span className={`rounded-full px-2.5 py-1 text-[0.68rem] font-bold ${item.badge}`}>
+          {item.statusLabel}
+        </span>
+      </div>
+      <p className="mt-3 text-sm leading-5 text-text-secondary">{item.helper}</p>
+    </article>
+  );
+}
+
+function AdminMetricCard({ item }) {
+  return (
+    <article className={`rounded-[1rem] border border-border-subtle border-l-4 ${item.accent} bg-white p-4 shadow-sm`}>
+      <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">{item.label}</p>
+      <p className="mt-2 text-xl font-semibold text-text-primary">Not available yet</p>
+      <p className="mt-2 text-sm leading-5 text-text-secondary">{item.helper}</p>
+    </article>
+  );
+}
 
 function DashboardPage() {
   return (
-    <AdminDashboardLayout className="space-y-6">
-      <section className="overflow-hidden rounded-[2rem] border border-emerald-950/10 bg-[#eef4eb] shadow-card">
-        <div className="grid gap-0 lg:grid-cols-[0.92fr_1.08fr]">
-          <div className="bg-emerald-950 p-6 text-white sm:p-8">
-            <div className="flex h-full flex-col justify-between gap-8">
+    <AdminDashboardLayout className="space-y-5">
+      <section className="overflow-hidden rounded-[2rem] border border-emerald-950/10 bg-[#eef4eb] shadow-[0_24px_80px_-58px_rgb(6_95_70_/_0.7)]">
+        <div className="grid gap-0 xl:grid-cols-[0.84fr_1.16fr]">
+          <div className="bg-[linear-gradient(150deg,#022c22,#064e3b)] p-5 text-white sm:p-7">
+            <div className="flex h-full flex-col justify-between gap-7">
               <div className="space-y-5">
                 <span className="inline-flex w-fit rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-50">
                   Admin control room
@@ -92,7 +141,7 @@ function DashboardPage() {
               </div>
 
               <div className="rounded-[1.35rem] border border-white/15 bg-white/10 p-4 shadow-sm">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-start">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between xl:flex-col xl:items-start">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100/80">
                       Current feed
@@ -111,17 +160,19 @@ function DashboardPage() {
             </div>
           </div>
 
-          <div className="space-y-6 p-5 sm:p-6 lg:p-8">
-            <InfoCallout
-              title="Admin metrics are not connected yet"
-              message="This dashboard is presentation-only. It does not call backend services, create reports, expose restricted data, or present placeholder metrics as real."
-            />
+          <div className="space-y-5 p-5 sm:p-6 lg:p-7">
+            <div className="rounded-[1.4rem] border border-blue-200 bg-blue-50/70 px-4 py-3 text-sm leading-6 text-blue-800">
+              <p className="font-semibold text-blue-900">Admin metrics are not connected yet</p>
+              <p>
+                This dashboard is presentation-only. It does not call backend services, create reports, expose restricted data, or present placeholder metrics as real.
+              </p>
+            </div>
 
             <section className="rounded-[1.5rem] border border-emerald-950/10 bg-white p-4 shadow-sm sm:p-5">
               <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-text-primary">Service health</h2>
-                  <p className="text-sm text-text-secondary">
+                  <p className="text-sm leading-6 text-text-secondary">
                     ADMIN-01 health cards are ready for future API, database, and SBERT service status.
                   </p>
                 </div>
@@ -130,15 +181,9 @@ function DashboardPage() {
                 </span>
               </div>
 
-              <div className="grid gap-4 xl:grid-cols-3">
+              <div className="grid gap-3 lg:grid-cols-3">
                 {serviceHealthItems.map((item) => (
-                  <div key={item.label} className={`min-w-0 overflow-hidden rounded-[1.15rem] border border-border-subtle border-l-4 bg-[#fbfdf9] shadow-sm ${item.accent}`}>
-                    <DashboardStatusCard
-                      label={item.label}
-                      value="Not connected yet"
-                      helper={item.helper}
-                    />
-                  </div>
+                  <ServiceHealthCard key={item.label} item={item} />
                 ))}
               </div>
             </section>
@@ -146,29 +191,23 @@ function DashboardPage() {
         </div>
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[0.78fr_1.22fr]">
+      <section className="grid gap-5 xl:grid-cols-[0.82fr_1.18fr]">
         <div className="rounded-[1.5rem] border border-border-subtle bg-white p-5 shadow-sm">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-2 border-b border-border-subtle pb-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-text-primary">System metrics</h2>
-              <p className="mt-1 text-sm text-text-secondary">
+              <p className="mt-1 max-w-xl text-sm leading-6 text-text-secondary">
                 Counts and analytics stay unavailable until the backend exposes a safe admin dashboard endpoint.
               </p>
             </div>
-            <span className="inline-flex shrink-0 rounded-full border border-border-subtle bg-surface-muted px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-text-muted">
+            <span className="inline-flex w-fit shrink-0 rounded-full border border-border-subtle bg-surface-muted px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
               Placeholder values only
             </span>
           </div>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {metricItems.map((item) => (
-              <div key={item.label} className={`rounded-[1.1rem] border border-border-subtle border-l-4 bg-[#f8fbf7] ${item.accent}`}>
-                <MetricCard
-                  label={item.label}
-                  value="Not available yet"
-                  helper={item.helper}
-                />
-              </div>
+              <AdminMetricCard key={item.label} item={item} />
             ))}
           </div>
         </div>
@@ -177,7 +216,7 @@ function DashboardPage() {
           <div className="flex flex-col gap-2 border-b border-border-subtle pb-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-text-primary">Recent activity</h2>
-              <p className="text-sm text-text-secondary">
+              <p className="text-sm leading-6 text-text-secondary">
                 Figma-style activity area, kept empty until audit APIs are available.
               </p>
             </div>
@@ -187,6 +226,7 @@ function DashboardPage() {
           </div>
           <div className="pt-4">
             <EmptyStatePanel
+              className="min-h-52"
               title="Recent activity is not connected yet"
               message="Audit events, report generation, user-management changes, and system activity require future admin APIs before they can be shown here."
             />
@@ -196,17 +236,20 @@ function DashboardPage() {
 
       <section className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
         <div className="rounded-[1.5rem] border border-border-subtle bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-text-primary">Planned health states</h2>
-          <p className="mt-1 text-sm text-text-secondary">
-            These states are documented for ADMIN-01 but are not live system status in this PR.
+          <h2 className="text-lg font-semibold text-text-primary">ADMIN-01 state previews</h2>
+          <p className="mt-1 text-sm leading-6 text-text-secondary">
+            Normal, degraded, and critical dashboard states are represented as preview-only references, not live system status in this PR.
           </p>
-          <ul className="mt-4 space-y-3">
+          <ul className="mt-4 grid gap-3">
             {plannedStates.map((state) => (
-              <li key={state} className="flex flex-col gap-2 rounded-card border border-border-subtle bg-surface-muted p-3 text-sm text-text-secondary sm:flex-row sm:items-center sm:justify-between">
-                <span>{state}</span>
-                <span className="inline-flex w-fit shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-text-muted">
-                  Preview only
-                </span>
+              <li key={state.label} className={`rounded-[1rem] border p-4 text-sm ${state.tone}`}>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="font-semibold">{state.label}</span>
+                  <span className="inline-flex w-fit shrink-0 rounded-full bg-white/75 px-2.5 py-1 text-xs font-semibold">
+                    Preview only
+                  </span>
+                </div>
+                <p className="mt-2 leading-5 opacity-85">{state.helper}</p>
               </li>
             ))}
           </ul>
@@ -214,7 +257,7 @@ function DashboardPage() {
 
         <div className="rounded-[1.5rem] border border-border-subtle bg-white p-5 shadow-sm">
           <h2 className="text-lg font-semibold text-text-primary">Deferred admin workflows</h2>
-          <p className="mt-1 text-sm text-text-secondary">
+          <p className="mt-1 text-sm leading-6 text-text-secondary">
             Admin operations are shown as Figma-style placeholders until safe backend support exists.
           </p>
 
