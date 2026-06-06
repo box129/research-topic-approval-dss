@@ -230,11 +230,6 @@ test('admin Figma UI route renders honest dashboard shell', async ({ page, conte
     expect(bodyText).not.toMatch(/\bHigh-risk Topics\s+\d+\b/i);
     expect(bodyText).not.toMatch(/lecturer\.demo@|student\.demo@/i);
 
-    const placeholderRoutes = [
-      ['/admin/audit-log', 'Audit Log'],
-      ['/admin/reports', 'Reports']
-    ];
-
     await page.goto('/admin/topic-repository');
     await expect.poll(() => getPathname(page)).toBe('/admin/topic-repository');
     await expect(page.getByRole('heading', { exact: true, level: 1, name: 'Topic Repository' })).toBeVisible();
@@ -261,14 +256,23 @@ test('admin Figma UI route renders honest dashboard shell', async ({ page, conte
     await expect(page.getByRole('button', { name: /save/i })).toHaveCount(0);
     await expect(page.getByRole('button', { name: /edit/i })).toHaveCount(0);
 
-    for (const [path, heading] of placeholderRoutes) {
-      await page.goto(path);
-      await expect.poll(() => getPathname(page)).toBe(path);
-      await expect(page.getByRole('heading', { exact: true, level: 1, name: heading })).toBeVisible();
-      await expect(page.getByText('Presentation-only', { exact: true })).toBeVisible();
-      await expect(page.getByText(/not connected yet/i).first()).toBeVisible();
-      await expect(page.getByText(/deferred admin workflow/i).first()).toBeVisible();
-    }
+    await page.goto('/admin/audit-log');
+    await expect.poll(() => getPathname(page)).toBe('/admin/audit-log');
+    await expect(page.getByRole('heading', { exact: true, level: 1, name: 'Audit Log' })).toBeVisible();
+    await expect(page.getByText(/Real audit records/i)).toBeVisible();
+    await expect(page.getByText(/No fake audit activity/i)).toBeVisible();
+    await expect(page.getByText(/No audit export endpoint is connected/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /delete/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /purge/i })).toHaveCount(0);
+
+    await page.goto('/admin/reports');
+    await expect.poll(() => getPathname(page)).toBe('/admin/reports');
+    await expect(page.getByRole('heading', { exact: true, level: 1, name: 'Reports' })).toBeVisible();
+    await expect(page.getByText(/Real aggregate data/i)).toBeVisible();
+    await expect(page.getByText(/No fake reports or exports/i)).toBeVisible();
+    await expect(page.getByText(/Exports deferred/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /download/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /generate report/i })).toHaveCount(0);
 
     monitor.assertClean();
   } finally {
