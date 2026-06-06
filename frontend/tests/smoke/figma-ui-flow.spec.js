@@ -232,11 +232,17 @@ test('admin Figma UI route renders honest dashboard shell', async ({ page, conte
 
     const placeholderRoutes = [
       ['/admin/user-management', 'User Management'],
-      ['/admin/topic-repository', 'Topic Repository'],
       ['/admin/system-settings', 'System Settings'],
       ['/admin/audit-log', 'Audit Log'],
       ['/admin/reports', 'Reports']
     ];
+
+    await page.goto('/admin/topic-repository');
+    await expect.poll(() => getPathname(page)).toBe('/admin/topic-repository');
+    await expect(page.getByRole('heading', { exact: true, level: 1, name: 'Topic Repository' })).toBeVisible();
+    await expect(page.getByText(/Read-only repository data/i)).toBeVisible();
+    await expect(page.getByText(/No fake repository rows/i)).toBeVisible();
+    await expect(page.getByText(/No import UI, exports, edits, deletes, or fabricated topic rows/i)).toBeVisible();
 
     for (const [path, heading] of placeholderRoutes) {
       await page.goto(path);
