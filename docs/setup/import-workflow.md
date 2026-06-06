@@ -38,11 +38,18 @@ The backend also exposes preview and commit API endpoints:
   - Parses and normalizes an uploaded `.xlsx` file.
   - Returns records and the import report.
   - Does not persist records.
+  - Requires authenticated admin access.
 
 - `POST /api/import/topics/commit`
   - Parses and normalizes an uploaded `.xlsx` file.
   - Persists accepted records by lifecycle bucket.
   - Returns the import report and persistence report.
+  - Requires authenticated admin access.
+
+Admin-prefixed v1 aliases are also available for operational use:
+
+- `POST /api/v1/admin/import/topics/preview`
+- `POST /api/v1/admin/import/topics/commit`
 
 A repeatable smoke-test workflow is documented in [`../testing/import-smoke.md`](../testing/import-smoke.md).
 
@@ -101,13 +108,13 @@ Duplicate-title rows increment both `skipped_rows` and `duplicate_title_rows`.
 - Backend preview and commit endpoints exist, but no frontend import UI is wired to them yet.
 - No similarity scoring integration yet.
 - No embedding generation for imported records yet.
-- No authorization/admin protection is implemented for import endpoints yet.
+- Import endpoints are admin-protected, but richer duplicate-existing checks and row-level operator reports remain deferred.
 - CSV import remains separate from this `.xlsx` import workflow.
 
 ## Follow-Up Work
 
 - Add import validation UI and import result display.
-- Add authorization/admin protection for import endpoints.
+- Add richer duplicate-existing checks and operator-facing row-level report details.
 - Add embedding generation for imported records.
 - Integrate imported context fields into similarity scoring.
 - Test the workflow with real sample departmental records.

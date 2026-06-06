@@ -1,5 +1,6 @@
 import AdminDashboard from './admin/DashboardPage';
 import AdminPlaceholderPage from './admin/PlaceholderPage';
+import AdminTopicRepository from './admin/TopicRepositoryPage';
 import LecturerDashboard from './lecturer/DashboardPage';
 import LecturerMyDecisions from './lecturer/MyDecisionsPage';
 import PendingReviewsPage from './lecturer/PendingReviewsPage';
@@ -44,13 +45,7 @@ export const AdminUserManagementPage = () => (
   />
 );
 
-export const AdminTopicRepositoryPage = () => (
-  <AdminPlaceholderPage
-    title="Topic Repository"
-    subtitle="Protected admin workspace for future repository oversight"
-    message="Repository browsing, import controls, and topic administration remain unavailable until the real API behavior is defined and connected."
-  />
-);
+export const AdminTopicRepositoryPage = AdminTopicRepository;
 
 export const AdminSystemSettingsPage = () => (
   <AdminPlaceholderPage

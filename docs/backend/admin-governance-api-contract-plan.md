@@ -4,17 +4,18 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | `backend/admin-dashboard-summary-api` |
-| Current commit hash | `3e09d51` |
-| Date/time | `2026-06-05 17:49:12 +01:00` |
-| Scope | Admin read-only dashboard summary API and frontend dashboard connection |
+| Branch | `backend/admin-topic-repository-import-governance` |
+| Current commit hash | `374e177` |
+| Date/time | `2026-06-06 11:05:14 +01:00` |
+| Scope | Admin read-only topic repository API, frontend repository connection, and import governance documentation |
 | Change type | Backend, frontend, tests, and documentation |
-| Implementation status | PR #97 adds a read-only admin dashboard summary endpoint and connects the admin dashboard to it. No Prisma migration, admin mutation, export workflow, auth behavior change, similarity behavior change, threshold change, package file change, fake metric, fake row, fake report, or fake health state is introduced. |
+| Implementation status | PR #98 adds read-only admin topic repository endpoints and connects the admin Topic Repository page to real lifecycle topic data. No Prisma migration, admin mutation, import UI, export workflow, auth behavior change, similarity behavior change, threshold change, package file change, fake topic row, fake report, or fake analytics state is introduced. |
 
 Latest relevant PRs:
 
 | PR | Summary | Relevance |
 | --- | --- | --- |
+| #97 | feat: add admin dashboard summary API | Added the read-only admin dashboard summary endpoint and connected the admin dashboard to real safe counts. |
 | #96 | feat: add audit log and admin import governance foundation | Added audit log model/service/read endpoints, hardened import routes, and established admin governance foundation. |
 | #94 | docs: add full worktree gap and benchmark audit | Identified unfinished admin/governance/backend areas and recommended contract-led backend work. |
 | #93 | polish: refine admin secondary placeholder pages | Confirmed admin secondary pages are protected, polished, and presentation-only. |
@@ -87,6 +88,36 @@ Still deferred after PR #97:
 - Production email and notifications.
 - Any similarity scoring or threshold changes.
 
+### Implementation Status After PR #98
+
+PR #98 implements the admin topic repository read-only slice from this plan:
+
+- `GET /api/v1/admin/topics` is added and protected by `requireAuth` plus `requireRole('admin')`.
+- `GET /api/v1/admin/topics/:lifecycle/:id` is added for read-only detail lookup by explicit lifecycle table and numeric id.
+- `GET /api/v1/admin/topics/summary` is added for read-only lifecycle totals, category/session summaries, and data-quality counts.
+- `backend/src/services/adminTopicRepository.service.js` reads only existing lifecycle topic tables:
+  - `HistoricalTopic`
+  - `CurrentSessionTopic`
+  - `UnderReviewTopic`
+- List filtering supports lifecycle, search, category, session year, supervisor name, source type, import batch id, pagination, and constrained sorting.
+- Topic responses include lifecycle and available provenance fields, but do not expose raw embedding vectors or fabricate risk scores.
+- Empty repository responses return `items: []` plus valid pagination metadata.
+- `frontend/src/pages/admin/TopicRepositoryPage.jsx` connects `/admin/topic-repository` to the read-only endpoints and renders real rows, honest empty states, and unavailable states.
+- The Topic Repository page does not expose import UI, export controls, edit/delete actions, migration controls, duplicate-resolution actions, or privileged mutations.
+- Import preview/commit behavior remains unchanged by PR #98. Import endpoints remain admin-protected and audited from PR #96, while richer duplicate-existing detection and row-level governance reports remain deferred.
+
+Still deferred after PR #98:
+
+- Admin users API and user mutations.
+- Admin system settings API and settings mutations.
+- Admin reports/export generation.
+- Audit log frontend connection.
+- Import UI and duplicate-resolution workflow.
+- Richer import duplicate-existing checks and operator-facing row-level report shape.
+- Lecturer decision history, supervisees, and research trends APIs.
+- Production email and notifications.
+- Any similarity scoring or threshold changes.
+
 ## 2. Current Reality From Repository
 
 ### Existing Backend Behavior
@@ -108,7 +139,8 @@ Still deferred after PR #97:
 | Area | Existing behavior | Evidence |
 | --- | --- | --- |
 | Admin dashboard | Protected visual shell, explicitly not connected to live admin metrics or service health. | `frontend/src/pages/admin/DashboardPage.jsx` |
-| Admin secondary pages | User Management, Topic Repository, System Settings, Audit Log, and Reports are protected presentation-only placeholders. | `frontend/src/pages/admin/PlaceholderPage.jsx`, `frontend/src/pages/rolePages.jsx` |
+| Admin topic repository | Protected read-only page connected to lifecycle topic repository endpoints. It shows real rows, safe empty states, and no import/export/edit actions. | `frontend/src/pages/admin/TopicRepositoryPage.jsx`, `frontend/src/pages/rolePages.jsx` |
+| Admin secondary placeholders | User Management, System Settings, Audit Log, and Reports remain protected presentation-only placeholders. | `frontend/src/pages/admin/PlaceholderPage.jsx`, `frontend/src/pages/rolePages.jsx` |
 | Lecturer decisions | Placeholder page for future decision history. | `frontend/src/pages/lecturer/MyDecisionsPage.jsx` |
 | Lecturer supervisees | Placeholder page for future supervisee assignment/progress workflow. | `frontend/src/pages/lecturer/SuperviseesPage.jsx` |
 | Lecturer trends | Placeholder page for future analytics. | `frontend/src/pages/lecturer/ResearchTrendsPage.jsx` |
@@ -135,10 +167,9 @@ Enums include:
 
 ### Missing Backend/Governance Areas
 
-These do not currently exist as implemented APIs/models/services in the inspected repository after PR #97:
+These do not currently exist as implemented APIs/models/services in the inspected repository after PR #98:
 
 - Admin user list/detail endpoint.
-- Admin topic repository list/detail/summary endpoint.
 - Admin reports endpoint and export workflow.
 - Lecturer decision history endpoint.
 - Lecturer supervisee assignment endpoint.
@@ -538,9 +569,17 @@ Proposed read-only endpoints:
 
 ```text
 GET /api/v1/admin/topics
-GET /api/v1/admin/topics/:id
+GET /api/v1/admin/topics/:lifecycle/:id
 GET /api/v1/admin/topics/summary
 ```
+
+Implementation status after PR #98:
+
+- Implemented as read-only admin endpoints.
+- Protected by `requireAuth` and `requireRole('admin')`.
+- No request body is accepted or required.
+- No topics are created, updated, deleted, imported, exported, migrated, or audited by these repository read endpoints.
+- Detail reads require an explicit lifecycle value so numeric ids from different lifecycle tables are not conflated.
 
 ### Lifecycle Tables
 
@@ -581,10 +620,16 @@ Risk/similarity filters should be deferred unless real risk metadata exists on t
 Target page:
 
 ```text
-frontend/src/pages/admin/PlaceholderPage.jsx
+frontend/src/pages/admin/TopicRepositoryPage.jsx
 ```
 
-The Topic Repository placeholder can later become a real table/search page using the read-only endpoint. Import, migration, duplicate actions, and export buttons should remain unavailable until separate governance PRs implement them.
+Frontend implementation status after PR #98:
+
+- `/admin/topic-repository` now renders a real read-only repository page instead of the generic placeholder.
+- Summary cards use returned lifecycle totals and data-quality counts.
+- The list/search surface uses the read-only topic list endpoint.
+- Empty and error states do not substitute fake topic rows.
+- Import, migration, duplicate actions, edit/delete actions, and export buttons remain unavailable until separate governance PRs implement them.
 
 ## 9. Contract Plan: Import Governance Hardening
 
@@ -597,23 +642,28 @@ POST /api/v1/import/topics/preview
 POST /api/v1/import/topics/commit
 ```
 
-Current docs state no authorization/admin protection is implemented for import endpoints yet.
+Implementation status after PR #96:
+
+- Existing import preview/commit endpoints require authenticated admin access.
+- Admin-prefixed aliases exist:
+  - `POST /api/v1/admin/import/topics/preview`
+  - `POST /api/v1/admin/import/topics/commit`
+- Preview and commit emit safe audit metadata without storing uploaded file contents or raw imported rows.
+- PR #98 does not change import parser, normalization, persistence, or commit behavior.
 
 ### Planned Changes
 
-1. Require `requireAuth` and `requireRole('admin')` for preview and commit.
-2. Prefer admin v1 paths for operational use:
+1. Prefer admin v1 paths for operational use:
 
 ```text
 POST /api/v1/admin/import/topics/preview
 POST /api/v1/admin/import/topics/commit
 ```
 
-3. Keep legacy routes only if compatibility requires it; otherwise document deprecation.
-4. Add audit logging for preview and commit.
-5. Add duplicate detection across stored records before commit.
-6. Preserve raw row data and source metadata.
-7. Produce operator-facing row-level warnings/errors.
+2. Keep legacy routes only if compatibility requires it; otherwise document deprecation.
+3. Add duplicate detection across stored records before commit.
+4. Preserve raw row data and source metadata.
+5. Produce operator-facing row-level warnings/errors.
 
 ### Preview Report Structure
 
@@ -1072,18 +1122,27 @@ Purpose:
 - Add read-only admin topic repository endpoints.
 - Harden import preview/commit governance and reporting.
 
+Status:
+
+- Read-only admin topic repository endpoints and frontend connection are implemented by branch `backend/admin-topic-repository-import-governance`.
+- Import endpoint hardening was already implemented by PR #96.
+- Richer import duplicate-existing detection and row-level operator reporting remain deferred.
+
 Likely files:
 
 - Backend admin topic controller/service/tests.
-- Import controller/service tests.
-- Topic repository frontend page later if scoped.
+- Topic repository frontend page and tests.
+- Import documentation updates.
 
 Tests required:
 
 - Lifecycle filters.
 - Pagination.
-- Import admin authorization.
-- Duplicate warning/report behavior.
+- Read-only RBAC.
+- Empty repository responses.
+- No embedding vector exposure.
+- No fake frontend topic rows or mutation actions.
+- Import duplicate-existing/report behavior remains a future test target.
 
 Risks:
 
@@ -1266,31 +1325,34 @@ Must not include:
 
 This PR does not:
 
-- Add endpoints other than `GET /api/v1/admin/dashboard/summary`.
+- Add endpoints other than the read-only admin topic repository endpoints.
 - Add Prisma migrations.
-- Connect frontend pages other than the admin dashboard summary read.
+- Connect frontend pages other than the admin Topic Repository page.
 - Implement admin mutations.
 - Implement exports.
+- Implement import UI.
+- Change import parser, normalization, persistence, or commit behavior.
 - Implement an email provider.
 - Add notifications.
 - Change similarity behavior.
 - Change similarity thresholds.
 - Change auth/session behavior.
 - Change tests.
-- Change routes.
+- Change existing route behavior.
 - Change package files.
 - Add fake admin data.
+- Add fake topic rows, fake repository metrics, fake risk scores, fake audit activity, or fake import results.
 
 ## 20. Verification
 
-Requested verification commands for PR #97:
+Requested verification commands for PR #98:
 
 ```powershell
 cd backend
 npm test -- --runInBand
 cd ..\frontend
 npm run build
-npm test -- --run tests/AdminDashboardPage.test.jsx
+npm test -- --run tests/AdminTopicRepositoryPage.test.jsx
 npm test -- --run --maxWorkers=1 --minWorkers=1
 npm run smoke:figma-ui
 cd ..
@@ -1303,13 +1365,16 @@ git diff --name-only
 Expected implementation files:
 
 ```text
-backend/src/controllers/adminDashboard.controller.js
-backend/src/controllers/adminDashboard.controller.test.js
-backend/src/services/adminDashboard.service.js
-backend/src/services/adminDashboard.service.test.js
+backend/src/controllers/adminTopicRepository.controller.js
+backend/src/controllers/adminTopicRepository.controller.test.js
+backend/src/services/adminTopicRepository.service.js
+backend/src/services/adminTopicRepository.service.test.js
 backend/src/server.js
 docs/backend/admin-governance-api-contract-plan.md
+docs/setup/import-workflow.md
 frontend/src/api/admin.js
-frontend/src/pages/admin/DashboardPage.jsx
-frontend/tests/AdminDashboardPage.test.jsx
+frontend/src/pages/admin/TopicRepositoryPage.jsx
+frontend/src/pages/rolePages.jsx
+frontend/tests/AdminTopicRepositoryPage.test.jsx
+frontend/tests/smoke/figma-ui-flow.spec.js
 ```

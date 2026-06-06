@@ -16,6 +16,7 @@ let submissionController;
 let lecturerSimilarityController;
 let adminAuditLogController;
 let adminDashboardController;
+let adminTopicRepositoryController;
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler.middleware');
 const { requireAuth, requireRole } = require('./middleware/auth.middleware');
 
@@ -165,6 +166,13 @@ const getAdminDashboardController = () => {
   return adminDashboardController;
 };
 
+const getAdminTopicRepositoryController = () => {
+  if (!adminTopicRepositoryController) {
+    adminTopicRepositoryController = require('./controllers/adminTopicRepository.controller');
+  }
+  return adminTopicRepositoryController;
+};
+
 app.post('/api/v1/auth/login', (req, res, next) => {
   getAuthController().login(req, res, next);
 });
@@ -215,6 +223,18 @@ app.patch('/api/v1/lecturer/submissions/:id/status', requireAuth, requireRole('l
 
 app.get('/api/v1/admin/dashboard/summary', requireAuth, requireRole('admin'), (req, res, next) => {
   getAdminDashboardController().getDashboardSummary(req, res, next);
+});
+
+app.get('/api/v1/admin/topics/summary', requireAuth, requireRole('admin'), (req, res, next) => {
+  getAdminTopicRepositoryController().getTopicsSummary(req, res, next);
+});
+
+app.get('/api/v1/admin/topics', requireAuth, requireRole('admin'), (req, res, next) => {
+  getAdminTopicRepositoryController().listTopics(req, res, next);
+});
+
+app.get('/api/v1/admin/topics/:lifecycle/:id', requireAuth, requireRole('admin'), (req, res, next) => {
+  getAdminTopicRepositoryController().getTopicByLifecycleAndId(req, res, next);
 });
 
 app.get('/api/v1/admin/audit-logs', requireAuth, requireRole('admin'), (req, res, next) => {
