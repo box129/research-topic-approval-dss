@@ -4,17 +4,18 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | `backend/admin-topic-repository-import-governance` |
-| Current commit hash | `374e177` |
-| Date/time | `2026-06-06 11:05:14 +01:00` |
-| Scope | Admin read-only topic repository API, frontend repository connection, and import governance documentation |
+| Branch | `backend/admin-users-system-settings` |
+| Current commit hash | `5547202` |
+| Date/time | `2026-06-06 13:05:41 +01:00` |
+| Scope | Admin user management read APIs, audited user status update, system settings read API, and frontend admin page connections |
 | Change type | Backend, frontend, tests, and documentation |
-| Implementation status | PR #98 adds read-only admin topic repository endpoints and connects the admin Topic Repository page to real lifecycle topic data. No Prisma migration, admin mutation, import UI, export workflow, auth behavior change, similarity behavior change, threshold change, package file change, fake topic row, fake report, or fake analytics state is introduced. |
+| Implementation status | PR #99 adds admin user list/detail APIs, an audited user status update endpoint, a read-only settings API, and frontend connections for User Management and System Settings. No Prisma migration, create/delete user workflow, role mutation, password reset delegation, settings mutation, export workflow, auth behavior change, similarity behavior change, threshold change, package file change, fake user, fake setting, fake report, or fake analytics state is introduced. |
 
 Latest relevant PRs:
 
 | PR | Summary | Relevance |
 | --- | --- | --- |
+| #98 | feat: add admin topic repository API | Added read-only admin topic repository endpoints and connected the admin Topic Repository page to real lifecycle topic data. |
 | #97 | feat: add admin dashboard summary API | Added the read-only admin dashboard summary endpoint and connected the admin dashboard to real safe counts. |
 | #96 | feat: add audit log and admin import governance foundation | Added audit log model/service/read endpoints, hardened import routes, and established admin governance foundation. |
 | #94 | docs: add full worktree gap and benchmark audit | Identified unfinished admin/governance/backend areas and recommended contract-led backend work. |
@@ -118,6 +119,44 @@ Still deferred after PR #98:
 - Production email and notifications.
 - Any similarity scoring or threshold changes.
 
+### Implementation Status After PR #99
+
+PR #99 implements the admin users and system settings governance slice from this plan:
+
+- `GET /api/v1/admin/users` is added and protected by `requireAuth` plus `requireRole('admin')`.
+- `GET /api/v1/admin/users/:id` is added for safe read-only user detail lookup.
+- User list filtering supports role, status, name/email search, pagination, and constrained sorting.
+- User responses expose only safe account fields:
+  - `id`
+  - `name`
+  - `email`
+  - `role`
+  - `status`
+  - `createdAt`
+  - `updatedAt`
+- User responses do not expose password hashes, reset token hashes, reset token expiry fields, or internal secrets.
+- `PATCH /api/v1/admin/users/:id/status` is added as the only user mutation in this PR.
+- The status update endpoint accepts only the existing `ACTIVE` and `SUSPENDED` states, rejects admin self-suspension, and emits `USER_STATUS_CHANGED` through the audit service.
+- No create-user, delete-user, role-change, password-reset, invitation, bulk action, or profile-edit endpoint is added.
+- `GET /api/v1/admin/settings` is added and protected by `requireAuth` plus `requireRole('admin')`.
+- Settings responses read only existing `SystemSetting` rows and optional updater metadata.
+- `PATCH /api/v1/admin/settings/:key` remains deferred because settings need key-specific validation, confirmation rules, and scoring/auth/email safety contracts before writes are safe.
+- `frontend/src/pages/admin/UserManagementPage.jsx` connects `/admin/user-management` to the admin users endpoint and renders real rows, honest empty/error states, filters, and the narrow audited status action.
+- `frontend/src/pages/admin/SystemSettingsPage.jsx` connects `/admin/system-settings` to the read-only settings endpoint and renders real settings, honest empty/error states, and explicit deferred-write messaging.
+- No fake users, fake settings, fake last-active values, fake supervisor assignments, fake metrics, fake reports, exports, imports, role controls, password controls, or setting controls are introduced.
+
+Still deferred after PR #99:
+
+- Admin user mutations beyond status updates.
+- Admin system settings mutations.
+- Admin reports/export generation.
+- Audit log frontend connection.
+- Import UI and duplicate-resolution workflow.
+- Richer import duplicate-existing checks and operator-facing row-level report shape.
+- Lecturer decision history, supervisees, and research trends APIs.
+- Production email and notifications.
+- Any similarity scoring or threshold changes.
+
 ## 2. Current Reality From Repository
 
 ### Existing Backend Behavior
@@ -140,7 +179,9 @@ Still deferred after PR #98:
 | --- | --- | --- |
 | Admin dashboard | Protected visual shell, explicitly not connected to live admin metrics or service health. | `frontend/src/pages/admin/DashboardPage.jsx` |
 | Admin topic repository | Protected read-only page connected to lifecycle topic repository endpoints. It shows real rows, safe empty states, and no import/export/edit actions. | `frontend/src/pages/admin/TopicRepositoryPage.jsx`, `frontend/src/pages/rolePages.jsx` |
-| Admin secondary placeholders | User Management, System Settings, Audit Log, and Reports remain protected presentation-only placeholders. | `frontend/src/pages/admin/PlaceholderPage.jsx`, `frontend/src/pages/rolePages.jsx` |
+| Admin user management | Protected page connected to admin user read endpoints. It shows real user rows, safe filters, empty/error states, and a narrow audited status action. It does not expose create, delete, role-change, invitation, or password-reset workflows. | `frontend/src/pages/admin/UserManagementPage.jsx`, `frontend/src/pages/rolePages.jsx` |
+| Admin system settings | Protected read-only page connected to existing `SystemSetting` records. It does not expose save controls, threshold sliders, feature toggles, or arbitrary settings writes. | `frontend/src/pages/admin/SystemSettingsPage.jsx`, `frontend/src/pages/rolePages.jsx` |
+| Admin secondary placeholders | Audit Log and Reports remain protected presentation-only placeholders. | `frontend/src/pages/admin/PlaceholderPage.jsx`, `frontend/src/pages/rolePages.jsx` |
 | Lecturer decisions | Placeholder page for future decision history. | `frontend/src/pages/lecturer/MyDecisionsPage.jsx` |
 | Lecturer supervisees | Placeholder page for future supervisee assignment/progress workflow. | `frontend/src/pages/lecturer/SuperviseesPage.jsx` |
 | Lecturer trends | Placeholder page for future analytics. | `frontend/src/pages/lecturer/ResearchTrendsPage.jsx` |
@@ -167,9 +208,10 @@ Enums include:
 
 ### Missing Backend/Governance Areas
 
-These do not currently exist as implemented APIs/models/services in the inspected repository after PR #98:
+These do not currently exist as implemented APIs/models/services in the inspected repository after PR #99:
 
-- Admin user list/detail endpoint.
+- Admin user mutations beyond audited status updates.
+- Admin system settings mutations.
 - Admin reports endpoint and export workflow.
 - Lecturer decision history endpoint.
 - Lecturer supervisee assignment endpoint.
@@ -510,6 +552,14 @@ GET /api/v1/admin/users
 GET /api/v1/admin/users/:id
 ```
 
+Implementation status after PR #99:
+
+- Implemented as admin-only read endpoints.
+- Protected by `requireAuth` and `requireRole('admin')`.
+- Responses serialize role/status values in lowercase client-facing form.
+- Safe user serialization excludes password hashes, reset tokens, reset token expiry values, and internal secrets.
+- Empty list responses return `items: []` with valid pagination metadata.
+
 ### Filters
 
 ```text
@@ -549,12 +599,28 @@ direction=asc|desc
 
 ### Deferred Mutations
 
-Do not implement until audit logging exists:
+Audit logging exists after PR #96. PR #99 implements only this constrained mutation:
+
+```text
+PATCH /api/v1/admin/users/:id/status
+```
+
+Rules for the implemented status mutation:
+
+- Admin-only.
+- Accepts only `active` or `suspended`.
+- Updates only the `User.status` field.
+- Rejects self-suspension.
+- Emits `USER_STATUS_CHANGED`.
+- Returns the safe serialized user.
+
+Still deferred:
 
 - `POST /api/v1/admin/users`
-- `PATCH /api/v1/admin/users/:id/status`
 - `PATCH /api/v1/admin/users/:id/role`
 - `POST /api/v1/admin/users/:id/reset-password`
+- `DELETE /api/v1/admin/users/:id`
+- invitation and bulk account workflows
 
 ### Security/RBAC Requirements
 
@@ -562,6 +628,22 @@ Do not implement until audit logging exists:
 - Never return `passwordHash`, reset token fields, or internal secrets.
 - Audit access to sensitive detail endpoints if policy requires it.
 - Audit all future user mutations.
+
+### Frontend Integration Notes
+
+Target page:
+
+```text
+frontend/src/pages/admin/UserManagementPage.jsx
+```
+
+Frontend implementation status after PR #99:
+
+- `/admin/user-management` now renders a connected admin user page instead of the generic placeholder.
+- The page calls the read-only list endpoint with search, role, and status filters.
+- Empty and error states do not substitute fake users.
+- The only enabled account action is the constrained active/suspended status update for non-admin accounts.
+- Create-user, delete-user, role-change, invitation, password-reset, fake last-active, and fake assignment surfaces remain unavailable.
 
 ## 8. Contract Plan: Admin Topic Repository API
 
@@ -760,7 +842,14 @@ GET /api/v1/admin/settings
 PATCH /api/v1/admin/settings/:key
 ```
 
-The current schema has `SystemSetting`, but no API route is connected.
+Implementation status after PR #99:
+
+- `GET /api/v1/admin/settings` is implemented as an admin-only read endpoint.
+- Protected by `requireAuth` and `requireRole('admin')`.
+- Reads only existing `SystemSetting` rows.
+- Includes optional updater metadata when `updatedBy` is available.
+- Empty responses return `items: []`.
+- `PATCH /api/v1/admin/settings/:key` remains deferred.
 
 ### Candidate Setting Categories
 
@@ -776,6 +865,34 @@ The current schema has `SystemSetting`, but no API route is connected.
 - Dangerous settings require explicit confirmation in request body.
 - Preserve existing similarity thresholds unless a scoped future PR changes them.
 - Never allow arbitrary unvalidated keys to change scoring behavior.
+
+### Current Read Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "key": "demo_auth_users_notice",
+        "value": "Demo users are available for local authentication testing.",
+        "updatedAt": "2026-06-05T15:37:00.000Z",
+        "updatedBy": {
+          "id": 1,
+          "name": "Admin User",
+          "email": "admin@example.edu",
+          "role": "admin"
+        }
+      }
+    ]
+  },
+  "meta": {
+    "generatedAt": "2026-06-05T15:37:00.000Z",
+    "dataCoverage": "Read-only settings from SystemSetting table.",
+    "mutationStatus": "Settings updates remain deferred until key-specific validation is approved."
+  }
+}
+```
 
 ### Patch Request
 
@@ -806,6 +923,23 @@ The current schema has `SystemSetting`, but no API route is connected.
   }
 }
 ```
+
+Patch request/response examples remain future contract examples only. They are not implemented by PR #99.
+
+### Frontend Integration Notes
+
+Target page:
+
+```text
+frontend/src/pages/admin/SystemSettingsPage.jsx
+```
+
+Frontend implementation status after PR #99:
+
+- `/admin/system-settings` now renders a connected read-only settings page instead of the generic placeholder.
+- The page calls the settings read endpoint and shows real stored settings only.
+- Empty and error states do not substitute fake configuration rows.
+- Save buttons, edit actions, threshold sliders, feature toggles, email controls, and arbitrary setting mutations remain unavailable.
 
 ## 11. Contract Plan: Admin Audit Log API
 
@@ -1161,19 +1295,32 @@ Purpose:
 
 - Add admin user read-only endpoints.
 - Add settings read endpoint.
-- Add settings mutation only if audit foundation and validation are complete.
+- Add one constrained audited user status mutation.
+- Keep settings mutation deferred until key-specific validation is complete.
+
+Status:
+
+- Implemented by branch `backend/admin-users-system-settings`.
+- User list/detail endpoints and frontend connection are implemented.
+- User status update is implemented with `USER_STATUS_CHANGED` audit logging.
+- Settings read endpoint and frontend connection are implemented.
+- Settings writes remain deferred.
 
 Likely files:
 
 - Backend admin users/settings controllers/services/tests.
-- Frontend user/settings pages if scoped.
+- Frontend user/settings pages and tests.
+- Contract documentation updates.
 
 Tests required:
 
 - Secret redaction.
 - RBAC.
-- Settings validation.
-- Audit event for settings update if write is included.
+- User list filtering, pagination, and empty states.
+- User status update audit event.
+- Settings read empty states.
+- No fake frontend users/settings.
+- No unsupported account or settings controls.
 
 Risks:
 
@@ -1182,9 +1329,11 @@ Risks:
 
 Must not include:
 
-- Role/status mutations before audit tests.
+- Role mutations.
+- User status mutation without audit tests.
 - Password reset delegation unless scoped.
 - Threshold changes without evaluation.
+- Arbitrary settings writes.
 
 ### PR #100: Admin Reports + Research Analytics
 
@@ -1325,13 +1474,15 @@ Must not include:
 
 This PR does not:
 
-- Add endpoints other than the read-only admin topic repository endpoints.
+- Add endpoints other than admin user list/detail, admin user status update, and admin settings read.
 - Add Prisma migrations.
-- Connect frontend pages other than the admin Topic Repository page.
-- Implement admin mutations.
+- Connect frontend pages other than User Management and System Settings.
+- Implement admin mutations beyond the audited user status update.
 - Implement exports.
 - Implement import UI.
 - Change import parser, normalization, persistence, or commit behavior.
+- Implement create-user, delete-user, role-change, invitation, password-reset, bulk account, or profile-edit workflows.
+- Implement settings writes, threshold sliders, feature toggles, email controls, or arbitrary configuration updates.
 - Implement an email provider.
 - Add notifications.
 - Change similarity behavior.
@@ -1341,18 +1492,18 @@ This PR does not:
 - Change existing route behavior.
 - Change package files.
 - Add fake admin data.
-- Add fake topic rows, fake repository metrics, fake risk scores, fake audit activity, or fake import results.
+- Add fake users, fake settings, fake last-active values, fake supervisor assignments, fake reports, fake exports, fake audit activity, or fake analytics.
 
 ## 20. Verification
 
-Requested verification commands for PR #98:
+Requested verification commands for PR #99:
 
 ```powershell
 cd backend
 npm test -- --runInBand
 cd ..\frontend
 npm run build
-npm test -- --run tests/AdminTopicRepositoryPage.test.jsx
+npm test -- --run tests/AdminUserManagementPage.test.jsx tests/AdminSystemSettingsPage.test.jsx tests/AdminTopicRepositoryPage.test.jsx tests/AdminDashboardPage.test.jsx
 npm test -- --run --maxWorkers=1 --minWorkers=1
 npm run smoke:figma-ui
 cd ..
@@ -1365,16 +1516,21 @@ git diff --name-only
 Expected implementation files:
 
 ```text
-backend/src/controllers/adminTopicRepository.controller.js
-backend/src/controllers/adminTopicRepository.controller.test.js
-backend/src/services/adminTopicRepository.service.js
-backend/src/services/adminTopicRepository.service.test.js
+backend/src/controllers/adminSettings.controller.js
+backend/src/controllers/adminSettings.controller.test.js
+backend/src/controllers/adminUser.controller.js
+backend/src/controllers/adminUser.controller.test.js
+backend/src/services/adminSettings.service.js
+backend/src/services/adminSettings.service.test.js
+backend/src/services/adminUser.service.js
+backend/src/services/adminUser.service.test.js
 backend/src/server.js
 docs/backend/admin-governance-api-contract-plan.md
-docs/setup/import-workflow.md
 frontend/src/api/admin.js
-frontend/src/pages/admin/TopicRepositoryPage.jsx
+frontend/src/pages/admin/SystemSettingsPage.jsx
+frontend/src/pages/admin/UserManagementPage.jsx
 frontend/src/pages/rolePages.jsx
-frontend/tests/AdminTopicRepositoryPage.test.jsx
+frontend/tests/AdminSystemSettingsPage.test.jsx
+frontend/tests/AdminUserManagementPage.test.jsx
 frontend/tests/smoke/figma-ui-flow.spec.js
 ```

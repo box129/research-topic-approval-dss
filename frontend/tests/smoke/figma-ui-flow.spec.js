@@ -231,8 +231,6 @@ test('admin Figma UI route renders honest dashboard shell', async ({ page, conte
     expect(bodyText).not.toMatch(/lecturer\.demo@|student\.demo@/i);
 
     const placeholderRoutes = [
-      ['/admin/user-management', 'User Management'],
-      ['/admin/system-settings', 'System Settings'],
       ['/admin/audit-log', 'Audit Log'],
       ['/admin/reports', 'Reports']
     ];
@@ -243,6 +241,25 @@ test('admin Figma UI route renders honest dashboard shell', async ({ page, conte
     await expect(page.getByText(/Read-only repository data/i)).toBeVisible();
     await expect(page.getByText(/No fake repository rows/i)).toBeVisible();
     await expect(page.getByText(/No import UI, exports, edits, deletes, or fabricated topic rows/i)).toBeVisible();
+
+    await page.goto('/admin/user-management');
+    await expect.poll(() => getPathname(page)).toBe('/admin/user-management');
+    await expect(page.getByRole('heading', { exact: true, level: 1, name: 'User Management' })).toBeVisible();
+    await expect(page.getByText(/Real account records/i)).toBeVisible();
+    await expect(page.getByText(/No privileged account workflow is invented/i)).toBeVisible();
+    await expect(page.getByText(/does not create users, change roles, reset passwords, invite accounts, delete records/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /add user/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /delete/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /reset password/i })).toHaveCount(0);
+
+    await page.goto('/admin/system-settings');
+    await expect.poll(() => getPathname(page)).toBe('/admin/system-settings');
+    await expect(page.getByRole('heading', { exact: true, level: 1, name: 'System Settings' })).toBeVisible();
+    await expect(page.getByText(/Read-only settings data/i)).toBeVisible();
+    await expect(page.getByText(/Settings updates remain deferred/i).first()).toBeVisible();
+    await expect(page.getByText(/No PATCH or save workflow is connected/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /save/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /edit/i })).toHaveCount(0);
 
     for (const [path, heading] of placeholderRoutes) {
       await page.goto(path);

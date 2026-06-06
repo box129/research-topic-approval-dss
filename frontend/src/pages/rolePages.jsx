@@ -1,6 +1,8 @@
 import AdminDashboard from './admin/DashboardPage';
 import AdminPlaceholderPage from './admin/PlaceholderPage';
+import AdminSystemSettings from './admin/SystemSettingsPage';
 import AdminTopicRepository from './admin/TopicRepositoryPage';
+import AdminUserManagement from './admin/UserManagementPage';
 import LecturerDashboard from './lecturer/DashboardPage';
 import LecturerMyDecisions from './lecturer/MyDecisionsPage';
 import PendingReviewsPage from './lecturer/PendingReviewsPage';
@@ -37,23 +39,11 @@ export const StudentCheckMyTopicPage = CheckMyTopicPage;
 
 export const StudentResearchExplorerPage = ResearchExplorerPage;
 
-export const AdminUserManagementPage = () => (
-  <AdminPlaceholderPage
-    title="User Management"
-    subtitle="Protected admin workspace for future account and role administration"
-    message="Account provisioning, role updates, and user records remain unavailable until a safe admin API and scoped workflow are approved."
-  />
-);
+export const AdminUserManagementPage = AdminUserManagement;
 
 export const AdminTopicRepositoryPage = AdminTopicRepository;
 
-export const AdminSystemSettingsPage = () => (
-  <AdminPlaceholderPage
-    title="System Settings"
-    subtitle="Protected admin workspace for future configuration controls"
-    message="Configuration values and update actions remain unavailable until supported settings contracts and validation rules exist."
-  />
-);
+export const AdminSystemSettingsPage = AdminSystemSettings;
 
 export const AdminAuditLogPage = () => (
   <AdminPlaceholderPage

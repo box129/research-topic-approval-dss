@@ -17,6 +17,8 @@ let lecturerSimilarityController;
 let adminAuditLogController;
 let adminDashboardController;
 let adminTopicRepositoryController;
+let adminUserController;
+let adminSettingsController;
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler.middleware');
 const { requireAuth, requireRole } = require('./middleware/auth.middleware');
 
@@ -173,6 +175,20 @@ const getAdminTopicRepositoryController = () => {
   return adminTopicRepositoryController;
 };
 
+const getAdminUserController = () => {
+  if (!adminUserController) {
+    adminUserController = require('./controllers/adminUser.controller');
+  }
+  return adminUserController;
+};
+
+const getAdminSettingsController = () => {
+  if (!adminSettingsController) {
+    adminSettingsController = require('./controllers/adminSettings.controller');
+  }
+  return adminSettingsController;
+};
+
 app.post('/api/v1/auth/login', (req, res, next) => {
   getAuthController().login(req, res, next);
 });
@@ -223,6 +239,22 @@ app.patch('/api/v1/lecturer/submissions/:id/status', requireAuth, requireRole('l
 
 app.get('/api/v1/admin/dashboard/summary', requireAuth, requireRole('admin'), (req, res, next) => {
   getAdminDashboardController().getDashboardSummary(req, res, next);
+});
+
+app.get('/api/v1/admin/users', requireAuth, requireRole('admin'), (req, res, next) => {
+  getAdminUserController().listUsers(req, res, next);
+});
+
+app.patch('/api/v1/admin/users/:id/status', requireAuth, requireRole('admin'), (req, res, next) => {
+  getAdminUserController().updateUserStatus(req, res, next);
+});
+
+app.get('/api/v1/admin/users/:id', requireAuth, requireRole('admin'), (req, res, next) => {
+  getAdminUserController().getUserById(req, res, next);
+});
+
+app.get('/api/v1/admin/settings', requireAuth, requireRole('admin'), (req, res, next) => {
+  getAdminSettingsController().listSettings(req, res, next);
 });
 
 app.get('/api/v1/admin/topics/summary', requireAuth, requireRole('admin'), (req, res, next) => {
