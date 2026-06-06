@@ -19,6 +19,7 @@ let adminDashboardController;
 let adminTopicRepositoryController;
 let adminUserController;
 let adminSettingsController;
+let adminReportsController;
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler.middleware');
 const { requireAuth, requireRole } = require('./middleware/auth.middleware');
 
@@ -189,6 +190,13 @@ const getAdminSettingsController = () => {
   return adminSettingsController;
 };
 
+const getAdminReportsController = () => {
+  if (!adminReportsController) {
+    adminReportsController = require('./controllers/adminReports.controller');
+  }
+  return adminReportsController;
+};
+
 app.post('/api/v1/auth/login', (req, res, next) => {
   getAuthController().login(req, res, next);
 });
@@ -255,6 +263,10 @@ app.get('/api/v1/admin/users/:id', requireAuth, requireRole('admin'), (req, res,
 
 app.get('/api/v1/admin/settings', requireAuth, requireRole('admin'), (req, res, next) => {
   getAdminSettingsController().listSettings(req, res, next);
+});
+
+app.get('/api/v1/admin/reports/summary', requireAuth, requireRole('admin'), (req, res, next) => {
+  getAdminReportsController().getReportsSummary(req, res, next);
 });
 
 app.get('/api/v1/admin/topics/summary', requireAuth, requireRole('admin'), (req, res, next) => {

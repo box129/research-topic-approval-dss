@@ -1,5 +1,6 @@
 import AdminDashboard from './admin/DashboardPage';
-import AdminPlaceholderPage from './admin/PlaceholderPage';
+import AdminAuditLog from './admin/AuditLogPage';
+import AdminReports from './admin/ReportsPage';
 import AdminSystemSettings from './admin/SystemSettingsPage';
 import AdminTopicRepository from './admin/TopicRepositoryPage';
 import AdminUserManagement from './admin/UserManagementPage';
@@ -45,19 +46,6 @@ export const AdminTopicRepositoryPage = AdminTopicRepository;
 
 export const AdminSystemSettingsPage = AdminSystemSettings;
 
-export const AdminAuditLogPage = () => (
-  <AdminPlaceholderPage
-    title="Audit Log"
-    subtitle="Protected admin workspace for future audit visibility"
-    message="Audit records and filtering remain unavailable until a real audit API is connected. No activity entries are fabricated here."
-  />
-);
+export const AdminAuditLogPage = AdminAuditLog;
 
-export const AdminReportsPage = () => (
-  <AdminPlaceholderPage
-    dashboardPath="/admin/dashboard"
-    title="Reports"
-    subtitle="Protected admin workspace for future reporting"
-    message="Reports, analytics, and exports remain unavailable until real data sources and approved reporting behavior are connected."
-  />
-);
+export const AdminReportsPage = AdminReports;

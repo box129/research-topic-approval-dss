@@ -32,6 +32,30 @@ export async function updateAdminUserStatus(id, status) {
   };
 }
 
+export async function listAdminAuditLogs(params = {}) {
+  const response = await apiClient.get('/admin/audit-logs', { params });
+  return {
+    data: response.data?.data,
+    meta: response.data?.meta
+  };
+}
+
+export async function getAdminAuditLogDetail(id) {
+  const response = await apiClient.get(`/admin/audit-logs/${id}`);
+  return {
+    data: response.data?.data,
+    meta: response.data?.meta
+  };
+}
+
+export async function getAdminReportsSummary() {
+  const response = await apiClient.get('/admin/reports/summary');
+  return {
+    data: response.data?.data,
+    meta: response.data?.meta
+  };
+}
+
 export async function listAdminTopics(params = {}) {
   const response = await apiClient.get('/admin/topics', { params });
   return {

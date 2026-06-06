@@ -4,17 +4,18 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | `backend/admin-users-system-settings` |
-| Current commit hash | `5547202` |
-| Date/time | `2026-06-06 13:05:41 +01:00` |
-| Scope | Admin user management read APIs, audited user status update, system settings read API, and frontend admin page connections |
+| Branch | `backend/admin-audit-reports-governance` |
+| Current commit hash | `ca5abf9` |
+| Date/time | `2026-06-06 14:30:34 +01:00` |
+| Scope | Admin audit-log frontend connection, read-only reports summary API, admin reports frontend connection, tests, smoke, and documentation |
 | Change type | Backend, frontend, tests, and documentation |
-| Implementation status | PR #99 adds admin user list/detail APIs, an audited user status update endpoint, a read-only settings API, and frontend connections for User Management and System Settings. No Prisma migration, create/delete user workflow, role mutation, password reset delegation, settings mutation, export workflow, auth behavior change, similarity behavior change, threshold change, package file change, fake user, fake setting, fake report, or fake analytics state is introduced. |
+| Implementation status | PR #100 connects the admin Audit Log page to existing audit-log read endpoints, adds a read-only admin reports summary endpoint, and connects the admin Reports page to real aggregate data. No Prisma migration, report export workflow, audit deletion/export workflow, admin mutation, auth behavior change, similarity behavior change, threshold change, package file change, fake audit row, fake report metric, fake chart, fake export, or fake analytics state is introduced. |
 
 Latest relevant PRs:
 
 | PR | Summary | Relevance |
 | --- | --- | --- |
+| #99 | feat: add admin users and settings APIs | Added admin user list/detail APIs, the audited user status mutation, the read-only settings API, and frontend User Management/System Settings connections. |
 | #98 | feat: add admin topic repository API | Added read-only admin topic repository endpoints and connected the admin Topic Repository page to real lifecycle topic data. |
 | #97 | feat: add admin dashboard summary API | Added the read-only admin dashboard summary endpoint and connected the admin dashboard to real safe counts. |
 | #96 | feat: add audit log and admin import governance foundation | Added audit log model/service/read endpoints, hardened import routes, and established admin governance foundation. |
@@ -157,6 +158,42 @@ Still deferred after PR #99:
 - Production email and notifications.
 - Any similarity scoring or threshold changes.
 
+### Implementation Status After PR #100
+
+PR #100 implements the admin audit-log and reports governance slice from this plan:
+
+- `/admin/audit-log` now renders a connected read-only audit page instead of the generic placeholder.
+- The Audit Log page calls existing admin audit endpoints:
+  - `GET /api/v1/admin/audit-logs`
+  - `GET /api/v1/admin/audit-logs/:id`
+- Audit list filters support search, actor role, and event type without creating, deleting, exporting, purging, or fabricating audit records.
+- Audit detail displays only the safe serialized audit-log shape returned by the existing audit service.
+- `GET /api/v1/admin/reports/summary` is added and protected by `requireAuth` plus `requireRole('admin')`.
+- `backend/src/services/adminReports.service.js` aggregates read-only counts from existing tables:
+  - `User`
+  - `Submission`
+  - `HistoricalTopic`
+  - `CurrentSessionTopic`
+  - `UnderReviewTopic`
+  - `SimilarityCheckSnapshot`
+  - `AuditLog`
+- The reports summary response includes honest metadata such as `generatedAt`, `dataCoverage`, `sourceTables`, and `exportStatus: "deferred"`.
+- `/admin/reports` now renders a connected read-only reports summary page instead of the generic placeholder.
+- The Reports page displays aggregate values only when returned by the reports endpoint, shows honest zero-data/error states, and keeps CSV/PDF/download workflows disabled and deferred.
+- No report files, export jobs, fake charts, fake audit activity, fake analytics, report mutations, audit mutations, settings mutations, user mutations, or import UI are added by PR #100.
+
+Still deferred after PR #100:
+
+- Admin report export generation.
+- Audit log export/purge/delete workflows.
+- Admin user mutations beyond status updates.
+- Admin system settings mutations.
+- Import UI and duplicate-resolution workflow.
+- Richer import duplicate-existing checks and operator-facing row-level report shape.
+- Lecturer decision history, supervisees, and research trends APIs.
+- Production email and notifications.
+- Any similarity scoring or threshold changes.
+
 ## 2. Current Reality From Repository
 
 ### Existing Backend Behavior
@@ -181,7 +218,8 @@ Still deferred after PR #99:
 | Admin topic repository | Protected read-only page connected to lifecycle topic repository endpoints. It shows real rows, safe empty states, and no import/export/edit actions. | `frontend/src/pages/admin/TopicRepositoryPage.jsx`, `frontend/src/pages/rolePages.jsx` |
 | Admin user management | Protected page connected to admin user read endpoints. It shows real user rows, safe filters, empty/error states, and a narrow audited status action. It does not expose create, delete, role-change, invitation, or password-reset workflows. | `frontend/src/pages/admin/UserManagementPage.jsx`, `frontend/src/pages/rolePages.jsx` |
 | Admin system settings | Protected read-only page connected to existing `SystemSetting` records. It does not expose save controls, threshold sliders, feature toggles, or arbitrary settings writes. | `frontend/src/pages/admin/SystemSettingsPage.jsx`, `frontend/src/pages/rolePages.jsx` |
-| Admin secondary placeholders | Audit Log and Reports remain protected presentation-only placeholders. | `frontend/src/pages/admin/PlaceholderPage.jsx`, `frontend/src/pages/rolePages.jsx` |
+| Admin audit log | Protected read-only page connected to existing audit-log list/detail endpoints. It shows stored audit events, honest empty/error states, and no export/delete/purge actions. | `frontend/src/pages/admin/AuditLogPage.jsx`, `frontend/src/pages/rolePages.jsx` |
+| Admin reports | Protected read-only page connected to the admin reports summary endpoint. It shows real aggregates, honest zero-data/error states, and disabled/deferred export messaging. | `frontend/src/pages/admin/ReportsPage.jsx`, `frontend/src/pages/rolePages.jsx` |
 | Lecturer decisions | Placeholder page for future decision history. | `frontend/src/pages/lecturer/MyDecisionsPage.jsx` |
 | Lecturer supervisees | Placeholder page for future supervisee assignment/progress workflow. | `frontend/src/pages/lecturer/SuperviseesPage.jsx` |
 | Lecturer trends | Placeholder page for future analytics. | `frontend/src/pages/lecturer/ResearchTrendsPage.jsx` |
@@ -196,6 +234,7 @@ The current schema includes:
 - `SystemSetting`
 - `Submission`
 - `SimilarityCheckSnapshot`
+- `AuditLog`
 - `HistoricalTopic`
 - `CurrentSessionTopic`
 - `UnderReviewTopic`
@@ -208,11 +247,12 @@ Enums include:
 
 ### Missing Backend/Governance Areas
 
-These do not currently exist as implemented APIs/models/services in the inspected repository after PR #99:
+These do not currently exist as implemented APIs/models/services in the inspected repository after PR #100:
 
 - Admin user mutations beyond audited status updates.
 - Admin system settings mutations.
-- Admin reports endpoint and export workflow.
+- Admin reports export workflow.
+- Audit log export, purge, and delete workflows.
 - Lecturer decision history endpoint.
 - Lecturer supervisee assignment endpoint.
 - Lecturer/admin research trends analytics endpoint.
@@ -952,6 +992,13 @@ GET /api/v1/admin/audit-logs
 GET /api/v1/admin/audit-logs/:id
 ```
 
+Implementation status after PR #100:
+
+- Implemented as admin-only read endpoints since PR #96.
+- `/admin/audit-log` now calls the existing list and detail endpoints.
+- The frontend renders stored events, safe serialized detail, empty states, and endpoint error states.
+- No audit export, audit purge, audit delete, or fabricated event workflow is connected.
+
 ### Filters
 
 ```text
@@ -987,6 +1034,14 @@ GET /api/v1/admin/reports/current-session
 GET /api/v1/admin/reports/topic-approval
 ```
 
+Implementation status after PR #100:
+
+- `GET /api/v1/admin/reports/summary` is implemented as an admin-only read endpoint.
+- The summary endpoint aggregates only existing table counts and grouped counts from `User`, `Submission`, topic lifecycle tables, `SimilarityCheckSnapshot`, and `AuditLog`.
+- `/admin/reports` now calls the summary endpoint and renders returned aggregates with honest zero-data/error states.
+- `GET /api/v1/admin/reports/current-session` and `GET /api/v1/admin/reports/topic-approval` remain deferred.
+- Export generation remains deferred.
+
 Deferred export endpoint:
 
 ```text
@@ -1000,6 +1055,18 @@ POST /api/v1/admin/reports/:type/export
 - Do not fabricate charts, topic counts, approval rates, supervisor ratios, or export files.
 - PDF/CSV export should not be built until report data is stable and audit logging exists.
 - Export generation should be audited as `REPORT_EXPORTED`.
+
+### Implemented Summary Response Shape After PR #100
+
+The implemented summary response includes:
+
+- `users`: total, role counts, and status counts.
+- `submissions`: total, status counts, and decision coverage.
+- `topics`: total and lifecycle counts.
+- `similarityChecks`: stored snapshot count, risk grouping, and response-status grouping.
+- `auditLogs`: total, actor-role grouping, and top event types.
+- `exports`: `status: "deferred"` with an explicit no-export message.
+- `meta`: `generatedAt`, `dataCoverage`, `sourceTables`, and `exportStatus`.
 
 ### Example Summary Response
 
@@ -1335,32 +1402,44 @@ Must not include:
 - Threshold changes without evaluation.
 - Arbitrary settings writes.
 
-### PR #100: Admin Reports + Research Analytics
+### PR #100: Admin Audit Log + Reports Governance
 
 Purpose:
 
-- Add read-only report and analytics endpoints using real data.
+- Connect the existing audit-log read API to the admin Audit Log page.
+- Add the read-only admin reports summary endpoint using real data.
+- Connect the admin Reports page to the summary endpoint while keeping exports deferred.
+
+Status:
+
+- Implemented by branch `backend/admin-audit-reports-governance`.
 
 Likely files:
 
-- Backend reports/analytics services/controllers/tests.
-- Admin reports frontend if scoped.
+- Backend admin reports service/controller/tests.
+- Admin Audit Log and Reports frontend pages.
+- Admin API helper, role page exports, smoke, and governance docs.
 
 Tests required:
 
-- Empty arrays and data coverage.
+- Audit list/detail frontend states.
+- Reports empty states and data coverage.
 - Aggregation correctness.
 - Role enforcement.
+- Export-deferred assertions.
 
 Risks:
 
 - Fake or misleading metrics.
 - Overexpanding exports.
+- Overclaiming analytics from sparse data.
 
 Must not include:
 
 - PDF/CSV export generation unless report data is stable and audit logging exists.
 - Fake charts.
+- Fake audit records.
+- Audit deletion or purge workflows.
 
 ### PR #101: Lecturer Decision History + Supervisees
 
@@ -1474,11 +1553,12 @@ Must not include:
 
 This PR does not:
 
-- Add endpoints other than admin user list/detail, admin user status update, and admin settings read.
+- Add endpoints other than `GET /api/v1/admin/reports/summary`.
 - Add Prisma migrations.
-- Connect frontend pages other than User Management and System Settings.
-- Implement admin mutations beyond the audited user status update.
+- Connect frontend pages other than Audit Log and Reports.
+- Implement admin mutations.
 - Implement exports.
+- Implement audit export, purge, or delete workflows.
 - Implement import UI.
 - Change import parser, normalization, persistence, or commit behavior.
 - Implement create-user, delete-user, role-change, invitation, password-reset, bulk account, or profile-edit workflows.
@@ -1492,18 +1572,18 @@ This PR does not:
 - Change existing route behavior.
 - Change package files.
 - Add fake admin data.
-- Add fake users, fake settings, fake last-active values, fake supervisor assignments, fake reports, fake exports, fake audit activity, or fake analytics.
+- Add fake users, fake settings, fake last-active values, fake supervisor assignments, fake audit rows, fake reports, fake exports, fake charts, fake activity, or fake analytics.
 
 ## 20. Verification
 
-Requested verification commands for PR #99:
+Requested verification commands for PR #100:
 
 ```powershell
 cd backend
 npm test -- --runInBand
 cd ..\frontend
 npm run build
-npm test -- --run tests/AdminUserManagementPage.test.jsx tests/AdminSystemSettingsPage.test.jsx tests/AdminTopicRepositoryPage.test.jsx tests/AdminDashboardPage.test.jsx
+npm test -- --run tests/AdminAuditLogPage.test.jsx tests/AdminReportsPage.test.jsx tests/AdminUserManagementPage.test.jsx tests/AdminSystemSettingsPage.test.jsx tests/AdminTopicRepositoryPage.test.jsx tests/AdminDashboardPage.test.jsx
 npm test -- --run --maxWorkers=1 --minWorkers=1
 npm run smoke:figma-ui
 cd ..
@@ -1516,21 +1596,17 @@ git diff --name-only
 Expected implementation files:
 
 ```text
-backend/src/controllers/adminSettings.controller.js
-backend/src/controllers/adminSettings.controller.test.js
-backend/src/controllers/adminUser.controller.js
-backend/src/controllers/adminUser.controller.test.js
-backend/src/services/adminSettings.service.js
-backend/src/services/adminSettings.service.test.js
-backend/src/services/adminUser.service.js
-backend/src/services/adminUser.service.test.js
+backend/src/controllers/adminReports.controller.js
+backend/src/controllers/adminReports.controller.test.js
+backend/src/services/adminReports.service.js
+backend/src/services/adminReports.service.test.js
 backend/src/server.js
 docs/backend/admin-governance-api-contract-plan.md
 frontend/src/api/admin.js
-frontend/src/pages/admin/SystemSettingsPage.jsx
-frontend/src/pages/admin/UserManagementPage.jsx
+frontend/src/pages/admin/AuditLogPage.jsx
+frontend/src/pages/admin/ReportsPage.jsx
 frontend/src/pages/rolePages.jsx
-frontend/tests/AdminSystemSettingsPage.test.jsx
-frontend/tests/AdminUserManagementPage.test.jsx
+frontend/tests/AdminAuditLogPage.test.jsx
+frontend/tests/AdminReportsPage.test.jsx
 frontend/tests/smoke/figma-ui-flow.spec.js
 ```
