@@ -4,17 +4,18 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | `backend/lecturer-decisions-supervisees` |
-| Current commit hash | `6ecb01b` |
-| Date/time | `2026-06-07 16:33:16 +01:00` |
-| Scope | Lecturer decision history read API, My Decisions frontend connection, Supervisees deferred-state hardening, tests, smoke, and documentation |
+| Branch | `backend/lecturer-research-trends-governance` |
+| Current commit hash | `c6ada3c` |
+| Date/time | `2026-06-07 17:19:22 +01:00` |
+| Scope | Lecturer research trends read API, Research Trends frontend connection, tests, smoke, and documentation |
 | Change type | Backend, frontend, tests, and documentation |
-| Implementation status | PR #101 adds a read-only lecturer decision history endpoint and connects My Decisions to real decided submissions. Supervisees remains explicitly deferred because the current schema has no explicit supervisee assignment model or approved business rule equating reviewed submissions with supervision. No Prisma migration, lecturer decision mutation change, supervisee fabrication, report/export workflow, admin feature, auth behavior change, similarity behavior change, threshold change, package file change, fake decision row, fake supervisee, fake progress metric, or fake analytics state is introduced. |
+| Implementation status | PR #102 adds a safe read-only lecturer research trends endpoint and connects Research Trends to real aggregate topic, submission, and stored similarity snapshot data. No Prisma migration, lecturer mutation, generated recommendation, fake trend chart, fake keyword, fake analytics insight, export workflow, admin feature, auth behavior change, similarity behavior change, threshold change, or package file change is introduced. |
 
 Latest relevant PRs:
 
 | PR | Summary | Relevance |
 | --- | --- | --- |
+| #101 | feat: add lecturer decision history governance | Added read-only lecturer decision history and kept supervisees honestly deferred. |
 | #100 | feat: add admin audit log and reports governance | Connected admin Audit Log and Reports to real read-only governance data while keeping exports deferred. |
 | #99 | feat: add admin users and settings APIs | Added admin user list/detail APIs, the audited user status mutation, the read-only settings API, and frontend User Management/System Settings connections. |
 | #98 | feat: add admin topic repository API | Added read-only admin topic repository endpoints and connected the admin Topic Repository page to real lifecycle topic data. |
@@ -216,7 +217,40 @@ PR #101 implements the lecturer decision-history slice from this plan and keeps 
 Still deferred after PR #101:
 
 - Lecturer supervisee assignment model and endpoint.
-- Lecturer/admin research trends analytics.
+- Admin report export generation.
+- Audit log export/purge/delete workflows.
+- Admin user mutations beyond status updates.
+- Admin system settings mutations.
+- Import UI and duplicate-resolution workflow.
+- Production email and notifications.
+- Any similarity scoring or threshold changes.
+
+### Implementation Status After PR #102
+
+PR #102 implements the lecturer research-trends governance slice from this plan:
+
+- `GET /api/v1/lecturer/research-trends` is added and protected by `requireAuth` plus `requireRole('lecturer')`.
+- The endpoint is read-only and aggregates only existing records from:
+  - `HistoricalTopic`
+  - `CurrentSessionTopic`
+  - `UnderReviewTopic`
+  - `Submission`
+  - `SimilarityCheckSnapshot`
+- Returned trend data is limited to aggregate counts and grouped distributions:
+  - topic totals by lifecycle
+  - topic distribution by stored category
+  - topic distribution by stored session year
+  - submission totals by stored status
+  - submission distribution by stored category
+  - stored similarity snapshot counts by risk and response status
+- Keyword trend extraction, keyword clustering, semantic recommendations, generated insights, charts, and exports remain explicitly deferred.
+- The endpoint does not emit audit events and does not create, update, delete, export, recalculate similarity, or mutate records.
+- `frontend/src/pages/lecturer/ResearchTrendsPage.jsx` now connects `/lecturer/research-trends` to the real endpoint and renders loading, aggregate, zero-data, error, and deferred-keyword/recommendation states.
+- Research Trends does not expose mutation controls, export buttons, fake chart data, fake keyword rows, fake recommendations, fake research insights, threshold controls, or similarity recalculation actions.
+
+Still deferred after PR #102:
+
+- Lecturer supervisee assignment model and endpoint.
 - Admin report export generation.
 - Audit log export/purge/delete workflows.
 - Admin user mutations beyond status updates.
@@ -253,7 +287,7 @@ Still deferred after PR #101:
 | Admin reports | Protected read-only page connected to the admin reports summary endpoint. It shows real aggregates, honest zero-data/error states, and disabled/deferred export messaging. | `frontend/src/pages/admin/ReportsPage.jsx`, `frontend/src/pages/rolePages.jsx` |
 | Lecturer decisions | Protected read-only page connected to the lecturer decision-history endpoint. It shows real decided submissions, safe filters, empty/error states, and no decision/export/report actions. | `frontend/src/pages/lecturer/MyDecisionsPage.jsx` |
 | Lecturer supervisees | Protected deferred page. It does not derive supervisees from reviewed submissions because no explicit assignment model/business rule exists yet. | `frontend/src/pages/lecturer/SuperviseesPage.jsx` |
-| Lecturer trends | Placeholder page for future analytics. | `frontend/src/pages/lecturer/ResearchTrendsPage.jsx` |
+| Lecturer trends | Protected read-only page connected to lecturer research-trends aggregates. It shows real topic/submission/snapshot counts, honest zero/error states, and no fake charts, keyword clusters, recommendations, exports, or mutations. | `frontend/src/pages/lecturer/ResearchTrendsPage.jsx` |
 
 ### Existing Prisma Models
 
@@ -285,7 +319,7 @@ These do not currently exist as implemented APIs/models/services in the inspecte
 - Admin reports export workflow.
 - Audit log export, purge, and delete workflows.
 - Lecturer supervisee assignment endpoint.
-- Lecturer/admin research trends analytics endpoint.
+- Admin research trends analytics endpoint.
 - Production email provider.
 - Notification model/service.
 
@@ -1240,6 +1274,14 @@ GET /api/v1/admin/analytics/research-trends
 GET /api/v1/lecturer/research-trends
 ```
 
+Implementation status after PR #102:
+
+- `GET /api/v1/lecturer/research-trends` is implemented as a lecturer-only read endpoint.
+- Protected by `requireAuth` and `requireRole('lecturer')`.
+- No request body is accepted or required.
+- No records are created, updated, deleted, exported, audited, recalculated, or mutated by this endpoint.
+- The admin analytics endpoint remains deferred.
+
 ### Candidate Analytics
 
 - Topic distribution by category.
@@ -1249,6 +1291,18 @@ GET /api/v1/lecturer/research-trends
 - Keyword trends only when real keyword data exists.
 - Supervisor or reviewer workload only when real assignment/review data exists.
 
+### Implemented Lecturer Analytics After PR #102
+
+- Topic distribution by stored category.
+- Topic distribution by stored session year.
+- Topic totals by lifecycle table.
+- Submission totals by stored status.
+- Submission distribution by stored category.
+- Stored similarity snapshot counts by risk and response status.
+- Explicit deferred states for keyword extraction/clustering and recommendations.
+
+Keyword extraction remains deferred because PR #102 does not introduce a keyword analytics contract, semantic clustering, or recommendation engine.
+
 ### Rules
 
 - No fake charts.
@@ -1257,6 +1311,8 @@ GET /api/v1/lecturer/research-trends
 - Include `dataCoverage` notes.
 - Include `sourceTables` in metadata.
 - Avoid claiming semantic trends when SBERT data is unavailable.
+- Do not fabricate keywords, recommendations, or research insights.
+- Do not change similarity thresholds, snapshot scoring, or SBERT behavior.
 
 ### Frontend Integration
 
@@ -1264,6 +1320,13 @@ Targets:
 
 - `frontend/src/pages/admin/PlaceholderPage.jsx` for Reports.
 - `frontend/src/pages/lecturer/ResearchTrendsPage.jsx`.
+
+Frontend implementation status after PR #102:
+
+- `/lecturer/research-trends` now renders a connected read-only aggregate page.
+- Loading, real aggregate, zero-data, and endpoint-error states are explicit.
+- Keyword trends and recommendations are visibly deferred.
+- Export, download, generated chart, threshold, mutation, and recommendation actions remain unavailable.
 
 ## 16. Security and Authorization Matrix
 
@@ -1545,7 +1608,48 @@ Must not include:
 - Fake decisions.
 - Supervisees derived from reviewed submissions without a real assignment rule.
 
-### PR #102: Production Email + Notification Foundation
+### PR #102: Lecturer Research Trends Governance
+
+Purpose:
+
+- Add read-only lecturer research trend aggregates backed by existing topic, submission, and similarity snapshot data.
+- Connect Research Trends to the real endpoint while keeping keyword clustering, recommendations, charts, exports, and mutations deferred.
+
+Status:
+
+- Implemented by branch `backend/lecturer-research-trends-governance`.
+
+Likely files:
+
+- Backend lecturer research trends service/controller/tests.
+- Frontend submissions API helper.
+- Lecturer Research Trends page and tests.
+- Smoke and governance docs.
+
+Tests required:
+
+- Lecturer-only access.
+- Aggregate correctness.
+- Empty aggregate state.
+- No raw rows, embeddings, or sensitive user fields.
+- No mutation/export/recommendation/chart actions.
+- No fake frontend trends, keywords, or insights.
+
+Risks:
+
+- Overclaiming analytics from sparse or imported records.
+- Treating stored snapshot risks as live SBERT health or recalculated similarity.
+
+Must not include:
+
+- Fake trend charts.
+- Fake keywords.
+- Fake analytics insights.
+- Generated recommendations.
+- Lecturer mutations.
+- Similarity threshold or scoring changes.
+
+### PR #103: Production Email + Notification Foundation
 
 Purpose:
 
@@ -1574,7 +1678,7 @@ Must not include:
 - Fake notification feeds.
 - Unconfigured provider behavior.
 
-### PR #103: Evaluation, Data Quality, and FYP Evidence
+### PR #104: Evaluation, Data Quality, and FYP Evidence
 
 Purpose:
 
@@ -1600,7 +1704,7 @@ Must not include:
 
 - Production threshold/scoring changes without scoped approval.
 
-### PR #104: Deployment Readiness + Release Candidate
+### PR #105: Deployment Readiness + Release Candidate
 
 Purpose:
 
@@ -1628,13 +1732,16 @@ Must not include:
 
 This PR does not:
 
-- Add endpoints other than `GET /api/v1/lecturer/decisions`.
+- Add endpoints other than `GET /api/v1/lecturer/research-trends`.
 - Add Prisma migrations.
-- Connect frontend pages other than My Decisions and the Supervisees deferred-state copy update.
+- Connect frontend pages other than Research Trends.
 - Implement lecturer mutations.
 - Change the existing lecturer approval/revision/rejection endpoint or payload.
 - Implement supervisee assignment endpoints.
 - Implement exports.
+- Implement generated trend charts.
+- Implement keyword clustering or keyword recommendations.
+- Implement generated research insights or recommendations.
 - Implement audit export, purge, or delete workflows.
 - Implement admin features.
 - Implement import UI.
@@ -1650,18 +1757,18 @@ This PR does not:
 - Change existing route behavior.
 - Change package files.
 - Add fake admin data.
-- Add fake users, fake settings, fake last-active values, fake supervisor assignments, fake supervisees, fake decision rows, fake audit rows, fake reports, fake exports, fake charts, fake activity, or fake analytics.
+- Add fake users, fake settings, fake last-active values, fake supervisor assignments, fake supervisees, fake decision rows, fake audit rows, fake reports, fake exports, fake trend charts, fake keywords, fake recommendations, fake activity, fake research insights, or fake analytics.
 
 ## 20. Verification
 
-Requested verification commands for PR #101:
+Requested verification commands for PR #102:
 
 ```powershell
 cd backend
 npm test -- --runInBand
 cd ..\frontend
 npm run build
-npm test -- --run tests/LecturerMyDecisionsPage.test.jsx tests/LecturerSuperviseesPage.test.jsx
+npm test -- --run tests/LecturerResearchTrendsPage.test.jsx
 npm test -- --run --maxWorkers=1 --minWorkers=1
 npm run smoke:figma-ui
 cd ..
@@ -1674,16 +1781,14 @@ git diff --name-only
 Expected implementation files:
 
 ```text
-backend/src/controllers/submission.controller.js
-backend/src/controllers/submission.controller.test.js
-backend/src/services/submission.service.js
-backend/src/services/submission.service.test.js
+backend/src/controllers/lecturerResearchTrends.controller.js
+backend/src/controllers/lecturerResearchTrends.controller.test.js
+backend/src/services/lecturerResearchTrends.service.js
+backend/src/services/lecturerResearchTrends.service.test.js
 backend/src/server.js
 docs/backend/admin-governance-api-contract-plan.md
 frontend/src/api/submissions.js
-frontend/src/pages/lecturer/MyDecisionsPage.jsx
-frontend/src/pages/lecturer/SuperviseesPage.jsx
-frontend/tests/LecturerMyDecisionsPage.test.jsx
-frontend/tests/LecturerSuperviseesPage.test.jsx
+frontend/src/pages/lecturer/ResearchTrendsPage.jsx
+frontend/tests/LecturerResearchTrendsPage.test.jsx
 frontend/tests/smoke/figma-ui-flow.spec.js
 ```
