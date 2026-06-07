@@ -63,6 +63,23 @@ async function listLecturerPendingSubmissions(req, res) {
   }
 }
 
+async function listLecturerDecisionHistory(req, res) {
+  try {
+    const result = await submissionService.listLecturerDecisionHistory({
+      user: req.user,
+      query: req.query || {}
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: result.data,
+      meta: result.meta
+    });
+  } catch (error) {
+    return sendSubmissionError(res, error);
+  }
+}
+
 async function getLecturerSubmission(req, res) {
   try {
     const submission = await submissionService.getLecturerSubmission({
@@ -105,6 +122,7 @@ module.exports = {
   createSubmission,
   listSubmissions,
   listLecturerPendingSubmissions,
+  listLecturerDecisionHistory,
   getLecturerSubmission,
   updateLecturerSubmissionStatus
 };

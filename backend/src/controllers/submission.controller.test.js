@@ -7,6 +7,7 @@ jest.mock('../services/auth.service', () => ({
 jest.mock('../services/submission.service', () => ({
   createSubmission: jest.fn(),
   getLecturerSubmission: jest.fn(),
+  listLecturerDecisionHistory: jest.fn(),
   listLecturerPendingSubmissions: jest.fn(),
   listStudentSubmissions: jest.fn(),
   updateLecturerSubmissionStatus: jest.fn()
@@ -225,6 +226,159 @@ describe('Submission API routes', () => {
     expect(submissionService.listLecturerPendingSubmissions).toHaveBeenCalledWith({
       user: lecturerUser
     });
+  });
+
+  test('lecturer can list own decision history', async () => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+    submissionService.listLecturerDecisionHistory.mockResolvedValue({
+      data: {
+        items: [
+          {
+            id: 3,
+            title: 'Knowledge of malaria prevention among undergraduate public health students',
+            studentName: 'Student Demo',
+            studentEmail: 'student.demo@uniosun.edu.ng',
+            category: 'Public Health',
+            status: 'APPROVED',
+            submittedAt: '2026-05-19T10:00:00.000Z',
+            decidedAt: '2026-05-22T10:00:00.000Z',
+            decisionFeedback: null,
+            similaritySnapshotId: 12
+          }
+        ]
+      },
+      meta: {
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 1,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPreviousPage: false
+        },
+        filters: {
+          status: 'approved',
+          search: 'malaria'
+        },
+        generatedAt: '2026-06-07T09:00:00.000Z',
+        dataCoverage: 'Read-only lecturer decision history from existing submissions.'
+      }
+    });
+
+    const response = await request(app)
+      .get('/api/v1/lecturer/decisions?status=approved&search=malaria&page=1&limit=10')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .expect(200);
+
+    expect(response.body).toMatchObject({
+      success: true,
+      data: {
+        items: [
+          {
+            id: 3,
+            studentName: 'Student Demo',
+            status: 'APPROVED',
+            similaritySnapshotId: 12
+          }
+        ]
+      },
+      meta: {
+        filters: {
+          status: 'approved',
+          search: 'malaria'
+        }
+      }
+    });
+    expect(response.body.data.items[0]).not.toHaveProperty('passwordHash');
+    expect(response.body.data.items[0]).not.toHaveProperty('resetTokenHash');
+    expect(submissionService.listLecturerDecisionHistory).toHaveBeenCalledWith({
+      user: lecturerUser,
+      query: expect.objectContaining({
+        status: 'approved',
+        search: 'malaria',
+        page: '1',
+        limit: '10'
+      })
+    });
+  });
+
+  test('empty lecturer decision history returns items array and pagination metadata', async () => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+    submissionService.listLecturerDecisionHistory.mockResolvedValue({
+      data: { items: [] },
+      meta: {
+        pagination: {
+          page: 1,
+          limit: 25,
+          total: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPreviousPage: false
+        },
+        filters: {},
+        generatedAt: '2026-06-07T09:00:00.000Z',
+        dataCoverage: 'Read-only lecturer decision history from existing submissions.'
+      }
+    });
+
+    const response = await request(app)
+      .get('/api/v1/lecturer/decisions')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .expect(200);
+
+    expect(response.body).toMatchObject({
+      success: true,
+      data: { items: [] },
+      meta: {
+        pagination: {
+          total: 0
+        }
+      }
+    });
+  });
+
+  test('unauthenticated lecturer decision history request is rejected', async () => {
+    authService.authenticateToken.mockRejectedValue({
+      statusCode: 401,
+      code: 'AUTHENTICATION_REQUIRED',
+      message: 'Authentication required.'
+    });
+
+    const response = await request(app)
+      .get('/api/v1/lecturer/decisions')
+      .expect(401);
+
+    expect(response.body).toMatchObject({
+      status: 'error',
+      details: {
+        error_code: 'AUTHENTICATION_REQUIRED'
+      }
+    });
+    expect(submissionService.listLecturerDecisionHistory).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    'student',
+    'admin'
+  ])('%s cannot access lecturer decision history', async (role) => {
+    authService.authenticateToken.mockResolvedValue({
+      id: 2,
+      role,
+      status: 'active'
+    });
+
+    const response = await request(app)
+      .get('/api/v1/lecturer/decisions')
+      .set('Cookie', [`rtadss_session=signed-${role}-token`])
+      .expect(403);
+
+    expect(response.body).toMatchObject({
+      status: 'error',
+      details: {
+        error_code: 'FORBIDDEN'
+      }
+    });
+    expect(submissionService.listLecturerDecisionHistory).not.toHaveBeenCalled();
   });
 
   test('unauthenticated lecturer queue request is rejected', async () => {

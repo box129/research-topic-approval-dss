@@ -12,10 +12,15 @@ function createPrismaMock(overrides = {}) {
     },
     submission: {
       create: jest.fn(),
+      count: jest.fn(),
       findUnique: jest.fn(),
       findMany: jest.fn(),
       update: jest.fn(),
       ...overrides.submission
+    },
+    auditLog: {
+      create: jest.fn(),
+      ...overrides.auditLog
     }
   };
 }
@@ -307,6 +312,227 @@ describe('submission.service', () => {
     })).rejects.toMatchObject({
       statusCode: 403,
       code: 'FORBIDDEN'
+    });
+  });
+
+  test('lecturer decision history lists only decisions made by the authenticated lecturer', async () => {
+    const submittedAt = new Date('2026-05-19T10:00:00Z');
+    const decidedAt = new Date('2026-05-22T10:00:00Z');
+    const prisma = createPrismaMock({
+      submission: {
+        count: jest.fn().mockResolvedValue(1),
+        findMany: jest.fn().mockResolvedValue([
+          {
+            id: 41,
+            title: validInput.title,
+            category: validInput.category,
+            status: 'APPROVED',
+            decisionReason: null,
+            decidedById: lecturerUser.id,
+            decidedAt,
+            submittedAt,
+            student: {
+              name: 'Student Demo',
+              email: 'student.demo@uniosun.edu.ng'
+            },
+            similarityCheckSnapshots: [
+              { id: 91 }
+            ]
+          }
+        ])
+      }
+    });
+    const service = createSubmissionService({ prismaClient: prisma });
+
+    const result = await service.listLecturerDecisionHistory({
+      user: lecturerUser,
+      query: {
+        page: '1',
+        limit: '10',
+        sort: 'decidedAt',
+        direction: 'desc'
+      }
+    });
+
+    expect(prisma.submission.findMany).toHaveBeenCalledWith({
+      where: {
+        decidedById: lecturerUser.id,
+        decidedAt: {
+          not: null
+        },
+        status: {
+          in: ['APPROVED', 'REJECTED', 'AWAITING_REVISION']
+        }
+      },
+      orderBy: {
+        decidedAt: 'desc'
+      },
+      skip: 0,
+      take: 10,
+      include: {
+        student: {
+          select: {
+            name: true,
+            email: true
+          }
+        },
+        similarityCheckSnapshots: {
+          orderBy: {
+            createdAt: 'desc'
+          },
+          select: {
+            id: true
+          },
+          take: 1
+        }
+      }
+    });
+    expect(prisma.submission.count).toHaveBeenCalledWith({
+      where: prisma.submission.findMany.mock.calls[0][0].where
+    });
+    expect(result.data.items).toEqual([
+      {
+        id: 41,
+        title: validInput.title,
+        studentName: 'Student Demo',
+        studentEmail: 'student.demo@uniosun.edu.ng',
+        category: validInput.category,
+        status: 'APPROVED',
+        submittedAt: '2026-05-19T10:00:00.000Z',
+        decidedAt: '2026-05-22T10:00:00.000Z',
+        decisionFeedback: null,
+        similaritySnapshotId: 91
+      }
+    ]);
+    expect(result.meta.pagination).toMatchObject({
+      page: 1,
+      limit: 10,
+      total: 1,
+      totalPages: 1,
+      hasNextPage: false,
+      hasPreviousPage: false
+    });
+    expect(result.data.items[0]).not.toHaveProperty('passwordHash');
+    expect(result.data.items[0]).not.toHaveProperty('resetTokenHash');
+    expect(prisma.auditLog.create).not.toHaveBeenCalled();
+  });
+
+  test('lecturer decision history applies filters, search, sort, and pagination', async () => {
+    const prisma = createPrismaMock({
+      submission: {
+        count: jest.fn().mockResolvedValue(0),
+        findMany: jest.fn().mockResolvedValue([])
+      }
+    });
+    const service = createSubmissionService({ prismaClient: prisma });
+
+    const result = await service.listLecturerDecisionHistory({
+      user: lecturerUser,
+      query: {
+        status: 'rejected',
+        dateFrom: '2026-05-01T00:00:00.000Z',
+        dateTo: '2026-05-31T23:59:59.000Z',
+        category: 'Public Health',
+        search: 'malaria',
+        page: '2',
+        limit: '5',
+        sort: 'submittedAt',
+        direction: 'asc'
+      }
+    });
+
+    expect(prisma.submission.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        decidedById: lecturerUser.id,
+        decidedAt: {
+          not: null,
+          gte: expect.any(Date),
+          lte: expect.any(Date)
+        },
+        status: 'REJECTED',
+        category: {
+          equals: 'Public Health',
+          mode: 'insensitive'
+        },
+        OR: expect.any(Array)
+      }),
+      orderBy: {
+        submittedAt: 'asc'
+      },
+      skip: 5,
+      take: 5
+    }));
+    expect(result).toMatchObject({
+      data: {
+        items: []
+      },
+      meta: {
+        pagination: {
+          page: 2,
+          limit: 5,
+          total: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPreviousPage: true
+        },
+        filters: {
+          status: 'rejected',
+          dateFrom: '2026-05-01T00:00:00.000Z',
+          dateTo: '2026-05-31T23:59:59.000Z',
+          category: 'Public Health',
+          search: 'malaria',
+          sort: 'submittedAt',
+          direction: 'asc'
+        },
+        dataCoverage: 'Read-only lecturer decision history from existing submissions.'
+      }
+    });
+  });
+
+  test('lecturer decision history returns an honest empty list', async () => {
+    const prisma = createPrismaMock({
+      submission: {
+        count: jest.fn().mockResolvedValue(0),
+        findMany: jest.fn().mockResolvedValue([])
+      }
+    });
+    const service = createSubmissionService({ prismaClient: prisma });
+
+    const result = await service.listLecturerDecisionHistory({
+      user: lecturerUser,
+      query: {}
+    });
+
+    expect(result.data.items).toEqual([]);
+    expect(result.meta.pagination).toMatchObject({
+      total: 0,
+      totalPages: 0
+    });
+  });
+
+  test('lecturer decision history rejects unsupported filters', async () => {
+    const service = createSubmissionService({ prismaClient: createPrismaMock() });
+
+    await expect(service.listLecturerDecisionHistory({
+      user: lecturerUser,
+      query: {
+        status: 'pending_review'
+      }
+    })).rejects.toMatchObject({
+      statusCode: 400,
+      code: 'INVALID_DECISION_STATUS_FILTER',
+      field: 'status'
+    });
+
+    await expect(service.listLecturerDecisionHistory({
+      user: lecturerUser,
+      query: {
+        sort: 'studentEmail'
+      }
+    })).rejects.toMatchObject({
+      statusCode: 400,
+      code: 'INVALID_DECISION_SORT',
+      field: 'sort'
     });
   });
 

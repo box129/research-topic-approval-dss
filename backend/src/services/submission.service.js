@@ -7,6 +7,15 @@ const LECTURER_STATUS_UPDATES = {
   rejected: 'REJECTED',
   awaiting_revision: 'AWAITING_REVISION'
 };
+const LECTURER_DECISION_STATUSES = {
+  approved: 'APPROVED',
+  rejected: 'REJECTED',
+  awaiting_revision: 'AWAITING_REVISION'
+};
+const LECTURER_DECISION_SORT_FIELDS = new Set(['decidedAt', 'submittedAt', 'title', 'status', 'category']);
+const DEFAULT_DECISION_PAGE = 1;
+const DEFAULT_DECISION_LIMIT = 25;
+const MAX_DECISION_LIMIT = 100;
 
 class SubmissionServiceError extends Error {
   constructor(message, statusCode, code, field) {
@@ -137,6 +146,63 @@ function parseSubmissionId(value) {
   return submissionId;
 }
 
+function parsePositiveInteger(value, fallback, { max } = {}) {
+  const parsedValue = Number(value);
+
+  if (!Number.isInteger(parsedValue) || parsedValue <= 0) {
+    return fallback;
+  }
+
+  return max ? Math.min(parsedValue, max) : parsedValue;
+}
+
+function parseDecisionDate(value, field) {
+  if (!value) {
+    return null;
+  }
+
+  const parsedDate = new Date(value);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    throw new SubmissionServiceError(`${field} is invalid.`, 400, 'INVALID_DECISION_FILTER', field);
+  }
+
+  return parsedDate;
+}
+
+function parseDecisionStatusFilter(value) {
+  const normalizedStatus = String(value || '').trim().toLowerCase();
+
+  if (!normalizedStatus || normalizedStatus === 'all') {
+    return null;
+  }
+
+  const prismaStatus = LECTURER_DECISION_STATUSES[normalizedStatus];
+
+  if (!prismaStatus) {
+    throw new SubmissionServiceError('Decision status filter is invalid.', 400, 'INVALID_DECISION_STATUS_FILTER', 'status');
+  }
+
+  return {
+    clientStatus: normalizedStatus,
+    prismaStatus
+  };
+}
+
+function normalizeSortDirection(value) {
+  return String(value || '').trim().toLowerCase() === 'asc' ? 'asc' : 'desc';
+}
+
+function normalizeDecisionSortField(value) {
+  const sortField = String(value || '').trim() || 'decidedAt';
+
+  if (!LECTURER_DECISION_SORT_FIELDS.has(sortField)) {
+    throw new SubmissionServiceError('Decision sort field is invalid.', 400, 'INVALID_DECISION_SORT', 'sort');
+  }
+
+  return sortField;
+}
+
 function parseLecturerStatusUpdate(value) {
   const normalizedStatus = String(value || '').trim().toLowerCase();
   const prismaStatus = LECTURER_STATUS_UPDATES[normalizedStatus];
@@ -161,6 +227,98 @@ function validateDecisionReason({ status, reason }) {
   }
 
   return normalizedReason;
+}
+
+function buildDecisionHistoryQuery({ user, query = {} }) {
+  assertLecturerUser(user);
+
+  const page = parsePositiveInteger(query.page, DEFAULT_DECISION_PAGE);
+  const limit = parsePositiveInteger(query.limit, DEFAULT_DECISION_LIMIT, { max: MAX_DECISION_LIMIT });
+  const statusFilter = parseDecisionStatusFilter(query.status);
+  const dateFrom = parseDecisionDate(query.dateFrom, 'dateFrom');
+  const dateTo = parseDecisionDate(query.dateTo, 'dateTo');
+  const category = normalizeOptionalText(query.category);
+  const search = normalizeOptionalText(query.search);
+  const sort = normalizeDecisionSortField(query.sort);
+  const direction = normalizeSortDirection(query.direction);
+
+  const where = {
+    decidedById: user.id,
+    decidedAt: {
+      not: null
+    },
+    status: {
+      in: Object.values(LECTURER_DECISION_STATUSES)
+    }
+  };
+
+  if (statusFilter) {
+    where.status = statusFilter.prismaStatus;
+  }
+
+  if (dateFrom || dateTo) {
+    where.decidedAt = {
+      not: null,
+      ...(dateFrom ? { gte: dateFrom } : {}),
+      ...(dateTo ? { lte: dateTo } : {})
+    };
+  }
+
+  if (category) {
+    where.category = {
+      equals: category,
+      mode: 'insensitive'
+    };
+  }
+
+  if (search) {
+    where.OR = [
+      { title: { contains: search, mode: 'insensitive' } },
+      { category: { contains: search, mode: 'insensitive' } },
+      {
+        student: {
+          name: { contains: search, mode: 'insensitive' }
+        }
+      },
+      {
+        student: {
+          email: { contains: search, mode: 'insensitive' }
+        }
+      }
+    ];
+  }
+
+  return {
+    filters: {
+      ...(statusFilter ? { status: statusFilter.clientStatus } : {}),
+      ...(dateFrom ? { dateFrom: dateFrom.toISOString() } : {}),
+      ...(dateTo ? { dateTo: dateTo.toISOString() } : {}),
+      ...(category ? { category } : {}),
+      ...(search ? { search } : {}),
+      sort,
+      direction
+    },
+    limit,
+    orderBy: { [sort]: direction },
+    page,
+    skip: (page - 1) * limit,
+    where
+  };
+}
+
+function serializeLecturerDecision(submission) {
+  return {
+    id: submission.id,
+    title: submission.title,
+    studentName: submission.student?.name || null,
+    studentEmail: submission.student?.email || null,
+    category: submission.category || null,
+    status: String(submission.status || ''),
+    submittedAt: submission.submittedAt?.toISOString?.() || submission.submittedAt || null,
+    decidedAt: submission.decidedAt?.toISOString?.() || submission.decidedAt || null,
+    decisionFeedback: submission.decisionReason || null,
+    similaritySnapshotId: submission.similarityCheckSnapshots?.[0]?.id || null
+  };
 }
 
 function createSubmissionService({ prismaClient = prisma } = {}) {
@@ -335,12 +493,67 @@ function createSubmissionService({ prismaClient = prisma } = {}) {
     });
   };
 
+  const listLecturerDecisionHistory = async ({ user, query }) => {
+    const decisionQuery = buildDecisionHistoryQuery({ user, query });
+
+    const [items, total] = await Promise.all([
+      prismaClient.submission.findMany({
+        where: decisionQuery.where,
+        orderBy: decisionQuery.orderBy,
+        skip: decisionQuery.skip,
+        take: decisionQuery.limit,
+        include: {
+          student: {
+            select: {
+              name: true,
+              email: true
+            }
+          },
+          similarityCheckSnapshots: {
+            orderBy: {
+              createdAt: 'desc'
+            },
+            select: {
+              id: true
+            },
+            take: 1
+          }
+        }
+      }),
+      prismaClient.submission.count({
+        where: decisionQuery.where
+      })
+    ]);
+
+    const totalPages = total > 0 ? Math.ceil(total / decisionQuery.limit) : 0;
+
+    return {
+      data: {
+        items: items.map(serializeLecturerDecision)
+      },
+      meta: {
+        pagination: {
+          page: decisionQuery.page,
+          limit: decisionQuery.limit,
+          total,
+          totalPages,
+          hasNextPage: decisionQuery.page < totalPages,
+          hasPreviousPage: decisionQuery.page > 1
+        },
+        filters: decisionQuery.filters,
+        generatedAt: new Date().toISOString(),
+        dataCoverage: 'Read-only lecturer decision history from existing submissions.'
+      }
+    };
+  };
+
   return {
     createSubmission,
     listStudentSubmissions,
     listLecturerPendingSubmissions,
     getLecturerSubmission,
-    updateLecturerSubmissionStatus
+    updateLecturerSubmissionStatus,
+    listLecturerDecisionHistory
   };
 }
 
@@ -353,6 +566,7 @@ module.exports = {
   serializeSubmission,
   assertLecturerUser,
   LECTURER_STATUS_UPDATES,
+  LECTURER_DECISION_STATUSES,
   validateDecisionReason,
   SubmissionServiceError
 };

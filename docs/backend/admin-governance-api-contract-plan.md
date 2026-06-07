@@ -4,17 +4,18 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | `backend/admin-audit-reports-governance` |
-| Current commit hash | `ca5abf9` |
-| Date/time | `2026-06-06 14:30:34 +01:00` |
-| Scope | Admin audit-log frontend connection, read-only reports summary API, admin reports frontend connection, tests, smoke, and documentation |
+| Branch | `backend/lecturer-decisions-supervisees` |
+| Current commit hash | `6ecb01b` |
+| Date/time | `2026-06-07 16:33:16 +01:00` |
+| Scope | Lecturer decision history read API, My Decisions frontend connection, Supervisees deferred-state hardening, tests, smoke, and documentation |
 | Change type | Backend, frontend, tests, and documentation |
-| Implementation status | PR #100 connects the admin Audit Log page to existing audit-log read endpoints, adds a read-only admin reports summary endpoint, and connects the admin Reports page to real aggregate data. No Prisma migration, report export workflow, audit deletion/export workflow, admin mutation, auth behavior change, similarity behavior change, threshold change, package file change, fake audit row, fake report metric, fake chart, fake export, or fake analytics state is introduced. |
+| Implementation status | PR #101 adds a read-only lecturer decision history endpoint and connects My Decisions to real decided submissions. Supervisees remains explicitly deferred because the current schema has no explicit supervisee assignment model or approved business rule equating reviewed submissions with supervision. No Prisma migration, lecturer decision mutation change, supervisee fabrication, report/export workflow, admin feature, auth behavior change, similarity behavior change, threshold change, package file change, fake decision row, fake supervisee, fake progress metric, or fake analytics state is introduced. |
 
 Latest relevant PRs:
 
 | PR | Summary | Relevance |
 | --- | --- | --- |
+| #100 | feat: add admin audit log and reports governance | Connected admin Audit Log and Reports to real read-only governance data while keeping exports deferred. |
 | #99 | feat: add admin users and settings APIs | Added admin user list/detail APIs, the audited user status mutation, the read-only settings API, and frontend User Management/System Settings connections. |
 | #98 | feat: add admin topic repository API | Added read-only admin topic repository endpoints and connected the admin Topic Repository page to real lifecycle topic data. |
 | #97 | feat: add admin dashboard summary API | Added the read-only admin dashboard summary endpoint and connected the admin dashboard to real safe counts. |
@@ -194,6 +195,36 @@ Still deferred after PR #100:
 - Production email and notifications.
 - Any similarity scoring or threshold changes.
 
+### Implementation Status After PR #101
+
+PR #101 implements the lecturer decision-history slice from this plan and keeps supervisees honest:
+
+- `GET /api/v1/lecturer/decisions` is added and protected by `requireAuth` plus `requireRole('lecturer')`.
+- The endpoint reads only existing `Submission` records where:
+  - `decidedById` equals the authenticated lecturer id.
+  - `decidedAt` is not null.
+  - `status` is one of `AWAITING_REVISION`, `APPROVED`, or `REJECTED`.
+- Decision history filtering supports status, decided-date range, category, search, pagination, constrained sorting, and direction where backed by existing submission fields.
+- The response returns safe decision fields only, including title, safe student name/email, category, status, submitted/decided timestamps, stored decision feedback, and the latest related similarity snapshot id when present.
+- The decision-history read does not emit audit events and does not create, update, delete, export, or mutate records.
+- `frontend/src/pages/lecturer/MyDecisionsPage.jsx` now connects `/lecturer/my-decisions` to the real endpoint and renders loading, real-row, empty, error, filter, and pagination states.
+- My Decisions does not expose approval/rejection/revision actions, fake decisions, fake students, fake dates, fake risk scores, exports, reports, or activity rows.
+- `frontend/src/pages/lecturer/SuperviseesPage.jsx` remains an honest deferred page.
+- No `GET /api/v1/lecturer/supervisees` endpoint is added because the current Prisma schema has no explicit supervisee assignment model and no documented business rule that reviewed or decided submissions equal supervision.
+- The Supervisees page now states that reviewed submissions are not treated as supervisees and that no real assignment source/endpoint exists yet.
+
+Still deferred after PR #101:
+
+- Lecturer supervisee assignment model and endpoint.
+- Lecturer/admin research trends analytics.
+- Admin report export generation.
+- Audit log export/purge/delete workflows.
+- Admin user mutations beyond status updates.
+- Admin system settings mutations.
+- Import UI and duplicate-resolution workflow.
+- Production email and notifications.
+- Any similarity scoring or threshold changes.
+
 ## 2. Current Reality From Repository
 
 ### Existing Backend Behavior
@@ -220,8 +251,8 @@ Still deferred after PR #100:
 | Admin system settings | Protected read-only page connected to existing `SystemSetting` records. It does not expose save controls, threshold sliders, feature toggles, or arbitrary settings writes. | `frontend/src/pages/admin/SystemSettingsPage.jsx`, `frontend/src/pages/rolePages.jsx` |
 | Admin audit log | Protected read-only page connected to existing audit-log list/detail endpoints. It shows stored audit events, honest empty/error states, and no export/delete/purge actions. | `frontend/src/pages/admin/AuditLogPage.jsx`, `frontend/src/pages/rolePages.jsx` |
 | Admin reports | Protected read-only page connected to the admin reports summary endpoint. It shows real aggregates, honest zero-data/error states, and disabled/deferred export messaging. | `frontend/src/pages/admin/ReportsPage.jsx`, `frontend/src/pages/rolePages.jsx` |
-| Lecturer decisions | Placeholder page for future decision history. | `frontend/src/pages/lecturer/MyDecisionsPage.jsx` |
-| Lecturer supervisees | Placeholder page for future supervisee assignment/progress workflow. | `frontend/src/pages/lecturer/SuperviseesPage.jsx` |
+| Lecturer decisions | Protected read-only page connected to the lecturer decision-history endpoint. It shows real decided submissions, safe filters, empty/error states, and no decision/export/report actions. | `frontend/src/pages/lecturer/MyDecisionsPage.jsx` |
+| Lecturer supervisees | Protected deferred page. It does not derive supervisees from reviewed submissions because no explicit assignment model/business rule exists yet. | `frontend/src/pages/lecturer/SuperviseesPage.jsx` |
 | Lecturer trends | Placeholder page for future analytics. | `frontend/src/pages/lecturer/ResearchTrendsPage.jsx` |
 
 ### Existing Prisma Models
@@ -247,13 +278,12 @@ Enums include:
 
 ### Missing Backend/Governance Areas
 
-These do not currently exist as implemented APIs/models/services in the inspected repository after PR #100:
+These do not currently exist as implemented APIs/models/services in the inspected repository after PR #101:
 
 - Admin user mutations beyond audited status updates.
 - Admin system settings mutations.
 - Admin reports export workflow.
 - Audit log export, purge, and delete workflows.
-- Lecturer decision history endpoint.
 - Lecturer supervisee assignment endpoint.
 - Lecturer/admin research trends analytics endpoint.
 - Production email provider.
@@ -1100,6 +1130,15 @@ Proposed endpoint:
 GET /api/v1/lecturer/decisions
 ```
 
+Implementation status after PR #101:
+
+- Implemented as a read-only lecturer endpoint.
+- Protected by `requireAuth` and `requireRole('lecturer')`.
+- No request body is accepted or required.
+- No records are created, updated, deleted, exported, or audited by this endpoint.
+- The endpoint returns only decisions made by the authenticated lecturer.
+- Empty responses return `items: []` with valid pagination metadata.
+
 ### Filters
 
 ```text
@@ -1122,6 +1161,13 @@ Use existing `Submission` records where:
 - `decidedAt` is not null.
 - `status` is one of `AWAITING_REVISION`, `APPROVED`, or `REJECTED`.
 
+### Response Notes
+
+- Safe student name/email may be returned from the existing student relation.
+- Password hashes, reset token fields, internal user secrets, and raw similarity response payloads are not returned.
+- `similaritySnapshotId` is nullable and points only to the latest stored snapshot id when a related snapshot exists.
+- Decision feedback is the stored `decisionReason`.
+
 ### Frontend Integration
 
 Target page:
@@ -1129,6 +1175,13 @@ Target page:
 ```text
 frontend/src/pages/lecturer/MyDecisionsPage.jsx
 ```
+
+Frontend implementation status after PR #101:
+
+- `/lecturer/my-decisions` now renders a connected read-only decision history page.
+- The page calls the decision-history endpoint with supported filters and pagination.
+- Empty and error states do not substitute fake decision rows.
+- Approve, reject, request-revision, export, report, fake risk score, and fake activity surfaces remain unavailable.
 
 Do not change the existing decision action endpoint:
 
@@ -1143,6 +1196,13 @@ Proposed endpoint:
 ```text
 GET /api/v1/lecturer/supervisees
 ```
+
+Implementation status after PR #101:
+
+- Not implemented.
+- No backend supervisees endpoint is added.
+- `frontend/src/pages/lecturer/SuperviseesPage.jsx` remains an honest deferred page.
+- The page explicitly states that reviewed submissions are not treated as supervisees.
 
 ### Current Schema Gap
 
@@ -1445,14 +1505,22 @@ Must not include:
 
 Purpose:
 
-- Add lecturer decision history.
-- Decide supervisee data model or keep supervisees deferred.
+- Add read-only lecturer decision history.
+- Connect My Decisions to real decided submissions.
+- Keep supervisees deferred unless a true assignment model exists.
+
+Status:
+
+- Implemented by branch `backend/lecturer-decisions-supervisees`.
+- Lecturer decision history endpoint and frontend connection are implemented.
+- Supervisees remains deferred because no explicit assignment model/business rule exists.
 
 Likely files:
 
-- Backend lecturer decision history service/controller/tests.
-- Optional schema planning for supervisees.
-- Frontend lecturer decisions page if scoped.
+- Backend submission service/controller/server tests.
+- Frontend submissions API helper.
+- Lecturer My Decisions and Supervisees pages and tests.
+- Smoke and governance docs.
 
 Tests required:
 
@@ -1460,15 +1528,22 @@ Tests required:
 - Decision filters.
 - Empty history.
 - Pagination.
+- Excludes other lecturers' decisions.
+- No sensitive fields.
+- No read-only audit creation.
+- Supervisees deferred/no-fake-data UI behavior.
 
 Risks:
 
 - Confusing review history with supervision.
+- Overexposing student/user internals.
 
 Must not include:
 
 - Changing existing decision action endpoint.
 - Fake supervisees.
+- Fake decisions.
+- Supervisees derived from reviewed submissions without a real assignment rule.
 
 ### PR #102: Production Email + Notification Foundation
 
@@ -1553,12 +1628,15 @@ Must not include:
 
 This PR does not:
 
-- Add endpoints other than `GET /api/v1/admin/reports/summary`.
+- Add endpoints other than `GET /api/v1/lecturer/decisions`.
 - Add Prisma migrations.
-- Connect frontend pages other than Audit Log and Reports.
-- Implement admin mutations.
+- Connect frontend pages other than My Decisions and the Supervisees deferred-state copy update.
+- Implement lecturer mutations.
+- Change the existing lecturer approval/revision/rejection endpoint or payload.
+- Implement supervisee assignment endpoints.
 - Implement exports.
 - Implement audit export, purge, or delete workflows.
+- Implement admin features.
 - Implement import UI.
 - Change import parser, normalization, persistence, or commit behavior.
 - Implement create-user, delete-user, role-change, invitation, password-reset, bulk account, or profile-edit workflows.
@@ -1572,18 +1650,18 @@ This PR does not:
 - Change existing route behavior.
 - Change package files.
 - Add fake admin data.
-- Add fake users, fake settings, fake last-active values, fake supervisor assignments, fake audit rows, fake reports, fake exports, fake charts, fake activity, or fake analytics.
+- Add fake users, fake settings, fake last-active values, fake supervisor assignments, fake supervisees, fake decision rows, fake audit rows, fake reports, fake exports, fake charts, fake activity, or fake analytics.
 
 ## 20. Verification
 
-Requested verification commands for PR #100:
+Requested verification commands for PR #101:
 
 ```powershell
 cd backend
 npm test -- --runInBand
 cd ..\frontend
 npm run build
-npm test -- --run tests/AdminAuditLogPage.test.jsx tests/AdminReportsPage.test.jsx tests/AdminUserManagementPage.test.jsx tests/AdminSystemSettingsPage.test.jsx tests/AdminTopicRepositoryPage.test.jsx tests/AdminDashboardPage.test.jsx
+npm test -- --run tests/LecturerMyDecisionsPage.test.jsx tests/LecturerSuperviseesPage.test.jsx
 npm test -- --run --maxWorkers=1 --minWorkers=1
 npm run smoke:figma-ui
 cd ..
@@ -1596,17 +1674,16 @@ git diff --name-only
 Expected implementation files:
 
 ```text
-backend/src/controllers/adminReports.controller.js
-backend/src/controllers/adminReports.controller.test.js
-backend/src/services/adminReports.service.js
-backend/src/services/adminReports.service.test.js
+backend/src/controllers/submission.controller.js
+backend/src/controllers/submission.controller.test.js
+backend/src/services/submission.service.js
+backend/src/services/submission.service.test.js
 backend/src/server.js
 docs/backend/admin-governance-api-contract-plan.md
-frontend/src/api/admin.js
-frontend/src/pages/admin/AuditLogPage.jsx
-frontend/src/pages/admin/ReportsPage.jsx
-frontend/src/pages/rolePages.jsx
-frontend/tests/AdminAuditLogPage.test.jsx
-frontend/tests/AdminReportsPage.test.jsx
+frontend/src/api/submissions.js
+frontend/src/pages/lecturer/MyDecisionsPage.jsx
+frontend/src/pages/lecturer/SuperviseesPage.jsx
+frontend/tests/LecturerMyDecisionsPage.test.jsx
+frontend/tests/LecturerSuperviseesPage.test.jsx
 frontend/tests/smoke/figma-ui-flow.spec.js
 ```

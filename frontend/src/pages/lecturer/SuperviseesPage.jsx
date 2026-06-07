@@ -15,7 +15,7 @@ function SuperviseesPage() {
       <PageHeader
         eyebrow="Lecturer supervision"
         title="Supervisees"
-        subtitle="Supervisee assignment and progress tracking are not connected to a real workflow yet."
+        subtitle="Supervisee assignment and progress tracking remain deferred because no explicit assignment model is available yet."
         action={(
           <Link
             to="/lecturer/dashboard"
@@ -37,7 +37,7 @@ function SuperviseesPage() {
                 Assignment tracking is prepared, not live.
               </h2>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-text-secondary sm:text-base">
-                This screen is ready to receive real supervisee assignments when the department workflow and API contract exist.
+                This screen is ready to receive real supervisee assignments when the department workflow and API contract exist. Reviewed submissions are not treated as supervisees.
               </p>
             </div>
             <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-amber-700 shadow-sm">
@@ -86,7 +86,7 @@ function SuperviseesPage() {
               </div>
               <h3 className="mt-5 text-xl font-semibold text-[#1B5E20]">No supervisee assignments connected yet</h3>
               <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-text-secondary">
-                No student names, matric numbers, topic titles, statuses, or progress rows are shown because the current app has no real supervisee endpoint.
+                No student names, matric numbers, topic titles, statuses, or progress rows are shown because the current schema has no real supervisee assignment source or endpoint.
               </p>
             </div>
           </div>
