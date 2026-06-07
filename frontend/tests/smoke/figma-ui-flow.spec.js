@@ -203,6 +203,17 @@ test('lecturer Figma UI routes render read-only smoke states', async ({ page, co
     await expect(page.getByRole('button', { name: /^approve$/i })).toHaveCount(0);
     await expect(page.getByRole('button', { name: /^reject$/i })).toHaveCount(0);
 
+    await expectRenderedRoute(page, '/lecturer/my-decisions', /my decisions/i);
+    await expect(page.getByText(/real decision data only/i)).toBeVisible();
+    await expect(page.getByText(/does not fabricate decision rows/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /^approve$/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /^reject$/i })).toHaveCount(0);
+
+    await expectRenderedRoute(page, '/lecturer/supervisees', /supervisees/i);
+    await expect(page.getByText(/no explicit assignment model is available yet/i)).toBeVisible();
+    await expect(page.getByText(/reviewed submissions are not treated as supervisees/i)).toBeVisible();
+    await expect(page.getByText(/sample supervisee|fake progress/i)).toHaveCount(0);
+
     monitor.assertClean();
   } finally {
     monitor.stop();

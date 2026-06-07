@@ -15,6 +15,14 @@ export async function listLecturerPendingSubmissions() {
   return response.data?.data?.submissions || [];
 }
 
+export async function listLecturerDecisions(params = {}) {
+  const response = await apiClient.get('/lecturer/decisions', { params });
+  return {
+    data: response.data?.data,
+    meta: response.data?.meta
+  };
+}
+
 export async function getLecturerSubmission(submissionId) {
   const response = await apiClient.get(`/lecturer/submissions/${submissionId}`);
   return response.data?.data?.submission;

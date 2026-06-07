@@ -229,6 +229,10 @@ app.get('/api/v1/lecturer/submissions', requireAuth, requireRole('lecturer'), (r
   getSubmissionController().listLecturerPendingSubmissions(req, res, next);
 });
 
+app.get('/api/v1/lecturer/decisions', requireAuth, requireRole('lecturer'), (req, res, next) => {
+  getSubmissionController().listLecturerDecisionHistory(req, res, next);
+});
+
 app.get('/api/v1/lecturer/submissions/:id', requireAuth, requireRole('lecturer'), (req, res, next) => {
   getSubmissionController().getLecturerSubmission(req, res, next);
 });
