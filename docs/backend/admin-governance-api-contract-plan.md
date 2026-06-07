@@ -4,17 +4,18 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | `backend/lecturer-research-trends-governance` |
-| Current commit hash | `c6ada3c` |
-| Date/time | `2026-06-07 17:19:22 +01:00` |
-| Scope | Lecturer research trends read API, Research Trends frontend connection, tests, smoke, and documentation |
-| Change type | Backend, frontend, tests, and documentation |
-| Implementation status | PR #102 adds a safe read-only lecturer research trends endpoint and connects Research Trends to real aggregate topic, submission, and stored similarity snapshot data. No Prisma migration, lecturer mutation, generated recommendation, fake trend chart, fake keyword, fake analytics insight, export workflow, admin feature, auth behavior change, similarity behavior change, threshold change, or package file change is introduced. |
+| Branch | `frontend/admin-import-governance-ui` |
+| Current commit hash | `a3b0b05` |
+| Date/time | `2026-06-07 17:57:23 +01:00` |
+| Scope | Admin Topic Repository import UI, admin import preview/commit frontend connection, tests, smoke, and documentation |
+| Change type | Frontend, tests, and documentation |
+| Implementation status | PR #103 connects the existing admin-protected topic import preview/commit endpoints to a real import workflow inside the admin Topic Repository page. The UI allows `.xlsx` file selection, calls the real preview and commit endpoints, renders backend import and persistence reports, and keeps commit disabled until preview succeeds. No backend parser, persistence, Prisma migration, similarity behavior, threshold, auth/session behavior, export/download workflow, topic edit/delete workflow, fake import result, fake duplicate-existing result, fake row-level report, or package file change is introduced. |
 
 Latest relevant PRs:
 
 | PR | Summary | Relevance |
 | --- | --- | --- |
+| #102 | feat: add lecturer research trends governance | Added a safe read-only lecturer research trends endpoint and connected Research Trends to real aggregate data while keeping generated insights deferred. |
 | #101 | feat: add lecturer decision history governance | Added read-only lecturer decision history and kept supervisees honestly deferred. |
 | #100 | feat: add admin audit log and reports governance | Connected admin Audit Log and Reports to real read-only governance data while keeping exports deferred. |
 | #99 | feat: add admin users and settings APIs | Added admin user list/detail APIs, the audited user status mutation, the read-only settings API, and frontend User Management/System Settings connections. |
@@ -259,6 +260,37 @@ Still deferred after PR #102:
 - Production email and notifications.
 - Any similarity scoring or threshold changes.
 
+### Implementation Status After PR #103
+
+PR #103 implements the admin import governance frontend connection:
+
+- `/admin/topic-repository` now includes an admin import panel for `.xlsx` topic files.
+- `frontend/src/api/admin.js` adds import helpers that call the existing admin-protected endpoints:
+  - `POST /api/v1/admin/import/topics/preview`
+  - `POST /api/v1/admin/import/topics/commit`
+- The preview workflow sends the selected file to the real preview endpoint and renders only the backend response, including accepted-record count and `import_report` values.
+- The commit workflow remains disabled until preview succeeds, then sends the same selected file to the real commit endpoint and renders only the backend `import_report` and `persistence_report` values.
+- Loading, success, backend-error, and deferred-capability states are explicit.
+- The page states that import preview and commit are admin-only and audited by the backend.
+- Duplicate-existing checks, richer row-level operator reports, embedding generation, similarity integration, CSV import, export/download, edit/delete, and migration workflows remain visibly deferred.
+- No fake import rows, fake preview report, fake persistence report, fake duplicate-existing counts, fake row-level details, fake exports, or fake topic mutations are introduced.
+- No backend file, Prisma schema, import parser, normalization, persistence, auth/session behavior, similarity scoring, threshold, or package file is changed by PR #103.
+
+Still deferred after PR #103:
+
+- Richer import duplicate-existing checks and operator-facing row-level report shape.
+- Embedding generation for imported records.
+- Similarity integration for imported topic context fields.
+- CSV import workflow.
+- Export/download, migration, topic edit/delete, and duplicate-resolution workflows.
+- Lecturer supervisee assignment model and endpoint.
+- Admin report export generation.
+- Audit log export/purge/delete workflows.
+- Admin user mutations beyond status updates.
+- Admin system settings mutations.
+- Production email and notifications.
+- Any similarity scoring or threshold changes.
+
 ## 2. Current Reality From Repository
 
 ### Existing Backend Behavior
@@ -280,7 +312,7 @@ Still deferred after PR #102:
 | Area | Existing behavior | Evidence |
 | --- | --- | --- |
 | Admin dashboard | Protected visual shell, explicitly not connected to live admin metrics or service health. | `frontend/src/pages/admin/DashboardPage.jsx` |
-| Admin topic repository | Protected read-only page connected to lifecycle topic repository endpoints. It shows real rows, safe empty states, and no import/export/edit actions. | `frontend/src/pages/admin/TopicRepositoryPage.jsx`, `frontend/src/pages/rolePages.jsx` |
+| Admin topic repository | Protected page connected to lifecycle topic repository endpoints and existing admin import preview/commit endpoints. It shows real rows, safe empty states, an audited `.xlsx` import preview/commit panel, and no export/edit/delete/migration/duplicate-resolution actions. | `frontend/src/pages/admin/TopicRepositoryPage.jsx`, `frontend/src/pages/rolePages.jsx` |
 | Admin user management | Protected page connected to admin user read endpoints. It shows real user rows, safe filters, empty/error states, and a narrow audited status action. It does not expose create, delete, role-change, invitation, or password-reset workflows. | `frontend/src/pages/admin/UserManagementPage.jsx`, `frontend/src/pages/rolePages.jsx` |
 | Admin system settings | Protected read-only page connected to existing `SystemSetting` records. It does not expose save controls, threshold sliders, feature toggles, or arbitrary settings writes. | `frontend/src/pages/admin/SystemSettingsPage.jsx`, `frontend/src/pages/rolePages.jsx` |
 | Admin audit log | Protected read-only page connected to existing audit-log list/detail endpoints. It shows stored audit events, honest empty/error states, and no export/delete/purge actions. | `frontend/src/pages/admin/AuditLogPage.jsx`, `frontend/src/pages/rolePages.jsx` |
@@ -312,7 +344,7 @@ Enums include:
 
 ### Missing Backend/Governance Areas
 
-These do not currently exist as implemented APIs/models/services in the inspected repository after PR #101:
+These do not currently exist as implemented APIs/models/services in the inspected repository after PR #103:
 
 - Admin user mutations beyond audited status updates.
 - Admin system settings mutations.
@@ -325,7 +357,7 @@ These do not currently exist as implemented APIs/models/services in the inspecte
 
 Import-specific gap:
 
-- Import preview/commit endpoints are present and admin-protected after PR #96. Frontend import UI, richer duplicate governance, and operational import workflow screens remain deferred.
+- Import preview/commit endpoints are present and admin-protected after PR #96. PR #103 connects a scoped frontend import panel to those endpoints, while richer duplicate governance, row-level operator reports, embedding generation, similarity integration, CSV import, export/download, migration, and topic edit/delete workflows remain deferred.
 
 ## 3. Design Principles For The Next Backend Phase
 
@@ -837,9 +869,20 @@ Implementation status after PR #96:
 - Preview and commit emit safe audit metadata without storing uploaded file contents or raw imported rows.
 - PR #98 does not change import parser, normalization, persistence, or commit behavior.
 
+Frontend implementation status after PR #103:
+
+- `/admin/topic-repository` exposes a scoped `.xlsx` import panel.
+- The panel uses the admin-prefixed v1 endpoints for operational preview and commit.
+- Preview renders the backend `import_report` and accepted-record count only.
+- Commit is disabled until preview succeeds.
+- Commit renders the backend `import_report` and `persistence_report` only.
+- Preview/commit loading, success, and backend-error states are explicit.
+- Duplicate-existing counts, richer row-level warnings/errors, embeddings, similarity integration, CSV import, export/download, migration, and topic edit/delete controls remain deferred unless the backend later supports them.
+- The frontend does not fabricate import rows, duplicate-existing results, row-level details, persistence counts, or export artifacts.
+
 ### Planned Changes
 
-1. Prefer admin v1 paths for operational use:
+1. Continue to prefer admin v1 paths for operational use:
 
 ```text
 POST /api/v1/admin/import/topics/preview
@@ -1352,7 +1395,7 @@ Frontend implementation status after PR #102:
 | Admin dashboard | Summary aggregation service | Admin required, non-admin forbidden | Unknown/unavailable sections | Optional read audit if policy chooses | Dashboard real-data/empty-state tests |
 | Admin users | User query service, serializer excludes secrets | Admin required, non-admin forbidden | Role/status/search/page/limit/sort | Mutations only after audit foundation | User management table smoke |
 | Admin topics | Lifecycle query service | Admin required | Lifecycle/category/session/search pagination | Import actions later | Topic repository table/filter smoke |
-| Import governance | Duplicate/data-quality helpers | Admin required for preview/commit | Warning/error row reports | Preview/commit audit events | Future import UI smoke |
+| Import governance | Duplicate/data-quality helpers | Admin required for preview/commit | Warning/error row reports | Preview/commit audit events | Import panel preview/commit smoke |
 | System settings | Key validation service | Admin required | Empty settings list, invalid key | Update event required | Settings page read/update tests later |
 | Admin reports | Aggregation service | Admin required | Empty reports and filters | Export event later | Reports page empty/real-data smoke |
 | Lecturer decisions | Decision history query service | Lecturer required | Status/date/category/search pagination | Optional read audit | My Decisions real list smoke |
@@ -1649,7 +1692,53 @@ Must not include:
 - Lecturer mutations.
 - Similarity threshold or scoring changes.
 
-### PR #103: Production Email + Notification Foundation
+### PR #103: Admin Import UI + Import Governance Frontend Connection
+
+Purpose:
+
+- Connect the existing admin-protected import preview/commit backend endpoints to the admin Topic Repository page.
+- Allow `.xlsx` file selection, preview, report rendering, and commit from the frontend without inventing unsupported import capabilities.
+- Keep duplicate-existing checks, richer row-level reports, embedding generation, similarity integration, CSV import, exports, migrations, and topic edit/delete workflows deferred.
+
+Status:
+
+- Implemented by branch `frontend/admin-import-governance-ui`.
+
+Likely files:
+
+- Frontend admin API helper.
+- Admin Topic Repository page and tests.
+- Smoke and governance/import workflow docs.
+
+Tests required:
+
+- File selection.
+- Preview loading, success, and error states.
+- Commit disabled before preview.
+- Commit loading, success, and error states.
+- Real mocked backend report values rendered.
+- Deferred duplicate-existing/richer report messaging.
+- No fake import rows, duplicate-existing counts, row-level details, export/download, or topic mutation actions.
+
+Risks:
+
+- Overclaiming duplicate-existing or row-level governance before backend support exists.
+- Accidentally treating preview data as persisted data.
+- Introducing unsupported import/export/edit/delete behavior in the repository page.
+
+Must not include:
+
+- Backend parser, normalization, or persistence changes.
+- Prisma migrations.
+- Fake import results.
+- Fake duplicate-existing results.
+- Fake row-level details.
+- Export/download behavior.
+- Topic edit/delete/migration workflows.
+- Similarity threshold or scoring changes.
+- Auth/session changes.
+
+### PR #104: Production Email + Notification Foundation
 
 Purpose:
 
@@ -1678,7 +1767,7 @@ Must not include:
 - Fake notification feeds.
 - Unconfigured provider behavior.
 
-### PR #104: Evaluation, Data Quality, and FYP Evidence
+### PR #105: Evaluation, Data Quality, and FYP Evidence
 
 Purpose:
 
@@ -1704,7 +1793,7 @@ Must not include:
 
 - Production threshold/scoring changes without scoped approval.
 
-### PR #105: Deployment Readiness + Release Candidate
+### PR #106: Deployment Readiness + Release Candidate
 
 Purpose:
 
@@ -1732,19 +1821,22 @@ Must not include:
 
 This PR does not:
 
-- Add endpoints other than `GET /api/v1/lecturer/research-trends`.
+- Add new backend endpoints.
 - Add Prisma migrations.
-- Connect frontend pages other than Research Trends.
+- Connect frontend pages other than Topic Repository.
 - Implement lecturer mutations.
 - Change the existing lecturer approval/revision/rejection endpoint or payload.
 - Implement supervisee assignment endpoints.
 - Implement exports.
-- Implement generated trend charts.
-- Implement keyword clustering or keyword recommendations.
-- Implement generated research insights or recommendations.
+- Implement export/download behavior.
+- Implement duplicate-existing checks.
+- Implement richer row-level operator reports beyond what the backend currently returns.
+- Implement embedding generation for imported records.
+- Implement similarity integration for imported records.
+- Implement CSV import.
+- Implement migration workflows.
+- Implement topic edit/delete workflows.
 - Implement audit export, purge, or delete workflows.
-- Implement admin features.
-- Implement import UI.
 - Change import parser, normalization, persistence, or commit behavior.
 - Implement create-user, delete-user, role-change, invitation, password-reset, bulk account, or profile-edit workflows.
 - Implement settings writes, threshold sliders, feature toggles, email controls, or arbitrary configuration updates.
@@ -1753,27 +1845,24 @@ This PR does not:
 - Change similarity behavior.
 - Change similarity thresholds.
 - Change auth/session behavior.
-- Change tests.
 - Change existing route behavior.
 - Change package files.
 - Add fake admin data.
-- Add fake users, fake settings, fake last-active values, fake supervisor assignments, fake supervisees, fake decision rows, fake audit rows, fake reports, fake exports, fake trend charts, fake keywords, fake recommendations, fake activity, fake research insights, or fake analytics.
+- Add fake users, fake settings, fake last-active values, fake supervisor assignments, fake supervisees, fake decision rows, fake audit rows, fake reports, fake exports, fake import results, fake duplicate-existing results, fake row-level details, fake persistence counts, fake activity, fake research insights, or fake analytics.
 
 ## 20. Verification
 
-Requested verification commands for PR #102:
+Requested verification commands for PR #103:
 
 ```powershell
-cd backend
-npm test -- --runInBand
-cd ..\frontend
+cd frontend
 npm run build
-npm test -- --run tests/LecturerResearchTrendsPage.test.jsx
+npm test -- --run tests/AdminTopicRepositoryPage.test.jsx
 npm test -- --run --maxWorkers=1 --minWorkers=1
 npm run smoke:figma-ui
 cd ..
 git diff --check
-git status --short
+git status --short --ignored reference img frontend/smoke-artifacts frontend/dist frontend/playwright-report frontend/test-results backend/node_modules frontend/node_modules sbert-service/venv
 git diff --stat
 git diff --name-only
 ```
@@ -1781,14 +1870,10 @@ git diff --name-only
 Expected implementation files:
 
 ```text
-backend/src/controllers/lecturerResearchTrends.controller.js
-backend/src/controllers/lecturerResearchTrends.controller.test.js
-backend/src/services/lecturerResearchTrends.service.js
-backend/src/services/lecturerResearchTrends.service.test.js
-backend/src/server.js
 docs/backend/admin-governance-api-contract-plan.md
-frontend/src/api/submissions.js
-frontend/src/pages/lecturer/ResearchTrendsPage.jsx
-frontend/tests/LecturerResearchTrendsPage.test.jsx
+docs/setup/import-workflow.md
+frontend/src/api/admin.js
+frontend/src/pages/admin/TopicRepositoryPage.jsx
+frontend/tests/AdminTopicRepositoryPage.test.jsx
 frontend/tests/smoke/figma-ui-flow.spec.js
 ```

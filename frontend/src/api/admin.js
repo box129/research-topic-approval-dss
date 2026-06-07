@@ -72,6 +72,28 @@ export async function getAdminTopicsSummary() {
   };
 }
 
+function buildTopicImportFormData(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  return formData;
+}
+
+export async function previewAdminTopicImport(file) {
+  const response = await apiClient.post('/admin/import/topics/preview', buildTopicImportFormData(file));
+  return {
+    data: response.data?.data,
+    status: response.data?.status
+  };
+}
+
+export async function commitAdminTopicImport(file) {
+  const response = await apiClient.post('/admin/import/topics/commit', buildTopicImportFormData(file));
+  return {
+    data: response.data?.data,
+    status: response.data?.status
+  };
+}
+
 export async function listAdminSettings() {
   const response = await apiClient.get('/admin/settings');
   return {

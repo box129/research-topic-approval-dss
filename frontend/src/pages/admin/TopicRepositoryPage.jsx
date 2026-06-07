@@ -3,7 +3,12 @@ import AdminDashboardLayout from '../../layouts/AdminDashboardLayout';
 import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import InfoCallout from '../../components/ui/InfoCallout';
 import PageHeader from '../../components/ui/PageHeader';
-import { getAdminTopicsSummary, listAdminTopics } from '../../api/admin';
+import {
+  commitAdminTopicImport,
+  getAdminTopicsSummary,
+  listAdminTopics,
+  previewAdminTopicImport
+} from '../../api/admin';
 
 const lifecycleOptions = [
   { value: 'all', label: 'All lifecycle tables' },
@@ -60,6 +65,62 @@ function SummaryCard({ label, value, helper, accent = 'border-l-emerald-600' }) 
       <p className="mt-2 text-2xl font-semibold text-text-primary">{formatCount(value)}</p>
       <p className="mt-2 text-sm leading-5 text-text-secondary">{helper}</p>
     </article>
+  );
+}
+
+function getReportValue(report, key) {
+  return Number.isFinite(report?.[key]) ? report[key] : 0;
+}
+
+function ImportReportGrid({ report, title }) {
+  const cards = [
+    ['Total rows', 'total_rows'],
+    ['Accepted rows', 'accepted_rows'],
+    ['Skipped rows', 'skipped_rows'],
+    ['Missing titles', 'missing_title_rows'],
+    ['Incomplete context', 'incomplete_context_rows'],
+    ['Duplicate in batch', 'duplicate_title_rows']
+  ];
+
+  return (
+    <div className="rounded-[1.15rem] border border-border-subtle bg-white p-4 shadow-sm">
+      <h3 className="text-sm font-bold uppercase tracking-[0.14em] text-text-primary">{title}</h3>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {cards.map(([label, key]) => (
+          <div key={key} className="rounded-[1rem] border border-border-subtle bg-surface-muted px-4 py-3">
+            <p className="text-xs font-bold uppercase tracking-[0.12em] text-text-muted">{label}</p>
+            <p className="mt-1 text-lg font-semibold text-text-primary">{formatCount(getReportValue(report, key))}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PersistenceReportGrid({ report }) {
+  const insertedByBucket = report?.inserted_by_bucket || {};
+  const cards = [
+    ['Attempted records', report?.attempted_records],
+    ['Inserted records', report?.inserted_records],
+    ['Skipped records', report?.skipped_records],
+    ['Failed records', report?.failed_records],
+    ['Historical inserted', insertedByBucket.historical],
+    ['Current session inserted', insertedByBucket.current_session],
+    ['Under review inserted', insertedByBucket.under_review]
+  ];
+
+  return (
+    <div className="rounded-[1.15rem] border border-border-subtle bg-white p-4 shadow-sm">
+      <h3 className="text-sm font-bold uppercase tracking-[0.14em] text-text-primary">Commit persistence report</h3>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {cards.map(([label, value]) => (
+          <div key={label} className="rounded-[1rem] border border-border-subtle bg-surface-muted px-4 py-3">
+            <p className="text-xs font-bold uppercase tracking-[0.12em] text-text-muted">{label}</p>
+            <p className="mt-1 text-lg font-semibold text-text-primary">{formatCount(Number.isFinite(value) ? value : 0)}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -129,6 +190,13 @@ function TopicRepositoryPage() {
     search: '',
     page: 1
   });
+  const [importFile, setImportFile] = useState(null);
+  const [previewResult, setPreviewResult] = useState(null);
+  const [commitResult, setCommitResult] = useState(null);
+  const [previewState, setPreviewState] = useState('idle');
+  const [commitState, setCommitState] = useState('idle');
+  const [previewError, setPreviewError] = useState('');
+  const [commitError, setCommitError] = useState('');
 
   useEffect(() => {
     let isMounted = true;
@@ -214,12 +282,68 @@ function TopicRepositoryPage() {
     }));
   }
 
+  function handleImportFileChange(event) {
+    const file = event.target.files?.[0] || null;
+    setImportFile(file);
+    setPreviewResult(null);
+    setCommitResult(null);
+    setPreviewState('idle');
+    setCommitState('idle');
+    setPreviewError('');
+    setCommitError('');
+  }
+
+  async function handlePreviewImport() {
+    if (!importFile) {
+      setPreviewError('Select an .xlsx file before previewing an import.');
+      return;
+    }
+
+    setPreviewState('loading');
+    setPreviewError('');
+    setCommitResult(null);
+    setCommitState('idle');
+    setCommitError('');
+
+    try {
+      const result = await previewAdminTopicImport(importFile);
+      setPreviewResult(result.data || null);
+      setPreviewState('success');
+    } catch (error) {
+      setPreviewResult(null);
+      setPreviewState('error');
+      setPreviewError(error.response?.data?.message || error.message || 'Import preview failed.');
+    }
+  }
+
+  async function handleCommitImport() {
+    if (!importFile || previewState !== 'success') {
+      setCommitError('Run a successful preview before committing an import.');
+      return;
+    }
+
+    setCommitState('loading');
+    setCommitError('');
+
+    try {
+      const result = await commitAdminTopicImport(importFile);
+      setCommitResult(result.data || null);
+      setCommitState('success');
+    } catch (error) {
+      setCommitResult(null);
+      setCommitState('error');
+      setCommitError(error.response?.data?.message || error.message || 'Import commit failed.');
+    }
+  }
+
+  const canCommitImport = Boolean(importFile) && previewState === 'success' && commitState !== 'loading';
+
   return (
     <AdminDashboardLayout className="space-y-5">
       <PageHeader
         eyebrow="Repository oversight"
         title="Topic Repository"
-        subtitle="Read-only topic repository view connected to existing lifecycle tables. No import UI, exports, edits, deletes, or fabricated topic rows are exposed here."
+        subtitle="Read-only topic repository view with an admin-audited .xlsx import preview and commit workflow. Exports, edits, deletes, migrations, and fabricated topic rows stay unavailable."
       />
 
       <section className="overflow-hidden rounded-[2rem] border border-emerald-950/10 bg-[#eef4eb] shadow-[0_24px_80px_-58px_rgb(6_95_70_/_0.7)]">
@@ -234,7 +358,7 @@ function TopicRepositoryPage() {
                   <p className="text-xs font-semibold uppercase tracking-wide text-emerald-100">Admin repository console</p>
                   <h1 className="mt-2 text-3xl font-bold text-white">Lifecycle topic records</h1>
                   <p className="mt-2 max-w-xl text-sm leading-6 text-emerald-50/80">
-                    Browse real imported or stored topic records across historical, current-session, and under-review tables without running imports or mutations.
+                    Browse real imported or stored topic records across historical, current-session, and under-review tables, then use the scoped import panel for audited .xlsx preview and commit.
                   </p>
                 </div>
               </div>
@@ -245,7 +369,7 @@ function TopicRepositoryPage() {
                 </p>
                 <p className="mt-1 text-xl font-semibold text-white">No fake repository rows</p>
                 <p className="mt-2 text-sm leading-6 text-emerald-50/75">
-                  Empty responses remain empty. Import, export, duplicate resolution, migration, and edit actions stay deferred.
+                  Empty responses remain empty. Export, duplicate-existing checks, migration, embedding generation, and edit actions stay deferred.
                 </p>
               </div>
             </div>
@@ -334,7 +458,7 @@ function TopicRepositoryPage() {
           <div>
             <h2 className="text-lg font-semibold text-text-primary">Repository records</h2>
             <p className="mt-1 max-w-3xl text-sm leading-6 text-text-secondary">
-              Search and lifecycle filters call the read-only admin topic repository endpoint. They do not perform imports, exports, duplicate resolution, or topic edits.
+              Search and lifecycle filters call the read-only admin topic repository endpoint. Import preview and commit are handled separately by the audited import panel below.
             </p>
           </div>
 
@@ -422,8 +546,102 @@ function TopicRepositoryPage() {
       <InfoCallout
         variant="warning"
         title="Import governance remains scoped"
-        message="Backend import endpoints are admin-protected and audited, but this page does not expose import UI, exports, migrations, duplicate-resolution actions, or topic mutations."
+        message="Backend import endpoints are admin-protected and audited. This page now exposes preview and commit only; exports, migrations, duplicate-resolution actions, embedding generation, CSV import, and topic edits remain deferred."
       />
+
+      <section className="rounded-[1.5rem] border border-amber-200 bg-[#fffaf0] p-5 shadow-sm">
+        <div className="flex flex-col gap-3 border-b border-amber-200/80 pb-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-800">Admin import workflow</p>
+            <h2 className="mt-1 text-xl font-semibold text-text-primary">Preview and commit .xlsx topics</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-text-secondary">
+              Select a spreadsheet, preview it through the real admin import endpoint, then commit only after a successful preview.
+              Preview and commit are admin-only and audited by the backend.
+            </p>
+          </div>
+          <span className="inline-flex w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-amber-800 shadow-sm">
+            Audited admin operation
+          </span>
+        </div>
+
+        <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-end">
+          <label className="block text-sm font-semibold text-text-primary">
+            <span>Import .xlsx file</span>
+            <input
+              accept=".xlsx"
+              aria-describedby="topic-import-file-help"
+              className="mt-2 block w-full rounded-xl border border-border-subtle bg-white px-3 py-2 text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-emerald-800 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white"
+              data-testid="topic-import-file-input"
+              onChange={handleImportFileChange}
+              type="file"
+            />
+          </label>
+          <button
+            className="rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-900 disabled:cursor-not-allowed disabled:bg-slate-300"
+            disabled={!importFile || previewState === 'loading'}
+            onClick={handlePreviewImport}
+            type="button"
+          >
+            {previewState === 'loading' ? 'Previewing...' : 'Preview import'}
+          </button>
+          <button
+            className="rounded-xl bg-amber-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+            disabled={!canCommitImport}
+            onClick={handleCommitImport}
+            type="button"
+          >
+            {commitState === 'loading' ? 'Committing...' : 'Commit import'}
+          </button>
+        </div>
+
+        <p id="topic-import-file-help" className="mt-3 text-sm leading-6 text-text-secondary">
+          Supported file type: `.xlsx`. The backend returns aggregate import and persistence reports; duplicate-existing checks,
+          row-level operator reports, embeddings, similarity integration, CSV import, export/download, edit/delete, and migration workflows remain deferred.
+        </p>
+
+        {importFile ? (
+          <p className="mt-3 rounded-[1rem] border border-amber-200 bg-white px-4 py-3 text-sm font-semibold text-text-primary">
+            Selected file: {importFile.name}
+          </p>
+        ) : null}
+
+        {previewState === 'error' ? (
+          <InfoCallout
+            variant="warning"
+            title="Import preview failed"
+            message={`${previewError} No fallback import report or fake preview rows are displayed.`}
+          />
+        ) : null}
+
+        {previewState === 'success' && previewResult ? (
+          <div className="mt-5 space-y-4">
+            <InfoCallout
+              title="Preview complete"
+              message={`Preview parsed ${formatCount(previewResult.records?.length || 0)} accepted normalized record${previewResult.records?.length === 1 ? '' : 's'} from the selected file. This count comes from the backend preview response.`}
+            />
+            <ImportReportGrid report={previewResult.import_report} title="Preview import report" />
+          </div>
+        ) : null}
+
+        {commitState === 'error' ? (
+          <InfoCallout
+            variant="warning"
+            title="Import commit failed"
+            message={`${commitError} No fallback persistence report or fake commit result is displayed.`}
+          />
+        ) : null}
+
+        {commitState === 'success' && commitResult ? (
+          <div className="mt-5 space-y-4">
+            <InfoCallout
+              title="Commit complete"
+              message="The backend commit endpoint returned a real persistence report for the selected file."
+            />
+            <ImportReportGrid report={commitResult.import_report} title="Commit import report" />
+            <PersistenceReportGrid report={commitResult.persistence_report} />
+          </div>
+        ) : null}
+      </section>
     </AdminDashboardLayout>
   );
 }
