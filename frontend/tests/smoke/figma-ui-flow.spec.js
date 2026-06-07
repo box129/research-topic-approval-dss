@@ -253,7 +253,14 @@ test('admin Figma UI route renders honest dashboard shell', async ({ page, conte
     await expect(page.getByRole('heading', { exact: true, level: 1, name: 'Topic Repository' })).toBeVisible();
     await expect(page.getByText(/Read-only repository data/i)).toBeVisible();
     await expect(page.getByText(/No fake repository rows/i)).toBeVisible();
-    await expect(page.getByText(/No import UI, exports, edits, deletes, or fabricated topic rows/i)).toBeVisible();
+    await expect(page.getByText(/Preview and commit \.xlsx topics/i)).toBeVisible();
+    await expect(page.getByText(/admin-only and audited by the backend/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /commit import/i })).toBeDisabled();
+    await expect(page.getByRole('button', { name: /export/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /delete/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /download/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /migrate/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /edit/i })).toHaveCount(0);
 
     await page.goto('/admin/user-management');
     await expect.poll(() => getPathname(page)).toBe('/admin/user-management');

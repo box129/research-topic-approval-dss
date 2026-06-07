@@ -4,7 +4,7 @@
 
 Import support exists because departmental research topic records are mostly spreadsheet-based and may be incomplete. Lecturer interview findings show that topic titles are usually available, but keywords, population, location, and study focus may be missing or inconsistent.
 
-The current import foundation is designed to tolerate incomplete records safely while supporting backend preview and commit endpoints, before frontend import UI, embedding generation, or similarity integration is added.
+The current import foundation is designed to tolerate incomplete records safely while supporting backend preview and commit endpoints. PR #103 connects the admin Topic Repository frontend to the audited `.xlsx` preview and commit workflow, while embedding generation, duplicate-existing checks, richer row-level reports, and similarity integration remain deferred.
 
 ## Current Flow
 
@@ -52,6 +52,23 @@ Admin-prefixed v1 aliases are also available for operational use:
 - `POST /api/v1/admin/import/topics/commit`
 
 A repeatable smoke-test workflow is documented in [`../testing/import-smoke.md`](../testing/import-smoke.md).
+
+## Frontend Import UI Status
+
+PR #103 adds a real admin import panel to `/admin/topic-repository`.
+
+The panel:
+
+- Allows admins to select a `.xlsx` file.
+- Calls `POST /api/v1/admin/import/topics/preview` for preview.
+- Renders the backend `import_report` and accepted-record count returned by the preview endpoint.
+- Enables commit only after a successful preview.
+- Calls `POST /api/v1/admin/import/topics/commit` with the selected file.
+- Renders the backend `import_report` and `persistence_report` returned by the commit endpoint.
+- Shows loading, success, and backend error states without substitute results.
+- States that import actions are admin-only and audited.
+
+The panel does not fabricate duplicate-existing findings, row-level details, embeddings, similarity results, exports, downloads, CSV imports, migrations, or topic edit/delete actions.
 
 ## Normalized Record Fields
 
@@ -105,17 +122,18 @@ Duplicate-title rows increment both `skipped_rows` and `duplicate_title_rows`.
 
 ## Current Limitations
 
-- Backend preview and commit endpoints exist, but no frontend import UI is wired to them yet.
+- The frontend import UI is wired only to the existing admin `.xlsx` preview and commit endpoints.
 - No similarity scoring integration yet.
 - No embedding generation for imported records yet.
 - Import endpoints are admin-protected, but richer duplicate-existing checks and row-level operator reports remain deferred.
 - CSV import remains separate from this `.xlsx` import workflow.
+- Export/download, migration, and topic edit/delete workflows are not part of the import UI.
 
 ## Follow-Up Work
 
-- Add import validation UI and import result display.
 - Add richer duplicate-existing checks and operator-facing row-level report details.
 - Add embedding generation for imported records.
 - Integrate imported context fields into similarity scoring.
+- Add import result drill-down only after the backend returns stable row-level report data.
 - Test the workflow with real sample departmental records.
 - Add evaluation cases for incomplete and spreadsheet-imported records.
