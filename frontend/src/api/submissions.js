@@ -23,6 +23,14 @@ export async function listLecturerDecisions(params = {}) {
   };
 }
 
+export async function getLecturerResearchTrends() {
+  const response = await apiClient.get('/lecturer/research-trends');
+  return {
+    data: response.data?.data,
+    meta: response.data?.meta
+  };
+}
+
 export async function getLecturerSubmission(submissionId) {
   const response = await apiClient.get(`/lecturer/submissions/${submissionId}`);
   return response.data?.data?.submission;

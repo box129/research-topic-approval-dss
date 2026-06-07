@@ -20,6 +20,7 @@ let adminTopicRepositoryController;
 let adminUserController;
 let adminSettingsController;
 let adminReportsController;
+let lecturerResearchTrendsController;
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler.middleware');
 const { requireAuth, requireRole } = require('./middleware/auth.middleware');
 
@@ -197,6 +198,13 @@ const getAdminReportsController = () => {
   return adminReportsController;
 };
 
+const getLecturerResearchTrendsController = () => {
+  if (!lecturerResearchTrendsController) {
+    lecturerResearchTrendsController = require('./controllers/lecturerResearchTrends.controller');
+  }
+  return lecturerResearchTrendsController;
+};
+
 app.post('/api/v1/auth/login', (req, res, next) => {
   getAuthController().login(req, res, next);
 });
@@ -231,6 +239,10 @@ app.get('/api/v1/lecturer/submissions', requireAuth, requireRole('lecturer'), (r
 
 app.get('/api/v1/lecturer/decisions', requireAuth, requireRole('lecturer'), (req, res, next) => {
   getSubmissionController().listLecturerDecisionHistory(req, res, next);
+});
+
+app.get('/api/v1/lecturer/research-trends', requireAuth, requireRole('lecturer'), (req, res, next) => {
+  getLecturerResearchTrendsController().getResearchTrends(req, res, next);
 });
 
 app.get('/api/v1/lecturer/submissions/:id', requireAuth, requireRole('lecturer'), (req, res, next) => {

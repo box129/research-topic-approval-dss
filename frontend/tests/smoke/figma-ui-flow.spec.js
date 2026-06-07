@@ -214,6 +214,13 @@ test('lecturer Figma UI routes render read-only smoke states', async ({ page, co
     await expect(page.getByText(/reviewed submissions are not treated as supervisees/i)).toBeVisible();
     await expect(page.getByText(/sample supervisee|fake progress/i)).toHaveCount(0);
 
+    await expectRenderedRoute(page, '/lecturer/research-trends', /research trends/i);
+    await expect(page.getByText(/real aggregate data/i)).toBeVisible();
+    await expect(page.getByText(/no fake analytics/i)).toBeVisible();
+    await expect(page.getByText(/keyword trends deferred/i)).toBeVisible();
+    await expect(page.getByText(/recommendations deferred/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /export/i })).toHaveCount(0);
+
     monitor.assertClean();
   } finally {
     monitor.stop();
