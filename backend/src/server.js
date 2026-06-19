@@ -22,6 +22,7 @@ let adminSettingsController;
 let adminReportsController;
 let lecturerResearchTrendsController;
 let notificationController;
+let readinessController;
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler.middleware');
 const { requireAuth, requireRole } = require('./middleware/auth.middleware');
 
@@ -212,6 +213,17 @@ const getNotificationController = () => {
   }
   return notificationController;
 };
+
+const getReadinessController = () => {
+  if (!readinessController) {
+    readinessController = require('./controllers/readiness.controller');
+  }
+  return readinessController;
+};
+
+app.get('/api/v1/readiness', (req, res, next) => {
+  getReadinessController().getReadiness(req, res, next);
+});
 
 app.post('/api/v1/auth/login', (req, res, next) => {
   getAuthController().login(req, res, next);

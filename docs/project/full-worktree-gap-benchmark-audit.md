@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document preserves the original PR #94 repository audit as historical context and records the current repository status after PRs #96 through #106.
+This document preserves the original PR #94 repository audit as historical context and records the current repository status after PRs #96 through #107.
 
 The original June 5 audit should not be read as current truth unless a section is explicitly labelled historical.
 
@@ -29,9 +29,9 @@ At that time, the repository had:
 
 Those gaps were correct for PR #94. They are historical now.
 
-## Current Status After PR #106
+## Current Status After PR #107
 
-Current branch context: `fix/similarity-scoring-contract`.
+Current branch context: `release/deployment-readiness-rc`.
 
 Current implemented governance sequence:
 
@@ -48,6 +48,7 @@ Current implemented governance sequence:
 | #104 Email/notification foundation | Added explicit email provider modes and authenticated own-user notification backend foundation; real SMTP transport and event hooks remain deferred. |
 | #105 Evaluation/data-quality evidence | Added governed pilot evaluation reports, data-quality audit, scoring-contract drift evidence, and generated JSON/Markdown artifacts without production scoring changes. |
 | #106 Similarity scoring contract correction | Corrects production scoring to the approved weighted methodology and regenerates regression/evaluation evidence. |
+| #107 Deployment readiness + RC | Adds release-candidate runbooks, fail-fast production config validation, readiness endpoint, release gate automation, and focused CI. |
 
 ## Current Implemented Areas
 
@@ -90,6 +91,7 @@ Current implemented governance sequence:
 | Notifications | Backend foundation and own-user endpoints implemented; event hooks/frontend UI deferred. |
 | Evaluation/data-quality | PR #105 adds reproducible pilot evaluation and local database data-quality evidence; PR #106 reruns it against corrected scoring. |
 | Similarity scoring contract | Implemented with shared approved weights, fallback weights, risk boundaries, ranking, and tier gates. |
+| Deployment readiness | PR #107 adds `/api/v1/readiness`, release-candidate runbooks, release gate automation, and focused CI. |
 
 ### Prisma Models
 
@@ -112,6 +114,7 @@ Still absent/deferred:
 - explicit lecturer supervisee assignment model
 - report/export history model
 - richer import duplicate-resolution model
+- production infrastructure model/files for full-stack container deployment
 
 ## Current Evaluation Evidence
 

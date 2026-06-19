@@ -1,0 +1,9 @@
+{
+  "name": "topic-similarity-mvp-release-tools",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Repository-level release readiness tooling for Topic Similarity MVP.",
+  "scripts": {
+    "release:check": "node scripts/release-readiness.js"
+  }
+}

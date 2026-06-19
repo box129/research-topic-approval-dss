@@ -4,17 +4,18 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | `fix/similarity-scoring-contract` |
-| Current commit hash | `e756c2e` |
-| Date/time | `2026-06-19 16:53:00 +01:00` |
-| Scope | Similarity scoring contract correction, regression tests, SBERT-active pilot evaluation rerun, and documentation |
-| Change type | Backend scoring behavior, tests, generated evidence, and documentation |
-| Implementation status | PR #106 corrects production similarity scoring to the approved FYP methodology by centralizing the scoring contract, applying normal weights `0.20 / 0.30 / 0.50`, fallback weights `0.40 / 0.60`, LOW/MEDIUM/HIGH boundaries `<0.40`, `0.40-<0.70`, `>=0.70`, weighted ranking, fallback weighted ranking, highest eligible combined-score risk classification, the `0.10` tier minimum, and Tier 2/3 gates requiring combined `>=0.60` plus SBERT `>=0.60`. The latest generated evaluation ran with local SBERT healthy and produced 16/16 SBERT-success cases, 100% full tri-algorithm coverage, 0 operational fallback cases, final production accuracy `0.375`, macro F1 `0.365`, and weighted F1 `0.348`. Runtime fallback performance remains `NOT_EVALUATED` because fallback support is zero; offline fallback-policy evaluation remains counterfactual pilot evidence only. PR #105 remains the historical drift baseline. No dataset relabeling, Prisma migration, auth/session change, import parsing/persistence change, frontend feature, fake SBERT value, fake benchmark claim, fake evaluation result, or fake data-quality finding is introduced. |
+| Branch | `release/deployment-readiness-rc` |
+| Current commit hash | `732f6b3` |
+| Date/time | `2026-06-19 17:30:00 +01:00` |
+| Scope | Deployment readiness, release-candidate runbooks, readiness endpoint, release gate automation, CI, security checklist, and documentation |
+| Change type | Backend operational readiness, configuration validation, release tooling, CI, and documentation |
+| Implementation status | PR #107 prepares the controlled `v0.4.0-rc1` release candidate by documenting honest deployment support, adding fail-fast production configuration validation, adding `GET /api/v1/readiness`, adding repository-level release-gate automation, and adding a focused CI workflow. It does not create a tag or GitHub release, does not add product features, does not change similarity scoring, does not relabel evaluation data, does not add Prisma migrations, and does not claim public production readiness. |
 
 Latest relevant PRs:
 
 | PR | Summary | Relevance |
 | --- | --- | --- |
+| #107 | release: add deployment readiness and RC gate | Adds release-candidate runbooks, readiness endpoint, production config validation, CI, and release-gate automation. |
 | #106 | fix: align similarity scoring contract | Corrects production scoring to the approved weighted methodology and regenerates regression/evaluation evidence. |
 | #105 | feat: add evaluation and data-quality FYP evidence | Added governed pilot evaluation reports and read-only topic data-quality audit evidence without changing production scoring. |
 | #104 | feat: add production email and notification foundation | Added explicit safe email provider modes and authenticated own-user notification backend foundation. |
@@ -490,6 +491,37 @@ Still deferred after PR #106:
 - Admin report export generation.
 - Audit log export/purge/delete workflows.
 
+### Implementation Status After PR #107
+
+PR #107 implements the deployment-readiness and release-candidate slice from this plan:
+
+- `GET /api/v1/readiness` is added as an unauthenticated operational readiness endpoint.
+- Backend liveness remains available at:
+  - `GET /health`
+  - `GET /api/v1/health`
+- Readiness reports API, database, and SBERT availability without exposing database contents, credentials, or sensitive configuration.
+- Readiness returns full `ready` only when database and SBERT checks are available.
+- SBERT unavailability is reported as `degraded` with HTTP `503`, because lexical fallback is not full semantic readiness.
+- Production configuration validation now rejects weak or placeholder `JWT_SECRET` values.
+- Production configuration now requires an explicit trusted frontend/CORS origin and rejects `*`.
+- Existing production email validation remains in place: `EMAIL_PROVIDER` is required and `EMAIL_PROVIDER=mock` is rejected.
+- Repository-level release gate automation is added through `npm run release:check`.
+- A focused GitHub Actions CI workflow is added for backend/frontend checks with PostgreSQL and Python source compilation for SBERT.
+- Deployment runbooks, environment matrix, database migration/rollback docs, security checklist, release notes, and release-readiness reporting are added.
+- The recommended post-merge RC tag is `v0.4.0-rc1`.
+- No tag, GitHub release, deployment, Prisma migration, product feature, similarity scoring change, evaluation relabeling, SMTP delivery claim, notification UI/event hook, or fake production-readiness evidence is introduced.
+
+Still deferred after PR #107:
+
+- Public HTTPS production deployment proof.
+- Infrastructure-owned reverse proxy, TLS, monitoring, alerting, backup automation, and incident ownership.
+- Real SMTP/provider transport delivery.
+- Notification event hooks and frontend notification UI.
+- Lecturer supervisee assignment model and endpoint.
+- Admin report export generation.
+- Audit log export/purge/delete workflows.
+- Lecturer-reviewed final evaluation dataset and departmental-scale effectiveness evidence.
+
 ## 2. Current Reality From Repository
 
 ### Existing Backend Behavior
@@ -503,7 +535,7 @@ Still deferred after PR #106:
 | Public similarity checker | Public similarity endpoint exists at legacy and v1 paths. | `POST /api/similarity/check`, `POST /api/v1/check-similarity` |
 | Similarity stack | Jaccard, TF-IDF, SBERT service integration/fallback, approved weighted scoring contract, tiered results, risk classification, and partial success behavior exist. | `backend/src/config/similarityScoring.config.js`, `similarity.controller.js`, `jaccard.service.js`, `tfidf.service.js`, `sbert.service.js` |
 | Topic import | Spreadsheet preview/commit endpoints exist and call import file, normalization, and persistence services. | `/api/import/topics/*`, `/api/v1/import/topics/*`, `topicImport*.service.js` |
-| Health | Basic health endpoints exist. | `/health`, `/api/v1/health` |
+| Health/readiness | Basic liveness endpoints exist and a dependency readiness endpoint reports API, database, and SBERT availability without sensitive details. | `/health`, `/api/v1/health`, `/api/v1/readiness` |
 | Email | Password reset email uses explicit provider modes: local/test-safe `mock`, fail-closed `disabled`, and provider-ready `smtp` with SMTP transport deferred. Production rejects missing provider configuration and `mock`. | `backend/src/services/email.service.js`, `backend/src/config/env.js`, `docs/setup/auth-foundation.md`, `docs/setup/email-notification-foundation.md` |
 | Notifications | Authenticated own-user notification backend foundation exists with list, mark-read, and mark-all-read endpoints. Event hooks and frontend UI remain deferred. | `backend/prisma/schema.prisma`, `backend/src/services/notification.service.js`, `backend/src/controllers/notification.controller.js`, `backend/src/server.js` |
 | Evaluation evidence | Reproducible pilot LOW/MEDIUM/HIGH evaluation reports exist, including SBERT health, full tri-algorithm coverage, operational fallback coverage, counterfactual offline fallback-policy evaluation, scoring-contract comparison, and per-method metrics. The latest generated report used a healthy local SBERT service with 16/16 SBERT-success cases, 100% full tri-algorithm coverage, and the corrected PR #106 scoring contract. | `backend/scripts/run-topic-evaluation.js`, `backend/evaluation/results/topic-similarity-evaluation.json`, `docs/testing/topic-similarity-evaluation-report.md` |
@@ -547,7 +579,7 @@ Enums include:
 
 ### Missing Backend/Governance Areas
 
-These do not currently exist as implemented APIs/models/services in the inspected repository after PR #106:
+These do not currently exist as implemented APIs/models/services in the inspected repository after PR #107:
 
 - Admin user mutations beyond audited status updates.
 - Admin system settings mutations.
@@ -2082,24 +2114,43 @@ Must not include:
 Purpose:
 
 - Create deployment/runbook/env readiness documentation and checks.
+- Add minimal operational readiness reporting.
+- Add release-gate automation and focused CI.
+
+Status:
+
+- Implemented by branch `release/deployment-readiness-rc`.
+- No tag or GitHub release is created by this PR.
 
 Likely files:
 
-- setup/status/deployment docs
-- env example docs
-- smoke checklist updates
+- `backend/src/controllers/readiness.controller.js`
+- `backend/src/services/readiness.service.js`
+- `backend/src/config/env.js`
+- `scripts/release-readiness.js`
+- `.github/workflows/ci.yml`
+- `docs/deployment/*`
+- `docs/release/v0.4.0-rc1.md`
+- `docs/testing/release-readiness-report.md`
 
 Tests required:
 
-- Build/test/smoke commands as release gate.
+- Readiness endpoint/service tests.
+- Production configuration validation tests.
+- Build/test/evaluation/data-quality commands as release gate.
 
 Risks:
 
 - Treating local demo setup as production-ready.
+- Treating degraded SBERT fallback as full semantic readiness.
+- Letting release tooling hide failed commands or credential requirements.
 
 Must not include:
 
 - Last-minute feature work.
+- Similarity scoring changes.
+- Tag or release creation.
+- Fake deployment evidence.
 
 ## 19. Non-Goals
 
@@ -2134,25 +2185,24 @@ This PR does not:
 
 ## 20. Verification
 
-Requested verification commands for PR #106:
+Requested verification commands for PR #107:
 
 ```powershell
 cd backend
 npm test -- --runInBand
 npx prisma validate
+npx prisma migrate status
 npm run evaluate:topics
 npm run audit:data-quality
 cd ..\sbert-service
 .\venv\Scripts\python.exe quick_test.py
+$env:PYTHONIOENCODING='utf-8'
 .\venv\Scripts\python.exe test_service.py
 cd ..\frontend
 npm run build
-npm test -- --run tests/ResultsDisplay.test.jsx tests/ResultsDisplay.old.test.jsx
-npm test -- --run tests/LecturerCheckSimilarityPage.test.jsx
-npm test -- --run tests/CheckMyTopicPage.test.jsx
 npm test -- --run --maxWorkers=1 --minWorkers=1
-npm run smoke:figma-ui
 cd ..
+npm run release:check
 git diff --check
 git status --short --ignored reference img frontend/smoke-artifacts frontend/dist frontend/playwright-report frontend/test-results backend/node_modules frontend/node_modules sbert-service/venv
 git diff --stat
@@ -2162,17 +2212,26 @@ git diff --name-only
 Expected implementation files:
 
 ```text
-backend/src/config/similarityScoring.config.js
-backend/src/config/similarityScoring.config.test.js
-backend/src/controllers/similarity.controller.js
-backend/src/controllers/similarity.controller.test.js
-backend/src/services/evaluationMetrics.service.js
-backend/src/services/evaluationMetrics.service.test.js
-backend/scripts/run-topic-evaluation.js
-backend/evaluation/results/topic-similarity-evaluation.json
+backend/src/config/env.js
+backend/src/config/env.test.js
+backend/src/controllers/readiness.controller.js
+backend/src/controllers/readiness.controller.test.js
+backend/src/services/readiness.service.js
+backend/src/services/readiness.service.test.js
+backend/src/server.js
+scripts/release-readiness.js
+package.json
+.github/workflows/ci.yml
+backend/env.example
+README.md
+sbert-service/README.md
 docs/backend/admin-governance-api-contract-plan.md
+docs/deployment/deployment-runbook.md
+docs/deployment/environment-matrix.md
+docs/deployment/database-migrations-and-rollback.md
+docs/deployment/security-readiness-checklist.md
 docs/project/full-worktree-gap-benchmark-audit.md
 docs/project/fyp-evaluation-benchmark-evidence.md
-docs/testing/evaluation.md
-docs/testing/topic-similarity-evaluation-report.md
+docs/release/v0.4.0-rc1.md
+docs/testing/release-readiness-report.md
 ```

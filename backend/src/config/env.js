@@ -1,5 +1,19 @@
 require('dotenv').config();
 
+function envValue(key) {
+  const value = process.env[key];
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  const normalized = String(value).trim();
+  if (!normalized || normalized.toLowerCase() === 'undefined' || normalized.toLowerCase() === 'null') {
+    return undefined;
+  }
+
+  return normalized;
+}
+
 /**
  * Validate required environment variables
  */
@@ -8,12 +22,33 @@ function validateEnv() {
   if (process.env.NODE_ENV === 'production') {
     required.push('JWT_SECRET');
     required.push('EMAIL_PROVIDER');
+    if (!envValue('FRONTEND_URL') && !envValue('CORS_ORIGIN')) {
+      required.push('FRONTEND_URL or CORS_ORIGIN');
+    }
   }
 
-  const missing = required.filter(key => !process.env[key]);
+  const missing = required.filter(key => !envValue(key));
   
   if (missing.length > 0) {
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    const jwtSecret = envValue('JWT_SECRET') || '';
+    const unsafeJwtSecrets = new Set([
+      'local-dev-auth-secret-change-before-production',
+      'replace_with_a_long_random_secret_before_production',
+      'production-secret'
+    ]);
+
+    if (jwtSecret.length < 32 || unsafeJwtSecrets.has(jwtSecret)) {
+      throw new Error('JWT_SECRET must be a strong production secret with at least 32 characters.');
+    }
+
+    const corsOrigin = envValue('FRONTEND_URL') || envValue('CORS_ORIGIN') || '';
+    if (!corsOrigin || corsOrigin === '*') {
+      throw new Error('Production CORS origin must be an explicit trusted origin.');
+    }
   }
 
   const emailProvider = (process.env.EMAIL_PROVIDER || '').trim().toLowerCase();
