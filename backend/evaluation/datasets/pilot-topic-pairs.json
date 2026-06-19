@@ -1,6 +1,31 @@
 {
+  "schema_version": "evaluation-dataset-v2",
   "version": "pilot-v1",
   "description": "Controlled topic-pair evaluation dataset for undergraduate research topic similarity.",
+  "provenance": {
+    "source_classification": "manually_constructed_pilot",
+    "created_for": "Reproducible FYP evaluation evidence",
+    "validation_status": "not_department_expert_validated",
+    "notes": [
+      "Cases are controlled topic-pair examples maintained in the repository.",
+      "Expected classes are manual pilot labels and must not be represented as final departmental or expert ground truth."
+    ]
+  },
+  "class_labels": ["LOW", "MEDIUM", "HIGH"],
+  "case_field_mapping": {
+    "id": "Stable case identifier.",
+    "submitted": "Topic A.",
+    "existing": "Topic B.",
+    "expected_class": "Expected LOW/MEDIUM/HIGH production risk class.",
+    "rationale": "Human-readable reason for the expected class.",
+    "source_classification": "Provenance type for the case label.",
+    "tags": "Scenario tags used for class-balance and limitation reporting."
+  },
+  "limitations": [
+    "This is a small pilot dataset, not a final lecturer-reviewed benchmark.",
+    "It uses manually constructed examples and does not contain raw departmental submission data.",
+    "SBERT-dependent metrics require the local SBERT service to be reachable at evaluation time."
+  ],
   "cases": [
     {
       "id": "case-001",
@@ -21,6 +46,10 @@
       },
       "expected_label": "similar",
       "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Exact duplicate title and context.",
+      "source_classification": "manually_constructed_pilot",
+      "tags": ["exact_duplicate", "title_match", "full_context_match"],
       "notes": "Exact duplicate title and context."
     },
     {
@@ -42,6 +71,10 @@
       },
       "expected_label": "similar",
       "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Near-duplicate wording with same population, location, and focus.",
+      "source_classification": "manually_constructed_pilot",
+      "tags": ["near_duplicate", "same_population", "same_location", "same_focus"],
       "notes": "Near-duplicate wording with same population, location, and focus."
     },
     {
@@ -63,6 +96,10 @@
       },
       "expected_label": "similar",
       "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Low lexical overlap but similar meaning.",
+      "source_classification": "manually_constructed_pilot",
+      "tags": ["paraphrase", "semantic_match", "low_lexical_overlap"],
       "notes": "Low lexical overlap but similar meaning."
     },
     {
@@ -84,6 +121,10 @@
       },
       "expected_label": "not_similar",
       "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Same disease and focus but different population.",
+      "source_classification": "manually_constructed_pilot",
+      "tags": ["same_disease", "different_population", "medium_risk_boundary"],
       "notes": "Same disease and focus but different population."
     },
     {
@@ -105,6 +146,10 @@
       },
       "expected_label": "not_similar",
       "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Same title pattern but different study location.",
+      "source_classification": "manually_constructed_pilot",
+      "tags": ["same_title_pattern", "different_location", "medium_risk_boundary"],
       "notes": "Same title pattern but different study location."
     },
     {
@@ -126,6 +171,10 @@
       },
       "expected_label": "not_similar",
       "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Same population and location but different topic focus.",
+      "source_classification": "manually_constructed_pilot",
+      "tags": ["different_focus", "same_population", "same_location"],
       "notes": "Same population and location but different topic focus."
     },
     {
@@ -147,6 +196,10 @@
       },
       "expected_label": "not_similar",
       "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Clearly unrelated study areas.",
+      "source_classification": "manually_constructed_pilot",
+      "tags": ["unrelated", "different_population", "different_focus"],
       "notes": "Clearly unrelated study areas."
     },
     {
@@ -168,6 +221,10 @@
       },
       "expected_label": "not_similar",
       "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "High lexical overlap but different study focus.",
+      "source_classification": "manually_constructed_pilot",
+      "tags": ["high_lexical_overlap", "different_focus", "medium_risk_boundary"],
       "notes": "High lexical overlap but different study focus."
     },
     {
@@ -189,6 +246,10 @@
       },
       "expected_label": "similar",
       "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Fragmented imported/submitted title should still match the full version.",
+      "source_classification": "manually_constructed_pilot",
+      "tags": ["fragmented_title", "import_quality", "high_risk"],
       "notes": "Fragmented imported/submitted title should still match the full version."
     },
     {
@@ -210,6 +271,10 @@
       },
       "expected_label": "similar",
       "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Synonym-heavy paraphrase.",
+      "source_classification": "manually_constructed_pilot",
+      "tags": ["synonym_paraphrase", "semantic_match", "high_risk"],
       "notes": "Synonym-heavy paraphrase."
     },
     {
@@ -231,6 +296,10 @@
       },
       "expected_label": "not_similar",
       "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Same population and location but different health outcome.",
+      "source_classification": "manually_constructed_pilot",
+      "tags": ["same_population", "same_location", "different_focus"],
       "notes": "Same population and location but different health outcome."
     },
     {
@@ -252,6 +321,10 @@
       },
       "expected_label": "not_similar",
       "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Similar intervention but different population and location.",
+      "source_classification": "manually_constructed_pilot",
+      "tags": ["similar_intervention", "different_population", "different_location"],
       "notes": "Similar intervention but different population and location."
     },
     {
@@ -273,6 +346,10 @@
       },
       "expected_label": "similar",
       "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Potential current-session documentation gap with paraphrased wording.",
+      "source_classification": "manually_constructed_pilot",
+      "tags": ["paraphrase", "documentation_gap", "high_risk"],
       "notes": "Potential current-session documentation gap with paraphrased wording."
     },
     {
@@ -294,6 +371,10 @@
       },
       "expected_label": "similar",
       "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Under-review style paraphrase.",
+      "source_classification": "manually_constructed_pilot",
+      "tags": ["under_review_style", "paraphrase", "high_risk"],
       "notes": "Under-review style paraphrase."
     },
     {
@@ -315,6 +396,10 @@
       },
       "expected_label": "not_similar",
       "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Similar wording but different object of study.",
+      "source_classification": "manually_constructed_pilot",
+      "tags": ["high_lexical_overlap", "different_focus", "medium_risk_boundary"],
       "notes": "Similar wording but different object of study."
     },
     {
@@ -336,6 +421,10 @@
       },
       "expected_label": "not_similar",
       "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Different domain, population, and focus.",
+      "source_classification": "manually_constructed_pilot",
+      "tags": ["unrelated", "different_domain", "low_risk"],
       "notes": "Different domain, population, and focus."
     }
   ]

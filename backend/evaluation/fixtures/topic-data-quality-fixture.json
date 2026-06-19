@@ -1,0 +1,68 @@
+{
+  "historical": [
+    {
+      "id": 1,
+      "title": "Knowledge of malaria prevention among mothers in Osogbo",
+      "category": "Public Health",
+      "keywords": "malaria; prevention; mothers",
+      "sessionYear": "2024/2025",
+      "supervisorName": "Fixture Supervisor",
+      "population": "Mothers of children under five",
+      "location": "Osogbo",
+      "studyFocus": "Malaria prevention knowledge",
+      "importWarnings": [],
+      "sourceType": "fixture",
+      "importBatchId": "fixture-batch-001",
+      "embedding": [0.1, 0.2, 0.3]
+    },
+    {
+      "id": 2,
+      "title": "Knowledge of malaria prevention among mothers in Osogbo",
+      "category": "",
+      "keywords": "",
+      "sessionYear": "",
+      "supervisorName": "",
+      "population": "",
+      "location": "",
+      "studyFocus": "",
+      "importWarnings": [{ "code": "MISSING_CONTEXT_FIELD" }],
+      "sourceType": "fixture",
+      "importBatchId": "fixture-batch-001",
+      "embedding": null
+    }
+  ],
+  "currentSession": [
+    {
+      "id": 10,
+      "title": "Knowledge of malaria prevention among mothers in Osogbo",
+      "category": "Public Health",
+      "keywords": "malaria; prevention",
+      "sessionYear": "2025/2026",
+      "supervisorName": "Fixture Supervisor",
+      "population": "Mothers",
+      "location": "Osogbo",
+      "studyFocus": "Prevention knowledge",
+      "importWarnings": [],
+      "sourceType": "fixture",
+      "importBatchId": "fixture-batch-002",
+      "embedding": null
+    }
+  ],
+  "underReview": [
+    {
+      "id": 20,
+      "title": "Different fixture topic for data quality coverage",
+      "category": null,
+      "keywords": null,
+      "sessionYear": "2025/2026",
+      "supervisorName": "Fixture Reviewer",
+      "population": null,
+      "location": "Fixture Location",
+      "studyFocus": null,
+      "importWarnings": [],
+      "sourceType": "fixture",
+      "importBatchId": null,
+      "embedding": null
+    }
+  ]
+}

@@ -4,17 +4,19 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | `backend/production-email-notification-foundation` |
-| Current commit hash | `16353ca` |
-| Date/time | `2026-06-19 03:50:58 +01:00` |
-| Scope | Email provider foundation, notification model/service/endpoints, tests, and documentation |
-| Change type | Backend, Prisma migration, tests, and documentation |
-| Implementation status | PR #104 replaces mock-only password reset email behavior with explicit safe email provider modes and adds a real authenticated notification backend foundation. Email supports mock, disabled, and provider-ready SMTP modes without adding credentials or sending real email in tests. SMTP transport and event hooks remain deferred. A `Notification` model, migration, service helpers, and authenticated own-user notification endpoints are added. No frontend notification UI, fake notification feed, fake email history, real credentials, package dependency, similarity behavior change, import behavior change, admin governance endpoint change, lecturer workflow change, or auth/session behavior change is introduced. |
+| Branch | `evaluation/data-quality-fyp-evidence` |
+| Current commit hash | `29d4015` |
+| Date/time | `2026-06-19 04:18:26 +01:00` |
+| Scope | Evaluation dataset governance, multiclass metrics, read-only topic data-quality audit, generated evidence artifacts, tests, and documentation |
+| Change type | Backend evaluation tooling, tests, generated evidence, and documentation |
+| Implementation status | PR #105 adds governed pilot evaluation metadata, reproducible LOW/MEDIUM/HIGH multiclass evaluation metrics, stored JSON/Markdown evidence artifacts, and a read-only topic data-quality audit with safe-field counts and hashed duplicate-title candidates. The latest generated evaluation ran with the local SBERT service healthy and produced 16/16 SBERT-success cases, 100% full tri-algorithm coverage, and 0 operational fallback cases. Runtime fallback performance is marked `NOT_EVALUATED` because fallback support is zero; a separate offline fallback-policy evaluation is counterfactual pilot evidence only. PR #105 also documents scoring-contract drift between the approved FYP methodology and current production behavior. No production similarity scoring, threshold, SBERT fallback, import parsing, import persistence, auth/session behavior, Prisma migration, frontend behavior, fake result, fake data-quality finding, or fake benchmark claim is introduced. |
 
 Latest relevant PRs:
 
 | PR | Summary | Relevance |
 | --- | --- | --- |
+| #105 | feat: add evaluation and data-quality FYP evidence | Added governed pilot evaluation reports and read-only topic data-quality audit evidence without changing production scoring. |
+| #104 | feat: add production email and notification foundation | Added explicit safe email provider modes and authenticated own-user notification backend foundation. |
 | #103 | feat: add admin import governance UI | Connected admin Topic Repository import preview/commit UI to existing audited backend endpoints without fake import results. |
 | #102 | feat: add lecturer research trends governance | Added a safe read-only lecturer research trends endpoint and connected Research Trends to real aggregate data while keeping generated insights deferred. |
 | #101 | feat: add lecturer decision history governance | Added read-only lecturer decision history and kept supervisees honestly deferred. |
@@ -338,6 +340,100 @@ Still deferred after PR #104:
 - Admin system settings mutations.
 - Any similarity scoring or threshold changes.
 
+### Implementation Status After PR #105
+
+PR #105 implements the evaluation, data-quality, and FYP evidence slice from this plan:
+
+- `backend/evaluation/datasets/pilot-topic-pairs.json` now includes governed pilot metadata:
+  - schema version
+  - provenance
+  - LOW/MEDIUM/HIGH class labels
+  - per-case expected class
+  - rationale
+  - source classification
+  - tags
+- The dataset remains explicitly marked as a manually constructed pilot dataset, not final department or lecturer-reviewed ground truth.
+- `backend/src/services/evaluationMetrics.service.js` now supports production-threshold LOW/MEDIUM/HIGH multiclass evaluation metrics:
+  - class support
+  - accuracy
+  - macro precision/recall/F1
+  - weighted precision/recall/F1
+  - per-class metrics
+  - confusion matrices
+  - method coverage/skipped counts
+- `backend/scripts/run-topic-evaluation.js` writes reproducible artifacts:
+  - `backend/evaluation/results/topic-similarity-evaluation.json`
+  - `docs/testing/topic-similarity-evaluation-report.md`
+- The latest generated evaluation ran in `sbert_available_full_tri_evaluation` mode with the local SBERT service healthy at `http://localhost:8000`:
+  - total cases: 16
+  - valid cases: 16
+  - SBERT attempted cases: 16
+  - SBERT success cases: 16
+  - SBERT failed cases: 0
+  - SBERT unavailable cases: 0
+  - full tri-algorithm cases: 16
+  - fallback-used cases: 0
+  - full tri-algorithm coverage: `100%`
+  - operational fallback coverage: `0%`
+  - operational fallback metrics: `NOT_EVALUATED` because runtime fallback support is zero
+  - offline fallback-policy evaluation: counterfactual pilot evidence across all 16 valid cases without SBERT output
+  - final production behavior accuracy: `0.313`
+  - final production behavior macro F1: `0.224`
+  - final production behavior weighted F1: `0.215`
+- The evaluation documents the observed production scoring contract from `similarity.controller.js` without changing it:
+  - high threshold `0.70`
+  - medium threshold `0.50`
+  - tier filter threshold `0.60`
+  - configured normal weights `0.30 / 0.30 / 0.40`
+  - configured fallback weights `0.50 / 0.50`
+  - normal ranking currently uses an unweighted `jaccard + tfidf + sbert` combined score
+  - normal overall risk uses max SBERT score
+  - fallback overall risk uses max lexical score
+- PR #105 also documents scoring-contract drift from the approved FYP methodology:
+  - approved weights are Jaccard `0.20`, TF-IDF `0.30`, SBERT `0.50`
+  - current configured weights are Jaccard `0.30`, TF-IDF `0.30`, SBERT `0.40`
+  - approved fallback weights are Jaccard `0.40`, TF-IDF `0.60`
+  - current configured fallback weights are `0.50 / 0.50`
+  - approved MEDIUM starts at `0.40`, while current production MEDIUM starts at `0.50`
+  - current production overall risk uses max SBERT or max lexical fallback instead of the approved weighted methodology
+  - a separate scoring-contract correction PR is required if the approved FYP method should become production behavior
+- `backend/src/services/topicDataQualityAudit.service.js` adds a read-only safe-field topic data-quality audit for:
+  - `HistoricalTopic`
+  - `CurrentSessionTopic`
+  - `UnderReviewTopic`
+- `backend/scripts/run-topic-data-quality-audit.js` writes reproducible artifacts:
+  - `backend/evaluation/results/topic-data-quality-audit.json`
+  - `docs/testing/topic-data-quality-report.md`
+- The latest generated data-quality audit ran in database mode and inspected 9 topic records in the connected local database:
+  - historical: 6
+  - current session: 1
+  - under review: 2
+  - blank titles: 0
+  - missing category/session/supervisor/keywords/context fields: 0
+  - with embeddings: 0
+  - without embeddings: 9
+  - duplicate-title candidate groups: 0
+- This audit is a local database snapshot only. It does not represent the complete departmental repository, departmental-scale data quality remains NOT YET VERIFIED, and no broad data-quality conclusion should be drawn from nine inspected records.
+- Duplicate-title candidates are reported with hashed normalized titles and lifecycle/id references only. Raw titles are not written to the committed audit report.
+- `docs/project/fyp-evaluation-benchmark-evidence.md` maps FYP benchmark status as reached, partially reached, not reached, deferred, or not yet verified.
+- No production similarity scoring, threshold, SBERT fallback, import parsing, import persistence, auth/session behavior, Prisma migration, frontend behavior, fake result, fake data-quality finding, or fake benchmark claim is introduced.
+
+Still deferred after PR #105:
+
+- Lecturer-reviewed final evaluation dataset.
+- Departmental-scale effectiveness evidence.
+- Final benchmark using lecturer-reviewed labels.
+- Scoring-contract correction for approved FYP weights/thresholds/tier minima/overall-risk behavior.
+- Production scoring or threshold changes, if ever approved by a separate scoped evaluation-backed PR.
+- Semantic duplicate-existing governance for imported/stored topics.
+- Embedding generation for imported records.
+- Real SMTP/provider transport implementation.
+- Notification event hooks and frontend notification UI.
+- Lecturer supervisee assignment model and endpoint.
+- Admin research trends analytics endpoint.
+- Admin report export generation.
+- Audit log export/purge/delete workflows.
+
 ## 2. Current Reality From Repository
 
 ### Existing Backend Behavior
@@ -354,12 +450,14 @@ Still deferred after PR #104:
 | Health | Basic health endpoints exist. | `/health`, `/api/v1/health` |
 | Email | Password reset email uses explicit provider modes: local/test-safe `mock`, fail-closed `disabled`, and provider-ready `smtp` with SMTP transport deferred. Production rejects missing provider configuration and `mock`. | `backend/src/services/email.service.js`, `backend/src/config/env.js`, `docs/setup/auth-foundation.md`, `docs/setup/email-notification-foundation.md` |
 | Notifications | Authenticated own-user notification backend foundation exists with list, mark-read, and mark-all-read endpoints. Event hooks and frontend UI remain deferred. | `backend/prisma/schema.prisma`, `backend/src/services/notification.service.js`, `backend/src/controllers/notification.controller.js`, `backend/src/server.js` |
+| Evaluation evidence | Reproducible pilot LOW/MEDIUM/HIGH evaluation reports exist, including SBERT health, full tri-algorithm coverage, operational fallback coverage, counterfactual offline fallback-policy evaluation, scoring-contract drift, and per-method metrics. The latest generated report used a healthy local SBERT service with 16/16 SBERT-success cases and 100% full tri-algorithm coverage. | `backend/scripts/run-topic-evaluation.js`, `backend/evaluation/results/topic-similarity-evaluation.json`, `docs/testing/topic-similarity-evaluation-report.md` |
+| Topic data-quality audit | Read-only safe-field lifecycle topic audit exists with missing-field counts, embedding coverage, import warning counts, source/import-batch grouping, and hashed duplicate-title candidates. | `backend/src/services/topicDataQualityAudit.service.js`, `backend/scripts/run-topic-data-quality-audit.js`, `backend/evaluation/results/topic-data-quality-audit.json`, `docs/testing/topic-data-quality-report.md` |
 
 ### Existing Frontend Behavior
 
 | Area | Existing behavior | Evidence |
 | --- | --- | --- |
-| Admin dashboard | Protected visual shell, explicitly not connected to live admin metrics or service health. | `frontend/src/pages/admin/DashboardPage.jsx` |
+| Admin dashboard | Protected page connected to `GET /api/v1/admin/dashboard/summary`. It renders real read-only counts and honest unavailable/partial states. Unsupported recent activity and operational metrics remain deferred. | `frontend/src/pages/admin/DashboardPage.jsx` |
 | Admin topic repository | Protected page connected to lifecycle topic repository endpoints and existing admin import preview/commit endpoints. It shows real rows, safe empty states, an audited `.xlsx` import preview/commit panel, and no export/edit/delete/migration/duplicate-resolution actions. | `frontend/src/pages/admin/TopicRepositoryPage.jsx`, `frontend/src/pages/rolePages.jsx` |
 | Admin user management | Protected page connected to admin user read endpoints. It shows real user rows, safe filters, empty/error states, and a narrow audited status action. It does not expose create, delete, role-change, invitation, or password-reset workflows. | `frontend/src/pages/admin/UserManagementPage.jsx`, `frontend/src/pages/rolePages.jsx` |
 | Admin system settings | Protected read-only page connected to existing `SystemSetting` records. It does not expose save controls, threshold sliders, feature toggles, or arbitrary settings writes. | `frontend/src/pages/admin/SystemSettingsPage.jsx`, `frontend/src/pages/rolePages.jsx` |
@@ -393,7 +491,7 @@ Enums include:
 
 ### Missing Backend/Governance Areas
 
-These do not currently exist as implemented APIs/models/services in the inspected repository after PR #104:
+These do not currently exist as implemented APIs/models/services in the inspected repository after PR #105:
 
 - Admin user mutations beyond audited status updates.
 - Admin system settings mutations.
@@ -403,6 +501,9 @@ These do not currently exist as implemented APIs/models/services in the inspecte
 - Admin research trends analytics endpoint.
 - Real SMTP/provider transport implementation.
 - Notification event hooks and frontend notification UI.
+- Lecturer-reviewed final evaluation dataset.
+- Lecturer-reviewed final semantic-effectiveness evidence.
+- Semantic duplicate-existing governance.
 
 Import-specific gap:
 
@@ -529,7 +630,7 @@ All timestamps should be ISO 8601 strings:
 
 - All admin endpoints require `requireAuth` and `requireRole('admin')`.
 - All lecturer endpoints require `requireAuth` and `requireRole('lecturer')`.
-- Import governance endpoints should move under admin protection before operational use.
+- Import governance endpoints are protected with `requireAuth` and `requireRole('admin')`; operational frontend use should continue to prefer the admin-prefixed v1 routes.
 
 ### Audit Metadata Fields
 
@@ -575,11 +676,11 @@ Do not return fake placeholder rows, fake counts, fake status values, or fake ch
 
 ## 5. Contract Plan: AuditLog Foundation
 
-Audit logging should be implemented before admin mutations.
+Audit logging should exist before privileged admin mutations. This foundation was implemented in PR #96.
 
-### Proposed Prisma Model Fields
+### Implemented Prisma Model Fields
 
-Candidate model only; do not implement in this PR:
+The following historical contract model was implemented by PR #96:
 
 ```prisma
 model AuditLog {
@@ -609,15 +710,15 @@ model AuditLog {
 
 | Event type | Timing | Notes |
 | --- | --- | --- |
-| `AUTH_LOGIN` | Immediate | Existing auth behavior can log successful login once audit service exists. |
-| `AUTH_LOGOUT` | Immediate | Existing logout can log session end if actor is known. |
+| `AUTH_LOGIN` | Future hook | Existing auth behavior can log successful login if policy chooses. |
+| `AUTH_LOGOUT` | Future hook | Existing logout can log session end if actor is known and policy chooses. |
 | `SUBMISSION_CREATED` | Immediate | Existing student submission creation is an important workflow event. |
 | `SUBMISSION_REVIEWED` | Immediate | Existing lecturer approval/revision/rejection should be audited. |
 | `SIMILARITY_CHECK_RUN` | Immediate | Lecturer submission similarity checks and manual checks should distinguish persisted vs advisory checks. |
-| `TOPIC_IMPORT_PREVIEWED` | Immediate after import governance | Existing import preview needs admin protection first. |
-| `TOPIC_IMPORT_COMMITTED` | Immediate after import governance | Existing import commit must be admin-only and audited. |
-| `ADMIN_SETTING_UPDATED` | Future | Only after settings endpoint exists. |
-| `USER_STATUS_CHANGED` | Future | Only after user mutation endpoint exists. |
+| `TOPIC_IMPORT_PREVIEWED` | Implemented | Admin import preview emits this event. |
+| `TOPIC_IMPORT_COMMITTED` | Implemented | Admin import commit emits this event. |
+| `ADMIN_SETTING_UPDATED` | Future | Only after settings writes are implemented with key-specific validation. |
+| `USER_STATUS_CHANGED` | Implemented | The constrained admin user status mutation emits this event. |
 | `REPORT_EXPORTED` | Future | Only after report export generation exists. |
 
 ### Security Concerns
@@ -627,10 +728,12 @@ model AuditLog {
 - Store enough request context for accountability without turning audit logs into a sensitive-data dump.
 - Audit log read endpoints must be admin-only.
 
-### Later Endpoints Needed
+### Implemented Read Endpoints
 
 - `GET /api/v1/admin/audit-logs`
 - `GET /api/v1/admin/audit-logs/:id`
+
+Future work concerns additional event hooks and audit export/purge/delete policy, not creation of the AuditLog foundation.
 
 ## 6. Contract Plan: Admin Dashboard Read-Only API
 
@@ -1052,7 +1155,7 @@ Implementation status after PR #99:
 - Similarity thresholds.
 - Weighting configuration, only if a future evaluation-backed PR supports it.
 - Feature flags.
-- Email template references, only after production email provider is planned.
+- Email template references, only after real provider transport and template validation are implemented.
 
 ### Rules
 
@@ -1841,6 +1944,14 @@ Must not include:
 Purpose:
 
 - Expand evaluation dataset and data-quality validation evidence.
+- Generate reproducible FYP evidence reports without changing production scoring.
+
+Status:
+
+- Implemented by branch `evaluation/data-quality-fyp-evidence`.
+- Governed pilot dataset metadata, multiclass evaluation metrics, generated evaluation artifacts, read-only topic data-quality audit, generated data-quality artifacts, and FYP benchmark evidence documentation are implemented.
+- The latest evaluation run used the local SBERT service successfully, but final lecturer-reviewed effectiveness evidence remains deferred.
+- Final benchmark evidence using lecturer-reviewed labels remains deferred.
 
 Likely files:
 
@@ -1848,21 +1959,64 @@ Likely files:
 - `backend/scripts/run-topic-evaluation.js`
 - data-quality services/tests
 - docs/testing/evaluation docs
+- generated JSON/Markdown evidence artifacts
 
 Tests required:
 
 - Evaluation metrics tests.
 - Data-quality fixtures/tests.
+- Evaluation runner command.
+- Data-quality audit command.
 
 Risks:
 
 - Changing production scoring prematurely.
+- Overclaiming manually constructed pilot data as expert ground truth.
+- Treating fallback-only metrics as semantic SBERT evidence.
 
 Must not include:
 
 - Production threshold/scoring changes without scoped approval.
+- Fake evaluation results.
+- Fake data-quality findings.
+- Raw sensitive topic data in committed reports.
+- Prisma migrations.
 
-### PR #106: Deployment Readiness + Release Candidate
+### PR #106: Similarity Scoring Contract Correction + Regression Evidence
+
+Purpose:
+
+- Correct production scoring behavior only after explicit approval.
+- Align production scoring with the approved FYP methodology or formally revise the approved contract.
+- Add regression evidence proving weights, fallback weights, thresholds, tier minimums, tier 2/3 requirements, ranking, and overall-risk behavior.
+
+Likely files:
+
+- `backend/src/controllers/similarity.controller.js`
+- similarity controller/service tests
+- evaluation runner/docs only as needed for regression evidence
+
+Tests required:
+
+- Approved normal weights `0.20 / 0.30 / 0.50`.
+- Approved fallback weights `0.40 / 0.60`.
+- MEDIUM boundary starts at `0.40`; HIGH starts at `0.70`.
+- Tier minimum `0.10` behavior if retained in the approved contract.
+- Tier 2/3 requirement `combined >= 0.60` and SBERT `>= 0.60`.
+- Overall risk uses the approved scoring contract.
+
+Risks:
+
+- Changing production risk behavior without stakeholder approval.
+- Breaking compatibility with existing lecturer review expectations.
+
+Must not include:
+
+- Unapproved threshold/scoring changes.
+- Fake evaluation results.
+- Deployment/readiness work.
+
+### PR #107: Deployment Readiness + Release Candidate
 
 Purpose:
 
@@ -1890,48 +2044,41 @@ Must not include:
 
 This PR does not:
 
-- Add frontend notification pages, bells, feeds, or visual shells.
+- Change production similarity scoring, weighting, thresholds, tiers, SBERT fallback, API responses, frontend behavior, import parsing, import normalization, import persistence, or database records.
+- Add Prisma migrations.
+- Add frontend pages or UI workflows.
+- Add admin, lecturer, student, import, notification, or email endpoints.
 - Implement lecturer mutations.
-- Change the existing lecturer approval/revision/rejection endpoint or payload.
 - Implement supervisee assignment endpoints.
 - Implement exports.
-- Implement report export emailing.
-- Implement marketing or bulk email.
-- Implement admin notification broadcast.
-- Implement user notification preferences UI.
-- Implement real SMTP/provider transport delivery.
-- Add real email credentials, SMTP passwords, API keys, or secrets.
-- Send real emails in tests.
-- Add fake notification feeds.
-- Add fake email history.
-- Implement export/download behavior.
-- Implement duplicate-existing checks.
-- Implement richer row-level operator reports beyond what the backend currently returns.
+- Implement duplicate-existing semantic governance.
+- Implement richer row-level import operator reports beyond existing backend support.
 - Implement embedding generation for imported records.
 - Implement similarity integration for imported records.
 - Implement CSV import.
 - Implement migration workflows.
 - Implement topic edit/delete workflows.
 - Implement audit export, purge, or delete workflows.
-- Change import parser, normalization, persistence, or commit behavior.
-- Change admin governance endpoints other than adding authenticated notification endpoints.
+- Implement real SMTP/provider transport delivery.
+- Add real email credentials, SMTP passwords, API keys, or secrets.
+- Send real emails in tests.
 - Implement create-user, delete-user, role-change, invitation, password-reset, bulk account, or profile-edit workflows.
 - Implement settings writes, threshold sliders, feature toggles, email controls, or arbitrary configuration updates.
-- Change similarity behavior.
-- Change similarity thresholds.
-- Change auth/session behavior.
-- Change existing route behavior.
-- Change package files.
-- Add fake admin data.
-- Add fake users, fake settings, fake last-active values, fake supervisor assignments, fake supervisees, fake notifications, fake email logs, fake decision rows, fake audit rows, fake reports, fake exports, fake import results, fake duplicate-existing results, fake row-level details, fake persistence counts, fake activity, fake research insights, or fake analytics.
+- Claim manually constructed pilot labels are final expert or departmental ground truth.
+- Claim fallback-only metrics prove SBERT semantic performance.
+- Write raw sensitive topic data to committed evaluation or data-quality reports.
+- Add fake evaluation results, fake data-quality findings, fake benchmark claims, fake duplicate-existing results, fake embeddings, fake import rows, fake reports, fake exports, fake activity, fake research insights, or fake analytics.
 
 ## 20. Verification
 
-Requested verification commands for PR #104:
+Requested verification commands for PR #105:
 
 ```powershell
 cd backend
 npm test -- --runInBand
+npx prisma validate
+npm run evaluate:topics
+npm run audit:data-quality
 cd ..
 git diff --check
 git status --short --ignored reference img frontend/smoke-artifacts frontend/dist frontend/playwright-report frontend/test-results backend/node_modules frontend/node_modules sbert-service/venv
@@ -1942,20 +2089,21 @@ git diff --name-only
 Expected implementation files:
 
 ```text
-backend/env.example
-backend/prisma/schema.prisma
-backend/prisma/migrations/20260619120000_add_notifications/migration.sql
-backend/src/config/env.js
-backend/src/config/env.test.js
-backend/src/controllers/notification.controller.js
-backend/src/controllers/notification.controller.test.js
-backend/src/services/auth.service.test.js
-backend/src/services/email.service.js
-backend/src/services/email.service.test.js
-backend/src/services/notification.service.js
-backend/src/services/notification.service.test.js
-backend/src/server.js
+backend/evaluation/datasets/pilot-topic-pairs.json
+backend/evaluation/fixtures/topic-data-quality-fixture.json
+backend/evaluation/results/topic-data-quality-audit.json
+backend/evaluation/results/topic-similarity-evaluation.json
+backend/package.json
+backend/scripts/run-topic-data-quality-audit.js
+backend/scripts/run-topic-evaluation.js
+backend/src/services/evaluationMetrics.service.js
+backend/src/services/evaluationMetrics.service.test.js
+backend/src/services/topicDataQualityAudit.service.js
+backend/src/services/topicDataQualityAudit.service.test.js
 docs/backend/admin-governance-api-contract-plan.md
-docs/setup/auth-foundation.md
-docs/setup/email-notification-foundation.md
+docs/project/full-worktree-gap-benchmark-audit.md
+docs/project/fyp-evaluation-benchmark-evidence.md
+docs/testing/evaluation.md
+docs/testing/topic-data-quality-report.md
+docs/testing/topic-similarity-evaluation-report.md
 ```

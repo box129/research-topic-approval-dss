@@ -70,6 +70,27 @@ The panel:
 
 The panel does not fabricate duplicate-existing findings, row-level details, embeddings, similarity results, exports, downloads, CSV imports, migrations, or topic edit/delete actions.
 
+## Evaluation And Data-Quality Evidence Status
+
+PR #105 adds read-only evaluation/data-quality evidence for topic records without changing import behavior.
+
+New evidence commands:
+
+```powershell
+cd backend
+npm run evaluate:topics
+npm run audit:data-quality
+```
+
+The data-quality audit inspects existing lifecycle topic records and reports safe aggregate counts for missing fields, embedding coverage, import warnings, source/import-batch grouping, and hashed normalized duplicate-title candidates. It does not mutate imported records, generate embeddings, recalculate similarity, or fabricate duplicate-existing findings.
+
+Current generated data-quality evidence is stored in:
+
+```text
+backend/evaluation/results/topic-data-quality-audit.json
+docs/testing/topic-data-quality-report.md
+```
+
 ## Normalized Record Fields
 
 Each accepted record can include:
@@ -123,6 +144,7 @@ Duplicate-title rows increment both `skipped_rows` and `duplicate_title_rows`.
 ## Current Limitations
 
 - The frontend import UI is wired only to the existing admin `.xlsx` preview and commit endpoints.
+- PR #105 data-quality audit reports aggregate stored-topic evidence only; it does not extend preview/commit report shape.
 - No similarity scoring integration yet.
 - No embedding generation for imported records yet.
 - Import endpoints are admin-protected, but richer duplicate-existing checks and row-level operator reports remain deferred.
