@@ -42,6 +42,7 @@ model User {
   submissionDecisions      Submission[]              @relation("SubmissionDecisions")
   similarityCheckSnapshots SimilarityCheckSnapshot[]
   updatedSystemSettings    SystemSetting[]           @relation("SystemSettingUpdatedBy")
+  notifications            Notification[]
   createdAt                DateTime                  @default(now()) @map("created_at")
   updatedAt                DateTime                  @updatedAt @map("updated_at")
 
@@ -153,6 +154,25 @@ model AuditLog {
   @@index([targetType, targetId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+model Notification {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String    @db.VarChar(100)
+  title     String    @db.VarChar(200)
+  message   String    @db.Text
+  linkPath  String?   @map("link_path") @db.Text
+  metadata  Json?
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  @@index([type])
+  @@map("notifications")
 }
 
 model HistoricalTopic {

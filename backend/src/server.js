@@ -21,6 +21,7 @@ let adminUserController;
 let adminSettingsController;
 let adminReportsController;
 let lecturerResearchTrendsController;
+let notificationController;
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler.middleware');
 const { requireAuth, requireRole } = require('./middleware/auth.middleware');
 
@@ -205,6 +206,13 @@ const getLecturerResearchTrendsController = () => {
   return lecturerResearchTrendsController;
 };
 
+const getNotificationController = () => {
+  if (!notificationController) {
+    notificationController = require('./controllers/notification.controller');
+  }
+  return notificationController;
+};
+
 app.post('/api/v1/auth/login', (req, res, next) => {
   getAuthController().login(req, res, next);
 });
@@ -223,6 +231,18 @@ app.post('/api/v1/auth/forgot-password', (req, res, next) => {
 
 app.post('/api/v1/auth/reset-password', (req, res, next) => {
   getAuthController().resetPassword(req, res, next);
+});
+
+app.get('/api/v1/notifications', requireAuth, (req, res, next) => {
+  getNotificationController().listNotifications(req, res, next);
+});
+
+app.patch('/api/v1/notifications/read-all', requireAuth, (req, res, next) => {
+  getNotificationController().markAllNotificationsRead(req, res, next);
+});
+
+app.patch('/api/v1/notifications/:id/read', requireAuth, (req, res, next) => {
+  getNotificationController().markNotificationRead(req, res, next);
 });
 
 app.get('/api/v1/submissions', requireAuth, requireRole('student'), (req, res, next) => {

@@ -125,11 +125,19 @@ describe('auth.service', () => {
     await service.requestPasswordReset({ email: 'admin.demo@uniosun.edu.ng' });
 
     const updateData = prisma.user.update.mock.calls[0][0].data;
-    const emailedToken = emailProvider.sendPasswordResetEmail.mock.calls[0][0].token;
+    const emailArgs = emailProvider.sendPasswordResetEmail.mock.calls[0][0];
+    const emailedToken = emailArgs.token;
 
     expect(updateData.resetTokenHash).toBe(hashResetToken(emailedToken));
     expect(updateData.resetTokenHash).not.toBe(emailedToken);
     expect(updateData.resetTokenExpiresAt).toBeInstanceOf(Date);
+    expect(emailArgs).toMatchObject({
+      to: 'admin.demo@uniosun.edu.ng',
+      name: 'Admin Demo',
+      token: emailedToken
+    });
+    expect(emailArgs.resetTokenHash).toBeUndefined();
+    expect(JSON.stringify(emailArgs)).not.toContain(updateData.resetTokenHash);
   });
 
   test('forgot password response is generic for unknown emails', async () => {
