@@ -1,0 +1,110 @@
+{
+  "generatedAt": "2026-06-19T13:31:44.799Z",
+  "mode": "database",
+  "dataSafety": {
+    "readOnly": true,
+    "rawTitlesIncluded": false,
+    "duplicateTitlesHashed": true,
+    "mutatesDatabase": false
+  },
+  "sourceTables": [
+    "HistoricalTopic",
+    "CurrentSessionTopic",
+    "UnderReviewTopic"
+  ],
+  "totals": {
+    "total": 9,
+    "blankTitle": 0,
+    "missingCategory": 0,
+    "missingSessionYear": 0,
+    "missingSupervisorName": 0,
+    "missingKeywords": 0,
+    "missingPopulation": 0,
+    "missingLocation": 0,
+    "missingStudyFocus": 0,
+    "incompleteContext": 0,
+    "withEmbeddings": 0,
+    "withoutEmbeddings": 9,
+    "withImportWarnings": 0
+  },
+  "byLifecycle": {
+    "historical": {
+      "total": 6,
+      "blankTitle": 0,
+      "missingCategory": 0,
+      "missingSessionYear": 0,
+      "missingSupervisorName": 0,
+      "missingKeywords": 0,
+      "missingPopulation": 0,
+      "missingLocation": 0,
+      "missingStudyFocus": 0,
+      "incompleteContext": 0,
+      "withEmbeddings": 0,
+      "withoutEmbeddings": 6,
+      "withImportWarnings": 0
+    },
+    "currentSession": {
+      "total": 1,
+      "blankTitle": 0,
+      "missingCategory": 0,
+      "missingSessionYear": 0,
+      "missingSupervisorName": 0,
+      "missingKeywords": 0,
+      "missingPopulation": 0,
+      "missingLocation": 0,
+      "missingStudyFocus": 0,
+      "incompleteContext": 0,
+      "withEmbeddings": 0,
+      "withoutEmbeddings": 1,
+      "withImportWarnings": 0
+    },
+    "underReview": {
+      "total": 2,
+      "blankTitle": 0,
+      "missingCategory": 0,
+      "missingSessionYear": 0,
+      "missingSupervisorName": 0,
+      "missingKeywords": 0,
+      "missingPopulation": 0,
+      "missingLocation": 0,
+      "missingStudyFocus": 0,
+      "incompleteContext": 0,
+      "withEmbeddings": 0,
+      "withoutEmbeddings": 2,
+      "withImportWarnings": 0
+    }
+  },
+  "groupedCounts": {
+    "sourceType": [
+      {
+        "sourceType": "demo",
+        "count": 9
+      }
+    ],
+    "importBatchId": [
+      {
+        "importBatchId": "demo-comparison-topics-v1",
+        "count": 9
+      }
+    ]
+  },
+  "duplicateTitleCandidates": {
+    "totalCandidateGroups": 0,
+    "withinLifecycleGroups": 0,
+    "acrossLifecycleGroups": 0,
+    "candidates": []
+  },
+  "limitations": [
+    "Duplicate candidates are based on normalized exact title matches only.",
+    "No raw titles are written to the committed audit report.",
+    "The audit does not recalculate embeddings or similarity scores.",
+    "Missing-field counts reflect current stored fields only; they do not infer meaning from raw import rows."
+  ],
+  "commitHash": "29d4015",
+  "fixturePath": null,
+  "reproduction": {
+    "command": "cd backend && npm run audit:data-quality",
+    "jsonReportPath": "backend/evaluation/results/topic-data-quality-audit.json",
+    "markdownReportPath": "docs/testing/topic-data-quality-report.md"
+  }
+}

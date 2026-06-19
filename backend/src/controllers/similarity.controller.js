@@ -24,6 +24,28 @@ const ALGORITHM_WEIGHTS = {
 // Similarity threshold for tier 2/3 filtering
 const TIER_FILTER_THRESHOLD = 0.60;
 
+const PRODUCTION_SCORING_CONTRACT = Object.freeze({
+  thresholds: Object.freeze({
+    highTier1: RISK_THRESHOLDS.HIGH_TIER1,
+    mediumTier1: RISK_THRESHOLDS.MEDIUM_TIER1,
+    tierFilter: TIER_FILTER_THRESHOLD
+  }),
+  configuredWeights: Object.freeze({
+    jaccard: ALGORITHM_WEIGHTS.jaccard,
+    tfidf: ALGORITHM_WEIGHTS.tfidf,
+    sbert: ALGORITHM_WEIGHTS.sbert,
+    jaccardFallback: ALGORITHM_WEIGHTS.jaccard_fallback,
+    tfidfFallback: ALGORITHM_WEIGHTS.tfidf_fallback
+  }),
+  observedBehavior: Object.freeze({
+    normalCombinedScore: 'unweighted jaccard + tfidf + sbert',
+    fallbackCombinedScore: 'unweighted jaccard + tfidf for ranking; final fallback risk uses max lexical score',
+    normalOverallRisk: 'max SBERT score across returned tiers',
+    fallbackOverallRisk: 'max lexical score across returned tiers',
+    tier23Requirement: 'combined >= 0.60 and sbert >= 0.60 when SBERT is available'
+  })
+});
+
 // Database query timeout in milliseconds
 const DB_QUERY_TIMEOUT = 10000;
 
@@ -734,5 +756,6 @@ function calculateOverallRisk(tier1, tier2, tier3) {
 }
 
 module.exports = {
-  checkSimilarity
+  checkSimilarity,
+  PRODUCTION_SCORING_CONTRACT
 };

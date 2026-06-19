@@ -1,21 +1,8 @@
 # Topic Similarity Evaluation Harness
 
-This guide describes the Phase 3/4 pilot evaluation harness for measuring topic-pair similarity behavior.
+This guide describes the reproducible PR #105 evaluation and data-quality evidence tooling.
 
-The harness is project tooling only. It does not change production scoring, API responses, frontend behavior, Prisma schema, embeddings, or import logic.
-
-## Purpose
-
-The system should be evaluated with controlled topic pairs, not only by checking whether the app runs. The pilot dataset lets us compare expected labels against current algorithm predictions and calculate:
-
-- true positives
-- true negatives
-- false positives
-- false negatives
-- accuracy
-- precision
-- recall
-- F1-score
+The tooling is project evidence only. It does not change production scoring, thresholds, API responses, frontend behavior, Prisma schema, embeddings, import parsing, import persistence, or SBERT fallback behavior.
 
 ## Dataset
 
@@ -25,114 +12,147 @@ The pilot dataset lives at:
 backend/evaluation/datasets/pilot-topic-pairs.json
 ```
 
-It contains 16 manually readable topic pairs covering:
+It contains 16 controlled topic pairs with:
 
-- exact or near duplicates
-- paraphrased duplicates
-- same disease with different population
-- same disease with different location
-- same population with different study focus
-- high lexical overlap with different topic meaning
-- fragmented title records
-- clearly unrelated topics
+- stable case ids
+- topic A and topic B fields
+- `expected_class`: `LOW`, `MEDIUM`, or `HIGH`
+- rationale
+- source classification
+- scenario tags
 
-Each case records title, keywords, population, location, and study focus. Existing title-based scorers use topic titles only, so the report keeps `context_fields_recorded_but_not_scored: true` for those scorers.
+Dataset provenance is explicitly marked as `manually_constructed_pilot`. These labels are useful for repeatable FYP evidence, but they are not final department or lecturer-reviewed ground truth.
 
-## Run The Harness
+Current class support:
+
+- `LOW`: 4
+- `MEDIUM`: 5
+- `HIGH`: 7
+
+## Run Topic Evaluation
 
 From `backend/`:
 
 ```powershell
-npm run evaluation:topics
+npm run evaluate:topics
 ```
 
-The command prints a JSON report with per-case scores, predictions, and summary metrics.
-
-## Score Scale
-
-All scores are normalized to `0.00-1.00` before risk classification.
-
-Evaluation risk thresholds:
-
-- `LOW`: `< 0.40`
-- `MEDIUM`: `0.40-0.69`
-- `HIGH`: `>= 0.70`
-
-For binary metrics:
-
-- `LOW` maps to `not_similar`
-- `MEDIUM` and `HIGH` map to `similar`
-
-## Algorithms In The Report
-
-The report includes:
-
-- `jaccard`
-- `tfidf`
-- `lexical_max`
-- `sbert`, when the SBERT service is available
-- `weighted_combined`, when SBERT is available
-- `context_adjusted_combined`
-
-`weighted_combined` is evaluation-only and uses:
+The command writes:
 
 ```text
-0.2 * Jaccard + 0.3 * TF-IDF + 0.5 * SBERT
+backend/evaluation/results/topic-similarity-evaluation.json
+docs/testing/topic-similarity-evaluation-report.md
 ```
 
-This does not change the production controller or public API contract.
+The report includes total/valid/skipped counts, class support, accuracy, macro/weighted precision/recall/F1, per-class metrics, confusion matrices, SBERT health, SBERT success/failure counts, full tri-algorithm coverage, partial-success counts, operational fallback-used counts, a counterfactual offline fallback-policy evaluation, and a scoring-contract comparison table.
 
-If SBERT is unavailable, the harness still completes with Jaccard, TF-IDF, and lexical-max metrics. SBERT and weighted-combined metrics are skipped.
+## Production Scoring Contract
 
-## Context-Adjusted Evaluation Scorer
+The evaluator mirrors the current observed production controller behavior from `backend/src/controllers/similarity.controller.js`:
 
-`context_adjusted_combined` is evaluation-only. It does not change production scoring, controllers, endpoint responses, Prisma schema, frontend behavior, imports, or embeddings.
+- High threshold: `>= 0.70`
+- Medium threshold: `>= 0.50`
+- Low threshold: `< 0.50`
+- Tier filter threshold: `0.60`
+- Configured weights: Jaccard `0.30`, TF-IDF `0.30`, SBERT `0.40`
+- Configured fallback weights: Jaccard `0.50`, TF-IDF `0.50`
 
-The context scorer compares:
+Important implementation note:
 
-- `population`
-- `location`
-- `study_focus`
+The production controller currently defines algorithm weights, but `combineAlgorithmResults` ranks normal results with an unweighted `jaccard + tfidf + sbert` `combinedScore`. The final normal-success `overallRisk` is classified from the maximum SBERT score. When SBERT is unavailable, the partial-success fallback risk is classified from the maximum lexical score across Jaccard and TF-IDF.
 
-Each context field receives a deterministic score:
+The evaluation runner records this behavior honestly; it does not change it.
 
-- exact normalized match: `1`
-- missing on either side: `0.75`
-- clear mismatch: `0`
+For regression safety, the current-production contract snapshot used by the evaluator is compared in tests with exported constants from the similarity controller. The approved FYP methodology remains a separate documented target and is not silently redefined around the current code.
 
-The context score is the average of the three field scores.
+The approved FYP scoring methodology differs from the current implementation in several places:
 
-The adjusted score is:
+- approved weights are Jaccard `0.20`, TF-IDF `0.30`, SBERT `0.50`
+- approved fallback weights are Jaccard `0.40`, TF-IDF `0.60`
+- approved MEDIUM starts at `0.40`
+
+The current implementation has drift from that approved methodology. PR #105 documents the drift and recommends a separate scoring-contract correction PR. It does not redefine the approved methodology around the current code.
+
+## Current Generated Result
+
+The latest generated report for PR #105 was generated in `sbert_available_full_tri_evaluation` mode with the local SBERT service healthy at `http://localhost:8000`:
+
+- Total cases: 16
+- Valid cases: 16
+- SBERT attempted cases: 16
+- SBERT success cases: 16
+- SBERT failed cases: 0
+- SBERT unavailable cases: 0
+- Full tri-algorithm cases: 16
+- Fallback-used cases: 0
+- Full tri-algorithm coverage: `100%`
+- Operational fallback coverage: `0%`
+- Operational fallback metrics: `NOT_EVALUATED` because runtime fallback support is 0
+- Offline fallback-policy evaluation: counterfactual pilot evaluation across all 16 valid cases without SBERT output
+- Final production behavior accuracy: `0.313`
+- Final production behavior macro F1: `0.224`
+- Final production behavior weighted F1: `0.215`
+
+These metrics use the current implementation behavior. They are not final effectiveness claims because the dataset is still a small manually constructed pilot.
+
+## Data-Quality Audit
+
+Run the read-only topic data-quality audit from `backend/`:
+
+```powershell
+npm run audit:data-quality
+```
+
+The command writes:
 
 ```text
-adjusted = baseScore * contextScore^2 + fullContextMatchBonus
+backend/evaluation/results/topic-data-quality-audit.json
+docs/testing/topic-data-quality-report.md
 ```
 
-`fullContextMatchBonus` is `0.20` only when all three context fields are exact normalized matches and no field is missing or mismatched.
+The audit inspects only safe fields from:
 
-When SBERT is available, `context_adjusted_combined` uses `weighted_combined` as its base score. When SBERT is unavailable, it uses `lexical_max`.
+- `HistoricalTopic`
+- `CurrentSessionTopic`
+- `UnderReviewTopic`
 
-The report includes:
+It reports lifecycle totals, missing/blank field counts, embedding coverage, import warning counts, source/import-batch grouping, and normalized duplicate-title candidate groups. Duplicate title values are hashed in committed artifacts; raw topic titles are not written to the report.
 
-```json
-{
-  "context_fields_recorded_but_not_scored": true,
-  "context_fields_used_by_context_adjusted_combined": true,
-  "production_scoring_unchanged": true
-}
+If a safe local database is unavailable, run fixture mode:
+
+```powershell
+npm run audit:data-quality -- --fixture evaluation/fixtures/topic-data-quality-fixture.json
 ```
 
-## Current Limitations
+## Current Data-Quality Result
 
-- Context fields are used only by the evaluation-only `context_adjusted_combined` scorer.
-- Production similarity scoring is still title-based.
-- The dataset is a pilot, not a final validation dataset.
-- TF-IDF pair scoring is measured against one comparison topic, while production API scoring compares against all database topics.
-- SBERT behavior depends on the local SBERT service and whether it is using real semantic embeddings or fallback embeddings.
+The latest generated data-quality report for PR #105 was generated in database mode:
+
+- Topic records inspected: 9
+- Historical records: 6
+- Current-session records: 1
+- Under-review records: 2
+- Blank titles: 0
+- Missing category/session/supervisor/keywords/context fields: 0
+- With embeddings: 0
+- Without embeddings: 9
+- With import warnings: 0
+- Normalized duplicate-title candidate groups: 0
+
+This is a connected local database snapshot only. It does not represent the complete departmental repository, departmental-scale data quality remains NOT YET VERIFIED, and no broad data-quality conclusion should be drawn from nine inspected records.
+
+## Limitations
+
+- The dataset is a manually constructed pilot benchmark, not final lecturer-reviewed ground truth.
+- Pairwise title evaluation is not identical to the full API tiered comparison workflow against all database topics.
+- SBERT metrics require the local SBERT service health check to succeed and are reported separately from fallback metrics.
+- Data-quality duplicate checks use normalized exact title matching only; semantic duplicate detection remains deferred.
+- The data-quality audit is read-only and does not generate embeddings, import rows, recommendations, or similarity scores.
+- The latest data-quality audit covers only nine local database records and is not departmental-scale evidence.
 
 ## Future Work
 
-- Decide whether context-aware scoring should move from evaluation-only tooling into production similarity behavior.
-- Expand the dataset with lecturer-reviewed cases.
-- Store evaluation reports when repeatable comparison history is needed.
-- Compare production endpoint behavior against this pairwise harness.
+- Replace or supplement the pilot labels with lecturer-reviewed validation cases.
+- Add a separate scoring-contract correction PR if the approved FYP methodology should become production behavior.
+- Add richer duplicate-existing governance only after the import contract supports it.
+- Keep any production scoring or threshold change in a separate evaluation-backed PR.
