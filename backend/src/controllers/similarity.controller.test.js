@@ -518,7 +518,7 @@ describe('Similarity Controller', () => {
       expect(tier1Match).toHaveProperty('matched_keywords');
     });
 
-    it('should base degraded risk and max similarity on highest lexical score when SBERT is unavailable', async () => {
+    it('should base degraded risk and max similarity on approved fallback combined score when SBERT is unavailable', async () => {
       // Reconciliation spec based on authoritative FYP_Selected degraded-mode rules.
       // This verifies degraded risk/max only; tier membership, ordering, and recommendations are out of scope here.
       const topic = 'Knowledge of malaria prevention among children under five in Osogbo';
@@ -568,13 +568,13 @@ describe('Similarity Controller', () => {
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('status', 'partial_success');
       expect(response.body).toHaveProperty('data');
-      expect(response.body.data).toHaveProperty('max_similarity', 40);
+      expect(response.body.data).toHaveProperty('max_similarity', 38);
       expect(response.body.data).toHaveProperty('overall_risk', 'LOW');
     });
 
-    it('should include degraded Tier 2 and Tier 3 matches using lexical OR thresholds when SBERT is unavailable', async () => {
-      // Reconciliation spec based on authoritative FYP_Selected degraded lexical OR rules.
-      // This verifies degraded Tier 2/Tier 3 membership only; ordering, hard limits, and recommendations are out of scope here.
+    it('should keep degraded Tier 2 and Tier 3 empty because semantic evidence is unavailable', async () => {
+      // Tier 2/3 require real SBERT evidence under the approved contract.
+      // Lexical fallback must not fabricate semantic eligibility.
       const topic = 'Knowledge of malaria prevention among children under five in Osogbo';
       const mockCurrentSessionTopics = [
         {
@@ -648,15 +648,15 @@ describe('Similarity Controller', () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('status', 'partial_success');
-      expect(response.body.data.tier2_current.map(match => match.id)).toContain(202);
-      expect(response.body.data.tier3_under_review.map(match => match.id)).toContain(303);
-      expect(response.body.data.tier2_current[0]).toHaveProperty('sbert', null);
-      expect(response.body.data.tier3_under_review[0]).toHaveProperty('sbert', null);
+      expect(response.body.data.tier2_current).toEqual([]);
+      expect(response.body.data.tier3_under_review).toEqual([]);
+      expect(response.body.data).toHaveProperty('max_similarity', 0);
+      expect(response.body.data).toHaveProperty('overall_risk', 'LOW');
     });
 
-    it('should base normal-success risk and max similarity on highest SBERT score across tiers', async () => {
+    it('should base normal-success risk and max similarity on highest approved weighted combined score across tiers', async () => {
       // Reconciliation spec based on authoritative FYP_Selected tier/risk rules.
-      // Combined similarity is out of scope for this normal-success decision logic.
+      // Max-SBERT-only risk is intentionally not used.
       const topic = 'Knowledge of malaria prevention among children under five in Osogbo';
       const mockHistoricalTopics = [
         {
@@ -729,8 +729,8 @@ describe('Similarity Controller', () => {
       expect(response.body.data.tier1_historical).toHaveLength(1);
       expect(response.body.data.tier2_current).toHaveLength(1);
       expect(response.body.data.tier3_under_review).toHaveLength(1);
-      expect(response.body.data).toHaveProperty('max_similarity', 65);
-      expect(response.body.data).toHaveProperty('overall_risk', 'MEDIUM');
+      expect(response.body.data).toHaveProperty('max_similarity', 79.4);
+      expect(response.body.data).toHaveProperty('overall_risk', 'HIGH');
     });
 
     it('should expose baseline recommendation text based on normal-success overall risk', async () => {
@@ -755,15 +755,15 @@ describe('Similarity Controller', () => {
         .mockResolvedValueOnce([]);
 
       jaccardService.calculateBatch.mockReturnValue([
-        { topicId: 101, title: mockHistoricalTopics[0].title, score: 0.35, matchedKeywords: ['malaria'] }
+        { topicId: 101, title: mockHistoricalTopics[0].title, score: 0.80, matchedKeywords: ['malaria'] }
       ]);
 
       tfidfService.calculateTfIdfSimilarity.mockReturnValue([
-        { topicId: 101, title: mockHistoricalTopics[0].title, score: 0.45, matchedTerms: ['malaria'] }
+        { topicId: 101, title: mockHistoricalTopics[0].title, score: 0.80, matchedTerms: ['malaria'] }
       ]);
 
       sbertService.calculateSbertSimilarities.mockResolvedValue([
-        { topicId: 101, title: mockHistoricalTopics[0].title, score: 0.75, usedPrecomputed: false }
+        { topicId: 101, title: mockHistoricalTopics[0].title, score: 0.80, usedPrecomputed: false }
       ]);
 
       const response = await request(app)
@@ -803,15 +803,15 @@ describe('Similarity Controller', () => {
         .mockResolvedValueOnce(mockUnderReviewTopics);
 
       jaccardService.calculateBatch.mockReturnValue([
-        { topicId: 301, title: mockUnderReviewTopics[0].title, score: 0.20, matchedKeywords: ['malaria'] }
+        { topicId: 301, title: mockUnderReviewTopics[0].title, score: 0.85, matchedKeywords: ['malaria'] }
       ]);
 
       tfidfService.calculateTfIdfSimilarity.mockReturnValue([
-        { topicId: 301, title: mockUnderReviewTopics[0].title, score: 0.30, matchedTerms: ['malaria'] }
+        { topicId: 301, title: mockUnderReviewTopics[0].title, score: 0.85, matchedTerms: ['malaria'] }
       ]);
 
       sbertService.calculateSbertSimilarities.mockResolvedValue([
-        { topicId: 301, title: mockUnderReviewTopics[0].title, score: 0.88, usedPrecomputed: false }
+        { topicId: 301, title: mockUnderReviewTopics[0].title, score: 0.85, usedPrecomputed: false }
       ]);
 
       const response = await request(app)
@@ -851,15 +851,15 @@ describe('Similarity Controller', () => {
         .mockResolvedValueOnce(mockUnderReviewTopics);
 
       jaccardService.calculateBatch.mockReturnValue([
-        { topicId: 302, title: mockUnderReviewTopics[0].title, score: 0.18, matchedKeywords: ['malaria'] }
+        { topicId: 302, title: mockUnderReviewTopics[0].title, score: 0.60, matchedKeywords: ['malaria'] }
       ]);
 
       tfidfService.calculateTfIdfSimilarity.mockReturnValue([
-        { topicId: 302, title: mockUnderReviewTopics[0].title, score: 0.28, matchedTerms: ['malaria'] }
+        { topicId: 302, title: mockUnderReviewTopics[0].title, score: 0.60, matchedTerms: ['malaria'] }
       ]);
 
       sbertService.calculateSbertSimilarities.mockResolvedValue([
-        { topicId: 302, title: mockUnderReviewTopics[0].title, score: 0.65, usedPrecomputed: false }
+        { topicId: 302, title: mockUnderReviewTopics[0].title, score: 0.60, usedPrecomputed: false }
       ]);
 
       const response = await request(app)
@@ -875,9 +875,9 @@ describe('Similarity Controller', () => {
       expect(response.body.data.recommendation).toContain('Dr. Okafor');
     });
 
-    it('should order normal-success tier results by SBERT score descending', async () => {
-      // Reconciliation spec based on authoritative FYP_Selected tier-ordering rules.
-      // This verifies ordering only; tier limits, degraded mode, risk, and recommendations are out of scope here.
+    it('should order normal-success tier results by approved weighted combined score', async () => {
+      // Regression: the old unweighted sum would rank the lexical-heavy topic first.
+      // The approved weighted score ranks the semantic-heavy topic first.
       const topic = 'Knowledge of malaria prevention among children under five in Osogbo';
       const mockHistoricalTopics = [
         {
@@ -899,85 +899,24 @@ describe('Similarity Controller', () => {
           embedding: null
         }
       ];
-      const mockCurrentSessionTopics = [
-        {
-          id: 201,
-          title: 'Current lexical-heavy malaria topic',
-          keywords: 'malaria control pediatric',
-          session_year: '2025/2026',
-          supervisor_name: 'Dr. Balogun',
-          category: 'Public Health',
-          approved_date: new Date('2026-01-15T10:30:00Z'),
-          student_id: 'STU-2024-201',
-          embedding: null
-        },
-        {
-          id: 202,
-          title: 'Current semantic-heavy malaria topic',
-          keywords: 'child parasite prevention',
-          session_year: '2025/2026',
-          supervisor_name: 'Dr. Ibrahim',
-          category: 'Public Health',
-          approved_date: new Date('2026-01-16T10:30:00Z'),
-          student_id: 'STU-2024-202',
-          embedding: null
-        }
-      ];
-      const mockUnderReviewTopics = [
-        {
-          id: 301,
-          title: 'Under review lexical-heavy malaria topic',
-          keywords: 'prevention malaria children',
-          session_year: '2025/2026',
-          supervisor_name: 'Dr. Adebayo',
-          category: 'Public Health',
-          review_started_at: new Date('2026-01-31T14:45:00Z'),
-          reviewing_lecturer: 'Dr. Adebayo',
-          embedding: null
-        },
-        {
-          id: 302,
-          title: 'Under review semantic-heavy malaria topic',
-          keywords: 'pediatric parasite control',
-          session_year: '2025/2026',
-          supervisor_name: 'Dr. Okafor',
-          category: 'Public Health',
-          review_started_at: new Date('2026-01-31T14:50:00Z'),
-          reviewing_lecturer: 'Dr. Okafor',
-          embedding: null
-        }
-      ];
-
       mockPrismaInstance.$queryRaw
         .mockResolvedValueOnce(mockHistoricalTopics)
-        .mockResolvedValueOnce(mockCurrentSessionTopics)
-        .mockResolvedValueOnce(mockUnderReviewTopics);
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
 
       jaccardService.calculateBatch.mockReturnValue([
-        { topicId: 101, title: mockHistoricalTopics[0].title, score: 0.95, matchedKeywords: ['malaria'] },
-        { topicId: 102, title: mockHistoricalTopics[1].title, score: 0.05, matchedKeywords: [] },
-        { topicId: 201, title: mockCurrentSessionTopics[0].title, score: 0.95, matchedKeywords: ['malaria'] },
-        { topicId: 202, title: mockCurrentSessionTopics[1].title, score: 0.05, matchedKeywords: [] },
-        { topicId: 301, title: mockUnderReviewTopics[0].title, score: 0.95, matchedKeywords: ['malaria'] },
-        { topicId: 302, title: mockUnderReviewTopics[1].title, score: 0.05, matchedKeywords: [] }
+        { topicId: 101, title: mockHistoricalTopics[0].title, score: 1.00, matchedKeywords: ['malaria'] },
+        { topicId: 102, title: mockHistoricalTopics[1].title, score: 0.20, matchedKeywords: [] }
       ]);
 
       tfidfService.calculateTfIdfSimilarity.mockReturnValue([
-        { topicId: 101, title: mockHistoricalTopics[0].title, score: 0.95, matchedTerms: ['malaria'] },
-        { topicId: 102, title: mockHistoricalTopics[1].title, score: 0.05, matchedTerms: [] },
-        { topicId: 201, title: mockCurrentSessionTopics[0].title, score: 0.95, matchedTerms: ['malaria'] },
-        { topicId: 202, title: mockCurrentSessionTopics[1].title, score: 0.05, matchedTerms: [] },
-        { topicId: 301, title: mockUnderReviewTopics[0].title, score: 0.95, matchedTerms: ['malaria'] },
-        { topicId: 302, title: mockUnderReviewTopics[1].title, score: 0.05, matchedTerms: [] }
+        { topicId: 101, title: mockHistoricalTopics[0].title, score: 1.00, matchedTerms: ['malaria'] },
+        { topicId: 102, title: mockHistoricalTopics[1].title, score: 0.20, matchedTerms: [] }
       ]);
 
       sbertService.calculateSbertSimilarities.mockResolvedValue([
-        { topicId: 101, title: mockHistoricalTopics[0].title, score: 0.61, usedPrecomputed: false },
-        { topicId: 102, title: mockHistoricalTopics[1].title, score: 0.90, usedPrecomputed: false },
-        { topicId: 201, title: mockCurrentSessionTopics[0].title, score: 0.61, usedPrecomputed: false },
-        { topicId: 202, title: mockCurrentSessionTopics[1].title, score: 0.90, usedPrecomputed: false },
-        { topicId: 301, title: mockUnderReviewTopics[0].title, score: 0.61, usedPrecomputed: false },
-        { topicId: 302, title: mockUnderReviewTopics[1].title, score: 0.90, usedPrecomputed: false }
+        { topicId: 101, title: mockHistoricalTopics[0].title, score: 0.10, usedPrecomputed: false },
+        { topicId: 102, title: mockHistoricalTopics[1].title, score: 1.00, usedPrecomputed: false }
       ]);
 
       const response = await request(app)
@@ -987,8 +926,220 @@ describe('Similarity Controller', () => {
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('status', 'success');
       expect(response.body.data.tier1_historical.map(match => match.id)).toEqual([102, 101]);
-      expect(response.body.data.tier2_current.map(match => match.id)).toEqual([202, 201]);
-      expect(response.body.data.tier3_under_review.map(match => match.id)).toEqual([302, 301]);
+      expect(response.body.data.max_similarity).toBe(60);
+      expect(response.body.data.overall_risk).toBe('MEDIUM');
+    });
+
+    it('should order degraded tier 1 results by approved fallback combined score without fake SBERT', async () => {
+      const topic = 'Knowledge of malaria prevention among children under five in Osogbo';
+      const mockHistoricalTopics = [
+        {
+          id: 101,
+          title: 'High Jaccard low TF-IDF fallback topic',
+          keywords: 'malaria',
+          session_year: '2022/2023',
+          supervisor_name: 'Dr. Adeyemi',
+          category: 'Infectious Diseases',
+          embedding: null
+        },
+        {
+          id: 102,
+          title: 'Lower Jaccard high TF-IDF fallback topic',
+          keywords: 'malaria prevention children',
+          session_year: '2021/2022',
+          supervisor_name: 'Dr. Ogunleye',
+          category: 'Health Promotion',
+          embedding: null
+        }
+      ];
+
+      mockPrismaInstance.$queryRaw
+        .mockResolvedValueOnce(mockHistoricalTopics)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      jaccardService.calculateBatch.mockReturnValue([
+        { topicId: 101, title: mockHistoricalTopics[0].title, score: 1.00, matchedKeywords: ['malaria'] },
+        { topicId: 102, title: mockHistoricalTopics[1].title, score: 0.10, matchedKeywords: ['malaria'] }
+      ]);
+
+      tfidfService.calculateTfIdfSimilarity.mockReturnValue([
+        { topicId: 101, title: mockHistoricalTopics[0].title, score: 0.10, matchedTerms: ['malaria'] },
+        { topicId: 102, title: mockHistoricalTopics[1].title, score: 0.80, matchedTerms: ['malaria', 'prevention'] }
+      ]);
+
+      sbertService.calculateSbertSimilarities.mockRejectedValue(
+        new Error('SBERT service unavailable')
+      );
+
+      const response = await request(app)
+        .post('/api/similarity/check')
+        .send({ topic });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('status', 'partial_success');
+      expect(response.body.data.tier1_historical.map(match => match.id)).toEqual([102, 101]);
+      expect(response.body.data.tier1_historical[0]).toHaveProperty('sbert', null);
+      expect(response.body.data).toHaveProperty('max_similarity', 52);
+      expect(response.body.data).toHaveProperty('overall_risk', 'MEDIUM');
+    });
+
+    it('should apply the general 0.10 tier minimum inclusively', async () => {
+      const mockHistoricalTopics = [
+        {
+          id: 1,
+          title: 'Exactly eligible fallback topic',
+          keywords: 'eligible',
+          session_year: '2022/2023',
+          supervisor_name: 'Dr. Test',
+          category: 'Public Health',
+          embedding: null
+        },
+        {
+          id: 2,
+          title: 'Below eligible fallback topic',
+          keywords: 'below',
+          session_year: '2022/2023',
+          supervisor_name: 'Dr. Test',
+          category: 'Public Health',
+          embedding: null
+        }
+      ];
+
+      mockPrismaInstance.$queryRaw
+        .mockResolvedValueOnce(mockHistoricalTopics)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      jaccardService.calculateBatch.mockReturnValue([
+        { topicId: 1, title: mockHistoricalTopics[0].title, score: 0.25, matchedKeywords: [] },
+        { topicId: 2, title: mockHistoricalTopics[1].title, score: 0.247, matchedKeywords: [] }
+      ]);
+
+      tfidfService.calculateTfIdfSimilarity.mockReturnValue([
+        { topicId: 1, title: mockHistoricalTopics[0].title, score: 0, matchedTerms: [] },
+        { topicId: 2, title: mockHistoricalTopics[1].title, score: 0, matchedTerms: [] }
+      ]);
+
+      sbertService.calculateSbertSimilarities.mockRejectedValue(
+        new Error('SBERT service unavailable')
+      );
+
+      const response = await request(app)
+        .post('/api/similarity/check')
+        .send({ topic: 'Eligibility floor topic' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.tier1_historical.map(match => match.id)).toEqual([1]);
+      expect(response.body.data).toHaveProperty('max_similarity', 10);
+      expect(response.body.data).toHaveProperty('overall_risk', 'LOW');
+    });
+
+    it('should require both combined and SBERT thresholds for Tier 2 and Tier 3', async () => {
+      const mockCurrentSessionTopics = [
+        {
+          id: 1,
+          title: 'Boundary current topic',
+          keywords: 'boundary',
+          session_year: '2025/2026',
+          supervisor_name: 'Dr. Test',
+          category: 'Public Health',
+          student_id: 'S1',
+          embedding: null
+        },
+        {
+          id: 2,
+          title: 'High combined low SBERT current topic',
+          keywords: 'combined',
+          session_year: '2025/2026',
+          supervisor_name: 'Dr. Test',
+          category: 'Public Health',
+          student_id: 'S2',
+          embedding: null
+        },
+        {
+          id: 3,
+          title: 'High SBERT low combined current topic',
+          keywords: 'sbert',
+          session_year: '2025/2026',
+          supervisor_name: 'Dr. Test',
+          category: 'Public Health',
+          student_id: 'S3',
+          embedding: null
+        }
+      ];
+
+      mockPrismaInstance.$queryRaw
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce(mockCurrentSessionTopics)
+        .mockResolvedValueOnce([]);
+
+      jaccardService.calculateBatch.mockReturnValue([
+        { topicId: 1, title: mockCurrentSessionTopics[0].title, score: 0.75, matchedKeywords: [] },
+        { topicId: 2, title: mockCurrentSessionTopics[1].title, score: 0.95, matchedKeywords: [] },
+        { topicId: 3, title: mockCurrentSessionTopics[2].title, score: 0.30, matchedKeywords: [] }
+      ]);
+
+      tfidfService.calculateTfIdfSimilarity.mockReturnValue([
+        { topicId: 1, title: mockCurrentSessionTopics[0].title, score: 0.50, matchedTerms: [] },
+        { topicId: 2, title: mockCurrentSessionTopics[1].title, score: 0.95, matchedTerms: [] },
+        { topicId: 3, title: mockCurrentSessionTopics[2].title, score: 0.433333, matchedTerms: [] }
+      ]);
+
+      sbertService.calculateSbertSimilarities.mockResolvedValue([
+        { topicId: 1, title: mockCurrentSessionTopics[0].title, score: 0.60, usedPrecomputed: false },
+        { topicId: 2, title: mockCurrentSessionTopics[1].title, score: 0.59, usedPrecomputed: false },
+        { topicId: 3, title: mockCurrentSessionTopics[2].title, score: 0.80, usedPrecomputed: false }
+      ]);
+
+      const response = await request(app)
+        .post('/api/similarity/check')
+        .send({ topic: 'Tier threshold topic' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.tier2_current.map(match => match.id)).toEqual([1]);
+      expect(response.body.data).toHaveProperty('max_similarity', 60);
+      expect(response.body.data).toHaveProperty('overall_risk', 'MEDIUM');
+    });
+
+    it('should return LOW risk when no candidate reaches the 0.10 tier minimum', async () => {
+      const mockHistoricalTopics = [
+        {
+          id: 1,
+          title: 'Very weak historical topic',
+          keywords: 'weak',
+          session_year: '2022/2023',
+          supervisor_name: 'Dr. Test',
+          category: 'Public Health',
+          embedding: null
+        }
+      ];
+
+      mockPrismaInstance.$queryRaw
+        .mockResolvedValueOnce(mockHistoricalTopics)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      jaccardService.calculateBatch.mockReturnValue([
+        { topicId: 1, title: mockHistoricalTopics[0].title, score: 0.10, matchedKeywords: [] }
+      ]);
+
+      tfidfService.calculateTfIdfSimilarity.mockReturnValue([
+        { topicId: 1, title: mockHistoricalTopics[0].title, score: 0.10, matchedTerms: [] }
+      ]);
+
+      sbertService.calculateSbertSimilarities.mockResolvedValue([
+        { topicId: 1, title: mockHistoricalTopics[0].title, score: 0.09, usedPrecomputed: false }
+      ]);
+
+      const response = await request(app)
+        .post('/api/similarity/check')
+        .send({ topic: 'Weak topic' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.tier1_historical).toEqual([]);
+      expect(response.body.data).toHaveProperty('max_similarity', 0);
+      expect(response.body.data).toHaveProperty('overall_risk', 'LOW');
     });
 
     it('should return HIGH risk for current session matches', async () => {

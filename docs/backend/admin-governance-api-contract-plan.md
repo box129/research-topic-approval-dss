@@ -4,17 +4,18 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | `evaluation/data-quality-fyp-evidence` |
-| Current commit hash | `29d4015` |
-| Date/time | `2026-06-19 04:18:26 +01:00` |
-| Scope | Evaluation dataset governance, multiclass metrics, read-only topic data-quality audit, generated evidence artifacts, tests, and documentation |
-| Change type | Backend evaluation tooling, tests, generated evidence, and documentation |
-| Implementation status | PR #105 adds governed pilot evaluation metadata, reproducible LOW/MEDIUM/HIGH multiclass evaluation metrics, stored JSON/Markdown evidence artifacts, and a read-only topic data-quality audit with safe-field counts and hashed duplicate-title candidates. The latest generated evaluation ran with the local SBERT service healthy and produced 16/16 SBERT-success cases, 100% full tri-algorithm coverage, and 0 operational fallback cases. Runtime fallback performance is marked `NOT_EVALUATED` because fallback support is zero; a separate offline fallback-policy evaluation is counterfactual pilot evidence only. PR #105 also documents scoring-contract drift between the approved FYP methodology and current production behavior. No production similarity scoring, threshold, SBERT fallback, import parsing, import persistence, auth/session behavior, Prisma migration, frontend behavior, fake result, fake data-quality finding, or fake benchmark claim is introduced. |
+| Branch | `fix/similarity-scoring-contract` |
+| Current commit hash | `e756c2e` |
+| Date/time | `2026-06-19 16:53:00 +01:00` |
+| Scope | Similarity scoring contract correction, regression tests, SBERT-active pilot evaluation rerun, and documentation |
+| Change type | Backend scoring behavior, tests, generated evidence, and documentation |
+| Implementation status | PR #106 corrects production similarity scoring to the approved FYP methodology by centralizing the scoring contract, applying normal weights `0.20 / 0.30 / 0.50`, fallback weights `0.40 / 0.60`, LOW/MEDIUM/HIGH boundaries `<0.40`, `0.40-<0.70`, `>=0.70`, weighted ranking, fallback weighted ranking, highest eligible combined-score risk classification, the `0.10` tier minimum, and Tier 2/3 gates requiring combined `>=0.60` plus SBERT `>=0.60`. The latest generated evaluation ran with local SBERT healthy and produced 16/16 SBERT-success cases, 100% full tri-algorithm coverage, 0 operational fallback cases, final production accuracy `0.375`, macro F1 `0.365`, and weighted F1 `0.348`. Runtime fallback performance remains `NOT_EVALUATED` because fallback support is zero; offline fallback-policy evaluation remains counterfactual pilot evidence only. PR #105 remains the historical drift baseline. No dataset relabeling, Prisma migration, auth/session change, import parsing/persistence change, frontend feature, fake SBERT value, fake benchmark claim, fake evaluation result, or fake data-quality finding is introduced. |
 
 Latest relevant PRs:
 
 | PR | Summary | Relevance |
 | --- | --- | --- |
+| #106 | fix: align similarity scoring contract | Corrects production scoring to the approved weighted methodology and regenerates regression/evaluation evidence. |
 | #105 | feat: add evaluation and data-quality FYP evidence | Added governed pilot evaluation reports and read-only topic data-quality audit evidence without changing production scoring. |
 | #104 | feat: add production email and notification foundation | Added explicit safe email provider modes and authenticated own-user notification backend foundation. |
 | #103 | feat: add admin import governance UI | Connected admin Topic Repository import preview/commit UI to existing audited backend endpoints without fake import results. |
@@ -434,6 +435,61 @@ Still deferred after PR #105:
 - Admin report export generation.
 - Audit log export/purge/delete workflows.
 
+### Implementation Status After PR #106
+
+PR #106 implements the similarity scoring contract correction slice from this plan:
+
+- `backend/src/config/similarityScoring.config.js` centralizes the approved scoring contract for production and evaluation use.
+- Normal tri-algorithm scoring now uses the approved weighted combined score:
+  - Jaccard `0.20`
+  - TF-IDF `0.30`
+  - SBERT `0.50`
+- Fallback lexical scoring now uses the approved fallback combined score:
+  - Jaccard `0.40`
+  - TF-IDF `0.60`
+- Risk classification now uses the approved boundaries:
+  - `LOW`: score `< 0.40`
+  - `MEDIUM`: score `>= 0.40` and `< 0.70`
+  - `HIGH`: score `>= 0.70`
+- Normal successful mode ranks candidates by weighted combined score instead of unweighted sum or max SBERT.
+- Normal overall risk is classified from the highest eligible weighted combined score across returned tiers.
+- Fallback mode ranks candidates by weighted lexical fallback combined score instead of max lexical component.
+- Fallback overall risk is classified from the highest eligible fallback combined score.
+- Tier 1 applies the general `0.10` combined-score minimum.
+- Tier 2 and Tier 3 require both combined score `>= 0.60` and real SBERT score `>= 0.60`.
+- When SBERT is unavailable, partial-success fallback remains honest and does not fabricate SBERT values or semantic Tier 2/3 eligibility.
+- Regression tests cover approved weights, fallback weights, weight totals, weighted/fallback score calculations, risk boundaries, ranking, overall-risk behavior, tier minimum, Tier 2/3 dual thresholds, no-fake-SBERT fallback, and evaluator/controller shared-contract alignment.
+- The latest generated evaluation ran in `sbert_available_full_tri_evaluation` mode with local SBERT healthy:
+  - total cases: 16
+  - valid cases: 16
+  - SBERT success cases: 16
+  - full tri-algorithm coverage: `100%`
+  - fallback-used cases: 0
+  - operational fallback metrics: `NOT_EVALUATED`
+  - final production behavior accuracy: `0.375`
+  - final production behavior macro F1: `0.365`
+  - final production behavior weighted F1: `0.348`
+- PR #105 remains the historical baseline for the previous drifted implementation:
+  - accuracy: `0.313`
+  - macro F1: `0.224`
+  - weighted F1: `0.215`
+- The dataset labels are not tuned or relabeled by PR #106.
+- No Prisma migration, import parsing/persistence change, auth/session change, frontend feature, topic record change, model training, embedding generation, fake SBERT value, fake evaluation result, or fake benchmark claim is introduced.
+
+Still deferred after PR #106:
+
+- Lecturer-reviewed final evaluation dataset.
+- Departmental-scale effectiveness evidence.
+- Final benchmark using lecturer-reviewed labels.
+- Semantic duplicate-existing governance for imported/stored topics.
+- Embedding generation for imported records.
+- Real SMTP/provider transport implementation.
+- Notification event hooks and frontend notification UI.
+- Lecturer supervisee assignment model and endpoint.
+- Admin research trends analytics endpoint.
+- Admin report export generation.
+- Audit log export/purge/delete workflows.
+
 ## 2. Current Reality From Repository
 
 ### Existing Backend Behavior
@@ -445,12 +501,12 @@ Still deferred after PR #105:
 | Student submissions | Student can create and list submissions through authenticated student endpoints. | `GET /api/v1/submissions`, `POST /api/v1/submissions`, `submission.controller.js`, `submission.service.js` |
 | Lecturer review workflow | Lecturer can list pending submissions, open detail, run submission similarity checks, read snapshots, and update status. | `/api/v1/lecturer/submissions...` routes |
 | Public similarity checker | Public similarity endpoint exists at legacy and v1 paths. | `POST /api/similarity/check`, `POST /api/v1/check-similarity` |
-| Similarity stack | Jaccard, TF-IDF, SBERT service integration/fallback, tiered results, risk classification, and partial success behavior exist. | `similarity.controller.js`, `jaccard.service.js`, `tfidf.service.js`, `sbert.service.js` |
+| Similarity stack | Jaccard, TF-IDF, SBERT service integration/fallback, approved weighted scoring contract, tiered results, risk classification, and partial success behavior exist. | `backend/src/config/similarityScoring.config.js`, `similarity.controller.js`, `jaccard.service.js`, `tfidf.service.js`, `sbert.service.js` |
 | Topic import | Spreadsheet preview/commit endpoints exist and call import file, normalization, and persistence services. | `/api/import/topics/*`, `/api/v1/import/topics/*`, `topicImport*.service.js` |
 | Health | Basic health endpoints exist. | `/health`, `/api/v1/health` |
 | Email | Password reset email uses explicit provider modes: local/test-safe `mock`, fail-closed `disabled`, and provider-ready `smtp` with SMTP transport deferred. Production rejects missing provider configuration and `mock`. | `backend/src/services/email.service.js`, `backend/src/config/env.js`, `docs/setup/auth-foundation.md`, `docs/setup/email-notification-foundation.md` |
 | Notifications | Authenticated own-user notification backend foundation exists with list, mark-read, and mark-all-read endpoints. Event hooks and frontend UI remain deferred. | `backend/prisma/schema.prisma`, `backend/src/services/notification.service.js`, `backend/src/controllers/notification.controller.js`, `backend/src/server.js` |
-| Evaluation evidence | Reproducible pilot LOW/MEDIUM/HIGH evaluation reports exist, including SBERT health, full tri-algorithm coverage, operational fallback coverage, counterfactual offline fallback-policy evaluation, scoring-contract drift, and per-method metrics. The latest generated report used a healthy local SBERT service with 16/16 SBERT-success cases and 100% full tri-algorithm coverage. | `backend/scripts/run-topic-evaluation.js`, `backend/evaluation/results/topic-similarity-evaluation.json`, `docs/testing/topic-similarity-evaluation-report.md` |
+| Evaluation evidence | Reproducible pilot LOW/MEDIUM/HIGH evaluation reports exist, including SBERT health, full tri-algorithm coverage, operational fallback coverage, counterfactual offline fallback-policy evaluation, scoring-contract comparison, and per-method metrics. The latest generated report used a healthy local SBERT service with 16/16 SBERT-success cases, 100% full tri-algorithm coverage, and the corrected PR #106 scoring contract. | `backend/scripts/run-topic-evaluation.js`, `backend/evaluation/results/topic-similarity-evaluation.json`, `docs/testing/topic-similarity-evaluation-report.md` |
 | Topic data-quality audit | Read-only safe-field lifecycle topic audit exists with missing-field counts, embedding coverage, import warning counts, source/import-batch grouping, and hashed duplicate-title candidates. | `backend/src/services/topicDataQualityAudit.service.js`, `backend/scripts/run-topic-data-quality-audit.js`, `backend/evaluation/results/topic-data-quality-audit.json`, `docs/testing/topic-data-quality-report.md` |
 
 ### Existing Frontend Behavior
@@ -491,7 +547,7 @@ Enums include:
 
 ### Missing Backend/Governance Areas
 
-These do not currently exist as implemented APIs/models/services in the inspected repository after PR #105:
+These do not currently exist as implemented APIs/models/services in the inspected repository after PR #106:
 
 - Admin user mutations beyond audited status updates.
 - Admin system settings mutations.
@@ -521,7 +577,7 @@ Import-specific gap:
 8. Safe empty-state responses instead of placeholder data.
 9. Backwards compatibility with current UI routes and existing APIs.
 10. Test-first or test-backed implementation for each endpoint group.
-11. Preserve current similarity thresholds and scoring behavior unless a future scoped evaluation-backed PR changes them.
+11. Preserve the approved PR #106 similarity thresholds and scoring behavior unless a future scoped evaluation-backed PR changes them.
 12. Keep lecturer decisions lecturer-controlled; similarity remains advisory.
 
 ## 4. Shared API Conventions
@@ -1986,9 +2042,14 @@ Must not include:
 
 Purpose:
 
-- Correct production scoring behavior only after explicit approval.
-- Align production scoring with the approved FYP methodology or formally revise the approved contract.
+- Correct production scoring behavior after explicit approval.
+- Align production scoring with the approved FYP methodology.
 - Add regression evidence proving weights, fallback weights, thresholds, tier minimums, tier 2/3 requirements, ranking, and overall-risk behavior.
+
+Status:
+
+- Implemented by branch `fix/similarity-scoring-contract`.
+- Shared scoring config, production controller behavior, evaluation runner scoring, generated evidence, and regression tests are aligned to the approved methodology.
 
 Likely files:
 
@@ -2012,7 +2073,7 @@ Risks:
 
 Must not include:
 
-- Unapproved threshold/scoring changes.
+- Unapproved threshold/scoring changes beyond the approved PR #106 contract.
 - Fake evaluation results.
 - Deployment/readiness work.
 
@@ -2044,7 +2105,8 @@ Must not include:
 
 This PR does not:
 
-- Change production similarity scoring, weighting, thresholds, tiers, SBERT fallback, API responses, frontend behavior, import parsing, import normalization, import persistence, or database records.
+- Change production similarity scoring beyond the approved PR #106 scoring contract correction.
+- Change SBERT fallback availability, API response shape, frontend behavior, import parsing, import normalization, import persistence, or database records.
 - Add Prisma migrations.
 - Add frontend pages or UI workflows.
 - Add admin, lecturer, student, import, notification, or email endpoints.
@@ -2064,6 +2126,7 @@ This PR does not:
 - Send real emails in tests.
 - Implement create-user, delete-user, role-change, invitation, password-reset, bulk account, or profile-edit workflows.
 - Implement settings writes, threshold sliders, feature toggles, email controls, or arbitrary configuration updates.
+- Tune or relabel the manually constructed pilot dataset.
 - Claim manually constructed pilot labels are final expert or departmental ground truth.
 - Claim fallback-only metrics prove SBERT semantic performance.
 - Write raw sensitive topic data to committed evaluation or data-quality reports.
@@ -2071,7 +2134,7 @@ This PR does not:
 
 ## 20. Verification
 
-Requested verification commands for PR #105:
+Requested verification commands for PR #106:
 
 ```powershell
 cd backend
@@ -2079,6 +2142,16 @@ npm test -- --runInBand
 npx prisma validate
 npm run evaluate:topics
 npm run audit:data-quality
+cd ..\sbert-service
+.\venv\Scripts\python.exe quick_test.py
+.\venv\Scripts\python.exe test_service.py
+cd ..\frontend
+npm run build
+npm test -- --run tests/ResultsDisplay.test.jsx tests/ResultsDisplay.old.test.jsx
+npm test -- --run tests/LecturerCheckSimilarityPage.test.jsx
+npm test -- --run tests/CheckMyTopicPage.test.jsx
+npm test -- --run --maxWorkers=1 --minWorkers=1
+npm run smoke:figma-ui
 cd ..
 git diff --check
 git status --short --ignored reference img frontend/smoke-artifacts frontend/dist frontend/playwright-report frontend/test-results backend/node_modules frontend/node_modules sbert-service/venv
@@ -2089,21 +2162,17 @@ git diff --name-only
 Expected implementation files:
 
 ```text
-backend/evaluation/datasets/pilot-topic-pairs.json
-backend/evaluation/fixtures/topic-data-quality-fixture.json
-backend/evaluation/results/topic-data-quality-audit.json
-backend/evaluation/results/topic-similarity-evaluation.json
-backend/package.json
-backend/scripts/run-topic-data-quality-audit.js
-backend/scripts/run-topic-evaluation.js
+backend/src/config/similarityScoring.config.js
+backend/src/config/similarityScoring.config.test.js
+backend/src/controllers/similarity.controller.js
+backend/src/controllers/similarity.controller.test.js
 backend/src/services/evaluationMetrics.service.js
 backend/src/services/evaluationMetrics.service.test.js
-backend/src/services/topicDataQualityAudit.service.js
-backend/src/services/topicDataQualityAudit.service.test.js
+backend/scripts/run-topic-evaluation.js
+backend/evaluation/results/topic-similarity-evaluation.json
 docs/backend/admin-governance-api-contract-plan.md
 docs/project/full-worktree-gap-benchmark-audit.md
 docs/project/fyp-evaluation-benchmark-evidence.md
 docs/testing/evaluation.md
-docs/testing/topic-data-quality-report.md
 docs/testing/topic-similarity-evaluation-report.md
 ```

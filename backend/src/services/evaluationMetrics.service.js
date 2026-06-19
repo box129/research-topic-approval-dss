@@ -1,8 +1,12 @@
+const {
+  SIMILARITY_SCORING_CONTRACT
+} = require('../config/similarityScoring.config');
+
 const RISK_CLASSES = ['LOW', 'MEDIUM', 'HIGH'];
 
 const PRODUCTION_RISK_THRESHOLDS = {
-  medium: 0.50,
-  high: 0.70
+  medium: SIMILARITY_SCORING_CONTRACT.thresholds.medium,
+  high: SIMILARITY_SCORING_CONTRACT.thresholds.high
 };
 
 function roundMetric(value) {
@@ -23,7 +27,7 @@ function normalizeScore(score, options = {}) {
     ? Math.max(0, numericScore)
     : Math.max(0, Math.min(1, numericScore > 1 ? numericScore / 100 : numericScore));
 
-  return roundMetric(normalizedScore);
+  return normalizedScore;
 }
 
 function classifyRisk(score, thresholds = PRODUCTION_RISK_THRESHOLDS, options = {}) {
@@ -60,7 +64,7 @@ function buildPrediction(score, options = {}) {
   const risk = classifyRisk(normalizedScore, options.thresholds, { allowAboveOne: options.allowAboveOne });
 
   return {
-    score: normalizedScore,
+    score: roundMetric(normalizedScore),
     risk,
     label: labelFromRisk(risk),
     status: risk ? 'predicted' : 'skipped',

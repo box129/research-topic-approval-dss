@@ -1,8 +1,8 @@
 # Topic Similarity Evaluation Harness
 
-This guide describes the reproducible PR #105 evaluation and data-quality evidence tooling.
+This guide describes the reproducible evaluation and data-quality evidence tooling introduced in PR #105 and updated after the PR #106 scoring-contract correction.
 
-The tooling is project evidence only. It does not change production scoring, thresholds, API responses, frontend behavior, Prisma schema, embeddings, import parsing, import persistence, or SBERT fallback behavior.
+The tooling is project evidence only. PR #105 measured the previous implementation and identified scoring-contract drift. PR #106 corrected production scoring to match the approved FYP methodology. The tooling does not change API response shape, frontend behavior, Prisma schema, embeddings, import parsing, import persistence, or SBERT fallback availability.
 
 ## Dataset
 
@@ -48,34 +48,34 @@ The report includes total/valid/skipped counts, class support, accuracy, macro/w
 
 ## Production Scoring Contract
 
-The evaluator mirrors the current observed production controller behavior from `backend/src/controllers/similarity.controller.js`:
+The evaluator and production controller now import the shared contract from:
+
+```text
+backend/src/config/similarityScoring.config.js
+```
+
+Current production scoring contract:
 
 - High threshold: `>= 0.70`
-- Medium threshold: `>= 0.50`
-- Low threshold: `< 0.50`
-- Tier filter threshold: `0.60`
-- Configured weights: Jaccard `0.30`, TF-IDF `0.30`, SBERT `0.40`
-- Configured fallback weights: Jaccard `0.50`, TF-IDF `0.50`
+- Medium threshold: `>= 0.40`
+- Low threshold: `< 0.40`
+- General tier minimum: `0.10`
+- Tier 2/3 combined threshold: `0.60`
+- Tier 2/3 SBERT threshold: `0.60`
+- Normal weights: Jaccard `0.20`, TF-IDF `0.30`, SBERT `0.50`
+- Fallback weights: Jaccard `0.40`, TF-IDF `0.60`
 
 Important implementation note:
 
-The production controller currently defines algorithm weights, but `combineAlgorithmResults` ranks normal results with an unweighted `jaccard + tfidf + sbert` `combinedScore`. The final normal-success `overallRisk` is classified from the maximum SBERT score. When SBERT is unavailable, the partial-success fallback risk is classified from the maximum lexical score across Jaccard and TF-IDF.
+Normal successful mode ranks candidates by approved weighted combined score and classifies overall risk from the highest eligible weighted combined score. Fallback mode ranks candidates by approved lexical fallback combined score and classifies fallback overall risk from the highest eligible fallback combined score. Tier 2 and Tier 3 require real SBERT evidence, so lexical fallback does not fabricate semantic eligibility.
 
-The evaluation runner records this behavior honestly; it does not change it.
+PR #105 recorded the previous drift honestly. PR #106 corrected that drift and added regression coverage for weights, boundaries, ranking, fallback scoring, tier gates, and no-fake-SBERT fallback behavior.
 
-For regression safety, the current-production contract snapshot used by the evaluator is compared in tests with exported constants from the similarity controller. The approved FYP methodology remains a separate documented target and is not silently redefined around the current code.
-
-The approved FYP scoring methodology differs from the current implementation in several places:
-
-- approved weights are Jaccard `0.20`, TF-IDF `0.30`, SBERT `0.50`
-- approved fallback weights are Jaccard `0.40`, TF-IDF `0.60`
-- approved MEDIUM starts at `0.40`
-
-The current implementation has drift from that approved methodology. PR #105 documents the drift and recommends a separate scoring-contract correction PR. It does not redefine the approved methodology around the current code.
+For regression safety, the current-production contract snapshot used by the evaluator is compared in tests with the shared config module.
 
 ## Current Generated Result
 
-The latest generated report for PR #105 was generated in `sbert_available_full_tri_evaluation` mode with the local SBERT service healthy at `http://localhost:8000`:
+The latest generated report after PR #106 was generated in `sbert_available_full_tri_evaluation` mode with the local SBERT service healthy at `http://localhost:8000`:
 
 - Total cases: 16
 - Valid cases: 16
@@ -89,11 +89,11 @@ The latest generated report for PR #105 was generated in `sbert_available_full_t
 - Operational fallback coverage: `0%`
 - Operational fallback metrics: `NOT_EVALUATED` because runtime fallback support is 0
 - Offline fallback-policy evaluation: counterfactual pilot evaluation across all 16 valid cases without SBERT output
-- Final production behavior accuracy: `0.313`
-- Final production behavior macro F1: `0.224`
-- Final production behavior weighted F1: `0.215`
+- Final production behavior accuracy: `0.375`
+- Final production behavior macro F1: `0.365`
+- Final production behavior weighted F1: `0.348`
 
-These metrics use the current implementation behavior. They are not final effectiveness claims because the dataset is still a small manually constructed pilot.
+PR #105 baseline metrics for the previous drifted implementation were accuracy `0.313`, macro F1 `0.224`, and weighted F1 `0.215`. The PR #106 metrics use the corrected production contract. They are not final effectiveness claims because the dataset is still a small manually constructed pilot.
 
 ## Data-Quality Audit
 
@@ -153,6 +153,5 @@ This is a connected local database snapshot only. It does not represent the comp
 ## Future Work
 
 - Replace or supplement the pilot labels with lecturer-reviewed validation cases.
-- Add a separate scoring-contract correction PR if the approved FYP methodology should become production behavior.
+- Keep future scoring or threshold changes evaluation-backed and explicitly approved.
 - Add richer duplicate-existing governance only after the import contract supports it.
-- Keep any production scoring or threshold change in a separate evaluation-backed PR.

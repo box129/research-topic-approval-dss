@@ -3,48 +3,13 @@ const jaccardService = require('../services/jaccard.service');
 const tfidfService = require('../services/tfidf.service');
 const sbertService = require('../services/sbert.service');
 const logger = require('../config/logger');
-
-// ============ Configuration Constants ============
-// Risk thresholds for similarity scoring
-const RISK_THRESHOLDS = {
-  HIGH_TIER1: 0.70,      // Any tier1 match >= 70% = HIGH
-  MEDIUM_TIER1: 0.50,    // Any tier1 match >= 50% = MEDIUM
-};
-
-// Algorithm weights for combined scoring
-const ALGORITHM_WEIGHTS = {
-  jaccard: 0.30,
-  tfidf: 0.30,
-  sbert: 0.40,
-  // Fallback weights when SBERT unavailable
-  jaccard_fallback: 0.50,
-  tfidf_fallback: 0.50
-};
-
-// Similarity threshold for tier 2/3 filtering
-const TIER_FILTER_THRESHOLD = 0.60;
-
-const PRODUCTION_SCORING_CONTRACT = Object.freeze({
-  thresholds: Object.freeze({
-    highTier1: RISK_THRESHOLDS.HIGH_TIER1,
-    mediumTier1: RISK_THRESHOLDS.MEDIUM_TIER1,
-    tierFilter: TIER_FILTER_THRESHOLD
-  }),
-  configuredWeights: Object.freeze({
-    jaccard: ALGORITHM_WEIGHTS.jaccard,
-    tfidf: ALGORITHM_WEIGHTS.tfidf,
-    sbert: ALGORITHM_WEIGHTS.sbert,
-    jaccardFallback: ALGORITHM_WEIGHTS.jaccard_fallback,
-    tfidfFallback: ALGORITHM_WEIGHTS.tfidf_fallback
-  }),
-  observedBehavior: Object.freeze({
-    normalCombinedScore: 'unweighted jaccard + tfidf + sbert',
-    fallbackCombinedScore: 'unweighted jaccard + tfidf for ranking; final fallback risk uses max lexical score',
-    normalOverallRisk: 'max SBERT score across returned tiers',
-    fallbackOverallRisk: 'max lexical score across returned tiers',
-    tier23Requirement: 'combined >= 0.60 and sbert >= 0.60 when SBERT is available'
-  })
-});
+const {
+  SIMILARITY_SCORING_CONTRACT,
+  PRODUCTION_SCORING_CONTRACT,
+  calculateWeightedCombinedScore,
+  calculateFallbackCombinedScore,
+  classifySimilarityRisk
+} = require('../config/similarityScoring.config');
 
 // Database query timeout in milliseconds
 const DB_QUERY_TIMEOUT = 10000;
@@ -115,32 +80,10 @@ function buildRecommendation(overallRisk, tier3 = []) {
   return 'Topic appears unique. Proceed with approval.';
 }
 
-function calculateMaxSbertSimilarity(...tiers) {
+function calculateMaxCombinedSimilarity(...tiers) {
   return tiers
     .flat()
-    .reduce((maxScore, match) => Math.max(maxScore, match.scores?.sbert || 0), 0);
-}
-
-function calculateMaxLexicalSimilarity(...tiers) {
-  return tiers
-    .flat()
-    .reduce((maxScore, match) => Math.max(
-      maxScore,
-      match.scores?.jaccard || 0,
-      match.scores?.tfidf || 0
-    ), 0);
-}
-
-function classifyRiskFromSbertScore(score) {
-  if (score >= RISK_THRESHOLDS.HIGH_TIER1) {
-    return 'HIGH';
-  }
-
-  if (score >= RISK_THRESHOLDS.MEDIUM_TIER1) {
-    return 'MEDIUM';
-  }
-
-  return 'LOW';
+    .reduce((maxScore, match) => Math.max(maxScore, match.scores?.combined || 0), 0);
 }
 
 function formatTier1ForFypContract(matches) {
@@ -464,12 +407,6 @@ async function checkSimilarity(req, res, next) {
       sbertResults
     );
 
-    // 5a. Calculate overall maximum similarity from combined results
-    const overallMaxSimilarity = combinedResults.reduce(
-      (maxScore, result) => Math.max(maxScore, result.combinedScore),
-      0
-    );
-
     // 6. Filter into 3 tiers
     const tier1Historical = filterTier1Historical(combinedResults, parsedHistorical);
     const hasSbertResults = sbertResults !== null;
@@ -479,39 +416,32 @@ async function checkSimilarity(req, res, next) {
     logger.info(`Tiers: T1=${tier1Historical.length}, T2=${tier2CurrentSession.length}, T3=${tier3UnderReview.length}`);
 
     // 7. Calculate overall risk
-    const overallRisk = calculateOverallRisk(tier1Historical, tier2CurrentSession, tier3UnderReview);
-    const normalSuccessMaxSbert = sbertResults !== null
-      ? calculateMaxSbertSimilarity(tier1Historical, tier2CurrentSession, tier3UnderReview)
-      : null;
-    const normalSuccessRisk = sbertResults !== null
-      ? classifyRiskFromSbertScore(normalSuccessMaxSbert)
-      : null;
+    const overallMaxSimilarity = calculateMaxCombinedSimilarity(
+      tier1Historical,
+      tier2CurrentSession,
+      tier3UnderReview
+    );
+    const overallRisk = classifySimilarityRisk(overallMaxSimilarity);
 
     // 8. Return JSON response
     const processingTime = Date.now() - startTime;
-    logger.info(`Similarity check completed in ${processingTime}ms with risk level: ${normalSuccessRisk || overallRisk}`);
+    logger.info(`Similarity check completed in ${processingTime}ms with risk level: ${overallRisk}`);
 
     if (sbertResults !== null) {
       return res.json(buildFypSuccessResponse({
         topic,
-        overallRisk: normalSuccessRisk,
-        overallMaxSimilarity: normalSuccessMaxSbert,
+        overallRisk,
+        overallMaxSimilarity,
         tier1: tier1Historical,
         tier2: tier2CurrentSession,
         tier3: tier3UnderReview
       }));
     }
 
-    const degradedMaxLexical = calculateMaxLexicalSimilarity(
-      tier1Historical,
-      tier2CurrentSession,
-      tier3UnderReview
-    );
-
     res.json(buildFypPartialSuccessResponse({
       topic,
-      overallRisk: classifyRiskFromSbertScore(degradedMaxLexical),
-      overallMaxSimilarity: degradedMaxLexical,
+      overallRisk,
+      overallMaxSimilarity,
       tier1: tier1Historical,
       tier2: tier2CurrentSession,
       tier3: tier3UnderReview
@@ -523,18 +453,38 @@ async function checkSimilarity(req, res, next) {
   }
 }
 
+function compareCombinedResults(a, b) {
+  const scoreDifference = (b.combinedScore ?? -Infinity) - (a.combinedScore ?? -Infinity);
+  if (scoreDifference !== 0) {
+    return scoreDifference;
+  }
+
+  const titleDifference = String(a.topic.title || '').localeCompare(String(b.topic.title || ''));
+  if (titleDifference !== 0) {
+    return titleDifference;
+  }
+
+  return Number(a.topic.id || 0) - Number(b.topic.id || 0);
+}
+
+function hasEligibleCombinedScore(result) {
+  return Number.isFinite(result.combinedScore) &&
+    result.combinedScore >= SIMILARITY_SCORING_CONTRACT.thresholds.tierMinimum;
+}
+
 /**
- * Combine results from multiple algorithms by summing normalized scores
- * 
- * When SBERT is available, the combined score is the sum of Jaccard,
- * TF-IDF, and SBERT scores. When SBERT is unavailable, it falls back to
- * the sum of Jaccard and TF-IDF scores.
- * 
+ * Combine results from multiple algorithms using the approved scoring contract.
+ *
+ * When SBERT is available, combined score is:
+ *   jaccard * 0.20 + tfidf * 0.30 + sbert * 0.50
+ * When SBERT is unavailable, fallback combined score is:
+ *   jaccard * 0.40 + tfidf * 0.60
+ *
  * @param {Array} allTopics - All topics from database
  * @param {Array} jaccardResults - Jaccard similarity results
  * @param {Array} tfidfResults - TF-IDF similarity results
  * @param {Array|null} sbertResults - SBERT similarity results (null if unavailable)
- * @returns {Array} Combined results with summed scores
+ * @returns {Array} Combined results ranked by approved combined score
  */
 function combineAlgorithmResults(allTopics, jaccardResults, tfidfResults, sbertResults) {
   // Create a map of topic ID to combined scores
@@ -546,8 +496,8 @@ function combineAlgorithmResults(allTopics, jaccardResults, tfidfResults, sbertR
       topic: topic,
       jaccard: 0,
       tfidf: 0,
-      sbert: 0,
-      combinedScore: 0,
+      sbert: null,
+      combinedScore: null,
       matchedKeywords: [],
       matchedTerms: []
     });
@@ -582,25 +532,15 @@ function combineAlgorithmResults(allTopics, jaccardResults, tfidfResults, sbertR
     });
   }
 
-  // Calculate weighted combined score
   const hasSbert = sbertResults !== null;
   const results = Array.from(scoresMap.values()).map(entry => {
-    let combinedScore;
-
-    if (hasSbert) {
-      combinedScore = entry.jaccard + entry.tfidf + entry.sbert;
-    } else {
-      combinedScore = entry.jaccard + entry.tfidf;
-    }
-
-    entry.combinedScore = Math.round(combinedScore * 1000) / 1000;
+    entry.combinedScore = hasSbert
+      ? calculateWeightedCombinedScore(entry)
+      : calculateFallbackCombinedScore(entry);
     return entry;
   });
 
-  // Normal success uses SBERT ranking; degraded mode keeps existing lexical combined ordering.
-  results.sort((a, b) => hasSbert
-    ? b.sbert - a.sbert
-    : b.combinedScore - a.combinedScore);
+  results.sort(compareCombinedResults);
 
   return results;
 }
@@ -616,7 +556,10 @@ function filterTier1Historical(combinedResults, historicalTopics) {
   const historicalIds = new Set(historicalTopics.map(t => t.id));
   
   const tier1 = combinedResults
-    .filter(result => historicalIds.has(result.topic.id))
+    .filter(result =>
+      historicalIds.has(result.topic.id) &&
+      hasEligibleCombinedScore(result)
+    )
     .slice(0, 5)
     .map(result => ({
       id: result.topic.id,
@@ -646,13 +589,14 @@ function filterTier1Historical(combinedResults, historicalTopics) {
  * @returns {Array} Current session topics with high similarity
  */
 function meetsTierThreshold(result, hasSbertResults) {
-  if (hasSbertResults) {
-    return result.combinedScore >= TIER_FILTER_THRESHOLD &&
-      result.sbert >= TIER_FILTER_THRESHOLD;
+  if (!hasSbertResults) {
+    return false;
   }
 
-  return result.jaccard >= TIER_FILTER_THRESHOLD ||
-    result.tfidf >= TIER_FILTER_THRESHOLD;
+  const { thresholds } = SIMILARITY_SCORING_CONTRACT;
+  return hasEligibleCombinedScore(result) &&
+    result.combinedScore >= thresholds.semanticTierCombinedMinimum &&
+    result.sbert >= thresholds.semanticTierSbertMinimum;
 }
 
 function filterTier2CurrentSession(combinedResults, currentSessionTopics, hasSbertResults = true) {
@@ -723,36 +667,15 @@ function filterTier3UnderReview(combinedResults, underReviewTopics, hasSbertResu
 }
 
 /**
- * Calculate overall risk level based on tier results
- * 
- * Risk levels determined by:
- * - HIGH: Any tier 2/3 match OR tier 1 match >= HIGH_TIER1 threshold (0.70)
- * - MEDIUM: Tier 1 match >= MEDIUM_TIER1 threshold (0.50)
- * - LOW: Everything else
- * 
+ * Calculate overall risk level from the highest eligible approved combined score.
+ *
  * @param {Array} tier1 - Tier 1 results
  * @param {Array} tier2 - Tier 2 results
  * @param {Array} tier3 - Tier 3 results
  * @returns {string} Risk level: 'LOW', 'MEDIUM', or 'HIGH'
  */
 function calculateOverallRisk(tier1, tier2, tier3) {
-  // HIGH risk: Any tier 2 or tier 3 match (current session or under review)
-  if (tier2.length > 0 || tier3.length > 0) {
-    return 'HIGH';
-  }
-
-  // HIGH risk: Tier 1 match exceeds high threshold
-  if (tier1.length > 0 && tier1[0].scores.combined >= RISK_THRESHOLDS.HIGH_TIER1) {
-    return 'HIGH';
-  }
-
-  // MEDIUM risk: Tier 1 match exceeds medium threshold
-  if (tier1.length > 0 && tier1[0].scores.combined >= RISK_THRESHOLDS.MEDIUM_TIER1) {
-    return 'MEDIUM';
-  }
-
-  // LOW risk: Everything else
-  return 'LOW';
+  return classifySimilarityRisk(calculateMaxCombinedSimilarity(tier1, tier2, tier3));
 }
 
 module.exports = {

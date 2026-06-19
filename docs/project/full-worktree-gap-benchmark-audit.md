@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document preserves the original PR #94 repository audit as historical context and records the current repository status after PRs #96 through #104 plus the in-progress PR #105 evaluation/data-quality evidence work.
+This document preserves the original PR #94 repository audit as historical context and records the current repository status after PRs #96 through #106.
 
 The original June 5 audit should not be read as current truth unless a section is explicitly labelled historical.
 
@@ -29,9 +29,9 @@ At that time, the repository had:
 
 Those gaps were correct for PR #94. They are historical now.
 
-## Current Status After PR #105
+## Current Status After PR #106
 
-Current branch context: `evaluation/data-quality-fyp-evidence`.
+Current branch context: `fix/similarity-scoring-contract`.
 
 Current implemented governance sequence:
 
@@ -46,7 +46,8 @@ Current implemented governance sequence:
 | #102 Lecturer research trends | Implemented read-only lecturer research-trends API and frontend connection using aggregate real data. |
 | #103 Admin import UI | Connected `/admin/topic-repository` import panel to real admin preview/commit endpoints. |
 | #104 Email/notification foundation | Added explicit email provider modes and authenticated own-user notification backend foundation; real SMTP transport and event hooks remain deferred. |
-| #105 Evaluation/data-quality evidence | Adds governed pilot evaluation reports, data-quality audit, scoring-contract drift evidence, and generated JSON/Markdown artifacts without production scoring changes. |
+| #105 Evaluation/data-quality evidence | Added governed pilot evaluation reports, data-quality audit, scoring-contract drift evidence, and generated JSON/Markdown artifacts without production scoring changes. |
+| #106 Similarity scoring contract correction | Corrects production scoring to the approved weighted methodology and regenerates regression/evaluation evidence. |
 
 ## Current Implemented Areas
 
@@ -87,7 +88,8 @@ Current implemented governance sequence:
 | Admin import governance | Admin-protected preview/commit endpoints and UI connection implemented. |
 | Email | Mock/disabled/provider-ready modes implemented; real SMTP transport deferred. |
 | Notifications | Backend foundation and own-user endpoints implemented; event hooks/frontend UI deferred. |
-| Evaluation/data-quality | PR #105 adds reproducible pilot evaluation and local database data-quality evidence. |
+| Evaluation/data-quality | PR #105 adds reproducible pilot evaluation and local database data-quality evidence; PR #106 reruns it against corrected scoring. |
+| Similarity scoring contract | Implemented with shared approved weights, fallback weights, risk boundaries, ranking, and tier gates. |
 
 ### Prisma Models
 
@@ -113,7 +115,7 @@ Still absent/deferred:
 
 ## Current Evaluation Evidence
 
-PR #105 generated the latest pilot evaluation report with local SBERT running:
+PR #106 regenerated the latest pilot evaluation report with local SBERT running:
 
 - Total/valid cases: 16/16
 - Dataset support: LOW 4, MEDIUM 5, HIGH 7
@@ -123,11 +125,11 @@ PR #105 generated the latest pilot evaluation report with local SBERT running:
 - Operational fallback coverage: 0%
 - Operational fallback metrics: `NOT_EVALUATED` because support is zero
 - Offline fallback-policy evaluation: counterfactual pilot-only evaluation across all 16 cases using current fallback policy without SBERT output
-- Final production behavior accuracy: 0.313
-- Final production behavior macro F1: 0.224
-- Final production behavior weighted F1: 0.215
+- Final production behavior accuracy: 0.375
+- Final production behavior macro F1: 0.365
+- Final production behavior weighted F1: 0.348
 
-This is not final FYP effectiveness proof. The dataset is manually constructed, small, not lecturer-reviewed, and not departmental ground truth.
+PR #105 baseline for the previous drifted implementation was accuracy 0.313, macro F1 0.224, and weighted F1 0.215. The current result is not final FYP effectiveness proof. The dataset is manually constructed, small, not lecturer-reviewed, and not departmental ground truth.
 
 ## Current Data-Quality Evidence
 
@@ -155,8 +157,8 @@ This is a local database snapshot only. It does not represent the complete depar
 | SBERT effectiveness validation | Partially reached | Pilot metrics exist, but labels are not lecturer-reviewed or departmental ground truth. |
 | Runtime fallback performance | Not evaluated in SBERT-active run | Operational fallback-used cases were zero; metrics are null/`NOT_EVALUATED`. |
 | Offline fallback-policy evaluation | Reached for pilot only | Counterfactual evaluation; not evidence runtime fallback was triggered. |
-| Production tri-algorithm behavior | Partially reached | Full coverage exists, but current behavior drifts from approved FYP scoring methodology. |
-| Approved FYP scoring contract | Not reached | Requires separate scoring-contract correction PR. |
+| Production tri-algorithm behavior | Reached for pilot | Full coverage exists and scoring now uses the approved weighted methodology. |
+| Approved FYP scoring contract | Reached | PR #106 implements the approved weights, fallback weights, boundaries, ranking, overall-risk rules, and tier gates. |
 | Topic data-quality audit | Reached for local snapshot | Departmental-scale quality remains not verified. |
 | Admin report exports | Deferred | Summary API/page exist; export generation is not implemented. |
 | Lecturer supervisees | Deferred | Requires assignment model/business rule. |
@@ -164,7 +166,7 @@ This is a local database snapshot only. It does not represent the complete depar
 | Notification event hooks/frontend | Deferred | Backend foundation exists; real workflow hooks/UI remain deferred. |
 | Deployment readiness | Deferred | Should follow scoring-contract correction. |
 
-## Scoring-Contract Drift
+## Scoring-Contract Correction
 
 Approved FYP methodology:
 
@@ -177,17 +179,19 @@ Approved FYP methodology:
 - tier minimum `0.10`
 - Tier 2/3 requires combined `>= 0.60` and SBERT `>= 0.60`
 
-Observed current implementation:
+Current implementation after PR #106:
 
-- configured weights `0.30 / 0.30 / 0.40`
-- configured fallback `0.50 / 0.50`
-- MEDIUM begins at `0.50`
-- normal ranking uses unweighted sum
-- normal overall risk uses max SBERT
-- fallback risk uses max lexical
-- tier minimum `0.10` not verified
+- shared scoring config at `backend/src/config/similarityScoring.config.js`
+- configured normal weights `0.20 / 0.30 / 0.50`
+- configured fallback `0.40 / 0.60`
+- MEDIUM begins at `0.40`
+- normal ranking uses approved weighted combined score
+- normal overall risk uses highest eligible weighted combined score
+- fallback ranking/risk use approved fallback combined score
+- Tier 1 uses the general `0.10` minimum
+- Tier 2/3 require both combined `>= 0.60` and SBERT `>= 0.60`
 
-PR #105 documents and measures this drift. It does not correct production scoring.
+PR #105 documents and measures the previous drift. PR #106 corrects production scoring and preserves the historical PR #105 baseline.
 
 ## Current Package Commands
 
@@ -220,7 +224,6 @@ cd sbert-service
 ## Current Gaps
 
 - Lecturer-reviewed, departmental-ground-truth evaluation dataset.
-- Scoring-contract correction and regression evidence.
 - Departmental-scale data-quality audit.
 - Explicit supervisee assignment model/endpoint.
 - Admin reports export generation.
@@ -235,7 +238,6 @@ cd sbert-service
 
 | PR | Scope | Rationale |
 | --- | --- | --- |
-| #106 | Similarity Scoring Contract Correction + Regression Evidence | Correct or formally reconcile scoring drift before deployment readiness. |
 | #107 | Deployment Readiness + Release Candidate | Run final build/test/smoke gates after scoring behavior is approved and stable. |
 
-PR #106 must remain separate from PR #105. PR #105 measures and documents drift; PR #106 may change production behavior only after explicit approval.
+PR #106 remains separate from PR #105. PR #105 measured and documented drift; PR #106 changed production behavior after explicit approval. PR #107 should stay focused on deployment readiness and release-candidate verification.
