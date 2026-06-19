@@ -1,6 +1,6 @@
 const {
   PRODUCTION_SCORING_CONTRACT
-} = require('../controllers/similarity.controller');
+} = require('../config/similarityScoring.config');
 
 const {
   CURRENT_IMPLEMENTATION_CONTRACT
@@ -44,15 +44,17 @@ describe('Evaluation Metrics Service', () => {
 
   describe('classifyRisk', () => {
     test('should classify production threshold boundaries', () => {
-      expect(classifyRisk(0.49)).toBe('LOW');
-      expect(classifyRisk(0.50)).toBe('MEDIUM');
-      expect(classifyRisk(0.69)).toBe('MEDIUM');
+      expect(classifyRisk(0)).toBe('LOW');
+      expect(classifyRisk(0.399999)).toBe('LOW');
+      expect(classifyRisk(0.40)).toBe('MEDIUM');
+      expect(classifyRisk(0.699999)).toBe('MEDIUM');
       expect(classifyRisk(0.70)).toBe('HIGH');
+      expect(classifyRisk(1.0)).toBe('HIGH');
     });
 
     test('should classify percentage-style scores after normalization', () => {
-      expect(classifyRisk(49)).toBe('LOW');
-      expect(classifyRisk(50)).toBe('MEDIUM');
+      expect(classifyRisk(39)).toBe('LOW');
+      expect(classifyRisk(40)).toBe('MEDIUM');
       expect(classifyRisk(70)).toBe('HIGH');
     });
   });

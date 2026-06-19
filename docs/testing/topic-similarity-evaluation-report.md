@@ -1,8 +1,8 @@
 # Topic Similarity Evaluation Report
 
-Generated: 2026-06-19T13:31:45.643Z
+Generated: 2026-06-19T15:57:07.581Z
 
-Commit: `29d4015`
+Commit: `e756c2e`
 
 Dataset: `backend/evaluation/datasets/pilot-topic-pairs.json` (pilot-v1)
 
@@ -47,47 +47,48 @@ SBERT failures:
 
 | Item | Approved FYP Specification | Current Implementation Behavior | Evaluation Runner Behavior | Status | Source |
 | --- | --- | --- | --- | --- | --- |
-| Jaccard weight | 0.20 | 0.30 configured; not used in current combinedScore calculation | mirrors current implementation, not approved weighted formula | DRIFT | `backend/src/controllers/similarity.controller.js:15-20,569` |
-| TF-IDF weight | 0.30 | 0.30 configured; not used in current combinedScore calculation | mirrors current implementation | MATCH | `backend/src/controllers/similarity.controller.js:15-20,569` |
-| SBERT weight | 0.50 | 0.40 configured; not used in current combinedScore calculation | mirrors current implementation, not approved weighted formula | DRIFT | `backend/src/controllers/similarity.controller.js:15-20,569` |
-| Fallback Jaccard weight | 0.40 | 0.50 configured; fallback final risk uses max lexical score | fallback cases use max lexical score | DRIFT | `backend/src/controllers/similarity.controller.js:15-22,483-492,571` |
-| Fallback TF-IDF weight | 0.60 | 0.50 configured; fallback final risk uses max lexical score | fallback cases use max lexical score | DRIFT | `backend/src/controllers/similarity.controller.js:15-22,483-492,571` |
-| LOW/MEDIUM boundary | LOW below 0.40; MEDIUM starts at 0.40 | LOW below 0.50; MEDIUM starts at 0.50 | uses current implementation boundary for production-behavior evidence | DRIFT | `backend/src/controllers/similarity.controller.js:9-13,112-120` |
-| HIGH boundary | HIGH starts at 0.70 | HIGH starts at 0.70 | uses 0.70 | MATCH | `backend/src/controllers/similarity.controller.js:9-13,112-120` |
-| Tier minimum | 0.10 | No separate 0.10 tier minimum verified; Tier 2/3 filter is 0.60 | not evaluated by pairwise runner | NOT VERIFIED | `backend/src/controllers/similarity.controller.js:25,628-633` |
-| Tier 2/3 SBERT requirement | combined >= 0.60 and SBERT >= 0.60 | combined >= 0.60 and SBERT >= 0.60 when SBERT is available | not evaluated by pairwise runner | MATCH | `backend/src/controllers/similarity.controller.js:628-633` |
-| Overall production risk | weighted tri-algorithm score implied by approved methodology | normal mode uses max SBERT; fallback mode uses max lexical | final_production_behavior mirrors max SBERT / max lexical behavior | DRIFT | `backend/src/controllers/similarity.controller.js:460-492` |
+| Jaccard weight | 0.20 | 0.20 used in approved weighted combined score | uses shared production scoring contract | MATCH | `backend/src/config/similarityScoring.config.js` |
+| TF-IDF weight | 0.30 | 0.30 used in approved weighted combined score | uses shared production scoring contract | MATCH | `backend/src/config/similarityScoring.config.js` |
+| SBERT weight | 0.50 | 0.50 used in approved weighted combined score | uses shared production scoring contract | MATCH | `backend/src/config/similarityScoring.config.js` |
+| Fallback Jaccard weight | 0.40 | 0.40 used in approved lexical fallback combined score | uses shared production scoring contract | MATCH | `backend/src/config/similarityScoring.config.js` |
+| Fallback TF-IDF weight | 0.60 | 0.60 used in approved lexical fallback combined score | uses shared production scoring contract | MATCH | `backend/src/config/similarityScoring.config.js` |
+| LOW/MEDIUM boundary | LOW below 0.40; MEDIUM starts at 0.40 | LOW below 0.40; MEDIUM starts at 0.40 | uses shared production scoring contract | MATCH | `backend/src/config/similarityScoring.config.js` |
+| HIGH boundary | HIGH starts at 0.70 | HIGH starts at 0.70 | uses 0.70 | MATCH | `backend/src/config/similarityScoring.config.js` |
+| Tier minimum | 0.10 | Tier candidates require combined score >= 0.10 | pairwise runner records the shared contract; controller tests verify tier filtering | MATCH | `backend/src/config/similarityScoring.config.js, backend/src/controllers/similarity.controller.js` |
+| Tier 2/3 SBERT requirement | combined >= 0.60 and SBERT >= 0.60 | combined >= 0.60 and SBERT >= 0.60 when SBERT is available | pairwise runner records the shared contract; controller tests verify tier filtering | MATCH | `backend/src/config/similarityScoring.config.js, backend/src/controllers/similarity.controller.js` |
+| Overall production risk | highest eligible weighted combined score in normal mode; highest eligible fallback combined score in fallback mode | normal and fallback modes classify risk from the highest returned eligible combined score | final_production_behavior mirrors the corrected production scoring contract | MATCH | `backend/src/controllers/similarity.controller.js, backend/src/config/similarityScoring.config.js` |
 
-Drift status: DRIFT
+Drift status: MATCH
 
-Recommendation: Create a separate scoring-contract correction PR before changing production weights, thresholds, tier minima, or overall-risk behavior.
+Recommendation: PR #106 corrected production scoring to match the approved FYP methodology. Lecturer-reviewed effectiveness validation remains future work.
 
 ## Current Implementation Contract Used For This Evidence
 
 - High threshold: 0.7
-- Medium threshold: 0.5
-- Tier filter threshold: 0.6
-- Configured weights: Jaccard 0.3, TF-IDF 0.3, SBERT 0.4
-- Fallback weights configured: Jaccard 0.5, TF-IDF 0.5
+- Medium threshold: 0.4
+- General tier minimum: 0.1
+- Tier 2/3 combined threshold: 0.6
+- Tier 2/3 SBERT threshold: 0.6
+- Configured weights: Jaccard 0.2, TF-IDF 0.3, SBERT 0.5
+- Fallback weights configured: Jaccard 0.4, TF-IDF 0.6
 
 Observed controller behavior mirrored by this report:
 
-- The production controller defines algorithm weights, but combineAlgorithmResults currently ranks normal results with an unweighted jaccard + tfidf + sbert combinedScore.
-- When SBERT succeeds, the production response overallRisk is classified from the maximum SBERT score.
-- When SBERT is unavailable, the production partial_success response overallRisk is classified from the maximum lexical score across Jaccard and TF-IDF.
-- This evaluation mirrors the current implementation behavior and does not modify production scoring, thresholds, SBERT fallback, imports, API responses, or frontend behavior.
+- PR #105 measured the previous implementation and identified scoring drift.
+- PR #106 corrects production scoring to use the approved weighted combined score, fallback weighted score, 0.40/0.70 risk boundaries, and tier gates.
+- This evaluation mirrors the corrected production scoring contract without changing dataset labels.
 
 ## Results Summary
 
 | Method | Evaluated / Total | Coverage | Accuracy | Macro F1 | Weighted F1 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `jaccard_only` | 16 / 16 | 1 | 0.438 | 0.435 | 0.429 |
-| `tfidf_only` | 16 / 16 | 1 | 0.375 | 0.333 | 0.313 |
-| `sbert_only` | 16 / 16 | 1 | 0.313 | 0.224 | 0.215 |
-| `full_tri_algorithm_cases` | 16 / 16 | 1 | 0.375 | 0.286 | 0.313 |
+| `jaccard_only` | 16 / 16 | 1 | 0.563 | 0.556 | 0.533 |
+| `tfidf_only` | 16 / 16 | 1 | 0.5 | 0.472 | 0.443 |
+| `sbert_only` | 16 / 16 | 1 | 0.25 | 0.246 | 0.246 |
+| `full_tri_algorithm_cases` | 16 / 16 | 1 | 0.375 | 0.365 | 0.348 |
 | `fallback_combination_cases` | 0 / 16 | 0 | NOT_EVALUATED | NOT_EVALUATED | NOT_EVALUATED |
-| `offlineFallbackPolicyEvaluation` | 16 / 16 | 1 | 0.438 | 0.435 | 0.429 |
-| `final_production_behavior` | 16 / 16 | 1 | 0.313 | 0.224 | 0.215 |
+| `offlineFallbackPolicyEvaluation` | 16 / 16 | 1 | 0.5 | 0.472 | 0.443 |
+| `final_production_behavior` | 16 / 16 | 1 | 0.375 | 0.365 | 0.348 |
 
 ## Fallback Evidence Boundary
 
@@ -103,9 +104,9 @@ The offline fallback-policy evaluation applies the current production fallback p
 
 Final production behavior across all cases:
 
-- Accuracy: 0.313
-- Macro precision/recall/F1: 0.422 / 0.381 / 0.224
-- Weighted precision/recall/F1: 0.504 / 0.313 / 0.215
+- Accuracy: 0.375
+- Macro precision/recall/F1: 0.591 / 0.431 / 0.365
+- Weighted precision/recall/F1: 0.662 / 0.375 / 0.348
 - Coverage rate: 1
 
 ## Limitations
@@ -116,7 +117,7 @@ Final production behavior across all cases:
 - SBERT metrics only use cases where the local SBERT service returned a valid numeric embedding-derived score.
 - Operational fallback metrics remain separate and are marked NOT_EVALUATED when no runtime fallback cases occur.
 - Offline fallback-policy metrics are counterfactual and must not be described as observed runtime fallback.
-- No production similarity scoring, thresholds, imports, database schema, API response shape, or frontend behavior is changed by this evaluation.
+- PR #106 changes production similarity scoring and thresholds to the approved contract; imports, database schema, API response shape, frontend behavior, and dataset labels are unchanged.
 
 ## Reproduction
 

@@ -5,7 +5,11 @@ const axios = require('axios');
 const { calculateJaccard } = require('../src/services/jaccard.service');
 const { calculateTfIdfSimilarity } = require('../src/services/tfidf.service');
 const sbertService = require('../src/services/sbert.service');
-const { PRODUCTION_SCORING_CONTRACT } = require('../src/controllers/similarity.controller');
+const {
+  PRODUCTION_SCORING_CONTRACT,
+  calculateWeightedCombinedScore,
+  calculateFallbackCombinedScore
+} = require('../src/config/similarityScoring.config');
 const {
   RISK_CLASSES,
   normalizeScore,
@@ -39,15 +43,14 @@ const APPROVED_FYP_SPECIFICATION = {
 };
 
 const CURRENT_IMPLEMENTATION_CONTRACT = {
-  source: 'backend/src/controllers/similarity.controller.js',
+  source: 'backend/src/config/similarityScoring.config.js',
   thresholds: PRODUCTION_SCORING_CONTRACT.thresholds,
   configuredWeights: PRODUCTION_SCORING_CONTRACT.configuredWeights,
   observedBehavior: PRODUCTION_SCORING_CONTRACT.observedBehavior,
   implementationNotes: [
-    'The production controller defines algorithm weights, but combineAlgorithmResults currently ranks normal results with an unweighted jaccard + tfidf + sbert combinedScore.',
-    'When SBERT succeeds, the production response overallRisk is classified from the maximum SBERT score.',
-    'When SBERT is unavailable, the production partial_success response overallRisk is classified from the maximum lexical score across Jaccard and TF-IDF.',
-    'This evaluation mirrors the current implementation behavior and does not modify production scoring, thresholds, SBERT fallback, imports, API responses, or frontend behavior.'
+    'PR #105 measured the previous implementation and identified scoring drift.',
+    'PR #106 corrects production scoring to use the approved weighted combined score, fallback weighted score, 0.40/0.70 risk boundaries, and tier gates.',
+    'This evaluation mirrors the corrected production scoring contract without changing dataset labels.'
   ]
 };
 
@@ -55,50 +58,50 @@ const SCORING_CONTRACT_COMPARISON = [
   {
     item: 'Jaccard weight',
     approvedFypSpecification: '0.20',
-    currentImplementationBehavior: '0.30 configured; not used in current combinedScore calculation',
-    evaluationRunnerBehavior: 'mirrors current implementation, not approved weighted formula',
-    status: 'DRIFT',
-    source: 'backend/src/controllers/similarity.controller.js:15-20,569'
+    currentImplementationBehavior: '0.20 used in approved weighted combined score',
+    evaluationRunnerBehavior: 'uses shared production scoring contract',
+    status: 'MATCH',
+    source: 'backend/src/config/similarityScoring.config.js'
   },
   {
     item: 'TF-IDF weight',
     approvedFypSpecification: '0.30',
-    currentImplementationBehavior: '0.30 configured; not used in current combinedScore calculation',
-    evaluationRunnerBehavior: 'mirrors current implementation',
+    currentImplementationBehavior: '0.30 used in approved weighted combined score',
+    evaluationRunnerBehavior: 'uses shared production scoring contract',
     status: 'MATCH',
-    source: 'backend/src/controllers/similarity.controller.js:15-20,569'
+    source: 'backend/src/config/similarityScoring.config.js'
   },
   {
     item: 'SBERT weight',
     approvedFypSpecification: '0.50',
-    currentImplementationBehavior: '0.40 configured; not used in current combinedScore calculation',
-    evaluationRunnerBehavior: 'mirrors current implementation, not approved weighted formula',
-    status: 'DRIFT',
-    source: 'backend/src/controllers/similarity.controller.js:15-20,569'
+    currentImplementationBehavior: '0.50 used in approved weighted combined score',
+    evaluationRunnerBehavior: 'uses shared production scoring contract',
+    status: 'MATCH',
+    source: 'backend/src/config/similarityScoring.config.js'
   },
   {
     item: 'Fallback Jaccard weight',
     approvedFypSpecification: '0.40',
-    currentImplementationBehavior: '0.50 configured; fallback final risk uses max lexical score',
-    evaluationRunnerBehavior: 'fallback cases use max lexical score',
-    status: 'DRIFT',
-    source: 'backend/src/controllers/similarity.controller.js:15-22,483-492,571'
+    currentImplementationBehavior: '0.40 used in approved lexical fallback combined score',
+    evaluationRunnerBehavior: 'uses shared production scoring contract',
+    status: 'MATCH',
+    source: 'backend/src/config/similarityScoring.config.js'
   },
   {
     item: 'Fallback TF-IDF weight',
     approvedFypSpecification: '0.60',
-    currentImplementationBehavior: '0.50 configured; fallback final risk uses max lexical score',
-    evaluationRunnerBehavior: 'fallback cases use max lexical score',
-    status: 'DRIFT',
-    source: 'backend/src/controllers/similarity.controller.js:15-22,483-492,571'
+    currentImplementationBehavior: '0.60 used in approved lexical fallback combined score',
+    evaluationRunnerBehavior: 'uses shared production scoring contract',
+    status: 'MATCH',
+    source: 'backend/src/config/similarityScoring.config.js'
   },
   {
     item: 'LOW/MEDIUM boundary',
     approvedFypSpecification: 'LOW below 0.40; MEDIUM starts at 0.40',
-    currentImplementationBehavior: 'LOW below 0.50; MEDIUM starts at 0.50',
-    evaluationRunnerBehavior: 'uses current implementation boundary for production-behavior evidence',
-    status: 'DRIFT',
-    source: 'backend/src/controllers/similarity.controller.js:9-13,112-120'
+    currentImplementationBehavior: 'LOW below 0.40; MEDIUM starts at 0.40',
+    evaluationRunnerBehavior: 'uses shared production scoring contract',
+    status: 'MATCH',
+    source: 'backend/src/config/similarityScoring.config.js'
   },
   {
     item: 'HIGH boundary',
@@ -106,31 +109,31 @@ const SCORING_CONTRACT_COMPARISON = [
     currentImplementationBehavior: 'HIGH starts at 0.70',
     evaluationRunnerBehavior: 'uses 0.70',
     status: 'MATCH',
-    source: 'backend/src/controllers/similarity.controller.js:9-13,112-120'
+    source: 'backend/src/config/similarityScoring.config.js'
   },
   {
     item: 'Tier minimum',
     approvedFypSpecification: '0.10',
-    currentImplementationBehavior: 'No separate 0.10 tier minimum verified; Tier 2/3 filter is 0.60',
-    evaluationRunnerBehavior: 'not evaluated by pairwise runner',
-    status: 'NOT VERIFIED',
-    source: 'backend/src/controllers/similarity.controller.js:25,628-633'
+    currentImplementationBehavior: 'Tier candidates require combined score >= 0.10',
+    evaluationRunnerBehavior: 'pairwise runner records the shared contract; controller tests verify tier filtering',
+    status: 'MATCH',
+    source: 'backend/src/config/similarityScoring.config.js, backend/src/controllers/similarity.controller.js'
   },
   {
     item: 'Tier 2/3 SBERT requirement',
     approvedFypSpecification: 'combined >= 0.60 and SBERT >= 0.60',
     currentImplementationBehavior: 'combined >= 0.60 and SBERT >= 0.60 when SBERT is available',
-    evaluationRunnerBehavior: 'not evaluated by pairwise runner',
+    evaluationRunnerBehavior: 'pairwise runner records the shared contract; controller tests verify tier filtering',
     status: 'MATCH',
-    source: 'backend/src/controllers/similarity.controller.js:628-633'
+    source: 'backend/src/config/similarityScoring.config.js, backend/src/controllers/similarity.controller.js'
   },
   {
     item: 'Overall production risk',
-    approvedFypSpecification: 'weighted tri-algorithm score implied by approved methodology',
-    currentImplementationBehavior: 'normal mode uses max SBERT; fallback mode uses max lexical',
-    evaluationRunnerBehavior: 'final_production_behavior mirrors max SBERT / max lexical behavior',
-    status: 'DRIFT',
-    source: 'backend/src/controllers/similarity.controller.js:460-492'
+    approvedFypSpecification: 'highest eligible weighted combined score in normal mode; highest eligible fallback combined score in fallback mode',
+    currentImplementationBehavior: 'normal and fallback modes classify risk from the highest returned eligible combined score',
+    evaluationRunnerBehavior: 'final_production_behavior mirrors the corrected production scoring contract',
+    status: 'MATCH',
+    source: 'backend/src/controllers/similarity.controller.js, backend/src/config/similarityScoring.config.js'
   }
 ];
 
@@ -379,9 +382,11 @@ Recommendation: ${report.scoringContractRecommendation}
 
 ## Current Implementation Contract Used For This Evidence
 
-- High threshold: ${report.productionScoring.thresholds.highTier1}
-- Medium threshold: ${report.productionScoring.thresholds.mediumTier1}
-- Tier filter threshold: ${report.productionScoring.thresholds.tierFilter}
+- High threshold: ${report.productionScoring.thresholds.high}
+- Medium threshold: ${report.productionScoring.thresholds.medium}
+- General tier minimum: ${report.productionScoring.thresholds.tierMinimum}
+- Tier 2/3 combined threshold: ${report.productionScoring.thresholds.semanticTierCombinedMinimum}
+- Tier 2/3 SBERT threshold: ${report.productionScoring.thresholds.semanticTierSbertMinimum}
 - Configured weights: Jaccard ${report.productionScoring.configuredWeights.jaccard}, TF-IDF ${report.productionScoring.configuredWeights.tfidf}, SBERT ${report.productionScoring.configuredWeights.sbert}
 - Fallback weights configured: Jaccard ${report.productionScoring.configuredWeights.jaccardFallback}, TF-IDF ${report.productionScoring.configuredWeights.tfidfFallback}
 
@@ -432,7 +437,10 @@ async function evaluateCase(evaluationCase, sbertHealth) {
   const existingTitle = evaluationCase.existing.title;
   const jaccardScore = normalizeScore(calculateJaccard(submittedTitle, existingTitle).score);
   const tfidfScore = normalizeScore(calculateTfIdfPairScore(submittedTitle, existingTitle, evaluationCase.id));
-  const productionFallbackScore = normalizeScore(Math.max(jaccardScore || 0, tfidfScore || 0));
+  const productionFallbackScore = normalizeScore(calculateFallbackCombinedScore({
+    jaccard: jaccardScore,
+    tfidf: tfidfScore
+  }));
   let sbertScore = null;
   let sbertStatus = sbertHealth.available ? 'pending' : 'skipped';
   let sbertError = null;
@@ -454,10 +462,14 @@ async function evaluateCase(evaluationCase, sbertHealth) {
   }
 
   const productionCombinedScore = sbertStatus === 'success'
-    ? normalizeScore((jaccardScore || 0) + (tfidfScore || 0) + (sbertScore || 0), { allowAboveOne: true })
+    ? normalizeScore(calculateWeightedCombinedScore({
+      jaccard: jaccardScore,
+      tfidf: tfidfScore,
+      sbert: sbertScore
+    }))
     : null;
   const usedFallback = sbertStatus !== 'success';
-  const finalProductionScore = usedFallback ? productionFallbackScore : sbertScore;
+  const finalProductionScore = usedFallback ? productionFallbackScore : productionCombinedScore;
 
   const sbertUnavailableReason = sbertHealth.available ? 'sbert_case_failed' : 'sbert_service_unavailable';
   const sbertPrediction = sbertStatus === 'success'
@@ -470,7 +482,7 @@ async function evaluateCase(evaluationCase, sbertHealth) {
     ? (sbertStatus === 'failed'
       ? buildFailedPrediction(sbertError || 'sbert_case_failed', sbertFailureClass)
       : buildSkippedPrediction(sbertUnavailableReason))
-    : buildPrediction(productionCombinedScore, { allowAboveOne: true });
+    : buildPrediction(productionCombinedScore);
 
   const fallbackPrediction = usedFallback
     ? buildPrediction(productionFallbackScore)
@@ -555,8 +567,8 @@ async function runEvaluation() {
     productionScoring: CURRENT_IMPLEMENTATION_CONTRACT,
     scoringContractComparison: SCORING_CONTRACT_COMPARISON,
     scoringContractStatus: SCORING_CONTRACT_COMPARISON.some(row => row.status === 'DRIFT') ? 'DRIFT' : 'MATCH',
-    scoringContractRecommendation: 'Create a separate scoring-contract correction PR before changing production weights, thresholds, tier minima, or overall-risk behavior.',
-    productionScoringUnchanged: true,
+    scoringContractRecommendation: 'PR #106 corrected production scoring to match the approved FYP methodology. Lecturer-reviewed effectiveness validation remains future work.',
+    productionScoringUnchanged: false,
     dataset: {
       path: path.relative(repoRoot, datasetPath).replace(/\\/g, '/'),
       schemaVersion: dataset.schema_version || 'legacy',
@@ -624,7 +636,7 @@ async function runEvaluation() {
       'SBERT metrics only use cases where the local SBERT service returned a valid numeric embedding-derived score.',
       'Operational fallback metrics remain separate and are marked NOT_EVALUATED when no runtime fallback cases occur.',
       'Offline fallback-policy metrics are counterfactual and must not be described as observed runtime fallback.',
-      'No production similarity scoring, thresholds, imports, database schema, API response shape, or frontend behavior is changed by this evaluation.'
+      'PR #106 changes production similarity scoring and thresholds to the approved contract; imports, database schema, API response shape, frontend behavior, and dataset labels are unchanged.'
     ],
     reproduction: {
       command: 'cd backend && npm run evaluate:topics',

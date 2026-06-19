@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-06-19T13:31:45.643Z",
-  "commitHash": "29d4015",
+  "generatedAt": "2026-06-19T15:57:07.581Z",
+  "commitHash": "e756c2e",
   "mode": "sbert_available_full_tri_evaluation",
   "approvedFypSpecification": {
     "source": "PR #105 scoring-contract reconciliation request / approved FYP methodology",
@@ -16,81 +16,85 @@
     "tier23Requirement": "combined >= 0.60 and sbert >= 0.60"
   },
   "productionScoring": {
-    "source": "backend/src/controllers/similarity.controller.js",
+    "source": "backend/src/config/similarityScoring.config.js",
     "thresholds": {
-      "highTier1": 0.7,
-      "mediumTier1": 0.5,
-      "tierFilter": 0.6
+      "medium": 0.4,
+      "high": 0.7,
+      "tierMinimum": 0.1,
+      "semanticTierCombinedMinimum": 0.6,
+      "semanticTierSbertMinimum": 0.6
     },
     "configuredWeights": {
-      "jaccard": 0.3,
+      "jaccard": 0.2,
       "tfidf": 0.3,
-      "sbert": 0.4,
-      "jaccardFallback": 0.5,
-      "tfidfFallback": 0.5
+      "sbert": 0.5,
+      "jaccardFallback": 0.4,
+      "tfidfFallback": 0.6
     },
     "observedBehavior": {
-      "normalCombinedScore": "unweighted jaccard + tfidf + sbert",
-      "fallbackCombinedScore": "unweighted jaccard + tfidf for ranking; final fallback risk uses max lexical score",
-      "normalOverallRisk": "max SBERT score across returned tiers",
-      "fallbackOverallRisk": "max lexical score across returned tiers",
-      "tier23Requirement": "combined >= 0.60 and sbert >= 0.60 when SBERT is available"
+      "normalCombinedScore": "weighted jaccard * 0.20 + tfidf * 0.30 + sbert * 0.50",
+      "fallbackCombinedScore": "weighted jaccard * 0.40 + tfidf * 0.60 when SBERT is unavailable",
+      "normalRanking": "descending approved weighted combined score",
+      "fallbackRanking": "descending approved fallback combined score",
+      "normalOverallRisk": "highest eligible weighted combined score across returned tiers",
+      "fallbackOverallRisk": "highest eligible fallback combined score across returned tiers",
+      "tierMinimum": "combined score >= 0.10",
+      "tier23Requirement": "combined score >= 0.60 and sbert score >= 0.60 when SBERT is available"
     },
     "implementationNotes": [
-      "The production controller defines algorithm weights, but combineAlgorithmResults currently ranks normal results with an unweighted jaccard + tfidf + sbert combinedScore.",
-      "When SBERT succeeds, the production response overallRisk is classified from the maximum SBERT score.",
-      "When SBERT is unavailable, the production partial_success response overallRisk is classified from the maximum lexical score across Jaccard and TF-IDF.",
-      "This evaluation mirrors the current implementation behavior and does not modify production scoring, thresholds, SBERT fallback, imports, API responses, or frontend behavior."
+      "PR #105 measured the previous implementation and identified scoring drift.",
+      "PR #106 corrects production scoring to use the approved weighted combined score, fallback weighted score, 0.40/0.70 risk boundaries, and tier gates.",
+      "This evaluation mirrors the corrected production scoring contract without changing dataset labels."
     ]
   },
   "scoringContractComparison": [
     {
       "item": "Jaccard weight",
       "approvedFypSpecification": "0.20",
-      "currentImplementationBehavior": "0.30 configured; not used in current combinedScore calculation",
-      "evaluationRunnerBehavior": "mirrors current implementation, not approved weighted formula",
-      "status": "DRIFT",
-      "source": "backend/src/controllers/similarity.controller.js:15-20,569"
+      "currentImplementationBehavior": "0.20 used in approved weighted combined score",
+      "evaluationRunnerBehavior": "uses shared production scoring contract",
+      "status": "MATCH",
+      "source": "backend/src/config/similarityScoring.config.js"
     },
     {
       "item": "TF-IDF weight",
       "approvedFypSpecification": "0.30",
-      "currentImplementationBehavior": "0.30 configured; not used in current combinedScore calculation",
-      "evaluationRunnerBehavior": "mirrors current implementation",
+      "currentImplementationBehavior": "0.30 used in approved weighted combined score",
+      "evaluationRunnerBehavior": "uses shared production scoring contract",
       "status": "MATCH",
-      "source": "backend/src/controllers/similarity.controller.js:15-20,569"
+      "source": "backend/src/config/similarityScoring.config.js"
     },
     {
       "item": "SBERT weight",
       "approvedFypSpecification": "0.50",
-      "currentImplementationBehavior": "0.40 configured; not used in current combinedScore calculation",
-      "evaluationRunnerBehavior": "mirrors current implementation, not approved weighted formula",
-      "status": "DRIFT",
-      "source": "backend/src/controllers/similarity.controller.js:15-20,569"
+      "currentImplementationBehavior": "0.50 used in approved weighted combined score",
+      "evaluationRunnerBehavior": "uses shared production scoring contract",
+      "status": "MATCH",
+      "source": "backend/src/config/similarityScoring.config.js"
     },
     {
       "item": "Fallback Jaccard weight",
       "approvedFypSpecification": "0.40",
-      "currentImplementationBehavior": "0.50 configured; fallback final risk uses max lexical score",
-      "evaluationRunnerBehavior": "fallback cases use max lexical score",
-      "status": "DRIFT",
-      "source": "backend/src/controllers/similarity.controller.js:15-22,483-492,571"
+      "currentImplementationBehavior": "0.40 used in approved lexical fallback combined score",
+      "evaluationRunnerBehavior": "uses shared production scoring contract",
+      "status": "MATCH",
+      "source": "backend/src/config/similarityScoring.config.js"
     },
     {
       "item": "Fallback TF-IDF weight",
       "approvedFypSpecification": "0.60",
-      "currentImplementationBehavior": "0.50 configured; fallback final risk uses max lexical score",
-      "evaluationRunnerBehavior": "fallback cases use max lexical score",
-      "status": "DRIFT",
-      "source": "backend/src/controllers/similarity.controller.js:15-22,483-492,571"
+      "currentImplementationBehavior": "0.60 used in approved lexical fallback combined score",
+      "evaluationRunnerBehavior": "uses shared production scoring contract",
+      "status": "MATCH",
+      "source": "backend/src/config/similarityScoring.config.js"
     },
     {
       "item": "LOW/MEDIUM boundary",
       "approvedFypSpecification": "LOW below 0.40; MEDIUM starts at 0.40",
-      "currentImplementationBehavior": "LOW below 0.50; MEDIUM starts at 0.50",
-      "evaluationRunnerBehavior": "uses current implementation boundary for production-behavior evidence",
-      "status": "DRIFT",
-      "source": "backend/src/controllers/similarity.controller.js:9-13,112-120"
+      "currentImplementationBehavior": "LOW below 0.40; MEDIUM starts at 0.40",
+      "evaluationRunnerBehavior": "uses shared production scoring contract",
+      "status": "MATCH",
+      "source": "backend/src/config/similarityScoring.config.js"
     },
     {
       "item": "HIGH boundary",
@@ -98,36 +102,36 @@
       "currentImplementationBehavior": "HIGH starts at 0.70",
       "evaluationRunnerBehavior": "uses 0.70",
       "status": "MATCH",
-      "source": "backend/src/controllers/similarity.controller.js:9-13,112-120"
+      "source": "backend/src/config/similarityScoring.config.js"
     },
     {
       "item": "Tier minimum",
       "approvedFypSpecification": "0.10",
-      "currentImplementationBehavior": "No separate 0.10 tier minimum verified; Tier 2/3 filter is 0.60",
-      "evaluationRunnerBehavior": "not evaluated by pairwise runner",
-      "status": "NOT VERIFIED",
-      "source": "backend/src/controllers/similarity.controller.js:25,628-633"
+      "currentImplementationBehavior": "Tier candidates require combined score >= 0.10",
+      "evaluationRunnerBehavior": "pairwise runner records the shared contract; controller tests verify tier filtering",
+      "status": "MATCH",
+      "source": "backend/src/config/similarityScoring.config.js, backend/src/controllers/similarity.controller.js"
     },
     {
       "item": "Tier 2/3 SBERT requirement",
       "approvedFypSpecification": "combined >= 0.60 and SBERT >= 0.60",
       "currentImplementationBehavior": "combined >= 0.60 and SBERT >= 0.60 when SBERT is available",
-      "evaluationRunnerBehavior": "not evaluated by pairwise runner",
+      "evaluationRunnerBehavior": "pairwise runner records the shared contract; controller tests verify tier filtering",
       "status": "MATCH",
-      "source": "backend/src/controllers/similarity.controller.js:628-633"
+      "source": "backend/src/config/similarityScoring.config.js, backend/src/controllers/similarity.controller.js"
     },
     {
       "item": "Overall production risk",
-      "approvedFypSpecification": "weighted tri-algorithm score implied by approved methodology",
-      "currentImplementationBehavior": "normal mode uses max SBERT; fallback mode uses max lexical",
-      "evaluationRunnerBehavior": "final_production_behavior mirrors max SBERT / max lexical behavior",
-      "status": "DRIFT",
-      "source": "backend/src/controllers/similarity.controller.js:460-492"
+      "approvedFypSpecification": "highest eligible weighted combined score in normal mode; highest eligible fallback combined score in fallback mode",
+      "currentImplementationBehavior": "normal and fallback modes classify risk from the highest returned eligible combined score",
+      "evaluationRunnerBehavior": "final_production_behavior mirrors the corrected production scoring contract",
+      "status": "MATCH",
+      "source": "backend/src/controllers/similarity.controller.js, backend/src/config/similarityScoring.config.js"
     }
   ],
-  "scoringContractStatus": "DRIFT",
-  "scoringContractRecommendation": "Create a separate scoring-contract correction PR before changing production weights, thresholds, tier minima, or overall-risk behavior.",
-  "productionScoringUnchanged": true,
+  "scoringContractStatus": "MATCH",
+  "scoringContractRecommendation": "PR #106 corrected production scoring to match the approved FYP methodology. Lecturer-reviewed effectiveness validation remains future work.",
+  "productionScoringUnchanged": false,
   "dataset": {
     "path": "backend/evaluation/datasets/pilot-topic-pairs.json",
     "schemaVersion": "evaluation-dataset-v2",
@@ -253,39 +257,39 @@
           "HIGH": 0
         },
         "MEDIUM": {
-          "LOW": 2,
-          "MEDIUM": 2,
+          "LOW": 0,
+          "MEDIUM": 4,
           "HIGH": 1
         },
         "HIGH": {
-          "LOW": 4,
-          "MEDIUM": 1,
+          "LOW": 3,
+          "MEDIUM": 2,
           "HIGH": 2
         }
       },
-      "accuracy": 0.438,
+      "accuracy": 0.563,
       "macro": {
-        "precision": 0.5,
-        "recall": 0.479,
-        "f1": 0.435
+        "precision": 0.579,
+        "recall": 0.612,
+        "f1": 0.556
       },
       "weighted": {
-        "precision": 0.531,
-        "recall": 0.438,
-        "f1": 0.429
+        "precision": 0.595,
+        "recall": 0.563,
+        "f1": 0.533
       },
       "perClass": {
         "LOW": {
           "support": 4,
-          "precision": 0.333,
+          "precision": 0.5,
           "recall": 0.75,
-          "f1": 0.462
+          "f1": 0.6
         },
         "MEDIUM": {
           "support": 5,
-          "precision": 0.5,
-          "recall": 0.4,
-          "f1": 0.444
+          "precision": 0.571,
+          "recall": 0.8,
+          "f1": 0.667
         },
         "HIGH": {
           "support": 7,
@@ -316,13 +320,13 @@
       },
       "confusionMatrix": {
         "LOW": {
-          "LOW": 4,
-          "MEDIUM": 0,
+          "LOW": 3,
+          "MEDIUM": 1,
           "HIGH": 0
         },
         "MEDIUM": {
-          "LOW": 4,
-          "MEDIUM": 1,
+          "LOW": 1,
+          "MEDIUM": 4,
           "HIGH": 0
         },
         "HIGH": {
@@ -331,29 +335,29 @@
           "HIGH": 1
         }
       },
-      "accuracy": 0.375,
+      "accuracy": 0.5,
       "macro": {
-        "precision": 0.555,
-        "recall": 0.448,
-        "f1": 0.333
+        "precision": 0.649,
+        "recall": 0.564,
+        "f1": 0.472
       },
       "weighted": {
-        "precision": 0.625,
-        "recall": 0.375,
-        "f1": 0.313
+        "precision": 0.71,
+        "recall": 0.5,
+        "f1": 0.443
       },
       "perClass": {
         "LOW": {
           "support": 4,
-          "precision": 0.333,
-          "recall": 1,
+          "precision": 0.375,
+          "recall": 0.75,
           "f1": 0.5
         },
         "MEDIUM": {
           "support": 5,
-          "precision": 0.333,
-          "recall": 0.2,
-          "f1": 0.25
+          "precision": 0.571,
+          "recall": 0.8,
+          "f1": 0.667
         },
         "HIGH": {
           "support": 7,
@@ -384,44 +388,44 @@
       },
       "confusionMatrix": {
         "LOW": {
-          "LOW": 4,
-          "MEDIUM": 0,
+          "LOW": 2,
+          "MEDIUM": 2,
           "HIGH": 0
         },
         "MEDIUM": {
-          "LOW": 5,
-          "MEDIUM": 0,
+          "LOW": 4,
+          "MEDIUM": 1,
           "HIGH": 0
         },
         "HIGH": {
-          "LOW": 6,
-          "MEDIUM": 0,
+          "LOW": 5,
+          "MEDIUM": 1,
           "HIGH": 1
         }
       },
-      "accuracy": 0.313,
+      "accuracy": 0.25,
       "macro": {
-        "precision": 0.422,
-        "recall": 0.381,
-        "f1": 0.224
+        "precision": 0.477,
+        "recall": 0.281,
+        "f1": 0.246
       },
       "weighted": {
-        "precision": 0.504,
-        "recall": 0.313,
-        "f1": 0.215
+        "precision": 0.561,
+        "recall": 0.25,
+        "f1": 0.246
       },
       "perClass": {
         "LOW": {
           "support": 4,
-          "precision": 0.267,
-          "recall": 1,
-          "f1": 0.421
+          "precision": 0.182,
+          "recall": 0.5,
+          "f1": 0.267
         },
         "MEDIUM": {
           "support": 5,
-          "precision": 0,
-          "recall": 0,
-          "f1": 0
+          "precision": 0.25,
+          "recall": 0.2,
+          "f1": 0.222
         },
         "HIGH": {
           "support": 7,
@@ -452,50 +456,50 @@
       },
       "confusionMatrix": {
         "LOW": {
-          "LOW": 1,
+          "LOW": 3,
           "MEDIUM": 1,
-          "HIGH": 2
+          "HIGH": 0
         },
         "MEDIUM": {
-          "LOW": 0,
-          "MEDIUM": 0,
-          "HIGH": 5
+          "LOW": 3,
+          "MEDIUM": 2,
+          "HIGH": 0
         },
         "HIGH": {
-          "LOW": 1,
+          "LOW": 5,
           "MEDIUM": 1,
-          "HIGH": 5
+          "HIGH": 1
         }
       },
       "accuracy": 0.375,
       "macro": {
-        "precision": 0.306,
-        "recall": 0.321,
-        "f1": 0.286
+        "precision": 0.591,
+        "recall": 0.431,
+        "f1": 0.365
       },
       "weighted": {
-        "precision": 0.307,
+        "precision": 0.662,
         "recall": 0.375,
-        "f1": 0.313
+        "f1": 0.348
       },
       "perClass": {
         "LOW": {
           "support": 4,
-          "precision": 0.5,
-          "recall": 0.25,
-          "f1": 0.333
+          "precision": 0.273,
+          "recall": 0.75,
+          "f1": 0.4
         },
         "MEDIUM": {
           "support": 5,
-          "precision": 0,
-          "recall": 0,
-          "f1": 0
+          "precision": 0.5,
+          "recall": 0.4,
+          "f1": 0.444
         },
         "HIGH": {
           "support": 7,
-          "precision": 0.417,
-          "recall": 0.714,
-          "f1": 0.526
+          "precision": 1,
+          "recall": 0.143,
+          "f1": 0.25
         }
       }
     },
@@ -593,45 +597,45 @@
           "HIGH": 0
         },
         "MEDIUM": {
-          "LOW": 2,
-          "MEDIUM": 2,
-          "HIGH": 1
+          "LOW": 1,
+          "MEDIUM": 4,
+          "HIGH": 0
         },
         "HIGH": {
           "LOW": 4,
-          "MEDIUM": 1,
-          "HIGH": 2
+          "MEDIUM": 2,
+          "HIGH": 1
         }
       },
-      "accuracy": 0.438,
+      "accuracy": 0.5,
       "macro": {
-        "precision": 0.5,
-        "recall": 0.479,
-        "f1": 0.435
+        "precision": 0.649,
+        "recall": 0.564,
+        "f1": 0.472
       },
       "weighted": {
-        "precision": 0.531,
-        "recall": 0.438,
-        "f1": 0.429
+        "precision": 0.71,
+        "recall": 0.5,
+        "f1": 0.443
       },
       "perClass": {
         "LOW": {
           "support": 4,
-          "precision": 0.333,
+          "precision": 0.375,
           "recall": 0.75,
-          "f1": 0.462
+          "f1": 0.5
         },
         "MEDIUM": {
           "support": 5,
-          "precision": 0.5,
-          "recall": 0.4,
-          "f1": 0.444
+          "precision": 0.571,
+          "recall": 0.8,
+          "f1": 0.667
         },
         "HIGH": {
           "support": 7,
-          "precision": 0.667,
-          "recall": 0.286,
-          "f1": 0.4
+          "precision": 1,
+          "recall": 0.143,
+          "f1": 0.25
         }
       }
     },
@@ -656,44 +660,44 @@
       },
       "confusionMatrix": {
         "LOW": {
-          "LOW": 4,
-          "MEDIUM": 0,
+          "LOW": 3,
+          "MEDIUM": 1,
           "HIGH": 0
         },
         "MEDIUM": {
-          "LOW": 5,
-          "MEDIUM": 0,
+          "LOW": 3,
+          "MEDIUM": 2,
           "HIGH": 0
         },
         "HIGH": {
-          "LOW": 6,
-          "MEDIUM": 0,
+          "LOW": 5,
+          "MEDIUM": 1,
           "HIGH": 1
         }
       },
-      "accuracy": 0.313,
+      "accuracy": 0.375,
       "macro": {
-        "precision": 0.422,
-        "recall": 0.381,
-        "f1": 0.224
+        "precision": 0.591,
+        "recall": 0.431,
+        "f1": 0.365
       },
       "weighted": {
-        "precision": 0.504,
-        "recall": 0.313,
-        "f1": 0.215
+        "precision": 0.662,
+        "recall": 0.375,
+        "f1": 0.348
       },
       "perClass": {
         "LOW": {
           "support": 4,
-          "precision": 0.267,
-          "recall": 1,
-          "f1": 0.421
+          "precision": 0.273,
+          "recall": 0.75,
+          "f1": 0.4
         },
         "MEDIUM": {
           "support": 5,
-          "precision": 0,
-          "recall": 0,
-          "f1": 0
+          "precision": 0.5,
+          "recall": 0.4,
+          "f1": 0.444
         },
         "HIGH": {
           "support": 7,
@@ -722,7 +726,7 @@
         "jaccard_only": 1,
         "tfidf_only": 1,
         "sbert_only": 1,
-        "full_tri_algorithm_cases": 3,
+        "full_tri_algorithm_cases": 1,
         "fallback_combination_cases": null,
         "offlineFallbackPolicyEvaluation": 1,
         "final_production_behavior": 1
@@ -750,7 +754,7 @@
           "reason": null
         },
         "full_tri_algorithm_cases": {
-          "score": 3,
+          "score": 1,
           "risk": "HIGH",
           "label": "similar",
           "status": "predicted",
@@ -805,10 +809,10 @@
         "jaccard_only": 0.7,
         "tfidf_only": 0.628,
         "sbert_only": 0,
-        "full_tri_algorithm_cases": 1.328,
+        "full_tri_algorithm_cases": 0.32839999999999997,
         "fallback_combination_cases": null,
-        "offlineFallbackPolicyEvaluation": 0.7,
-        "final_production_behavior": 0
+        "offlineFallbackPolicyEvaluation": 0.6567999999999999,
+        "final_production_behavior": 0.32839999999999997
       },
       "predictions": {
         "jaccard_only": {
@@ -833,9 +837,9 @@
           "reason": null
         },
         "full_tri_algorithm_cases": {
-          "score": 1.328,
-          "risk": "HIGH",
-          "label": "similar",
+          "score": 0.328,
+          "risk": "LOW",
+          "label": "not_similar",
           "status": "predicted",
           "reason": null
         },
@@ -847,14 +851,14 @@
           "reason": "not_a_fallback_case"
         },
         "offlineFallbackPolicyEvaluation": {
-          "score": 0.7,
-          "risk": "HIGH",
+          "score": 0.657,
+          "risk": "MEDIUM",
           "label": "similar",
           "status": "predicted",
           "reason": null
         },
         "final_production_behavior": {
-          "score": 0,
+          "score": 0.328,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
@@ -887,10 +891,10 @@
         "jaccard_only": 0.231,
         "tfidf_only": 0.124,
         "sbert_only": 0.365,
-        "full_tri_algorithm_cases": 0.72,
+        "full_tri_algorithm_cases": 0.2659,
         "fallback_combination_cases": null,
-        "offlineFallbackPolicyEvaluation": 0.231,
-        "final_production_behavior": 0.365
+        "offlineFallbackPolicyEvaluation": 0.1668,
+        "final_production_behavior": 0.2659
       },
       "predictions": {
         "jaccard_only": {
@@ -915,9 +919,9 @@
           "reason": null
         },
         "full_tri_algorithm_cases": {
-          "score": 0.72,
-          "risk": "HIGH",
-          "label": "similar",
+          "score": 0.266,
+          "risk": "LOW",
+          "label": "not_similar",
           "status": "predicted",
           "reason": null
         },
@@ -929,14 +933,14 @@
           "reason": "not_a_fallback_case"
         },
         "offlineFallbackPolicyEvaluation": {
-          "score": 0.231,
+          "score": 0.167,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
           "reason": null
         },
         "final_production_behavior": {
-          "score": 0.365,
+          "score": 0.266,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
@@ -969,16 +973,16 @@
         "jaccard_only": 0.444,
         "tfidf_only": 0.364,
         "sbert_only": 0.329,
-        "full_tri_algorithm_cases": 1.137,
+        "full_tri_algorithm_cases": 0.36250000000000004,
         "fallback_combination_cases": null,
-        "offlineFallbackPolicyEvaluation": 0.444,
-        "final_production_behavior": 0.329
+        "offlineFallbackPolicyEvaluation": 0.396,
+        "final_production_behavior": 0.36250000000000004
       },
       "predictions": {
         "jaccard_only": {
           "score": 0.444,
-          "risk": "LOW",
-          "label": "not_similar",
+          "risk": "MEDIUM",
+          "label": "similar",
           "status": "predicted",
           "reason": null
         },
@@ -997,9 +1001,9 @@
           "reason": null
         },
         "full_tri_algorithm_cases": {
-          "score": 1.137,
-          "risk": "HIGH",
-          "label": "similar",
+          "score": 0.363,
+          "risk": "LOW",
+          "label": "not_similar",
           "status": "predicted",
           "reason": null
         },
@@ -1011,14 +1015,14 @@
           "reason": "not_a_fallback_case"
         },
         "offlineFallbackPolicyEvaluation": {
-          "score": 0.444,
+          "score": 0.396,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
           "reason": null
         },
         "final_production_behavior": {
-          "score": 0.329,
+          "score": 0.363,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
@@ -1051,10 +1055,10 @@
         "jaccard_only": 0.714,
         "tfidf_only": 0.639,
         "sbert_only": 0.246,
-        "full_tri_algorithm_cases": 1.599,
+        "full_tri_algorithm_cases": 0.4575,
         "fallback_combination_cases": null,
-        "offlineFallbackPolicyEvaluation": 0.714,
-        "final_production_behavior": 0.246
+        "offlineFallbackPolicyEvaluation": 0.669,
+        "final_production_behavior": 0.4575
       },
       "predictions": {
         "jaccard_only": {
@@ -1079,8 +1083,8 @@
           "reason": null
         },
         "full_tri_algorithm_cases": {
-          "score": 1.599,
-          "risk": "HIGH",
+          "score": 0.458,
+          "risk": "MEDIUM",
           "label": "similar",
           "status": "predicted",
           "reason": null
@@ -1093,16 +1097,16 @@
           "reason": "not_a_fallback_case"
         },
         "offlineFallbackPolicyEvaluation": {
-          "score": 0.714,
-          "risk": "HIGH",
+          "score": 0.669,
+          "risk": "MEDIUM",
           "label": "similar",
           "status": "predicted",
           "reason": null
         },
         "final_production_behavior": {
-          "score": 0.246,
-          "risk": "LOW",
-          "label": "not_similar",
+          "score": 0.458,
+          "risk": "MEDIUM",
+          "label": "similar",
           "status": "predicted",
           "reason": null,
           "fallbackUsed": false,
@@ -1133,10 +1137,10 @@
         "jaccard_only": 0.5,
         "tfidf_only": 0.414,
         "sbert_only": 0.456,
-        "full_tri_algorithm_cases": 1.37,
+        "full_tri_algorithm_cases": 0.45220000000000005,
         "fallback_combination_cases": null,
-        "offlineFallbackPolicyEvaluation": 0.5,
-        "final_production_behavior": 0.456
+        "offlineFallbackPolicyEvaluation": 0.4484,
+        "final_production_behavior": 0.45220000000000005
       },
       "predictions": {
         "jaccard_only": {
@@ -1148,21 +1152,21 @@
         },
         "tfidf_only": {
           "score": 0.414,
-          "risk": "LOW",
-          "label": "not_similar",
+          "risk": "MEDIUM",
+          "label": "similar",
           "status": "predicted",
           "reason": null
         },
         "sbert_only": {
           "score": 0.456,
-          "risk": "LOW",
-          "label": "not_similar",
+          "risk": "MEDIUM",
+          "label": "similar",
           "status": "predicted",
           "reason": null
         },
         "full_tri_algorithm_cases": {
-          "score": 1.37,
-          "risk": "HIGH",
+          "score": 0.452,
+          "risk": "MEDIUM",
           "label": "similar",
           "status": "predicted",
           "reason": null
@@ -1175,16 +1179,16 @@
           "reason": "not_a_fallback_case"
         },
         "offlineFallbackPolicyEvaluation": {
-          "score": 0.5,
+          "score": 0.448,
           "risk": "MEDIUM",
           "label": "similar",
           "status": "predicted",
           "reason": null
         },
         "final_production_behavior": {
-          "score": 0.456,
-          "risk": "LOW",
-          "label": "not_similar",
+          "score": 0.452,
+          "risk": "MEDIUM",
+          "label": "similar",
           "status": "predicted",
           "reason": null,
           "fallbackUsed": false,
@@ -1215,10 +1219,10 @@
         "jaccard_only": 0.077,
         "tfidf_only": 0.056,
         "sbert_only": 0.401,
-        "full_tri_algorithm_cases": 0.534,
+        "full_tri_algorithm_cases": 0.23270000000000002,
         "fallback_combination_cases": null,
-        "offlineFallbackPolicyEvaluation": 0.077,
-        "final_production_behavior": 0.401
+        "offlineFallbackPolicyEvaluation": 0.0644,
+        "final_production_behavior": 0.23270000000000002
       },
       "predictions": {
         "jaccard_only": {
@@ -1237,15 +1241,15 @@
         },
         "sbert_only": {
           "score": 0.401,
-          "risk": "LOW",
-          "label": "not_similar",
+          "risk": "MEDIUM",
+          "label": "similar",
           "status": "predicted",
           "reason": null
         },
         "full_tri_algorithm_cases": {
-          "score": 0.534,
-          "risk": "MEDIUM",
-          "label": "similar",
+          "score": 0.233,
+          "risk": "LOW",
+          "label": "not_similar",
           "status": "predicted",
           "reason": null
         },
@@ -1257,14 +1261,14 @@
           "reason": "not_a_fallback_case"
         },
         "offlineFallbackPolicyEvaluation": {
-          "score": 0.077,
+          "score": 0.064,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
           "reason": null
         },
         "final_production_behavior": {
-          "score": 0.401,
+          "score": 0.233,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
@@ -1297,10 +1301,10 @@
         "jaccard_only": 0.556,
         "tfidf_only": 0.469,
         "sbert_only": 0.455,
-        "full_tri_algorithm_cases": 1.48,
+        "full_tri_algorithm_cases": 0.47940000000000005,
         "fallback_combination_cases": null,
-        "offlineFallbackPolicyEvaluation": 0.556,
-        "final_production_behavior": 0.455
+        "offlineFallbackPolicyEvaluation": 0.5038,
+        "final_production_behavior": 0.47940000000000005
       },
       "predictions": {
         "jaccard_only": {
@@ -1312,21 +1316,21 @@
         },
         "tfidf_only": {
           "score": 0.469,
-          "risk": "LOW",
-          "label": "not_similar",
+          "risk": "MEDIUM",
+          "label": "similar",
           "status": "predicted",
           "reason": null
         },
         "sbert_only": {
           "score": 0.455,
-          "risk": "LOW",
-          "label": "not_similar",
+          "risk": "MEDIUM",
+          "label": "similar",
           "status": "predicted",
           "reason": null
         },
         "full_tri_algorithm_cases": {
-          "score": 1.48,
-          "risk": "HIGH",
+          "score": 0.479,
+          "risk": "MEDIUM",
           "label": "similar",
           "status": "predicted",
           "reason": null
@@ -1339,16 +1343,16 @@
           "reason": "not_a_fallback_case"
         },
         "offlineFallbackPolicyEvaluation": {
-          "score": 0.556,
+          "score": 0.504,
           "risk": "MEDIUM",
           "label": "similar",
           "status": "predicted",
           "reason": null
         },
         "final_production_behavior": {
-          "score": 0.455,
-          "risk": "LOW",
-          "label": "not_similar",
+          "score": 0.479,
+          "risk": "MEDIUM",
+          "label": "similar",
           "status": "predicted",
           "reason": null,
           "fallbackUsed": false,
@@ -1379,10 +1383,10 @@
         "jaccard_only": 0.571,
         "tfidf_only": 0.566,
         "sbert_only": 0.407,
-        "full_tri_algorithm_cases": 1.544,
+        "full_tri_algorithm_cases": 0.48749999999999993,
         "fallback_combination_cases": null,
-        "offlineFallbackPolicyEvaluation": 0.571,
-        "final_production_behavior": 0.407
+        "offlineFallbackPolicyEvaluation": 0.568,
+        "final_production_behavior": 0.48749999999999993
       },
       "predictions": {
         "jaccard_only": {
@@ -1401,14 +1405,14 @@
         },
         "sbert_only": {
           "score": 0.407,
-          "risk": "LOW",
-          "label": "not_similar",
+          "risk": "MEDIUM",
+          "label": "similar",
           "status": "predicted",
           "reason": null
         },
         "full_tri_algorithm_cases": {
-          "score": 1.544,
-          "risk": "HIGH",
+          "score": 0.487,
+          "risk": "MEDIUM",
           "label": "similar",
           "status": "predicted",
           "reason": null
@@ -1421,16 +1425,16 @@
           "reason": "not_a_fallback_case"
         },
         "offlineFallbackPolicyEvaluation": {
-          "score": 0.571,
+          "score": 0.568,
           "risk": "MEDIUM",
           "label": "similar",
           "status": "predicted",
           "reason": null
         },
         "final_production_behavior": {
-          "score": 0.407,
-          "risk": "LOW",
-          "label": "not_similar",
+          "score": 0.487,
+          "risk": "MEDIUM",
+          "label": "similar",
           "status": "predicted",
           "reason": null,
           "fallbackUsed": false,
@@ -1461,10 +1465,10 @@
         "jaccard_only": 0.273,
         "tfidf_only": 0.214,
         "sbert_only": 0.171,
-        "full_tri_algorithm_cases": 0.658,
+        "full_tri_algorithm_cases": 0.2043,
         "fallback_combination_cases": null,
-        "offlineFallbackPolicyEvaluation": 0.273,
-        "final_production_behavior": 0.171
+        "offlineFallbackPolicyEvaluation": 0.2376,
+        "final_production_behavior": 0.2043
       },
       "predictions": {
         "jaccard_only": {
@@ -1489,9 +1493,9 @@
           "reason": null
         },
         "full_tri_algorithm_cases": {
-          "score": 0.658,
-          "risk": "MEDIUM",
-          "label": "similar",
+          "score": 0.204,
+          "risk": "LOW",
+          "label": "not_similar",
           "status": "predicted",
           "reason": null
         },
@@ -1503,14 +1507,14 @@
           "reason": "not_a_fallback_case"
         },
         "offlineFallbackPolicyEvaluation": {
-          "score": 0.273,
+          "score": 0.238,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
           "reason": null
         },
         "final_production_behavior": {
-          "score": 0.171,
+          "score": 0.204,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
@@ -1543,10 +1547,10 @@
         "jaccard_only": 0.375,
         "tfidf_only": 0.301,
         "sbert_only": 0.338,
-        "full_tri_algorithm_cases": 1.014,
+        "full_tri_algorithm_cases": 0.33430000000000004,
         "fallback_combination_cases": null,
-        "offlineFallbackPolicyEvaluation": 0.375,
-        "final_production_behavior": 0.338
+        "offlineFallbackPolicyEvaluation": 0.3306,
+        "final_production_behavior": 0.33430000000000004
       },
       "predictions": {
         "jaccard_only": {
@@ -1571,9 +1575,9 @@
           "reason": null
         },
         "full_tri_algorithm_cases": {
-          "score": 1.014,
-          "risk": "HIGH",
-          "label": "similar",
+          "score": 0.334,
+          "risk": "LOW",
+          "label": "not_similar",
           "status": "predicted",
           "reason": null
         },
@@ -1585,14 +1589,14 @@
           "reason": "not_a_fallback_case"
         },
         "offlineFallbackPolicyEvaluation": {
-          "score": 0.375,
+          "score": 0.331,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
           "reason": null
         },
         "final_production_behavior": {
-          "score": 0.338,
+          "score": 0.334,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
@@ -1625,23 +1629,23 @@
         "jaccard_only": 0.455,
         "tfidf_only": 0.417,
         "sbert_only": 0.21,
-        "full_tri_algorithm_cases": 1.082,
+        "full_tri_algorithm_cases": 0.3211,
         "fallback_combination_cases": null,
-        "offlineFallbackPolicyEvaluation": 0.455,
-        "final_production_behavior": 0.21
+        "offlineFallbackPolicyEvaluation": 0.43220000000000003,
+        "final_production_behavior": 0.3211
       },
       "predictions": {
         "jaccard_only": {
           "score": 0.455,
-          "risk": "LOW",
-          "label": "not_similar",
+          "risk": "MEDIUM",
+          "label": "similar",
           "status": "predicted",
           "reason": null
         },
         "tfidf_only": {
           "score": 0.417,
-          "risk": "LOW",
-          "label": "not_similar",
+          "risk": "MEDIUM",
+          "label": "similar",
           "status": "predicted",
           "reason": null
         },
@@ -1653,9 +1657,9 @@
           "reason": null
         },
         "full_tri_algorithm_cases": {
-          "score": 1.082,
-          "risk": "HIGH",
-          "label": "similar",
+          "score": 0.321,
+          "risk": "LOW",
+          "label": "not_similar",
           "status": "predicted",
           "reason": null
         },
@@ -1667,14 +1671,14 @@
           "reason": "not_a_fallback_case"
         },
         "offlineFallbackPolicyEvaluation": {
-          "score": 0.455,
-          "risk": "LOW",
-          "label": "not_similar",
+          "score": 0.432,
+          "risk": "MEDIUM",
+          "label": "similar",
           "status": "predicted",
           "reason": null
         },
         "final_production_behavior": {
-          "score": 0.21,
+          "score": 0.321,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
@@ -1707,10 +1711,10 @@
         "jaccard_only": 0.091,
         "tfidf_only": 0.066,
         "sbert_only": 0.186,
-        "full_tri_algorithm_cases": 0.343,
+        "full_tri_algorithm_cases": 0.131,
         "fallback_combination_cases": null,
-        "offlineFallbackPolicyEvaluation": 0.091,
-        "final_production_behavior": 0.186
+        "offlineFallbackPolicyEvaluation": 0.07600000000000001,
+        "final_production_behavior": 0.131
       },
       "predictions": {
         "jaccard_only": {
@@ -1735,7 +1739,7 @@
           "reason": null
         },
         "full_tri_algorithm_cases": {
-          "score": 0.343,
+          "score": 0.131,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
@@ -1749,14 +1753,14 @@
           "reason": "not_a_fallback_case"
         },
         "offlineFallbackPolicyEvaluation": {
-          "score": 0.091,
+          "score": 0.076,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
           "reason": null
         },
         "final_production_behavior": {
-          "score": 0.186,
+          "score": 0.131,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
@@ -1789,16 +1793,16 @@
         "jaccard_only": 0.4,
         "tfidf_only": 0.32,
         "sbert_only": 0.36,
-        "full_tri_algorithm_cases": 1.08,
+        "full_tri_algorithm_cases": 0.356,
         "fallback_combination_cases": null,
-        "offlineFallbackPolicyEvaluation": 0.4,
-        "final_production_behavior": 0.36
+        "offlineFallbackPolicyEvaluation": 0.35200000000000004,
+        "final_production_behavior": 0.356
       },
       "predictions": {
         "jaccard_only": {
           "score": 0.4,
-          "risk": "LOW",
-          "label": "not_similar",
+          "risk": "MEDIUM",
+          "label": "similar",
           "status": "predicted",
           "reason": null
         },
@@ -1817,9 +1821,9 @@
           "reason": null
         },
         "full_tri_algorithm_cases": {
-          "score": 1.08,
-          "risk": "HIGH",
-          "label": "similar",
+          "score": 0.356,
+          "risk": "LOW",
+          "label": "not_similar",
           "status": "predicted",
           "reason": null
         },
@@ -1831,14 +1835,14 @@
           "reason": "not_a_fallback_case"
         },
         "offlineFallbackPolicyEvaluation": {
-          "score": 0.4,
+          "score": 0.352,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
           "reason": null
         },
         "final_production_behavior": {
-          "score": 0.36,
+          "score": 0.356,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
@@ -1871,10 +1875,10 @@
         "jaccard_only": 0.556,
         "tfidf_only": 0.469,
         "sbert_only": 0.272,
-        "full_tri_algorithm_cases": 1.297,
+        "full_tri_algorithm_cases": 0.3879,
         "fallback_combination_cases": null,
-        "offlineFallbackPolicyEvaluation": 0.556,
-        "final_production_behavior": 0.272
+        "offlineFallbackPolicyEvaluation": 0.5038,
+        "final_production_behavior": 0.3879
       },
       "predictions": {
         "jaccard_only": {
@@ -1886,8 +1890,8 @@
         },
         "tfidf_only": {
           "score": 0.469,
-          "risk": "LOW",
-          "label": "not_similar",
+          "risk": "MEDIUM",
+          "label": "similar",
           "status": "predicted",
           "reason": null
         },
@@ -1899,9 +1903,9 @@
           "reason": null
         },
         "full_tri_algorithm_cases": {
-          "score": 1.297,
-          "risk": "HIGH",
-          "label": "similar",
+          "score": 0.388,
+          "risk": "LOW",
+          "label": "not_similar",
           "status": "predicted",
           "reason": null
         },
@@ -1913,14 +1917,14 @@
           "reason": "not_a_fallback_case"
         },
         "offlineFallbackPolicyEvaluation": {
-          "score": 0.556,
+          "score": 0.504,
           "risk": "MEDIUM",
           "label": "similar",
           "status": "predicted",
           "reason": null
         },
         "final_production_behavior": {
-          "score": 0.272,
+          "score": 0.388,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
@@ -1953,10 +1957,10 @@
         "jaccard_only": 0.091,
         "tfidf_only": 0.066,
         "sbert_only": 0.296,
-        "full_tri_algorithm_cases": 0.453,
+        "full_tri_algorithm_cases": 0.186,
         "fallback_combination_cases": null,
-        "offlineFallbackPolicyEvaluation": 0.091,
-        "final_production_behavior": 0.296
+        "offlineFallbackPolicyEvaluation": 0.07600000000000001,
+        "final_production_behavior": 0.186
       },
       "predictions": {
         "jaccard_only": {
@@ -1981,7 +1985,7 @@
           "reason": null
         },
         "full_tri_algorithm_cases": {
-          "score": 0.453,
+          "score": 0.186,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
@@ -1995,14 +1999,14 @@
           "reason": "not_a_fallback_case"
         },
         "offlineFallbackPolicyEvaluation": {
-          "score": 0.091,
+          "score": 0.076,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
           "reason": null
         },
         "final_production_behavior": {
-          "score": 0.296,
+          "score": 0.186,
           "risk": "LOW",
           "label": "not_similar",
           "status": "predicted",
@@ -2026,7 +2030,7 @@
     "SBERT metrics only use cases where the local SBERT service returned a valid numeric embedding-derived score.",
     "Operational fallback metrics remain separate and are marked NOT_EVALUATED when no runtime fallback cases occur.",
     "Offline fallback-policy metrics are counterfactual and must not be described as observed runtime fallback.",
-    "No production similarity scoring, thresholds, imports, database schema, API response shape, or frontend behavior is changed by this evaluation."
+    "PR #106 changes production similarity scoring and thresholds to the approved contract; imports, database schema, API response shape, frontend behavior, and dataset labels are unchanged."
   ],
   "reproduction": {
     "command": "cd backend && npm run evaluate:topics",

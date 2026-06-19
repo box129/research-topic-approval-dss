@@ -1,6 +1,6 @@
 # FYP Evaluation Benchmark Evidence
 
-Generated for PR #105 from evaluation tooling and safe local database audit output.
+Generated from PR #105 evaluation/data-quality tooling and updated after PR #106 corrected the production scoring contract.
 
 ## Evidence Sources
 
@@ -14,18 +14,19 @@ Generated for PR #105 from evaluation tooling and safe local database audit outp
 
 ## Production Scoring Snapshot
 
-Current production thresholds and behavior are mirrored from `backend/src/controllers/similarity.controller.js`:
+Current production thresholds and behavior are shared by the controller and evaluator from `backend/src/config/similarityScoring.config.js`:
 
 - `HIGH`: `>= 0.70`
-- `MEDIUM`: `>= 0.50`
-- `LOW`: `< 0.50`
-- Tier filter threshold: `0.60`
-- Configured normal weights: Jaccard `0.30`, TF-IDF `0.30`, SBERT `0.40`
-- Configured fallback weights: Jaccard `0.50`, TF-IDF `0.50`
+- `MEDIUM`: `>= 0.40`
+- `LOW`: `< 0.40`
+- General tier minimum: `0.10`
+- Tier 2/3 requirement: combined `>= 0.60` and SBERT `>= 0.60`
+- Normal weights: Jaccard `0.20`, TF-IDF `0.30`, SBERT `0.50`
+- Fallback weights: Jaccard `0.40`, TF-IDF `0.60`
 
-The controller currently ranks normal results with an unweighted `jaccard + tfidf + sbert` combined score, classifies normal overall risk from max SBERT score, and classifies fallback overall risk from the max lexical score. PR #105 does not change any of that behavior.
+Normal successful mode ranks by the approved weighted combined score and classifies overall risk from the highest eligible weighted combined score. Fallback mode ranks by the approved lexical fallback combined score and classifies overall risk from the highest eligible fallback combined score. Tier 2/3 rows require real SBERT evidence; lexical fallback does not fabricate SBERT eligibility.
 
-The evaluator mirrors the current-production contract through exported controller constants where available, with a regression test guarding the snapshot. The approved FYP methodology is still documented separately and remains drifted from current production behavior.
+Historical note: PR #105 measured the previous implementation and identified scoring drift. PR #106 corrected production scoring to match the approved FYP methodology and added regression evidence.
 
 ## Latest Evaluation Result
 
@@ -44,28 +45,28 @@ The generated evaluation ran in `sbert_available_full_tri_evaluation` mode again
 - Full tri-algorithm coverage: `100%`
 - Operational fallback coverage: `0%`
 - Operational fallback metrics: `NOT_EVALUATED` because runtime fallback support is 0
-- Offline fallback-policy evaluation: counterfactual pilot evaluation across all 16 valid cases, using current production fallback logic without SBERT output
-- Final production behavior accuracy: `0.313`
-- Final production behavior macro F1: `0.224`
-- Final production behavior weighted F1: `0.215`
+- Offline fallback-policy evaluation: counterfactual pilot evaluation across all 16 valid cases, using corrected fallback logic without SBERT output
+- Final production behavior accuracy: `0.375`
+- Final production behavior macro F1: `0.365`
+- Final production behavior weighted F1: `0.348`
 
-These metrics measure the current implementation behavior. They do not validate the approved FYP weighted methodology because the implementation currently drifts from that contract.
+The PR #105 baseline for the previous drifted implementation was accuracy `0.313`, macro F1 `0.224`, and weighted F1 `0.215`. The current metrics measure the corrected PR #106 production contract. They remain pilot-only and do not prove final real-world effectiveness.
 
 ## Scoring-Contract Reconciliation
 
 | Item | Approved FYP Specification | Current Implementation / Evaluation Behavior | Status |
 | --- | --- | --- | --- |
-| Jaccard weight | `0.20` | `0.30` configured; current combined score is unweighted | DRIFT |
-| TF-IDF weight | `0.30` | `0.30` configured; current combined score is unweighted | MATCH for configured value, DRIFT for weighted formula use |
-| SBERT weight | `0.50` | `0.40` configured; current combined score is unweighted | DRIFT |
-| Fallback weights | Jaccard `0.40`, TF-IDF `0.60` | `0.50 / 0.50` configured; final fallback risk uses max lexical | DRIFT |
-| LOW/MEDIUM boundary | MEDIUM starts at `0.40` | MEDIUM starts at `0.50` | DRIFT |
+| Jaccard weight | `0.20` | `0.20` used in approved weighted combined score | MATCH |
+| TF-IDF weight | `0.30` | `0.30` used in approved weighted combined score | MATCH |
+| SBERT weight | `0.50` | `0.50` used in approved weighted combined score | MATCH |
+| Fallback weights | Jaccard `0.40`, TF-IDF `0.60` | `0.40 / 0.60` used in approved fallback combined score | MATCH |
+| LOW/MEDIUM boundary | MEDIUM starts at `0.40` | MEDIUM starts at `0.40` | MATCH |
 | HIGH boundary | HIGH starts at `0.70` | HIGH starts at `0.70` | MATCH |
-| Tier minimum | `0.10` | No separate `0.10` tier minimum verified | NOT VERIFIED |
-| Tier 2/3 requirement | combined `>= 0.60` and SBERT `>= 0.60` | implemented for SBERT-available mode | MATCH |
-| Overall risk | approved weighted methodology implied | current production uses max SBERT or max lexical fallback | DRIFT |
+| Tier minimum | `0.10` | Tier candidates require combined `>= 0.10` | MATCH |
+| Tier 2/3 requirement | combined `>= 0.60` and SBERT `>= 0.60` | implemented for SBERT-available mode; fallback returns no fake semantic rows | MATCH |
+| Overall risk | highest eligible weighted/fallback combined score | implemented for normal and fallback paths | MATCH |
 
-A separate scoring-contract correction PR is required if the approved FYP methodology should become production behavior.
+Scoring drift is resolved by PR #106. Lecturer-reviewed, departmental-scale effectiveness validation remains future work.
 
 ## Latest Data-Quality Result
 
@@ -98,21 +99,21 @@ This is only a connected local database snapshot. It does not represent the comp
 | Final SBERT effectiveness validation | NOT REACHED | No lecturer-reviewed dataset in repo | Requires departmental/lecturer-reviewed validation labels. |
 | Runtime fallback performance | NOT EVALUATED | `productionFallback.fallbackUsedCases: 0` | No runtime fallback cases occurred while SBERT was active, so accuracy/F1 are null rather than zero. |
 | Offline fallback-policy evaluation | REACHED FOR PILOT ONLY | `offlineFallbackPolicyEvaluation` applies current fallback policy across 16 valid cases | Counterfactual only; not evidence that runtime fallback was triggered and does not include SBERT output. |
-| Production tri-algorithm combined behavior measured | PARTIALLY REACHED | Full tri-algorithm coverage is 100%, but implementation drifts from approved FYP weights | Requires separate scoring-contract correction before claiming approved weighted methodology. |
+| Production tri-algorithm combined behavior measured | REACHED FOR PILOT ONLY | Full tri-algorithm coverage is 100% and scoring contract now matches approved weights | Pilot labels are manually constructed. |
 | LOW/MEDIUM/HIGH class metrics | REACHED | Macro/weighted/per-class metrics and confusion matrices generated | Dataset remains pilot/manual. |
 | Dataset provenance documented | REACHED | `schema_version`, `provenance`, source classifications, tags | Marked as manually constructed pilot, not expert ground truth. |
 | Final lecturer-reviewed benchmark | NOT REACHED | No expert validation source in repo | Needs department/lecturer-reviewed cases. |
 | Topic data-quality audit | REACHED | `topic-data-quality-audit.json` database mode | Read-only safe-field audit generated. |
 | Embedding coverage for topic repository | PARTIALLY REACHED | Local audit reports 0 with embeddings, 9 without embeddings | Local snapshot only; departmental-scale coverage remains not yet verified. |
 | Semantic duplicate governance | DEFERRED | Audit exact-title duplicate candidates only | Richer duplicate-existing checks remain outside PR #105. |
-| Production scoring or threshold update | DEFERRED | PR #105 explicitly does not change scoring | Future scoring changes need separate approval and evaluation. |
+| Production scoring or threshold update | REACHED FOR PR #106 CONTRACT | Shared config, controller behavior, evaluator, and regression tests now align | Future scoring changes still need separate approval and evaluation. |
 
 ## Limitations
 
 - The evaluation dataset is manually constructed and small.
 - The latest metrics should not be presented as final departmental accuracy.
 - SBERT was available for the latest run, but semantic performance is verified only for the small pilot dataset.
-- Current production scoring drifts from the approved FYP weighted methodology.
+- PR #105 documented previous scoring drift; PR #106 corrected production scoring to the approved weighted methodology.
 - Data-quality duplicate detection uses normalized exact titles only.
 - The data-quality audit describes the current local database state at generation time and covers only nine records.
 
