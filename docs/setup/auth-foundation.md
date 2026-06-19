@@ -37,11 +37,31 @@ Cookie settings:
 
 The frontend does not store JWTs in `localStorage` or `sessionStorage`. Requests use credentials so the browser can send the cookie automatically.
 
-## Mock Email
+## Password Reset Email
 
-Password reset email is mock-only in this PR. No Resend, SMTP, or Nodemailer provider is configured.
+Password reset still uses the existing token-link flow, but email delivery now goes through the backend provider abstraction in `backend/src/services/email.service.js`.
 
-In development, reset links may be logged for testing. The database stores only hashed reset tokens, never plaintext reset tokens.
+Supported `EMAIL_PROVIDER` values:
+
+- `mock`: local/test-safe mode. It accepts email requests without external delivery and does not return raw reset links or tokens in the service result.
+- `disabled`: fail-closed mode. Password reset requests for real users fail clearly when delivery is intentionally unavailable.
+- `smtp`: validates SMTP-related environment variables, but SMTP transport is not implemented in this build because no mail transport dependency is installed.
+
+Production behavior:
+
+- `EMAIL_PROVIDER` must be set explicitly in production.
+- `EMAIL_PROVIDER=mock` is rejected in production.
+- `EMAIL_PROVIDER=smtp` requires `SMTP_HOST`, `SMTP_PORT`, and `EMAIL_FROM`.
+- Until a real SMTP/provider transport is implemented, production should use `disabled` or add a scoped provider integration with tests.
+
+Development and test behavior:
+
+- The default provider outside production is `mock`.
+- No real external email is sent in development or tests.
+- Logs and service results must not expose password hashes, reset token hashes, auth tokens, SMTP passwords, or API keys.
+- The database stores only hashed reset tokens, never plaintext reset tokens.
+
+See [`email-notification-foundation.md`](email-notification-foundation.md) for the current provider and notification foundation status.
 
 ## Migration Workflow
 

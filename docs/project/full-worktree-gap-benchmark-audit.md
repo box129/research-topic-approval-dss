@@ -167,7 +167,7 @@ Tracked generated-like files noted:
 | Auth cookie/security basics | `httpOnly`, `sameSite: lax`, secure flag controlled by env; documented in `docs/setup/auth-foundation.md`. | Implemented basics |
 | Password hashing | `bcryptjs` in `auth.service.js`. | Implemented |
 | Password reset token | Reset token hash and expiry stored on user; reset endpoint implemented. | Implemented |
-| Production email delivery | `email.service.js` is mock provider only. | Deferred |
+| Production email delivery | `email.service.js` has explicit `mock`, `disabled`, and provider-ready `smtp` modes after PR #104; real SMTP transport remains deferred. | Foundation implemented, transport deferred |
 | Public similarity endpoint | `POST /api/similarity/check`, `POST /api/v1/check-similarity`. | Implemented |
 | Similarity algorithms | Jaccard, TF-IDF, SBERT service integration/fallback, context/evaluation services. | Implemented |
 | Similarity tiers/risk | Controller returns tiered results and LOW/MEDIUM/HIGH risk; tests cover success and partial-success behavior. | Implemented |
@@ -208,7 +208,7 @@ Missing database structures based on current repo evidence:
 - No report/export history table.
 - No lecturer supervisee assignment table.
 - No admin user-management workflow tables beyond existing `User`.
-- No notification table.
+- `Notification` table exists after PR #104; notification event hooks and frontend UI remain deferred.
 
 ### Testing
 
@@ -270,9 +270,9 @@ Current docs include:
 | Lecturer | Decision history endpoint | Lecturer `MyDecisionsPage` is placeholder; no dedicated history endpoint found. | Current decision flow stores status/rationale but no history list API. | Add lecturer-safe decision history endpoint and tests. | Medium |
 | Lecturer | Supervisee assignment workflow | `SuperviseesPage` placeholder; no assignment model/endpoint found. | Requires department/supervisor assignment data model. | Model supervisee/supervisor relationships; add read-only list first. | Medium |
 | Lecturer | Research trends analytics endpoint | `ResearchTrendsPage` placeholder/soon; no trends endpoint found. | Analytics require real topic/review data and aggregation rules. | Define analytics scope and read-only endpoint; avoid fake charts. | Low/Medium |
-| Notifications | Real notification system | No notification model/service found. | Notification semantics and delivery channels not yet defined. | Add notification model/contract only after workflow events are finalized. | Medium |
-| Email | Production email delivery | `email.service.js` provider is `mock`; docs state reset email is mock-only. | Avoided unconfigured SMTP/Resend behavior. | Add provider config, secrets handling, production tests/checklist. | High for production |
-| Password reset | Production email delivery for reset links | Reset token flow exists; delivery is mock-only. | Same email provider gap. | Connect production email provider and add operational docs. | High for production |
+| Notifications | Real notification system | `Notification` model/service and authenticated own-user endpoints exist after PR #104. | Event semantics and frontend delivery channels remain deferred. | Add scoped real event hooks after workflow events are finalized. | Medium |
+| Email | Production email delivery | `email.service.js` has explicit safe provider modes; SMTP transport is provider-ready but not implemented. | Avoided unconfigured SMTP/Resend behavior and real credentials. | Add scoped SMTP/provider transport, secrets handling, and production checklist. | High for production |
+| Password reset | Production email delivery for reset links | Reset token flow exists; email provider abstraction exists; real external delivery remains deferred. | Same transport gap. | Connect production email provider and add operational docs. | High for production |
 | Import | Real department records import workflow completion | Import preview/commit exists; docs flag governance/data-quality risks and import endpoint protection concerns. | Import is sensitive and needs admin authorization/data-quality hardening. | Protect import endpoints; add duplicate checks across DB; improve completeness reporting. | High |
 | Deployment | Production deployment | No deployment manifest/platform config found beyond SBERT Docker assets and setup docs. | Local MVP focus. | Add production deployment plan, env matrix, service health checks, runbooks. | High for release |
 | Security | Role-based hardening/security review | RBAC middleware exists; deeper CSRF/session/import/admin hardening is not documented as complete. | Needs dedicated review. | CSRF/session review, import endpoint protection, audit logging, rate-limit review. | High |

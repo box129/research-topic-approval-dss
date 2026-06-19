@@ -7,12 +7,31 @@ function validateEnv() {
   const required = ['DATABASE_URL'];
   if (process.env.NODE_ENV === 'production') {
     required.push('JWT_SECRET');
+    required.push('EMAIL_PROVIDER');
   }
 
   const missing = required.filter(key => !process.env[key]);
   
   if (missing.length > 0) {
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  }
+
+  const emailProvider = (process.env.EMAIL_PROVIDER || '').trim().toLowerCase();
+  const allowedEmailProviders = new Set(['', 'mock', 'disabled', 'smtp']);
+  if (!allowedEmailProviders.has(emailProvider)) {
+    throw new Error('EMAIL_PROVIDER must be one of: mock, disabled, smtp.');
+  }
+
+  if (process.env.NODE_ENV === 'production' && emailProvider === 'mock') {
+    throw new Error('EMAIL_PROVIDER=mock is not allowed in production.');
+  }
+
+  if (emailProvider === 'smtp') {
+    const smtpRequired = ['SMTP_HOST', 'SMTP_PORT', 'EMAIL_FROM'];
+    const missingSmtp = smtpRequired.filter(key => !process.env[key]);
+    if (missingSmtp.length > 0) {
+      throw new Error(`Missing SMTP email configuration: ${missingSmtp.join(', ')}`);
+    }
   }
 }
 
@@ -64,6 +83,19 @@ const config = {
     cookieSecure: process.env.NODE_ENV === 'production',
     resetTokenExpiresMinutes: parseInt(process.env.RESET_TOKEN_EXPIRES_MINUTES, 10) || 30,
     frontendUrl: process.env.FRONTEND_URL || process.env.CORS_ORIGIN || 'http://localhost:5173'
+  },
+
+  // Email delivery configuration
+  email: {
+    provider: (process.env.EMAIL_PROVIDER || (process.env.NODE_ENV === 'production' ? 'disabled' : 'mock')).toLowerCase(),
+    from: process.env.EMAIL_FROM || 'no-reply@localhost',
+    smtp: {
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : undefined,
+      secure: process.env.SMTP_SECURE === 'true',
+      user: process.env.SMTP_USER,
+      passwordConfigured: Boolean(process.env.SMTP_PASSWORD)
+    }
   },
   
   // Logging configuration

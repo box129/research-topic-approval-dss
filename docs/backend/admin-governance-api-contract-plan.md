@@ -4,17 +4,18 @@
 
 | Field | Value |
 | --- | --- |
-| Branch | `frontend/admin-import-governance-ui` |
-| Current commit hash | `a3b0b05` |
-| Date/time | `2026-06-07 17:57:23 +01:00` |
-| Scope | Admin Topic Repository import UI, admin import preview/commit frontend connection, tests, smoke, and documentation |
-| Change type | Frontend, tests, and documentation |
-| Implementation status | PR #103 connects the existing admin-protected topic import preview/commit endpoints to a real import workflow inside the admin Topic Repository page. The UI allows `.xlsx` file selection, calls the real preview and commit endpoints, renders backend import and persistence reports, and keeps commit disabled until preview succeeds. No backend parser, persistence, Prisma migration, similarity behavior, threshold, auth/session behavior, export/download workflow, topic edit/delete workflow, fake import result, fake duplicate-existing result, fake row-level report, or package file change is introduced. |
+| Branch | `backend/production-email-notification-foundation` |
+| Current commit hash | `16353ca` |
+| Date/time | `2026-06-19 03:50:58 +01:00` |
+| Scope | Email provider foundation, notification model/service/endpoints, tests, and documentation |
+| Change type | Backend, Prisma migration, tests, and documentation |
+| Implementation status | PR #104 replaces mock-only password reset email behavior with explicit safe email provider modes and adds a real authenticated notification backend foundation. Email supports mock, disabled, and provider-ready SMTP modes without adding credentials or sending real email in tests. SMTP transport and event hooks remain deferred. A `Notification` model, migration, service helpers, and authenticated own-user notification endpoints are added. No frontend notification UI, fake notification feed, fake email history, real credentials, package dependency, similarity behavior change, import behavior change, admin governance endpoint change, lecturer workflow change, or auth/session behavior change is introduced. |
 
 Latest relevant PRs:
 
 | PR | Summary | Relevance |
 | --- | --- | --- |
+| #103 | feat: add admin import governance UI | Connected admin Topic Repository import preview/commit UI to existing audited backend endpoints without fake import results. |
 | #102 | feat: add lecturer research trends governance | Added a safe read-only lecturer research trends endpoint and connected Research Trends to real aggregate data while keeping generated insights deferred. |
 | #101 | feat: add lecturer decision history governance | Added read-only lecturer decision history and kept supervisees honestly deferred. |
 | #100 | feat: add admin audit log and reports governance | Connected admin Audit Log and Reports to real read-only governance data while keeping exports deferred. |
@@ -291,6 +292,52 @@ Still deferred after PR #103:
 - Production email and notifications.
 - Any similarity scoring or threshold changes.
 
+### Implementation Status After PR #104
+
+PR #104 implements the production email and notification backend foundation:
+
+- `backend/src/services/email.service.js` now exposes a provider-based email service instead of a mock-only payload generator.
+- Supported email modes are explicit:
+  - `mock`: local/test-safe mode, no external delivery, rejected in production.
+  - `disabled`: fail-closed mode with a clear provider error.
+  - `smtp`: validates SMTP env configuration, but transport sending remains deferred because no mail dependency is installed.
+- `backend/src/config/env.js` validates email provider mode and production email requirements.
+- `backend/env.example` documents email mode and SMTP placeholder variables without real credentials.
+- Forgot-password and reset-password flow remains the existing token-link flow. The database still stores only reset token hashes and expiry values.
+- Email service results and logs do not expose reset token hashes, password hashes, auth tokens, SMTP passwords, API keys, or secrets.
+- `Notification` Prisma model and migration are added.
+- `backend/src/services/notification.service.js` provides:
+  - `createNotification`
+  - `listNotificationsForUser`
+  - `markNotificationRead`
+  - `markAllNotificationsRead`
+- Authenticated notification endpoints are added:
+  - `GET /api/v1/notifications`
+  - `PATCH /api/v1/notifications/:id/read`
+  - `PATCH /api/v1/notifications/read-all`
+- Notification endpoints require `requireAuth`; users can only list or update their own notifications.
+- Notification metadata is redacted for sensitive keys such as password hashes, reset token hashes, auth tokens, API keys, and secrets.
+- Empty notification lists return `items: []` with pagination metadata.
+- No fake notifications, fake notification feed, fake email history, frontend notification UI, marketing/bulk email, report export email, admin notification broadcast, or user preference UI is added.
+- Notification event hooks for student submissions, lecturer decisions/status changes, password reset requests, and admin broadcasts remain deferred until each event contract is reviewed.
+
+Still deferred after PR #104:
+
+- Real SMTP/provider transport implementation.
+- Production email credentials and deployment setup.
+- Notification event hooks.
+- Frontend notification bell/feed.
+- Admin notification broadcast.
+- User notification preference UI.
+- Report export emailing.
+- Richer import duplicate-existing checks and operator-facing row-level report shape.
+- Lecturer supervisee assignment model and endpoint.
+- Admin report export generation.
+- Audit log export/purge/delete workflows.
+- Admin user mutations beyond status updates.
+- Admin system settings mutations.
+- Any similarity scoring or threshold changes.
+
 ## 2. Current Reality From Repository
 
 ### Existing Backend Behavior
@@ -305,7 +352,8 @@ Still deferred after PR #103:
 | Similarity stack | Jaccard, TF-IDF, SBERT service integration/fallback, tiered results, risk classification, and partial success behavior exist. | `similarity.controller.js`, `jaccard.service.js`, `tfidf.service.js`, `sbert.service.js` |
 | Topic import | Spreadsheet preview/commit endpoints exist and call import file, normalization, and persistence services. | `/api/import/topics/*`, `/api/v1/import/topics/*`, `topicImport*.service.js` |
 | Health | Basic health endpoints exist. | `/health`, `/api/v1/health` |
-| Email | Password reset email service is mock-only. | `backend/src/services/email.service.js`, `docs/setup/auth-foundation.md` |
+| Email | Password reset email uses explicit provider modes: local/test-safe `mock`, fail-closed `disabled`, and provider-ready `smtp` with SMTP transport deferred. Production rejects missing provider configuration and `mock`. | `backend/src/services/email.service.js`, `backend/src/config/env.js`, `docs/setup/auth-foundation.md`, `docs/setup/email-notification-foundation.md` |
+| Notifications | Authenticated own-user notification backend foundation exists with list, mark-read, and mark-all-read endpoints. Event hooks and frontend UI remain deferred. | `backend/prisma/schema.prisma`, `backend/src/services/notification.service.js`, `backend/src/controllers/notification.controller.js`, `backend/src/server.js` |
 
 ### Existing Frontend Behavior
 
@@ -332,6 +380,7 @@ The current schema includes:
 - `Submission`
 - `SimilarityCheckSnapshot`
 - `AuditLog`
+- `Notification`
 - `HistoricalTopic`
 - `CurrentSessionTopic`
 - `UnderReviewTopic`
@@ -344,7 +393,7 @@ Enums include:
 
 ### Missing Backend/Governance Areas
 
-These do not currently exist as implemented APIs/models/services in the inspected repository after PR #103:
+These do not currently exist as implemented APIs/models/services in the inspected repository after PR #104:
 
 - Admin user mutations beyond audited status updates.
 - Admin system settings mutations.
@@ -352,8 +401,8 @@ These do not currently exist as implemented APIs/models/services in the inspecte
 - Audit log export, purge, and delete workflows.
 - Lecturer supervisee assignment endpoint.
 - Admin research trends analytics endpoint.
-- Production email provider.
-- Notification model/service.
+- Real SMTP/provider transport implementation.
+- Notification event hooks and frontend notification UI.
 
 Import-specific gap:
 
@@ -1742,30 +1791,50 @@ Must not include:
 
 Purpose:
 
-- Replace mock-only reset email with configured provider.
-- Plan or add notification foundation.
+- Replace mock-only reset email behavior with explicit safe provider modes.
+- Add a real notification backend foundation without fake notification feeds or frontend UI.
+- Keep SMTP transport and notification event hooks deferred until they are scoped and tested.
+
+Status:
+
+- Implemented by branch `backend/production-email-notification-foundation`.
 
 Likely files:
 
 - `backend/src/services/email.service.js`
-- backend env docs/config
-- tests and setup docs
+- `backend/src/config/env.js`
+- `backend/env.example`
+- `backend/prisma/schema.prisma`
+- notification migration file
+- notification service/controller/server routes
+- backend tests and setup docs
 
 Tests required:
 
 - Provider mock tests.
+- Disabled/misconfigured provider tests.
+- Production email env validation tests.
 - Token redaction tests.
-- Env validation tests.
+- Existing forgot-password/reset-password service flow tests.
+- Authenticated notification list/read endpoint tests.
+- Own-user notification authorization tests.
+- Empty notification list tests.
+- Sensitive notification metadata redaction tests.
 
 Risks:
 
 - Secret leakage.
-- Deliverability assumptions.
+- Deliverability assumptions before a real transport is implemented.
+- Fake notification data or event semantics before workflow contracts are reviewed.
 
 Must not include:
 
 - Fake notification feeds.
-- Unconfigured provider behavior.
+- Unconfigured provider success behavior.
+- Real credentials.
+- Real email sending in tests.
+- Frontend notification center.
+- Notification event hooks unless each hook is scoped and tested.
 
 ### PR #105: Evaluation, Data Quality, and FYP Evidence
 
@@ -1821,13 +1890,20 @@ Must not include:
 
 This PR does not:
 
-- Add new backend endpoints.
-- Add Prisma migrations.
-- Connect frontend pages other than Topic Repository.
+- Add frontend notification pages, bells, feeds, or visual shells.
 - Implement lecturer mutations.
 - Change the existing lecturer approval/revision/rejection endpoint or payload.
 - Implement supervisee assignment endpoints.
 - Implement exports.
+- Implement report export emailing.
+- Implement marketing or bulk email.
+- Implement admin notification broadcast.
+- Implement user notification preferences UI.
+- Implement real SMTP/provider transport delivery.
+- Add real email credentials, SMTP passwords, API keys, or secrets.
+- Send real emails in tests.
+- Add fake notification feeds.
+- Add fake email history.
 - Implement export/download behavior.
 - Implement duplicate-existing checks.
 - Implement richer row-level operator reports beyond what the backend currently returns.
@@ -1838,28 +1914,24 @@ This PR does not:
 - Implement topic edit/delete workflows.
 - Implement audit export, purge, or delete workflows.
 - Change import parser, normalization, persistence, or commit behavior.
+- Change admin governance endpoints other than adding authenticated notification endpoints.
 - Implement create-user, delete-user, role-change, invitation, password-reset, bulk account, or profile-edit workflows.
 - Implement settings writes, threshold sliders, feature toggles, email controls, or arbitrary configuration updates.
-- Implement an email provider.
-- Add notifications.
 - Change similarity behavior.
 - Change similarity thresholds.
 - Change auth/session behavior.
 - Change existing route behavior.
 - Change package files.
 - Add fake admin data.
-- Add fake users, fake settings, fake last-active values, fake supervisor assignments, fake supervisees, fake decision rows, fake audit rows, fake reports, fake exports, fake import results, fake duplicate-existing results, fake row-level details, fake persistence counts, fake activity, fake research insights, or fake analytics.
+- Add fake users, fake settings, fake last-active values, fake supervisor assignments, fake supervisees, fake notifications, fake email logs, fake decision rows, fake audit rows, fake reports, fake exports, fake import results, fake duplicate-existing results, fake row-level details, fake persistence counts, fake activity, fake research insights, or fake analytics.
 
 ## 20. Verification
 
-Requested verification commands for PR #103:
+Requested verification commands for PR #104:
 
 ```powershell
-cd frontend
-npm run build
-npm test -- --run tests/AdminTopicRepositoryPage.test.jsx
-npm test -- --run --maxWorkers=1 --minWorkers=1
-npm run smoke:figma-ui
+cd backend
+npm test -- --runInBand
 cd ..
 git diff --check
 git status --short --ignored reference img frontend/smoke-artifacts frontend/dist frontend/playwright-report frontend/test-results backend/node_modules frontend/node_modules sbert-service/venv
@@ -1870,10 +1942,20 @@ git diff --name-only
 Expected implementation files:
 
 ```text
+backend/env.example
+backend/prisma/schema.prisma
+backend/prisma/migrations/20260619120000_add_notifications/migration.sql
+backend/src/config/env.js
+backend/src/config/env.test.js
+backend/src/controllers/notification.controller.js
+backend/src/controllers/notification.controller.test.js
+backend/src/services/auth.service.test.js
+backend/src/services/email.service.js
+backend/src/services/email.service.test.js
+backend/src/services/notification.service.js
+backend/src/services/notification.service.test.js
+backend/src/server.js
 docs/backend/admin-governance-api-contract-plan.md
-docs/setup/import-workflow.md
-frontend/src/api/admin.js
-frontend/src/pages/admin/TopicRepositoryPage.jsx
-frontend/tests/AdminTopicRepositoryPage.test.jsx
-frontend/tests/smoke/figma-ui-flow.spec.js
+docs/setup/auth-foundation.md
+docs/setup/email-notification-foundation.md
 ```
