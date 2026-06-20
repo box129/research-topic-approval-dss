@@ -1,6 +1,6 @@
 # FYP Evaluation Benchmark Evidence
 
-Generated from PR #105 evaluation/data-quality tooling and updated after PR #106 corrected the production scoring contract.
+Generated from PR #105 evaluation/data-quality tooling, updated after PR #106 corrected the production scoring contract, and preserved unchanged by PR #107 deployment-readiness work.
 
 ## Evidence Sources
 
@@ -27,6 +27,8 @@ Current production thresholds and behavior are shared by the controller and eval
 Normal successful mode ranks by the approved weighted combined score and classifies overall risk from the highest eligible weighted combined score. Fallback mode ranks by the approved lexical fallback combined score and classifies overall risk from the highest eligible fallback combined score. Tier 2/3 rows require real SBERT evidence; lexical fallback does not fabricate SBERT eligibility.
 
 Historical note: PR #105 measured the previous implementation and identified scoring drift. PR #106 corrected production scoring to match the approved FYP methodology and added regression evidence.
+
+PR #107 does not regenerate metrics, relabel the dataset, change scoring, or add benchmark claims. It adds deployment-readiness documentation and release-gate automation around the existing evidence.
 
 ## Latest Evaluation Result
 

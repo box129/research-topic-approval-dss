@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  backend-frontend:
+    name: Backend and frontend checks
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: topic_similarity
+          POSTGRES_PASSWORD: topic_similarity
+          POSTGRES_DB: topic_similarity_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U topic_similarity -d topic_similarity_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://topic_similarity:topic_similarity@localhost:5432/topic_similarity_test?schema=public
+      NODE_ENV: test
+      JWT_SECRET: local-ci-only-secret-not-for-production
+      EMAIL_PROVIDER: mock
+      FRONTEND_URL: http://localhost:5173
+      SBERT_SERVICE_URL: http://localhost:8000
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Validate Prisma schema
+        run: npx prisma validate
+        working-directory: backend
+
+      - name: Apply test database migrations
+        run: npx prisma migrate deploy
+        working-directory: backend
+
+      - name: Run backend tests
+        run: npm test -- --runInBand
+        working-directory: backend
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: frontend
+
+      - name: Run frontend tests
+        run: npm test -- --run --maxWorkers=1 --minWorkers=1
+        working-directory: frontend
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Compile SBERT service sources
+        run: python -m py_compile app.py quick_test.py test_service.py
+        working-directory: sbert-service

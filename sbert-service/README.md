@@ -60,13 +60,17 @@ pip install -r requirements.txt
 uvicorn app:app --reload --port 8000
 ```
 
-### Production Mode
+### Release-Candidate Mode
 
 ```bash
-uvicorn app:app --host 0.0.0.0 --port 8000 --workers 4
+uvicorn app:app --host 0.0.0.0 --port 8000 --workers 1
 ```
 
 The service will be available at `http://localhost:8000`
+
+Use one worker for the release candidate unless memory capacity has been measured. Multiple workers can load separate model instances and substantially increase memory usage.
+
+Do not expose this service directly to the public internet without a deployment-specific network policy. The backend should reach it through `SBERT_SERVICE_URL`.
 
 ## API Endpoints
 
@@ -105,10 +109,12 @@ Generate a 384-dimensional semantic embedding for the provided text.
 **Response:**
 ```json
 {
-  "embedding": [0.123, -0.456, 0.789, ...],
+  "embedding": [0.123, -0.456, 0.789],
   "dimension": 384
 }
 ```
+
+For release evidence, record only `dimension: 384` and health status. Do not paste full embedding vectors into reports.
 
 **Example:**
 ```bash
