@@ -32,8 +32,8 @@ This matrix documents the environment variables actually used by the repository 
 | `JWT_EXPIRES_IN` | Optional | No | `24h` | JWT session lifetime. |
 | `AUTH_COOKIE_NAME` | Optional | No | `rtadss_session` | Session cookie name. |
 | `RESET_TOKEN_EXPIRES_MINUTES` | Optional | No | `30` | Password reset token expiry. |
-| `FRONTEND_URL` | Required in production | No | `http://localhost:5173` outside production | Used for CORS and password-reset links. |
-| `CORS_ORIGIN` | Required in production if `FRONTEND_URL` unset | No | `FRONTEND_URL` fallback | Production rejects missing origin and `*`. |
+| `FRONTEND_URL` | Required in production | No | `http://localhost:5173` outside production | Used for CORS and password-reset links. Preferred over `CORS_ORIGIN` when both are set. |
+| `CORS_ORIGIN` | Required in production if `FRONTEND_URL` unset | No | `FRONTEND_URL` fallback | Fallback origin when `FRONTEND_URL` is unset. Production rejects missing effective origin and effective `*`. |
 | `CORS_CREDENTIALS` | Optional | No | `true` | Must remain compatible with cookie auth. |
 | `SBERT_SERVICE_URL` | Optional | No | `http://localhost:8000` | Backend URL for SBERT `/health` and `/embed`. |
 | `SBERT_TIMEOUT` | Optional | No | `30000` in config, `5000` in SBERT service module fallback | Request timeout in milliseconds. |
