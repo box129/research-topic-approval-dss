@@ -65,7 +65,7 @@ Root package metadata:
 | Frontend tests | PASSED | 25 files, 231 tests passed. |
 | Release gate clean-worktree guard | PASSED | `npm run release:check` fails while this PR worktree is dirty, as intended. |
 | Release gate automation | PASSED | `RELEASE_CHECK_ALLOW_DIRTY=1 npm run release:check` completed successfully for the PR worktree. |
-| GitHub CI | NOT YET VERIFIED | Workflow added in PR #107 and requires a GitHub run. |
+| GitHub CI | VERIFIED | GitHub Actions backend/frontend workflow passed on PR #107. |
 | Credentialed smoke | SKIPPED | No `SMOKE_*` credentials were supplied. This must pass before RC tagging unless the release owner explicitly accepts it as a documented RC limitation. |
 | Docker/Compose | NOT VERIFIED | Docker CLI is not available in the current shell. |
 | Git diff check | PASSED | `git diff --check` exited 0. |
