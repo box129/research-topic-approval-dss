@@ -1,4 +1,5 @@
 const prisma = require('../config/database');
+const { createNotificationEventService } = require('./notificationEvent.service');
 
 const MIN_TITLE_WORDS = 7;
 const MAX_TITLE_WORDS = 24;
@@ -321,7 +322,10 @@ function serializeLecturerDecision(submission) {
   };
 }
 
-function createSubmissionService({ prismaClient = prisma } = {}) {
+function createSubmissionService({
+  prismaClient = prisma,
+  notificationEvents = createNotificationEventService({ prismaClient })
+} = {}) {
   const getCurrentSessionId = async () => {
     const session = await prismaClient.academicSession.findFirst({
       where: { isCurrent: true },
@@ -350,6 +354,11 @@ function createSubmissionService({ prismaClient = prisma } = {}) {
       include: {
         session: true
       }
+    });
+
+    await notificationEvents.notifyReviewersOfSubmissionCreatedSafely({
+      submission,
+      actorUser: user
     });
 
     return serializeSubmission(submission);
@@ -485,6 +494,10 @@ function createSubmissionService({ prismaClient = prisma } = {}) {
           }
         }
       }
+    });
+
+    await notificationEvents.notifyStudentOfSubmissionDecisionSafely({
+      submission: updatedSubmission
     });
 
     return serializeSubmission(updatedSubmission, {

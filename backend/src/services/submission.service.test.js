@@ -21,6 +21,15 @@ function createPrismaMock(overrides = {}) {
     auditLog: {
       create: jest.fn(),
       ...overrides.auditLog
+    },
+    user: {
+      findMany: jest.fn().mockResolvedValue([]),
+      findUnique: jest.fn(),
+      ...overrides.user
+    },
+    notification: {
+      create: jest.fn(),
+      ...overrides.notification
     }
   };
 }
@@ -94,6 +103,52 @@ describe('submission.service', () => {
       session_id: 3,
       session_name: '2025/2026',
       status: 'pending_review'
+    });
+  });
+
+  test('student submission notifies real reviewer roles through event hook', async () => {
+    const createdAt = new Date('2026-05-19T10:00:00Z');
+    const prisma = createPrismaMock({
+      academicSession: {
+        findFirst: jest.fn().mockResolvedValue({ id: 3 })
+      },
+      submission: {
+        create: jest.fn().mockResolvedValue({
+          id: 11,
+          studentId: studentUser.id,
+          sessionId: 3,
+          session: { id: 3, name: '2025/2026' },
+          title: validInput.title,
+          category: validInput.category,
+          keywords: validInput.keywords,
+          status: 'PENDING_REVIEW',
+          submittedAt: createdAt,
+          createdAt,
+          updatedAt: createdAt
+        })
+      }
+    });
+    const notificationEvents = {
+      notifyReviewersOfSubmissionCreatedSafely: jest.fn().mockResolvedValue({
+        created: 2,
+        recipientCount: 2
+      })
+    };
+    const service = createSubmissionService({ prismaClient: prisma, notificationEvents });
+
+    const result = await service.createSubmission({
+      user: studentUser,
+      input: validInput
+    });
+
+    expect(result.id).toBe(11);
+    expect(notificationEvents.notifyReviewersOfSubmissionCreatedSafely).toHaveBeenCalledWith({
+      submission: expect.objectContaining({
+        id: 11,
+        studentId: studentUser.id,
+        status: 'PENDING_REVIEW'
+      }),
+      actorUser: studentUser
     });
   });
 
@@ -683,7 +738,10 @@ describe('submission.service', () => {
         })
       }
     });
-    const service = createSubmissionService({ prismaClient: prisma });
+    const notificationEvents = {
+      notifyStudentOfSubmissionDecisionSafely: jest.fn().mockResolvedValue({ created: 1 })
+    };
+    const service = createSubmissionService({ prismaClient: prisma, notificationEvents });
 
     const result = await service.updateLecturerSubmissionStatus({
       user: lecturerUser,
@@ -731,6 +789,14 @@ describe('submission.service', () => {
       decided_at: '2026-05-19T12:05:00.000Z',
       student_name: 'Student Demo',
       student_email: 'student.demo@uniosun.edu.ng'
+    });
+    expect(notificationEvents.notifyStudentOfSubmissionDecisionSafely).toHaveBeenCalledWith({
+      submission: expect.objectContaining({
+        id: 21,
+        studentId: studentUser.id,
+        status: prismaStatus,
+        decidedById: lecturerUser.id
+      })
     });
   });
 

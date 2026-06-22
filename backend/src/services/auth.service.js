@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const prisma = require('../config/database');
 const config = require('../config/env');
 const emailService = require('./email.service');
+const { createNotificationEventService } = require('./notificationEvent.service');
 
 const ROLE_TO_CLIENT = {
   ADMIN: 'admin',
@@ -71,7 +72,8 @@ function getClearCookieOptions() {
 function createAuthService({
   prismaClient = prisma,
   emailProvider = emailService,
-  authConfig = config.auth
+  authConfig = config.auth,
+  notificationEvents = createNotificationEventService({ prismaClient })
 } = {}) {
   const createSessionToken = (user) => jwt.sign(
     {
@@ -168,6 +170,8 @@ function createAuthService({
         name: user.name,
         token
       });
+
+      await notificationEvents.notifyPasswordResetRequestedSafely({ user });
     }
 
     return {
