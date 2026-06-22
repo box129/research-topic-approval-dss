@@ -13,7 +13,7 @@ This tracker follows limitations from `v0.4.0-rc1` toward a stable FYP/public pr
 | Admin report exports deferred | CSV IMPLEMENTED, PDF/RETENTION DEFERRED | Optional PDF export, export retention/purge policy, and any async export job workflow | No | Product-dependent | Backend/admin | PR #113 adds admin-only audited CSV exports for safe report categories. PDF export and export retention/purge policy remain deferred. |
 | Audit export/purge/delete policy deferred | IMPLEMENTED, ARCHIVE/LEGAL-HOLD DEFERRED | Optional archive-before-delete, legal hold, and scheduled retention jobs | No | Yes | Governance/operations | PR #113 covers audit CSV export through admin reports. PR #114 adds project retention policy, configurable retention settings, admin purge preview, guarded audited purge, and admin UI controls. |
 | Monitoring and alerting environment-dependent | NOT VERIFIED | Deployment environment monitoring, alert ownership, runbook drill | No | Yes | Operations | No change. |
-| Full-stack Docker/Compose missing | NOT VERIFIED | Production-like compose or deployment manifests verified | No | Yes if container deployment selected | Operations | No change. |
+| Full-stack Docker/Compose missing | ADDRESSED FOR LOCAL/STAGING-STYLE VERIFICATION, PUBLIC PRODUCTION UNPROVEN | Root Compose config, Dockerfiles, docs, and smoke verification | No | Yes if container deployment selected | Operations | PR #115 adds a full-stack Compose topology for PostgreSQL, backend, frontend, and SBERT, plus local smoke checks. Public HTTPS/container production remains unproven. |
 | Public production deployment unproven | NOT VERIFIED | HTTPS deployment, secrets, backup, monitoring, smoke evidence | No | Yes | Operations | No change. |
 
 ## Current PR #108 Boundary
@@ -43,3 +43,7 @@ PR #113 adds admin-only audited CSV exports for safe report categories: users, s
 ## Current PR #114 Boundary
 
 PR #114 adds audit retention and purge governance. Audit CSV export remains provided by PR #113 at `GET /api/v1/admin/reports/export/audit-logs`. This PR adds project-level retention documentation, bounded retention environment settings, admin-only purge preview, exact-phrase guarded purge, purge batch limits, purge audit event creation, and cautious admin UI controls. It does not add archive-before-delete storage, legal hold workflow, scheduled purge jobs, non-admin audit actions, raw metadata export, or official institutional retention approval.
+
+## Current PR #115 Boundary
+
+PR #115 adds full-stack Docker/Compose readiness for local/staging-style verification. The Compose topology includes PostgreSQL, backend, frontend, and SBERT service; backend and frontend images are added; static frontend hosting proxies `/api` to the backend; and a non-mutating smoke script checks health/readiness surfaces. This PR does not claim public production deployment, add cloud infrastructure, bake secrets into images, run migrations automatically, use `prisma db push`, change similarity/auth/email/notification/audit behavior, or add fake data.

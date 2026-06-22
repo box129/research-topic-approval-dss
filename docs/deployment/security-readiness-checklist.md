@@ -1,6 +1,6 @@
 # Security Readiness Checklist
 
-This checklist is scoped to repository evidence available in PR #107. It is not a penetration test, compliance audit, or external security review.
+This checklist is scoped to repository evidence available through PR #115. It is not a penetration test, compliance audit, or external security review.
 
 | Area | Status | Evidence / Required Follow-up |
 | --- | --- | --- |
@@ -16,8 +16,8 @@ This checklist is scoped to repository evidence available in PR #107. It is not 
 | Password reset token hashing/expiry | VERIFIED | Reset token hash/expiry fields exist and expiry is configurable. Real delivery depends on provider mode. |
 | Email provider fail-closed behavior | PARTIALLY VERIFIED | Production rejects `EMAIL_PROVIDER=mock`; `disabled` is allowed. SMTP transport delivery remains deferred. |
 | Database least privilege | NOT VERIFIED | Least-privilege user creation is documented, but target database grants are environment-owned. |
-| PostgreSQL network exposure | NOT VERIFIED | No full-stack deployment config exists. Operators must keep PostgreSQL private. |
-| SBERT service network exposure | NOT VERIFIED | SBERT exposes FastAPI on port 8000 locally. Public exposure and network ACLs are environment-owned. |
+| PostgreSQL network exposure | PARTIALLY VERIFIED | Root Compose exposes PostgreSQL on a configurable local host port for verification. Public production must keep PostgreSQL private. |
+| SBERT service network exposure | PARTIALLY VERIFIED | Root Compose exposes SBERT on a configurable local host port for verification. Public exposure and network ACLs remain environment-owned. |
 | Dependency review | PARTIALLY VERIFIED | Lockfile installs and CI are configured. No third-party vulnerability audit is performed in this PR. |
 | Log redaction | PARTIALLY VERIFIED | Docs prohibit secrets in evidence. Broader structured redaction policy is not independently audited. |
 | Backup/restore | CONDITIONALLY VERIFIED | Backup/restore commands are documented with placeholders; no live restore drill evidence exists. |
@@ -39,3 +39,4 @@ Before any public production deployment, verify:
 8. Monitoring and incident ownership are in place.
 9. Demo credentials are removed, disabled, or rotated.
 10. Audit retention settings are reviewed for the deployment and exported audit evidence is stored outside the repository.
+11. Container deployments replace local Compose placeholder secrets and restrict database/SBERT network exposure.

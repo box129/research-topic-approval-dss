@@ -9,7 +9,7 @@ This runbook prepares a controlled release-candidate deployment or local integra
 | Local native development | SUPPORTED |
 | Local integrated demonstration | SUPPORTED |
 | Controlled release-candidate deployment | CONDITIONALLY SUPPORTED |
-| Containerized deployment | NOT VERIFIED |
+| Local/staging-style Compose deployment | SUPPORTED FOR VERIFICATION |
 | Public HTTPS production | NOT VERIFIED |
 
 ## Startup Topology
@@ -189,16 +189,27 @@ The frontend API client uses relative `/api/v1` requests. For a static host, con
 
 ## Docker and Compose Status
 
-Only SBERT has Docker support:
+PR #115 adds a root full-stack Compose setup for local/staging-style verification:
 
 ```powershell
-cd sbert-service
-docker compose up --build
+docker compose config
+docker compose build
+docker compose up -d
 ```
 
-This is development/demo support only. There is no repository-approved full-stack production Compose file, no backend image, and no frontend static-host image. Do not expose PostgreSQL publicly by default in future Compose work.
+Apply existing Prisma migrations explicitly after the database is healthy:
 
-Docker verification for PR #107 is `NOT VERIFIED` when Docker is unavailable locally.
+```powershell
+docker compose run --rm backend npx prisma migrate deploy
+```
+
+Run the non-mutating Compose smoke check:
+
+```powershell
+npm run docker:smoke
+```
+
+The Compose topology includes PostgreSQL, backend, frontend, and SBERT service. It is not a public production deployment: HTTPS, real secrets, backups, monitoring, public network policy, and incident ownership remain environment-owned. See [docker-compose.md](./docker-compose.md).
 
 ## Release Gate
 

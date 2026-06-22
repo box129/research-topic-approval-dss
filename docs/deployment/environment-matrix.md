@@ -1,6 +1,6 @@
 # Environment and Configuration Matrix
 
-This matrix documents the environment variables actually used by the repository as of PR #109. Do not add secrets to this file, `.env` files, release notes, smoke evidence, or generated reports.
+This matrix documents the environment variables actually used by the repository as of PR #115. Do not add secrets to this file, `.env` files, release notes, smoke evidence, or generated reports.
 
 ## Release Target Classification
 
@@ -10,7 +10,7 @@ This matrix documents the environment variables actually used by the repository 
 | Local integrated demo | SUPPORTED | Requires local database migrations, SBERT service health, backend readiness, and frontend dev/preview host. |
 | Controlled release candidate deployment | CONDITIONALLY SUPPORTED | Supported only when the release gate passes in the target environment and operations are documented. |
 | Public HTTPS production deployment | NOT VERIFIED | Requires HTTPS, secrets, backup ownership, monitoring, SMTP transport, and incident response proof. |
-| Containerized deployment | NOT VERIFIED | Only the SBERT service has Docker/Compose support. No full-stack Compose file exists. |
+| Containerized deployment | SUPPORTED FOR LOCAL/STAGING-STYLE VERIFICATION | Root Compose includes PostgreSQL, backend, frontend, and SBERT. Public production container deployment remains unverified. |
 | Single-host deployment | CONDITIONALLY SUPPORTED | Native process deployment is documented; process manager/reverse proxy setup remains environment-owned. |
 | Horizontal scaling | NOT VERIFIED | Session cookies are JWT-backed, but SBERT, uploads, rate limits, and operational topology are not validated for scale-out. |
 | Database backup/restore | CONDITIONALLY SUPPORTED | Commands are documented with placeholders; real backup drills are not verified. |
@@ -75,6 +75,23 @@ This matrix documents the environment variables actually used by the repository 
 | `SMOKE_STUDENT_EMAIL` / `SMOKE_STUDENT_PASSWORD` | Smoke only | Yes | None | Do not commit. |
 | `SMOKE_LECTURER_EMAIL` / `SMOKE_LECTURER_PASSWORD` | Smoke only | Yes | None | Do not commit. |
 | `SMOKE_ADMIN_EMAIL` / `SMOKE_ADMIN_PASSWORD` | Smoke only | Yes | None | Do not commit. |
+
+## Docker Compose Variables
+
+| Variable | Classification | Secret | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `POSTGRES_DB` | Compose only | No | `topic_similarity` | Local database name. |
+| `POSTGRES_USER` | Compose only | No | `topic_similarity` | Local database user. |
+| `POSTGRES_PASSWORD` | Compose/local secret | Yes | Local placeholder | Replace for shared/staging use; never commit real values. |
+| `POSTGRES_PORT` | Compose only | No | `5432` | Host port for local PostgreSQL. |
+| `BACKEND_PORT` | Compose only | No | `3000` | Host port for backend API. |
+| `FRONTEND_PORT` | Compose only | No | `8080` | Host port for Nginx static frontend. |
+| `SBERT_PORT` | Compose only | No | `8000` | Host port for SBERT service. |
+| `SBERT_LOG_LEVEL` | Compose only | No | `INFO` | SBERT container log level. |
+| `FULLSTACK_BACKEND_HEALTH_URL` | Smoke only | No | `http://127.0.0.1:3000/api/v1/health` | Override for `npm run docker:smoke`. |
+| `FULLSTACK_BACKEND_READINESS_URL` | Smoke only | No | `http://127.0.0.1:3000/api/v1/readiness` | Override for `npm run docker:smoke`. |
+| `FULLSTACK_SBERT_HEALTH_URL` | Smoke only | No | `http://127.0.0.1:8000/health` | Override for `npm run docker:smoke`. |
+| `FULLSTACK_FRONTEND_URL` | Smoke only | No | `http://127.0.0.1:8080/` | Override for `npm run docker:smoke`. |
 
 ## Cookie, CORS, and Proxy Notes
 
