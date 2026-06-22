@@ -8,8 +8,26 @@ jest.mock('../services/adminReports.service', () => ({
   getReportsSummary: jest.fn()
 }));
 
+jest.mock('../services/adminReportExport.service', () => {
+  class AdminReportExportServiceError extends Error {
+    constructor(message, { code = 'ADMIN_REPORT_EXPORT_ERROR', field, statusCode = 400 } = {}) {
+      super(message);
+      this.name = 'AdminReportExportServiceError';
+      this.code = code;
+      this.field = field;
+      this.statusCode = statusCode;
+    }
+  }
+
+  return {
+    AdminReportExportServiceError,
+    exportReport: jest.fn()
+  };
+});
+
 const authService = require('../services/auth.service');
 const adminReportsService = require('../services/adminReports.service');
+const adminReportExportService = require('../services/adminReportExport.service');
 const app = require('../server');
 
 const adminUser = {
@@ -92,8 +110,8 @@ const reportsSummary = {
       ]
     },
     exports: {
-      status: 'deferred',
-      message: 'Report export generation is not implemented.'
+      status: 'csv_available',
+      message: 'CSV exports are available for safe admin report categories. PDF exports remain deferred.'
     },
     warnings: []
   },
@@ -101,7 +119,7 @@ const reportsSummary = {
     generatedAt: '2026-06-06T12:00:00.000Z',
     dataCoverage: 'Read-only report aggregates from existing tables.',
     sourceTables: ['User', 'Submission'],
-    exportStatus: 'deferred'
+    exportStatus: 'csv_available_pdf_deferred'
   }
 };
 
@@ -164,7 +182,7 @@ describe('Admin reports API routes', () => {
     expect(adminReportsService.getReportsSummary).not.toHaveBeenCalled();
   });
 
-  test('report summary route is read-only and exposes no export action', async () => {
+  test('report summary route remains read-only and exposes no inline export file', async () => {
     authService.authenticateToken.mockResolvedValue(adminUser);
     adminReportsService.getReportsSummary.mockResolvedValue(reportsSummary);
 
@@ -174,10 +192,79 @@ describe('Admin reports API routes', () => {
       .expect(200);
 
     expect(response.body.data.exports).toEqual(expect.objectContaining({
-      status: 'deferred'
+      status: 'csv_available'
     }));
     expect(response.body.data).not.toHaveProperty('downloadUrl');
     expect(response.body.data).not.toHaveProperty('exportFile');
     expect(response.body.data).not.toHaveProperty('actions');
+  });
+
+  test('admin can export report CSV', async () => {
+    authService.authenticateToken.mockResolvedValue(adminUser);
+    adminReportExportService.exportReport.mockResolvedValue({
+      body: 'id,name\n1,Ada Admin\n',
+      contentType: 'text/csv; charset=utf-8',
+      filename: 'admin-users-export-2026-06-22.csv',
+      rowCount: 1,
+      type: 'users'
+    });
+
+    const response = await request(app)
+      .get('/api/v1/admin/reports/export/users')
+      .set('Cookie', ['rtadss_session=signed-admin-token'])
+      .expect(200);
+
+    expect(response.headers['content-type']).toMatch(/text\/csv/);
+    expect(response.headers['content-disposition']).toBe('attachment; filename="admin-users-export-2026-06-22.csv"');
+    expect(response.headers['x-report-export-type']).toBe('users');
+    expect(response.headers['x-report-export-row-count']).toBe('1');
+    expect(response.text).toBe('id,name\n1,Ada Admin\n');
+    expect(adminReportExportService.exportReport).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'users',
+      query: {},
+      req: expect.any(Object)
+    }));
+  });
+
+  test('non-admin users cannot export reports', async () => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+
+    const response = await request(app)
+      .get('/api/v1/admin/reports/export/users')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .expect(403);
+
+    expect(response.body).toMatchObject({
+      status: 'error',
+      details: {
+        error_code: 'FORBIDDEN'
+      }
+    });
+    expect(adminReportExportService.exportReport).not.toHaveBeenCalled();
+  });
+
+  test('invalid report export type is rejected', async () => {
+    authService.authenticateToken.mockResolvedValue(adminUser);
+    adminReportExportService.exportReport.mockRejectedValue(
+      new adminReportExportService.AdminReportExportServiceError('Unsupported report export type.', {
+        code: 'ADMIN_REPORT_EXPORT_INVALID_TYPE',
+        field: 'type',
+        statusCode: 400
+      })
+    );
+
+    const response = await request(app)
+      .get('/api/v1/admin/reports/export/pdf')
+      .set('Cookie', ['rtadss_session=signed-admin-token'])
+      .expect(400);
+
+    expect(response.body).toEqual({
+      success: false,
+      error: {
+        code: 'ADMIN_REPORT_EXPORT_INVALID_TYPE',
+        message: 'Unsupported report export type.',
+        field: 'type'
+      }
+    });
   });
 });

@@ -3,7 +3,40 @@ import AdminDashboardLayout from '../../layouts/AdminDashboardLayout';
 import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import InfoCallout from '../../components/ui/InfoCallout';
 import PageHeader from '../../components/ui/PageHeader';
-import { getAdminReportsSummary } from '../../api/admin';
+import { exportAdminReport, getAdminReportsSummary } from '../../api/admin';
+
+const EXPORT_TYPES = [
+  {
+    type: 'users',
+    label: 'Users CSV',
+    description: 'Safe account fields only.'
+  },
+  {
+    type: 'submissions',
+    label: 'Submissions CSV',
+    description: 'Submission workflow fields without private tokens.'
+  },
+  {
+    type: 'topics',
+    label: 'Topics CSV',
+    description: 'Lifecycle topic rows without embeddings or raw records.'
+  },
+  {
+    type: 'similarity-snapshots',
+    label: 'Similarity snapshots CSV',
+    description: 'Stored snapshot summary fields without raw result payloads.'
+  },
+  {
+    type: 'audit-logs',
+    label: 'Audit logs CSV',
+    description: 'Stored audit event fields without metadata body export.'
+  },
+  {
+    type: 'supervisee-assignments',
+    label: 'Supervisee assignments CSV',
+    description: 'Real assignment rows without private notes.'
+  }
+];
 
 function formatCount(value) {
   return Number.isFinite(value) ? value.toLocaleString() : '0';
@@ -56,11 +89,83 @@ function SectionCard({ children, title, subtitle }) {
   );
 }
 
+function triggerCsvDownload({ blob, filename }) {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+function ExportActionsSection({ exportState, onExport, summary }) {
+  return (
+    <SectionCard
+      subtitle="CSV downloads are generated from real backend rows and audited. PDF remains deferred."
+      title="CSV exports"
+    >
+      <div className="grid gap-3">
+        {EXPORT_TYPES.map((exportType) => (
+          <div
+            className="rounded-[0.9rem] border border-border-subtle bg-surface-muted p-3"
+            key={exportType.type}
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-text-primary">{exportType.label}</p>
+                <p className="mt-1 text-xs leading-5 text-text-secondary">{exportType.description}</p>
+              </div>
+              <button
+                className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                disabled={Boolean(exportState.loadingType)}
+                onClick={() => onExport(exportType.type)}
+                type="button"
+              >
+                {exportState.loadingType === exportType.type ? 'Preparing CSV...' : `Download ${exportType.label}`}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {exportState.success ? (
+        <div className="mt-3">
+          <InfoCallout message={exportState.success} title="Export started" variant="success" />
+        </div>
+      ) : null}
+
+      {exportState.error ? (
+        <div className="mt-3">
+          <InfoCallout message={exportState.error} title="Export failed" variant="warning" />
+        </div>
+      ) : null}
+
+      <p className="mt-3 text-sm leading-6 text-text-secondary">
+        {summary?.exports?.message || 'CSV exports are connected for safe report categories. PDF export generation is not connected.'}
+      </p>
+      <button
+        className="mt-3 rounded-xl border border-border-subtle bg-surface-muted px-4 py-2 text-sm font-semibold text-text-muted"
+        disabled
+        type="button"
+      >
+        PDF export deferred
+      </button>
+    </SectionCard>
+  );
+}
+
 function ReportsPage() {
   const [summary, setSummary] = useState(null);
   const [meta, setMeta] = useState(null);
   const [pageState, setPageState] = useState('loading');
   const [errorMessage, setErrorMessage] = useState('');
+  const [exportState, setExportState] = useState({
+    error: '',
+    loadingType: '',
+    success: ''
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -111,12 +216,36 @@ function ReportsPage() {
   }, [summary]);
   const hasReportData = totalSignal > 0;
 
+  async function handleExport(type) {
+    setExportState({
+      error: '',
+      loadingType: type,
+      success: ''
+    });
+
+    try {
+      const result = await exportAdminReport(type);
+      triggerCsvDownload(result);
+      setExportState({
+        error: '',
+        loadingType: '',
+        success: `${result.filename} download started.`
+      });
+    } catch (error) {
+      setExportState({
+        error: error?.response?.data?.error?.message || 'Report export could not be generated.',
+        loadingType: '',
+        success: ''
+      });
+    }
+  }
+
   return (
     <AdminDashboardLayout className="space-y-5">
       <PageHeader
         eyebrow="Governance reporting"
         title="Reports"
-        subtitle="Read-only reporting summary connected to existing aggregate data. No fake metrics, report files, export jobs, PDF downloads, or CSV downloads are exposed."
+        subtitle="Read-only reporting summary connected to existing aggregate data with safe audited CSV exports. No fake metrics, PDF downloads, charts, or generated analytics are exposed."
       />
 
       <section className="overflow-hidden rounded-[2rem] border border-emerald-950/10 bg-[#eef4eb] shadow-[0_24px_80px_-58px_rgb(6_95_70_/_0.7)]">
@@ -138,9 +267,9 @@ function ReportsPage() {
 
               <div className="rounded-[1.35rem] border border-white/15 bg-white/10 p-4 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100/80">Export boundary</p>
-                <p className="mt-1 text-xl font-semibold text-white">Exports deferred</p>
+                <p className="mt-1 text-xl font-semibold text-white">Audited CSV exports</p>
                 <p className="mt-2 text-sm leading-6 text-emerald-50/75">
-                  PDF, CSV, and download workflows are not generated until a real export contract exists.
+                  CSV exports use real database rows and record an audit event. PDF exports remain deferred.
                 </p>
               </div>
             </div>
@@ -176,7 +305,7 @@ function ReportsPage() {
 
             <InfoCallout
               title="No fake reports or exports"
-              message={summary?.exports?.message || 'Report export generation remains deferred. No PDF, CSV, or download endpoint is exposed.'}
+              message={summary?.exports?.message || 'CSV exports are available only for implemented safe admin report categories. PDF export remains deferred.'}
               variant="warning"
             />
           </div>
@@ -213,10 +342,17 @@ function ReportsPage() {
           ) : null}
 
           {!isLoading && !hasError && !hasReportData ? (
-            <EmptyStatePanel
-              message="The reports endpoint returned zero aggregate data. No placeholder metrics, charts, or exports are shown."
-              title="Not enough report data yet"
-            />
+            <>
+              <EmptyStatePanel
+                message="The reports endpoint returned zero aggregate data. No placeholder metrics or charts are shown. CSV exports will return header-only files when no rows exist."
+                title="Not enough report data yet"
+              />
+              <ExportActionsSection
+                exportState={exportState}
+                onExport={handleExport}
+                summary={summary}
+              />
+            </>
           ) : null}
 
           {!isLoading && !hasError && summary && hasReportData ? (
@@ -295,30 +431,11 @@ function ReportsPage() {
                 )}
               </SectionCard>
 
-              <SectionCard
-                subtitle="Future report generation boundary."
-                title="Exports"
-              >
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <button
-                    className="rounded-xl border border-border-subtle bg-surface-muted px-4 py-2 text-sm font-semibold text-text-muted"
-                    disabled
-                    type="button"
-                  >
-                    CSV export deferred
-                  </button>
-                  <button
-                    className="rounded-xl border border-border-subtle bg-surface-muted px-4 py-2 text-sm font-semibold text-text-muted"
-                    disabled
-                    type="button"
-                  >
-                    PDF export deferred
-                  </button>
-                </div>
-                <p className="mt-3 text-sm leading-6 text-text-secondary">
-                  {summary.exports?.message || 'No export endpoint is connected.'}
-                </p>
-              </SectionCard>
+              <ExportActionsSection
+                exportState={exportState}
+                onExport={handleExport}
+                summary={summary}
+              />
             </div>
           ) : null}
         </div>

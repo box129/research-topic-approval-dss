@@ -205,8 +205,8 @@ function createAdminReportsService({ prismaClient = prisma } = {}) {
           topEventTypes: mapEventTypes(auditEventGroups)
         },
         exports: {
-          status: 'deferred',
-          message: 'Report export generation is not implemented. No PDF, CSV, or download endpoint is exposed.'
+          status: 'csv_available',
+          message: 'CSV exports are available for safe admin report categories. PDF exports remain deferred.'
         },
         warnings: []
       },
@@ -214,7 +214,7 @@ function createAdminReportsService({ prismaClient = prisma } = {}) {
         generatedAt: new Date().toISOString(),
         dataCoverage: DATA_COVERAGE,
         sourceTables: SOURCE_TABLES,
-        exportStatus: 'deferred'
+        exportStatus: 'csv_available_pdf_deferred'
       }
     };
   };

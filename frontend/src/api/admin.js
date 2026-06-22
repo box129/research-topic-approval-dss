@@ -80,6 +80,26 @@ export async function getAdminReportsSummary() {
   };
 }
 
+function getFilenameFromDisposition(disposition, fallback) {
+  const match = String(disposition || '').match(/filename="?([^";]+)"?/i);
+  return match?.[1] || fallback;
+}
+
+export async function exportAdminReport(type) {
+  const response = await apiClient.get(`/admin/reports/export/${type}`, {
+    responseType: 'blob'
+  });
+
+  return {
+    blob: response.data,
+    contentType: response.headers?.['content-type'] || 'text/csv; charset=utf-8',
+    filename: getFilenameFromDisposition(
+      response.headers?.['content-disposition'],
+      `admin-${type}-export.csv`
+    )
+  };
+}
+
 export async function listAdminTopics(params = {}) {
   const response = await apiClient.get('/admin/topics', { params });
   return {

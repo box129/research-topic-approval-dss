@@ -141,14 +141,14 @@ describe('adminReports.service', () => {
         ]
       },
       exports: {
-        status: 'deferred'
+        status: 'csv_available'
       }
     });
     expect(result.meta).toEqual({
       generatedAt: expect.any(String),
       dataCoverage: DATA_COVERAGE,
       sourceTables: SOURCE_TABLES,
-      exportStatus: 'deferred'
+      exportStatus: 'csv_available_pdf_deferred'
     });
     expect(result.data).not.toHaveProperty('items');
     expect(result.data).not.toHaveProperty('rawRecords');
@@ -178,7 +178,7 @@ describe('adminReports.service', () => {
     expect(result.data.similarityChecks.snapshots).toBe(0);
     expect(result.data.auditLogs.total).toBe(0);
     expect(result.data.auditLogs.topEventTypes).toEqual([]);
-    expect(result.data.exports.status).toBe('deferred');
+    expect(result.data.exports.status).toBe('csv_available');
   });
 
   test('queries only aggregate methods and does not request raw rows', async () => {
