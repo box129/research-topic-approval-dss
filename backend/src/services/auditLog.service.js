@@ -1,5 +1,6 @@
 const prisma = require('../config/database');
 const logger = require('../config/logger');
+const config = require('../config/env');
 
 const AUDIT_EVENT_TYPES = Object.freeze({
   AUTH_LOGIN: 'AUTH_LOGIN',
@@ -14,13 +15,15 @@ const AUDIT_EVENT_TYPES = Object.freeze({
   SUPERVISEE_ASSIGNED: 'SUPERVISEE_ASSIGNED',
   SUPERVISEE_ASSIGNMENT_UPDATED: 'SUPERVISEE_ASSIGNMENT_UPDATED',
   SUPERVISEE_ASSIGNMENT_ENDED: 'SUPERVISEE_ASSIGNMENT_ENDED',
-  REPORT_EXPORTED: 'REPORT_EXPORTED'
+  REPORT_EXPORTED: 'REPORT_EXPORTED',
+  AUDIT_LOGS_PURGED: 'AUDIT_LOGS_PURGED'
 });
 
 const SENSITIVE_KEY_PATTERN = /(password|passwordHash|token|resetToken|resetTokenHash|secret|authorization|cookie|jwt|session)/i;
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 100;
+const AUDIT_PURGE_CONFIRMATION = 'CONFIRM_AUDIT_PURGE';
 
 class AuditLogServiceError extends Error {
   constructor(message, statusCode, code, field) {
@@ -188,7 +191,116 @@ function buildWhere(filters = {}) {
   return where;
 }
 
-function createAuditLogService({ prismaClient = prisma, log = logger } = {}) {
+function normalizePositiveIntegerInput(value, field) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    throw new AuditLogServiceError(`${field} must be a positive integer.`, 400, 'INVALID_AUDIT_PURGE_INPUT', field);
+  }
+
+  return parsed;
+}
+
+function subtractDays(date, days) {
+  const copy = new Date(date.getTime());
+  copy.setUTCDate(copy.getUTCDate() - days);
+  return copy;
+}
+
+function normalizePurgePolicy(policy = {}) {
+  return {
+    retentionDays: normalizePositiveIntegerInput(policy.retentionDays || 365, 'retentionDays'),
+    purgeMinAgeDays: normalizePositiveIntegerInput(policy.purgeMinAgeDays || 90, 'purgeMinAgeDays'),
+    purgeMaxBatch: normalizePositiveIntegerInput(policy.purgeMaxBatch || 1000, 'purgeMaxBatch')
+  };
+}
+
+function normalizePurgeRequest(input = {}, policy, now = new Date()) {
+  const olderThanDaysValue = input.olderThanDays ?? input.older_than_days;
+  const cutoffDateValue = input.cutoffDate ?? input.cutoff_date;
+
+  const hasOlderThanDays = olderThanDaysValue !== undefined && olderThanDaysValue !== null && olderThanDaysValue !== '';
+  const hasCutoffDate = cutoffDateValue !== undefined && cutoffDateValue !== null && cutoffDateValue !== '';
+
+  if (hasOlderThanDays && hasCutoffDate) {
+    throw new AuditLogServiceError(
+      'Provide either olderThanDays or cutoffDate, not both.',
+      400,
+      'AUDIT_PURGE_AMBIGUOUS_CUTOFF',
+      'cutoff'
+    );
+  }
+
+  const olderThanDays = hasOlderThanDays
+    ? normalizePositiveIntegerInput(olderThanDaysValue, 'olderThanDays')
+    : null;
+  const cutoffDate = hasCutoffDate
+    ? normalizeDateFilter(cutoffDateValue, 'cutoffDate')
+    : subtractDays(now, olderThanDays || policy.retentionDays);
+  const minAllowedCutoff = subtractDays(now, policy.purgeMinAgeDays);
+
+  if (cutoffDate.getTime() > minAllowedCutoff.getTime()) {
+    throw new AuditLogServiceError(
+      `Audit purge cutoff must be at least ${policy.purgeMinAgeDays} days old.`,
+      400,
+      'AUDIT_PURGE_CUTOFF_TOO_RECENT',
+      olderThanDays ? 'olderThanDays' : 'cutoffDate'
+    );
+  }
+
+  return {
+    cutoffDate,
+    olderThanDays: olderThanDays || Math.floor((now.getTime() - cutoffDate.getTime()) / (24 * 60 * 60 * 1000)),
+    minAgeDays: policy.purgeMinAgeDays,
+    maxBatch: policy.purgeMaxBatch,
+    retentionDays: policy.retentionDays
+  };
+}
+
+function countGroup(group) {
+  if (typeof group?._count?._all === 'number') {
+    return group._count._all;
+  }
+
+  if (typeof group?._count === 'number') {
+    return group._count;
+  }
+
+  return 0;
+}
+
+function mapGroupedCounts(groups, field) {
+  return groups.map((group) => ({
+    [field]: group[field] || 'unknown',
+    count: countGroup(group)
+  }));
+}
+
+function serializePurgePreview({ candidateCount, eventTypeGroups, actorRoleGroups, request }) {
+  return {
+    cutoffDate: request.cutoffDate.toISOString(),
+    olderThanDays: request.olderThanDays,
+    candidateCount,
+    maxBatch: request.maxBatch,
+    willDeleteCount: Math.min(candidateCount, request.maxBatch),
+    policy: {
+      retentionDays: request.retentionDays,
+      purgeMinAgeDays: request.minAgeDays,
+      confirmationPhrase: AUDIT_PURGE_CONFIRMATION
+    },
+    summary: {
+      byEventType: mapGroupedCounts(eventTypeGroups, 'eventType'),
+      byActorRole: mapGroupedCounts(actorRoleGroups, 'actorRole')
+    }
+  };
+}
+
+function createAuditLogService({
+  prismaClient = prisma,
+  log = logger,
+  retentionPolicy = config.auditLog
+} = {}) {
+  const policy = normalizePurgePolicy(retentionPolicy);
+
   const createAuditLog = async ({
     eventType,
     actorId = null,
@@ -274,11 +386,104 @@ function createAuditLogService({ prismaClient = prisma, log = logger } = {}) {
     return serializeAuditLog(auditLog);
   };
 
+  const previewAuditLogPurge = async (input = {}, { now = new Date() } = {}) => {
+    const request = normalizePurgeRequest(input, policy, now);
+    const where = {
+      createdAt: {
+        lt: request.cutoffDate
+      }
+    };
+    const [candidateCount, eventTypeGroups, actorRoleGroups] = await Promise.all([
+      prismaClient.auditLog.count({ where }),
+      prismaClient.auditLog.groupBy({
+        by: ['eventType'],
+        where,
+        _count: { _all: true }
+      }),
+      prismaClient.auditLog.groupBy({
+        by: ['actorRole'],
+        where,
+        _count: { _all: true }
+      })
+    ]);
+
+    return serializePurgePreview({
+      candidateCount,
+      eventTypeGroups,
+      actorRoleGroups,
+      request
+    });
+  };
+
+  const purgeAuditLogs = async ({ input = {}, req, now = new Date() } = {}) => {
+    if (input.confirmation !== AUDIT_PURGE_CONFIRMATION) {
+      throw new AuditLogServiceError(
+        `confirmation must equal ${AUDIT_PURGE_CONFIRMATION}.`,
+        400,
+        'AUDIT_PURGE_CONFIRMATION_REQUIRED',
+        'confirmation'
+      );
+    }
+
+    const preview = await previewAuditLogPurge(input, { now });
+    const eligibleLogs = await prismaClient.auditLog.findMany({
+      where: {
+        createdAt: {
+          lt: new Date(preview.cutoffDate)
+        }
+      },
+      select: {
+        id: true
+      },
+      orderBy: {
+        createdAt: 'asc'
+      },
+      take: policy.purgeMaxBatch
+    });
+    const ids = eligibleLogs.map((auditLog) => auditLog.id);
+    const deleteResult = ids.length
+      ? await prismaClient.auditLog.deleteMany({
+        where: {
+          id: {
+            in: ids
+          }
+        }
+      })
+      : { count: 0 };
+
+    await createAuditLogSafely({
+      eventType: AUDIT_EVENT_TYPES.AUDIT_LOGS_PURGED,
+      ...buildAuditContextFromRequest(req),
+      targetType: 'AuditLog',
+      targetId: null,
+      metadata: {
+        cutoffDate: preview.cutoffDate,
+        olderThanDays: preview.olderThanDays,
+        candidateCount: preview.candidateCount,
+        deletedCount: deleteResult.count || 0,
+        maxBatch: policy.purgeMaxBatch,
+        retentionDays: policy.retentionDays,
+        purgeMinAgeDays: policy.purgeMinAgeDays
+      }
+    });
+
+    return {
+      cutoffDate: preview.cutoffDate,
+      olderThanDays: preview.olderThanDays,
+      candidateCount: preview.candidateCount,
+      deletedCount: deleteResult.count || 0,
+      maxBatch: policy.purgeMaxBatch,
+      auditEventType: AUDIT_EVENT_TYPES.AUDIT_LOGS_PURGED
+    };
+  };
+
   return {
     createAuditLog,
     createAuditLogSafely,
     listAuditLogs,
-    getAuditLogById
+    getAuditLogById,
+    previewAuditLogPurge,
+    purgeAuditLogs
   };
 }
 
@@ -290,7 +495,9 @@ module.exports = {
   buildAuditContextFromRequest,
   redactMetadata,
   serializeAuditLog,
+  AUDIT_PURGE_CONFIRMATION,
   DEFAULT_PAGE,
   DEFAULT_LIMIT,
-  MAX_LIMIT
+  MAX_LIMIT,
+  normalizePurgeRequest
 };

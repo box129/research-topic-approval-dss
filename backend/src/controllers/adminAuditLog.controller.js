@@ -91,9 +91,60 @@ async function getAuditLogById(req, res, next) {
   }
 }
 
+async function previewAuditLogPurge(req, res, next) {
+  try {
+    const result = await auditLogService.previewAuditLogPurge(req.body || {});
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        purgePreview: result
+      },
+      meta: {
+        destructive: false,
+        policy: result.policy
+      }
+    });
+  } catch (error) {
+    try {
+      return sendAuditLogError(res, error);
+    } catch (unhandledError) {
+      return next(unhandledError);
+    }
+  }
+}
+
+async function purgeAuditLogs(req, res, next) {
+  try {
+    const result = await auditLogService.purgeAuditLogs({
+      input: req.body || {},
+      req
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        purge: result
+      },
+      meta: {
+        destructive: true,
+        audited: true
+      }
+    });
+  } catch (error) {
+    try {
+      return sendAuditLogError(res, error);
+    } catch (unhandledError) {
+      return next(unhandledError);
+    }
+  }
+}
+
 module.exports = {
   listAuditLogs,
   getAuditLogById,
+  previewAuditLogPurge,
+  purgeAuditLogs,
   buildErrorResponse,
   getFilters
 };

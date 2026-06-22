@@ -19,10 +19,13 @@ jest.mock('../services/auditLog.service', () => {
     AuditLogServiceError,
     listAuditLogs: jest.fn(),
     getAuditLogById: jest.fn(),
+    previewAuditLogPurge: jest.fn(),
+    purgeAuditLogs: jest.fn(),
     createAuditLogSafely: jest.fn(),
     AUDIT_EVENT_TYPES: {
       TOPIC_IMPORT_PREVIEWED: 'TOPIC_IMPORT_PREVIEWED',
-      TOPIC_IMPORT_COMMITTED: 'TOPIC_IMPORT_COMMITTED'
+      TOPIC_IMPORT_COMMITTED: 'TOPIC_IMPORT_COMMITTED',
+      AUDIT_LOGS_PURGED: 'AUDIT_LOGS_PURGED'
     },
     buildAuditContextFromRequest: jest.fn(() => ({
       actorId: 1,
@@ -210,6 +213,144 @@ describe('Admin audit log API routes', () => {
         message: 'Audit log id must be a positive integer.',
         field: 'id'
       }
+    });
+  });
+
+  test('admin can preview audit purge candidates without deleting logs', async () => {
+    authService.authenticateToken.mockResolvedValue(adminUser);
+    auditLogService.previewAuditLogPurge.mockResolvedValue({
+      cutoffDate: '2025-06-22T12:00:00.000Z',
+      olderThanDays: 365,
+      candidateCount: 3,
+      maxBatch: 1000,
+      willDeleteCount: 3,
+      policy: {
+        retentionDays: 365,
+        purgeMinAgeDays: 90,
+        confirmationPhrase: 'CONFIRM_AUDIT_PURGE'
+      },
+      summary: {
+        byEventType: [
+          { eventType: 'USER_STATUS_CHANGED', count: 2 }
+        ],
+        byActorRole: [
+          { actorRole: 'admin', count: 3 }
+        ]
+      }
+    });
+
+    const response = await request(app)
+      .post('/api/v1/admin/audit-logs/purge-preview')
+      .set('Cookie', ['rtadss_session=signed-admin-token'])
+      .send({ olderThanDays: 365 })
+      .expect(200);
+
+    expect(response.body).toEqual({
+      success: true,
+      data: {
+        purgePreview: expect.objectContaining({
+          candidateCount: 3,
+          willDeleteCount: 3,
+          summary: expect.objectContaining({
+            byEventType: expect.any(Array)
+          })
+        })
+      },
+      meta: {
+        destructive: false,
+        policy: expect.objectContaining({
+          confirmationPhrase: 'CONFIRM_AUDIT_PURGE'
+        })
+      }
+    });
+    expect(response.body.data.purgePreview).not.toHaveProperty('metadata');
+    expect(auditLogService.previewAuditLogPurge).toHaveBeenCalledWith({ olderThanDays: 365 });
+    expect(auditLogService.purgeAuditLogs).not.toHaveBeenCalled();
+  });
+
+  test('non-admin cannot preview or purge audit logs', async () => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+
+    await request(app)
+      .post('/api/v1/admin/audit-logs/purge-preview')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .send({ olderThanDays: 365 })
+      .expect(403);
+
+    await request(app)
+      .post('/api/v1/admin/audit-logs/purge')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .send({ olderThanDays: 365, confirmation: 'CONFIRM_AUDIT_PURGE' })
+      .expect(403);
+
+    expect(auditLogService.previewAuditLogPurge).not.toHaveBeenCalled();
+    expect(auditLogService.purgeAuditLogs).not.toHaveBeenCalled();
+  });
+
+  test('admin purge requires service confirmation and returns validation error', async () => {
+    authService.authenticateToken.mockResolvedValue(adminUser);
+    auditLogService.purgeAuditLogs.mockRejectedValue(
+      new auditLogService.AuditLogServiceError(
+        'confirmation must equal CONFIRM_AUDIT_PURGE.',
+        400,
+        'AUDIT_PURGE_CONFIRMATION_REQUIRED',
+        'confirmation'
+      )
+    );
+
+    const response = await request(app)
+      .post('/api/v1/admin/audit-logs/purge')
+      .set('Cookie', ['rtadss_session=signed-admin-token'])
+      .send({ olderThanDays: 365, confirmation: 'WRONG' })
+      .expect(400);
+
+    expect(response.body).toEqual({
+      success: false,
+      error: {
+        code: 'AUDIT_PURGE_CONFIRMATION_REQUIRED',
+        message: 'confirmation must equal CONFIRM_AUDIT_PURGE.',
+        field: 'confirmation'
+      }
+    });
+  });
+
+  test('admin can purge old audit logs and receives audited summary only', async () => {
+    authService.authenticateToken.mockResolvedValue(adminUser);
+    auditLogService.purgeAuditLogs.mockResolvedValue({
+      cutoffDate: '2025-06-22T12:00:00.000Z',
+      olderThanDays: 365,
+      candidateCount: 4,
+      deletedCount: 4,
+      maxBatch: 1000,
+      auditEventType: 'AUDIT_LOGS_PURGED'
+    });
+
+    const response = await request(app)
+      .post('/api/v1/admin/audit-logs/purge')
+      .set('Cookie', ['rtadss_session=signed-admin-token'])
+      .send({ olderThanDays: 365, confirmation: 'CONFIRM_AUDIT_PURGE' })
+      .expect(200);
+
+    expect(response.body).toEqual({
+      success: true,
+      data: {
+        purge: expect.objectContaining({
+          deletedCount: 4,
+          auditEventType: 'AUDIT_LOGS_PURGED'
+        })
+      },
+      meta: {
+        destructive: true,
+        audited: true
+      }
+    });
+    expect(response.body.data.purge).not.toHaveProperty('metadata');
+    expect(auditLogService.purgeAuditLogs).toHaveBeenCalledWith({
+      input: {
+        olderThanDays: 365,
+        confirmation: 'CONFIRM_AUDIT_PURGE'
+      },
+      req: expect.any(Object)
     });
   });
 });

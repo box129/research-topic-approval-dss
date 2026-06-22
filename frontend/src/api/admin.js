@@ -72,6 +72,22 @@ export async function getAdminAuditLogDetail(id) {
   };
 }
 
+export async function previewAdminAuditLogPurge(payload) {
+  const response = await apiClient.post('/admin/audit-logs/purge-preview', payload);
+  return {
+    data: response.data?.data,
+    meta: response.data?.meta
+  };
+}
+
+export async function purgeAdminAuditLogs(payload) {
+  const response = await apiClient.post('/admin/audit-logs/purge', payload);
+  return {
+    data: response.data?.data,
+    meta: response.data?.meta
+  };
+}
+
 export async function getAdminReportsSummary() {
   const response = await apiClient.get('/admin/reports/summary');
   return {

@@ -365,6 +365,14 @@ app.get('/api/v1/admin/audit-logs', requireAuth, requireRole('admin'), (req, res
   getAdminAuditLogController().listAuditLogs(req, res, next);
 });
 
+app.post('/api/v1/admin/audit-logs/purge-preview', requireAuth, requireRole('admin'), (req, res, next) => {
+  getAdminAuditLogController().previewAuditLogPurge(req, res, next);
+});
+
+app.post('/api/v1/admin/audit-logs/purge', requireAuth, requireRole('admin'), (req, res, next) => {
+  getAdminAuditLogController().purgeAuditLogs(req, res, next);
+});
+
 app.get('/api/v1/admin/audit-logs/:id', requireAuth, requireRole('admin'), (req, res, next) => {
   getAdminAuditLogController().getAuditLogById(req, res, next);
 });

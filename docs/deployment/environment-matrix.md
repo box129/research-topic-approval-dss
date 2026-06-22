@@ -48,6 +48,9 @@ This matrix documents the environment variables actually used by the repository 
 | `SMTP_USER` | Optional | Yes | None | SMTP username if provider requires authentication. Must be paired with `SMTP_PASSWORD`. |
 | `SMTP_PASSWORD` | Optional | Yes | None | SMTP password if provider requires authentication. Must be paired with `SMTP_USER`; never log or commit it. |
 | `SMTP_TIMEOUT_MS` | Optional | No | `10000` | SMTP connection/greeting/socket timeout in milliseconds. |
+| `AUDIT_LOG_RETENTION_DAYS` | Optional governance setting | No | `365` | Default audit retention period used when purge requests do not provide a cutoff. Must be a positive integer and at least the purge minimum age. |
+| `AUDIT_LOG_PURGE_MIN_AGE_DAYS` | Optional governance setting | No | `90` | Minimum age for audit purge eligibility. Zero is rejected. |
+| `AUDIT_LOG_PURGE_MAX_BATCH` | Optional governance setting | No | `1000` | Maximum audit rows deleted by one purge request. Bounded by backend validation. |
 | `LOG_LEVEL` | Optional | No | `info` | Logging verbosity. |
 | `LOG_FILE` | Optional | No | `logs/app.log` | Log file path. |
 | `SIMILARITY_TIER2_THRESHOLD` | Optional compatibility setting | No | `0.60` | Present in config; PR #107 does not change the approved scoring contract. |

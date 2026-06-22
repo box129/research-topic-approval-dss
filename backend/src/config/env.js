@@ -49,6 +49,21 @@ function parseOptionalInteger(value, key) {
   return Number.parseInt(normalized, 10);
 }
 
+function parseBoundedPositiveInteger(value, key, { defaultValue, min = 1, max }) {
+  const parsed = parseOptionalInteger(value, key);
+  const finalValue = parsed === undefined ? defaultValue : parsed;
+
+  if (!Number.isInteger(finalValue) || finalValue < min) {
+    throw new Error(`${key} must be a positive integer${min > 1 ? ` greater than or equal to ${min}` : ''}.`);
+  }
+
+  if (max && finalValue > max) {
+    throw new Error(`${key} must be less than or equal to ${max}.`);
+  }
+
+  return finalValue;
+}
+
 /**
  * Validate required environment variables
  */
@@ -122,6 +137,22 @@ function validateEnv(source = process.env) {
       throw new Error('SMTP_USER and SMTP_PASSWORD must be provided together when SMTP authentication is used.');
     }
   }
+
+  const auditPurgeMinAgeDays = parseBoundedPositiveInteger(source.AUDIT_LOG_PURGE_MIN_AGE_DAYS, 'AUDIT_LOG_PURGE_MIN_AGE_DAYS', {
+    defaultValue: 90,
+    min: source.NODE_ENV === 'production' ? 1 : 1,
+    max: 3650
+  });
+  parseBoundedPositiveInteger(source.AUDIT_LOG_RETENTION_DAYS, 'AUDIT_LOG_RETENTION_DAYS', {
+    defaultValue: 365,
+    min: auditPurgeMinAgeDays,
+    max: 3650
+  });
+  parseBoundedPositiveInteger(source.AUDIT_LOG_PURGE_MAX_BATCH, 'AUDIT_LOG_PURGE_MAX_BATCH', {
+    defaultValue: 1000,
+    min: 1,
+    max: 5000
+  });
 }
 
 /**
@@ -192,6 +223,29 @@ function buildConfig(source = process.env) {
       }
     },
 
+    // Audit log governance
+    auditLog: {
+      retentionDays: parseBoundedPositiveInteger(source.AUDIT_LOG_RETENTION_DAYS, 'AUDIT_LOG_RETENTION_DAYS', {
+        defaultValue: 365,
+        min: parseBoundedPositiveInteger(source.AUDIT_LOG_PURGE_MIN_AGE_DAYS, 'AUDIT_LOG_PURGE_MIN_AGE_DAYS', {
+          defaultValue: 90,
+          min: 1,
+          max: 3650
+        }),
+        max: 3650
+      }),
+      purgeMinAgeDays: parseBoundedPositiveInteger(source.AUDIT_LOG_PURGE_MIN_AGE_DAYS, 'AUDIT_LOG_PURGE_MIN_AGE_DAYS', {
+        defaultValue: 90,
+        min: 1,
+        max: 3650
+      }),
+      purgeMaxBatch: parseBoundedPositiveInteger(source.AUDIT_LOG_PURGE_MAX_BATCH, 'AUDIT_LOG_PURGE_MAX_BATCH', {
+        defaultValue: 1000,
+        min: 1,
+        max: 5000
+      })
+    },
+
     // Logging configuration
     logging: {
       level: source.LOG_LEVEL || 'info',
@@ -213,6 +267,7 @@ module.exports = config;
 Object.defineProperties(module.exports, {
   buildConfig: { value: buildConfig },
   parseBooleanEnv: { value: parseBooleanEnv },
+  parseBoundedPositiveInteger: { value: parseBoundedPositiveInteger },
   validateEnv: { value: validateEnv },
   effectiveCorsOrigin: { value: effectiveCorsOrigin }
 });
