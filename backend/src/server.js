@@ -345,6 +345,10 @@ app.get('/api/v1/admin/reports/summary', requireAuth, requireRole('admin'), (req
   getAdminReportsController().getReportsSummary(req, res, next);
 });
 
+app.get('/api/v1/admin/reports/export/:type', requireAuth, requireRole('admin'), (req, res, next) => {
+  getAdminReportsController().exportReport(req, res, next);
+});
+
 app.get('/api/v1/admin/topics/summary', requireAuth, requireRole('admin'), (req, res, next) => {
   getAdminTopicRepositoryController().getTopicsSummary(req, res, next);
 });

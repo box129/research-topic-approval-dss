@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import AdminReportsPage from '../src/pages/admin/ReportsPage';
 import apiClient from '../src/api/client';
 import axios from 'axios';
-import { getAdminReportsSummary } from '../src/api/admin';
+import { exportAdminReport, getAdminReportsSummary } from '../src/api/admin';
 
 vi.mock('axios', () => ({
   default: {
@@ -24,6 +24,7 @@ vi.mock('../src/api/client', () => ({
 }));
 
 vi.mock('../src/api/admin', () => ({
+  exportAdminReport: vi.fn(),
   getAdminReportsSummary: vi.fn()
 }));
 
@@ -105,8 +106,8 @@ const reportsResponse = {
       ]
     },
     exports: {
-      status: 'deferred',
-      message: 'Report export generation is not implemented. No PDF, CSV, or download endpoint is exposed.'
+      status: 'csv_available',
+      message: 'CSV exports are available for safe admin report categories. PDF exports remain deferred.'
     },
     warnings: []
   },
@@ -114,7 +115,7 @@ const reportsResponse = {
     generatedAt: '2026-06-06T10:05:14.000Z',
     dataCoverage: 'Read-only report aggregates from existing tables.',
     sourceTables: ['User', 'Submission', 'AuditLog'],
-    exportStatus: 'deferred'
+    exportStatus: 'csv_available_pdf_deferred'
   }
 };
 
@@ -147,8 +148,8 @@ function zeroReportsResponse() {
         topEventTypes: []
       },
       exports: {
-        status: 'deferred',
-        message: 'Report export generation is not implemented. No PDF, CSV, or download endpoint is exposed.'
+        status: 'csv_available',
+        message: 'CSV exports are available for safe admin report categories. PDF exports remain deferred.'
       },
       warnings: []
     },
@@ -160,11 +161,19 @@ describe('AdminReportsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', vi.fn());
+    window.URL.createObjectURL = vi.fn(() => 'blob:admin-report-export');
+    window.URL.revokeObjectURL = vi.fn();
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     getAdminReportsSummary.mockResolvedValue(reportsResponse);
+    exportAdminReport.mockResolvedValue({
+      blob: new Blob(['id,name\n1,Ada\n'], { type: 'text/csv' }),
+      filename: 'admin-users-export.csv'
+    });
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it('renders real aggregate values from the reports summary endpoint', async () => {
@@ -184,16 +193,20 @@ describe('AdminReportsPage', () => {
     expect(screen.getByText(/USER_STATUS_CHANGED/i)).toBeInTheDocument();
   });
 
-  it('keeps report export generation visibly deferred', async () => {
+  it('shows CSV export actions and keeps PDF visibly deferred', async () => {
     render(<AdminReportsPage />);
 
     await waitFor(() => {
       expect(getAdminReportsSummary).toHaveBeenCalledTimes(1);
     });
 
-    expect(screen.getByRole('button', { name: /CSV export deferred/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Download Users CSV/i })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /Download Submissions CSV/i })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /Download Topics CSV/i })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /Download Similarity snapshots CSV/i })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /Download Audit logs CSV/i })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /Download Supervisee assignments CSV/i })).toBeEnabled();
     expect(screen.getByRole('button', { name: /PDF export deferred/i })).toBeDisabled();
-    expect(screen.getAllByText(/No PDF, CSV, or download endpoint is exposed/i).length).toBeGreaterThanOrEqual(1);
     expect(fetch).not.toHaveBeenCalled();
     expect(apiClient.post).not.toHaveBeenCalled();
     expect(apiClient.patch).not.toHaveBeenCalled();
@@ -201,6 +214,77 @@ describe('AdminReportsPage', () => {
     expect(axios.post).not.toHaveBeenCalled();
     expect(axios.patch).not.toHaveBeenCalled();
     expect(axios.delete).not.toHaveBeenCalled();
+  });
+
+  it('downloads a CSV export through the admin report API helper', async () => {
+    render(<AdminReportsPage />);
+
+    await waitFor(() => {
+      expect(getAdminReportsSummary).toHaveBeenCalledTimes(1);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Download Users CSV/i }));
+
+    await waitFor(() => {
+      expect(exportAdminReport).toHaveBeenCalledWith('users');
+    });
+    expect(window.URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    expect(HTMLAnchorElement.prototype.click).toHaveBeenCalledTimes(1);
+    expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('blob:admin-report-export');
+    expect(screen.getByText(/admin-users-export.csv download started/i)).toBeInTheDocument();
+  });
+
+  it('shows loading while a CSV export is being prepared', async () => {
+    let resolveExport;
+    exportAdminReport.mockReturnValue(new Promise((resolve) => {
+      resolveExport = resolve;
+    }));
+
+    render(<AdminReportsPage />);
+
+    await waitFor(() => {
+      expect(getAdminReportsSummary).toHaveBeenCalledTimes(1);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Download Audit logs CSV/i }));
+
+    expect(screen.getByRole('button', { name: /Preparing CSV/i })).toBeDisabled();
+
+    resolveExport({
+      blob: new Blob(['id,eventType\n'], { type: 'text/csv' }),
+      filename: 'admin-audit-logs-export.csv'
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/admin-audit-logs-export.csv download started/i)).toBeInTheDocument();
+    });
+  });
+
+  it('shows an export error without creating fake results', async () => {
+    exportAdminReport.mockRejectedValue({
+      response: {
+        data: {
+          error: {
+            message: 'Unsupported report export type.'
+          }
+        }
+      }
+    });
+
+    render(<AdminReportsPage />);
+
+    await waitFor(() => {
+      expect(getAdminReportsSummary).toHaveBeenCalledTimes(1);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Download Topics CSV/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Export failed/i)).toBeInTheDocument();
+    });
+    expect(screen.getByText(/Unsupported report export type/i)).toBeInTheDocument();
+    expect(window.URL.createObjectURL).not.toHaveBeenCalled();
+    expect(screen.queryByText(/fake export/i)).not.toBeInTheDocument();
   });
 
   it('shows an honest insufficient-data state for zero aggregates', async () => {
@@ -211,7 +295,8 @@ describe('AdminReportsPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/Not enough report data yet/i)).toBeInTheDocument();
     });
-    expect(screen.getByText(/No placeholder metrics, charts, or exports are shown/i)).toBeInTheDocument();
+    expect(screen.getByText(/CSV exports will return header-only files when no rows exist/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Download Users CSV/i })).toBeEnabled();
   });
 
   it('shows unavailable state when the reports summary endpoint fails', async () => {
@@ -232,8 +317,8 @@ describe('AdminReportsPage', () => {
       expect(getAdminReportsSummary).toHaveBeenCalledTimes(1);
     });
 
-    expect(screen.queryByRole('button', { name: /download/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /generate report/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /export now/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /download pdf/i })).not.toBeInTheDocument();
   });
 });
