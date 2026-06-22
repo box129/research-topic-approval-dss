@@ -3,7 +3,13 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import AdminUserManagementPage from '../src/pages/admin/UserManagementPage';
 import apiClient from '../src/api/client';
 import axios from 'axios';
-import { listAdminUsers, updateAdminUserStatus } from '../src/api/admin';
+import {
+  createAdminSuperviseeAssignment,
+  endAdminSuperviseeAssignment,
+  listAdminSuperviseeAssignments,
+  listAdminUsers,
+  updateAdminUserStatus
+} from '../src/api/admin';
 
 vi.mock('axios', () => ({
   default: {
@@ -24,6 +30,9 @@ vi.mock('../src/api/client', () => ({
 }));
 
 vi.mock('../src/api/admin', () => ({
+  createAdminSuperviseeAssignment: vi.fn(),
+  endAdminSuperviseeAssignment: vi.fn(),
+  listAdminSuperviseeAssignments: vi.fn(),
   listAdminUsers: vi.fn(),
   updateAdminUserStatus: vi.fn()
 }));
@@ -90,12 +99,104 @@ const listResponse = {
   }
 };
 
+const lecturerOptionsResponse = {
+  data: {
+    items: [
+      {
+        id: 3,
+        name: 'Lecturer One',
+        email: 'lecturer.one@example.edu',
+        role: 'lecturer',
+        status: 'active',
+        createdAt: '2026-06-03T10:00:00.000Z',
+        updatedAt: '2026-06-05T12:00:00.000Z'
+      }
+    ]
+  },
+  meta: {}
+};
+
+const studentOptionsResponse = {
+  data: {
+    items: [
+      {
+        id: 2,
+        name: 'Student One',
+        email: 'student.one@example.edu',
+        role: 'student',
+        status: 'active',
+        createdAt: '2026-06-02T10:00:00.000Z',
+        updatedAt: '2026-06-05T11:00:00.000Z'
+      }
+    ]
+  },
+  meta: {}
+};
+
+const assignmentsResponse = {
+  data: {
+    items: [
+      {
+        id: 10,
+        lecturer: lecturerOptionsResponse.data.items[0],
+        student: studentOptionsResponse.data.items[0],
+        assignedBy: listResponse.data.items[0],
+        isActive: true,
+        status: 'active',
+        assignedAt: '2026-06-22T09:00:00.000Z',
+        endedAt: null,
+        notes: null
+      }
+    ]
+  },
+  meta: {}
+};
+
+function mockAdminUserLists() {
+  listAdminUsers.mockImplementation((params = {}) => {
+    if (params.role === 'lecturer') {
+      return Promise.resolve(lecturerOptionsResponse);
+    }
+
+    if (params.role === 'student') {
+      return Promise.resolve(studentOptionsResponse);
+    }
+
+    return Promise.resolve(listResponse);
+  });
+}
+
 describe('AdminUserManagementPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal('fetch', vi.fn());
     vi.spyOn(window, 'confirm').mockReturnValue(true);
-    listAdminUsers.mockResolvedValue(listResponse);
+    mockAdminUserLists();
+    listAdminSuperviseeAssignments.mockResolvedValue(assignmentsResponse);
+    createAdminSuperviseeAssignment.mockResolvedValue({
+      data: {
+        item: {
+          ...assignmentsResponse.data.items[0],
+          id: 11
+        }
+      },
+      meta: {
+        auditEventType: 'SUPERVISEE_ASSIGNED'
+      }
+    });
+    endAdminSuperviseeAssignment.mockResolvedValue({
+      data: {
+        item: {
+          ...assignmentsResponse.data.items[0],
+          isActive: false,
+          status: 'ended',
+          endedAt: '2026-06-22T10:00:00.000Z'
+        }
+      },
+      meta: {
+        auditEventType: 'SUPERVISEE_ASSIGNMENT_ENDED'
+      }
+    });
     updateAdminUserStatus.mockResolvedValue({
       data: {
         user: {
@@ -121,7 +222,10 @@ describe('AdminUserManagementPage', () => {
     expect(screen.getByText(/read-only user directory connected to existing account records/i)).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(listAdminUsers).toHaveBeenCalledTimes(1);
+      expect(listAdminUsers).toHaveBeenCalledWith(expect.objectContaining({
+        page: 1,
+        limit: 10
+      }));
     });
 
     expect(screen.getByRole('heading', { level: 2, name: 'Admin User' })).toBeInTheDocument();
@@ -135,7 +239,10 @@ describe('AdminUserManagementPage', () => {
     render(<AdminUserManagementPage />);
 
     await waitFor(() => {
-      expect(listAdminUsers).toHaveBeenCalledTimes(1);
+      expect(listAdminUsers).toHaveBeenCalledWith(expect.objectContaining({
+        page: 1,
+        limit: 10
+      }));
     });
 
     fireEvent.change(screen.getByPlaceholderText(/search name or email/i), {
@@ -165,7 +272,7 @@ describe('AdminUserManagementPage', () => {
     render(<AdminUserManagementPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Student One/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Student One/i).length).toBeGreaterThan(0);
     });
 
     fireEvent.click(screen.getByRole('button', { name: /suspend account/i }));
@@ -187,7 +294,7 @@ describe('AdminUserManagementPage', () => {
     render(<AdminUserManagementPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Student One/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Student One/i).length).toBeGreaterThan(0);
     });
 
     fireEvent.click(screen.getByRole('button', { name: /suspend account/i }));
@@ -196,18 +303,28 @@ describe('AdminUserManagementPage', () => {
   });
 
   it('shows an honest empty state when the user list is empty', async () => {
-    listAdminUsers.mockResolvedValue({
-      data: { items: [] },
-      meta: {
-        pagination: {
-          page: 1,
-          limit: 10,
-          total: 0,
-          totalPages: 0,
-          hasNextPage: false,
-          hasPreviousPage: false
-        }
+    listAdminUsers.mockImplementation((params = {}) => {
+      if (params.role === 'lecturer') {
+        return Promise.resolve(lecturerOptionsResponse);
       }
+
+      if (params.role === 'student') {
+        return Promise.resolve(studentOptionsResponse);
+      }
+
+      return Promise.resolve({
+        data: { items: [] },
+        meta: {
+          pagination: {
+            page: 1,
+            limit: 10,
+            total: 0,
+            totalPages: 0,
+            hasNextPage: false,
+            hasPreviousPage: false
+          }
+        }
+      });
     });
 
     render(<AdminUserManagementPage />);
@@ -219,7 +336,17 @@ describe('AdminUserManagementPage', () => {
   });
 
   it('shows unavailable states when the users endpoint fails', async () => {
-    listAdminUsers.mockRejectedValue(new Error('users unavailable'));
+    listAdminUsers.mockImplementation((params = {}) => {
+      if (params.role === 'lecturer') {
+        return Promise.resolve(lecturerOptionsResponse);
+      }
+
+      if (params.role === 'student') {
+        return Promise.resolve(studentOptionsResponse);
+      }
+
+      return Promise.reject(new Error('users unavailable'));
+    });
 
     render(<AdminUserManagementPage />);
 
@@ -233,7 +360,7 @@ describe('AdminUserManagementPage', () => {
     render(<AdminUserManagementPage />);
 
     await waitFor(() => {
-      expect(listAdminUsers).toHaveBeenCalledTimes(1);
+      expect(listAdminUsers).toHaveBeenCalled();
     });
 
     expect(screen.queryByRole('button', { name: /add user/i })).not.toBeInTheDocument();
@@ -241,5 +368,66 @@ describe('AdminUserManagementPage', () => {
     expect(screen.queryByRole('button', { name: /reset password/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /change role/i })).not.toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('renders real active supervisee assignments without fake relationships', async () => {
+    render(<AdminUserManagementPage />);
+
+    await waitFor(() => {
+      expect(listAdminSuperviseeAssignments).toHaveBeenCalledWith({
+        status: 'active',
+        limit: 25
+      });
+    });
+
+    expect(screen.getByRole('heading', { name: /lecturer-supervisee assignments/i })).toBeInTheDocument();
+    expect(screen.getAllByText('lecturer.one@example.edu').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('student.one@example.edu').length).toBeGreaterThan(0);
+    expect(screen.queryByText(/sample supervisee/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/fake assignment/i)).not.toBeInTheDocument();
+  });
+
+  it('creates an audited assignment from real selected users', async () => {
+    render(<AdminUserManagementPage />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/lecturer/i)).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByLabelText(/lecturer/i), {
+      target: { name: 'lecturerId', value: '3' }
+    });
+    fireEvent.change(screen.getByLabelText(/student/i), {
+      target: { name: 'studentId', value: '2' }
+    });
+    fireEvent.change(screen.getByLabelText(/notes/i), {
+      target: { name: 'notes', value: 'Department-approved allocation.' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /create audited assignment/i }));
+
+    await waitFor(() => {
+      expect(createAdminSuperviseeAssignment).toHaveBeenCalledWith({
+        lecturerId: 3,
+        studentId: 2,
+        notes: 'Department-approved allocation.'
+      });
+      expect(screen.getByText(/audit event SUPERVISEE_ASSIGNED was requested/i)).toBeInTheDocument();
+    });
+  });
+
+  it('ends assignment with a soft audited action', async () => {
+    render(<AdminUserManagementPage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /end assignment/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /end assignment/i }));
+
+    await waitFor(() => {
+      expect(endAdminSuperviseeAssignment).toHaveBeenCalledWith(10);
+      expect(screen.getByText(/audit event SUPERVISEE_ASSIGNMENT_ENDED was requested/i)).toBeInTheDocument();
+    });
+    expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('lecturer.one@example.edu'));
   });
 });

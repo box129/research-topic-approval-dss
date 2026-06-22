@@ -15,6 +15,10 @@ function createPrismaMock(overrides = {}) {
     notification: {
       create: jest.fn(),
       ...overrides.notification
+    },
+    lecturerSuperviseeAssignment: {
+      findMany: jest.fn().mockResolvedValue([]),
+      ...overrides.lecturerSuperviseeAssignment
     }
   };
 }
@@ -32,10 +36,16 @@ describe('notificationEvent.service', () => {
     const createdAt = new Date('2026-06-22T10:00:00.000Z');
     const prisma = createPrismaMock({
       user: {
-        findMany: jest.fn().mockResolvedValue([
-          { id: 2, role: 'LECTURER' },
-          { id: 1, role: 'ADMIN' }
-        ]),
+        findMany: jest.fn(({ where }) => {
+          if (where.role === 'ADMIN') {
+            return Promise.resolve([{ id: 1, role: 'ADMIN' }]);
+          }
+
+          return Promise.resolve([
+            { id: 2, role: 'LECTURER' },
+            { id: 1, role: 'ADMIN' }
+          ]);
+        }),
         findUnique: jest.fn(({ where }) => Promise.resolve({ id: where.id }))
       },
       notification: {
@@ -63,6 +73,33 @@ describe('notificationEvent.service', () => {
 
     expect(prisma.user.findMany).toHaveBeenCalledWith({
       where: {
+        role: 'ADMIN',
+        status: 'ACTIVE'
+      },
+      select: {
+        id: true,
+        role: true
+      }
+    });
+    expect(prisma.lecturerSuperviseeAssignment.findMany).toHaveBeenCalledWith({
+      where: {
+        studentId: 7,
+        isActive: true,
+        lecturer: {
+          status: 'ACTIVE'
+        }
+      },
+      select: {
+        lecturer: {
+          select: {
+            id: true,
+            role: true
+          }
+        }
+      }
+    });
+    expect(prisma.user.findMany).toHaveBeenCalledWith({
+      where: {
         role: {
           in: ['LECTURER', 'ADMIN']
         },
@@ -76,7 +113,8 @@ describe('notificationEvent.service', () => {
     expect(result).toMatchObject({
       created: 2,
       failed: 0,
-      recipientCount: 2
+      recipientCount: 2,
+      routing: 'active_reviewer_fallback'
     });
     expect(prisma.notification.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
@@ -87,7 +125,8 @@ describe('notificationEvent.service', () => {
         metadata: expect.objectContaining({
           submissionId: 11,
           studentId: 7,
-          reviewerRole: 'lecturer'
+          reviewerRole: 'lecturer',
+          routing: 'active_reviewer_fallback'
         })
       })
     });
@@ -98,6 +137,82 @@ describe('notificationEvent.service', () => {
         metadata: expect.objectContaining({
           reviewerRole: 'admin'
         })
+      })
+    });
+  });
+
+  test('uses assigned lecturer routing when active assignments exist', async () => {
+    const createdAt = new Date('2026-06-22T10:00:00.000Z');
+    const prisma = createPrismaMock({
+      user: {
+        findMany: jest.fn(({ where }) => {
+          if (where.role === 'ADMIN') {
+            return Promise.resolve([{ id: 1, role: 'ADMIN' }]);
+          }
+
+          return Promise.resolve([
+            { id: 2, role: 'LECTURER' },
+            { id: 4, role: 'LECTURER' },
+            { id: 1, role: 'ADMIN' }
+          ]);
+        }),
+        findUnique: jest.fn(({ where }) => Promise.resolve({ id: where.id }))
+      },
+      lecturerSuperviseeAssignment: {
+        findMany: jest.fn().mockResolvedValue([
+          {
+            lecturer: {
+              id: 2,
+              role: 'LECTURER'
+            }
+          }
+        ])
+      },
+      notification: {
+        create: jest.fn(({ data }) => Promise.resolve({
+          id: data.userId,
+          ...data,
+          readAt: null,
+          createdAt,
+          updatedAt: createdAt
+        }))
+      }
+    });
+    const service = createNotificationEventService({ prismaClient: prisma, serviceLogger: silentLogger });
+
+    const result = await service.notifyReviewersOfSubmissionCreatedSafely({
+      submission: {
+        id: 11,
+        studentId: 7,
+        title: 'Knowledge of malaria prevention among undergraduate public health students'
+      },
+      actorUser: { id: 7, role: 'student' }
+    });
+
+    expect(result).toMatchObject({
+      created: 2,
+      recipientCount: 2,
+      routing: 'assigned_lecturer_plus_admin'
+    });
+    expect(prisma.user.findMany).toHaveBeenCalledTimes(1);
+    expect(prisma.notification.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: 2,
+        linkPath: '/lecturer/pending-reviews',
+        metadata: expect.objectContaining({
+          routing: 'assigned_lecturer_plus_admin'
+        })
+      })
+    });
+    expect(prisma.notification.create).not.toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: 4
+      })
+    });
+    expect(prisma.notification.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: 1,
+        linkPath: '/admin/dashboard'
       })
     });
   });

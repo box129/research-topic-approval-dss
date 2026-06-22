@@ -210,7 +210,7 @@ test('lecturer Figma UI routes render read-only smoke states', async ({ page, co
     await expect(page.getByRole('button', { name: /^reject$/i })).toHaveCount(0);
 
     await expectRenderedRoute(page, '/lecturer/supervisees', /supervisees/i);
-    await expect(page.getByText(/no explicit assignment model is available yet/i)).toBeVisible();
+    await expect(page.getByText(/real assigned supervisees only/i)).toBeVisible();
     await expect(page.getByText(/reviewed submissions are not treated as supervisees/i)).toBeVisible();
     await expect(page.getByText(/sample supervisee|fake progress/i)).toHaveCount(0);
 

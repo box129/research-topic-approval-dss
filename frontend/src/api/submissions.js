@@ -31,6 +31,14 @@ export async function getLecturerResearchTrends() {
   };
 }
 
+export async function listLecturerSupervisees() {
+  const response = await apiClient.get('/lecturer/supervisees');
+  return {
+    data: response.data?.data,
+    meta: response.data?.meta
+  };
+}
+
 export async function getLecturerSubmission(submissionId) {
   const response = await apiClient.get(`/lecturer/submissions/${submissionId}`);
   return response.data?.data?.submission;

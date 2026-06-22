@@ -9,7 +9,7 @@ This tracker follows limitations from `v0.4.0-rc1` toward a stable FYP/public pr
 | Departmental-scale data-quality validation unverified | PREPARED, NOT COMPLETED | Safe aggregate audit over approved departmental records | Yes | Yes | Department data owner + project maintainer | Workflow and acceptance thresholds proposed. |
 | Real SMTP transport deferred | IMPLEMENTED, PROVIDER-SMOKE NOT VERIFIED | Provider-level SMTP smoke test with deployment-owned secrets | No | Yes | Backend/operations | PR #109 adds Nodemailer SMTP transport and tests with injected transports; real provider delivery has not been smoke-tested. |
 | Notification event hooks/frontend UI deferred | IMPLEMENTED, REALTIME/PREFERENCES DEFERRED | Optional notification preferences, realtime push, and future event-specific policy hooks | No | Product-dependent | Backend/frontend | PR #110 adds backend notification hooks. PR #111 adds authenticated frontend notification UI for real notification records. Realtime push and preferences remain deferred. |
-| Lecturer supervisee workflow deferred | DEFERRED | Assignment model/business rule and endpoints | No | Product-dependent | Product/department | No change. |
+| Lecturer supervisee workflow deferred | IMPLEMENTED, POLICY REFINEMENT OPTIONAL | Department-approved allocation policy refinements and future bulk workflow if needed | No | Product-dependent | Product/department | PR #112 adds a real assignment model, admin assignment workflow, lecturer supervisee view, and assignment-aware submission notification routing. |
 | Admin report exports deferred | DEFERRED | Export job/report file workflow and audit event | No | Product-dependent | Backend/admin | No change. |
 | Audit export/purge/delete policy deferred | DEFERRED | Retention/export/purge policy and audited implementation | No | Yes | Governance/operations | No change. |
 | Monitoring and alerting environment-dependent | NOT VERIFIED | Deployment environment monitoring, alert ownership, runbook drill | No | Yes | Operations | No change. |
@@ -31,3 +31,7 @@ PR #110 connects existing backend notification records to real backend events. S
 ## Current PR #111 Boundary
 
 PR #111 connects authenticated frontend shells to the existing notification API. It adds a notification trigger, unread count, real notification list, empty/loading/error states, retry, mark-read, and mark-all-read behavior. It does not add notification preferences, realtime/WebSocket push, backend event changes, fake notifications, or auth-page notification UI.
+
+## Current PR #112 Boundary
+
+PR #112 adds a real lecturer-supervisee assignment workflow. Admins can create and end active lecturer/student assignments using real user records, lecturers can view only their own assigned supervisees, and student submission notifications prefer active assigned lecturers while preserving admin governance notices. The PR does not add fake assignments, bulk allocation, department-approved allocation policy automation, notification preferences, realtime/WebSocket behavior, or raw/private student data exposure.
