@@ -25,10 +25,16 @@ jest.mock('../services/auditLog.service', () => ({
   createAuditLogSafely: jest.fn()
 }));
 
+jest.mock('../services/notificationEvent.service', () => ({
+  notifyAdminImportPreviewedSafely: jest.fn(),
+  notifyAdminImportCommittedSafely: jest.fn()
+}));
+
 const authService = require('../services/auth.service');
 const topicImportFileService = require('../services/topicImportFile.service');
 const topicImportPersistenceService = require('../services/topicImportPersistence.service');
 const auditLogService = require('../services/auditLog.service');
+const notificationEventService = require('../services/notificationEvent.service');
 const app = require('../server');
 
 const adminUser = {
@@ -90,6 +96,8 @@ describe('Admin-protected topic import routes', () => {
       warnings: [],
       errors: []
     });
+    notificationEventService.notifyAdminImportPreviewedSafely.mockResolvedValue({ created: 1 });
+    notificationEventService.notifyAdminImportCommittedSafely.mockResolvedValue({ created: 1 });
   });
 
   test('unauthenticated users cannot call operational import preview', async () => {
@@ -167,6 +175,14 @@ describe('Admin-protected topic import routes', () => {
         })
       })
     );
+    expect(notificationEventService.notifyAdminImportPreviewedSafely).toHaveBeenCalledWith({
+      actorUser: adminUser,
+      fileName: 'topics.xlsx',
+      report: expect.objectContaining({
+        accepted_rows: 1
+      }),
+      importBatchId: null
+    });
   });
 
   test('admin commit route persists records and emits import commit audit event', async () => {
@@ -209,5 +225,16 @@ describe('Admin-protected topic import routes', () => {
         })
       })
     );
+    expect(notificationEventService.notifyAdminImportCommittedSafely).toHaveBeenCalledWith({
+      actorUser: adminUser,
+      fileName: 'topics.xlsx',
+      report: expect.objectContaining({
+        accepted_rows: 1
+      }),
+      persistenceReport: expect.objectContaining({
+        inserted_records: 1
+      }),
+      importBatchId: 'batch-2026'
+    });
   });
 });

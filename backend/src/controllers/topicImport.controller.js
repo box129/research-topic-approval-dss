@@ -7,6 +7,7 @@ const {
   buildAuditContextFromRequest,
   createAuditLogSafely
 } = require('../services/auditLog.service');
+const notificationEventService = require('../services/notificationEvent.service');
 
 const XLSX_EXTENSION = '.xlsx';
 
@@ -137,6 +138,12 @@ async function previewTopicImport(req, res, next) {
       targetId: req.body?.importBatchId || null,
       metadata: buildPreviewAuditMetadata({ req, result })
     });
+    await notificationEventService.notifyAdminImportPreviewedSafely({
+      actorUser: req.user,
+      fileName: req.file?.originalname || null,
+      report: result.report,
+      importBatchId: req.body?.importBatchId || null
+    });
 
     return res.status(200).json({
       status: 'success',
@@ -184,6 +191,13 @@ async function commitTopicImport(req, res, next) {
         persistenceOptions,
         persistenceReport
       })
+    });
+    await notificationEventService.notifyAdminImportCommittedSafely({
+      actorUser: req.user,
+      fileName: req.file?.originalname || null,
+      report: importResult.report,
+      persistenceReport,
+      importBatchId: persistenceOptions.importBatchId
     });
 
     return res.status(200).json({

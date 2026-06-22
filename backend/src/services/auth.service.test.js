@@ -120,7 +120,15 @@ describe('auth.service', () => {
     const emailProvider = {
       sendPasswordResetEmail: jest.fn().mockResolvedValue({})
     };
-    const service = createAuthService({ prismaClient: prisma, emailProvider, authConfig });
+    const notificationEvents = {
+      notifyPasswordResetRequestedSafely: jest.fn().mockResolvedValue({ created: 1 })
+    };
+    const service = createAuthService({
+      prismaClient: prisma,
+      emailProvider,
+      authConfig,
+      notificationEvents
+    });
 
     await service.requestPasswordReset({ email: 'admin.demo@uniosun.edu.ng' });
 
@@ -138,6 +146,13 @@ describe('auth.service', () => {
     });
     expect(emailArgs.resetTokenHash).toBeUndefined();
     expect(JSON.stringify(emailArgs)).not.toContain(updateData.resetTokenHash);
+    expect(notificationEvents.notifyPasswordResetRequestedSafely).toHaveBeenCalledWith({
+      user: expect.objectContaining({
+        id: 4,
+        email: 'admin.demo@uniosun.edu.ng',
+        status: 'ACTIVE'
+      })
+    });
   });
 
   test('forgot password response is generic for unknown emails', async () => {
@@ -150,11 +165,20 @@ describe('auth.service', () => {
     const emailProvider = {
       sendPasswordResetEmail: jest.fn()
     };
-    const service = createAuthService({ prismaClient: prisma, emailProvider, authConfig });
+    const notificationEvents = {
+      notifyPasswordResetRequestedSafely: jest.fn()
+    };
+    const service = createAuthService({
+      prismaClient: prisma,
+      emailProvider,
+      authConfig,
+      notificationEvents
+    });
 
     await expect(service.requestPasswordReset({ email: 'missing@example.test' }))
       .resolves.toEqual({ message: 'If that email exists, a password reset link has been sent.' });
     expect(emailProvider.sendPasswordResetEmail).not.toHaveBeenCalled();
+    expect(notificationEvents.notifyPasswordResetRequestedSafely).not.toHaveBeenCalled();
     expect(prisma.user.update).not.toHaveBeenCalled();
   });
 

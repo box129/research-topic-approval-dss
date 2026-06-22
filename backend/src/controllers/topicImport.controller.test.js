@@ -19,6 +19,11 @@ jest.mock('../services/auditLog.service', () => ({
   createAuditLogSafely: jest.fn()
 }));
 
+jest.mock('../services/notificationEvent.service', () => ({
+  notifyAdminImportPreviewedSafely: jest.fn(),
+  notifyAdminImportCommittedSafely: jest.fn()
+}));
+
 jest.mock('fs/promises', () => ({
   unlink: jest.fn()
 }));
@@ -30,6 +35,7 @@ const {
 const topicImportFileService = require('../services/topicImportFile.service');
 const topicImportPersistenceService = require('../services/topicImportPersistence.service');
 const auditLogService = require('../services/auditLog.service');
+const notificationEventService = require('../services/notificationEvent.service');
 const fs = require('fs/promises');
 
 function createResponse() {
@@ -84,6 +90,8 @@ describe('Topic Import Controller', () => {
       warnings: [],
       errors: []
     });
+    notificationEventService.notifyAdminImportPreviewedSafely.mockResolvedValue({ created: 1 });
+    notificationEventService.notifyAdminImportCommittedSafely.mockResolvedValue({ created: 1 });
   });
 
   test('should return preview response without persisting records', async () => {
@@ -133,6 +141,12 @@ describe('Topic Import Controller', () => {
           duplicateTitleRows: 0
         }
       }
+    });
+    expect(notificationEventService.notifyAdminImportPreviewedSafely).toHaveBeenCalledWith({
+      actorUser: undefined,
+      fileName: 'topics.xlsx',
+      report: createSuccessImportResult().report,
+      importBatchId: null
     });
     expect(fs.unlink).toHaveBeenCalledWith('tmp/upload.xlsx');
     expect(next).not.toHaveBeenCalled();
@@ -209,6 +223,15 @@ describe('Topic Import Controller', () => {
           }
         }
       }
+    });
+    expect(notificationEventService.notifyAdminImportCommittedSafely).toHaveBeenCalledWith({
+      actorUser: undefined,
+      fileName: 'topics.xlsx',
+      report: createSuccessImportResult().report,
+      persistenceReport: expect.objectContaining({
+        inserted_records: 1
+      }),
+      importBatchId: 'import-1777777777777'
     });
     expect(fs.unlink).toHaveBeenCalledWith('tmp/upload.xlsx');
     expect(next).not.toHaveBeenCalled();

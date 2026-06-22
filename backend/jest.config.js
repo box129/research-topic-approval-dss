@@ -4,6 +4,9 @@ const isFocusedEnvConfigRun = process.argv.some(arg =>
 const isFocusedLecturerBenchmarkValidationRun = process.argv.some(arg =>
   arg.replace(/\\/g, '/').includes('src/services/lecturerBenchmarkValidation.service.test.js')
 );
+const isFocusedNotificationEventRun = process.argv.some(arg =>
+  arg.replace(/\\/g, '/').includes('src/services/notificationEvent.service.test.js')
+);
 
 module.exports = {
   testEnvironment: 'node',
@@ -12,12 +15,14 @@ module.exports = {
     ? ['src/config/env.js']
     : (isFocusedLecturerBenchmarkValidationRun
         ? ['src/services/lecturerBenchmarkValidation.service.js']
-        : [
-            'src/**/*.js',
-            '!src/**/*.test.js',
-            '!src/server.js', // Exclude server entry point from coverage
-            '!src/config/env.js', // Exclude env config from coverage
-          ]),
+        : (isFocusedNotificationEventRun
+            ? ['src/services/notificationEvent.service.js']
+            : [
+                'src/**/*.js',
+                '!src/**/*.test.js',
+                '!src/server.js', // Exclude server entry point from coverage
+                '!src/config/env.js', // Exclude env config from coverage
+              ])),
   testMatch: [
     '**/__tests__/**/*.js',
     '**/?(*.)+(spec|test).js'
