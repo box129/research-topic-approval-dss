@@ -1,6 +1,6 @@
 # Environment and Configuration Matrix
 
-This matrix documents the environment variables actually used by the repository as of PR #107. Do not add secrets to this file, `.env` files, release notes, smoke evidence, or generated reports.
+This matrix documents the environment variables actually used by the repository as of PR #109. Do not add secrets to this file, `.env` files, release notes, smoke evidence, or generated reports.
 
 ## Release Target Classification
 
@@ -14,7 +14,7 @@ This matrix documents the environment variables actually used by the repository 
 | Single-host deployment | CONDITIONALLY SUPPORTED | Native process deployment is documented; process manager/reverse proxy setup remains environment-owned. |
 | Horizontal scaling | NOT VERIFIED | Session cookies are JWT-backed, but SBERT, uploads, rate limits, and operational topology are not validated for scale-out. |
 | Database backup/restore | CONDITIONALLY SUPPORTED | Commands are documented with placeholders; real backup drills are not verified. |
-| Real email delivery | DEFERRED | Provider-mode validation exists. SMTP transport delivery remains deferred. |
+| Real email delivery | IMPLEMENTED, PROVIDER-SMOKE NOT VERIFIED | SMTP transport support exists for password reset delivery. Real provider smoke testing remains environment-owned. |
 | SBERT availability | SUPPORTED AFTER VALIDATION | Local SBERT-active pilot evidence exists; release readiness still requires health checks in the target environment. |
 | Monitoring/alerting | NOT VERIFIED | Health/readiness endpoints are available; monitoring system selection is not implemented here. |
 | Zero-downtime deployment | NOT VERIFIED | No load balancer, rolling deploy, or blue/green workflow is included. |
@@ -41,12 +41,13 @@ This matrix documents the environment variables actually used by the repository 
 | `RATE_LIMIT_WINDOW_MS` | Optional | No | `900000` | Express rate-limit window. |
 | `RATE_LIMIT_MAX` | Optional | No | `100` | Maximum requests per window per IP. |
 | `EMAIL_PROVIDER` | Required in production | No | `mock` outside production | Allowed values: `mock`, `disabled`, `smtp`. Production rejects `mock`. |
-| `EMAIL_FROM` | Required for `smtp` | No | `no-reply@localhost` | Sender address for email foundation. |
+| `EMAIL_FROM` | Required for `smtp` | No | `no-reply@localhost` | Sender address for SMTP password reset email. |
 | `SMTP_HOST` | Required for `smtp` | No | None | SMTP provider host placeholder. |
-| `SMTP_PORT` | Required for `smtp` | No | None | SMTP provider port placeholder. |
-| `SMTP_SECURE` | Optional | No | `false` | TLS mode flag for SMTP configuration. |
-| `SMTP_USER` | Optional | Yes | None | SMTP username if provider requires it. |
-| `SMTP_PASSWORD` | Optional | Yes | None | SMTP password if provider requires it. |
+| `SMTP_PORT` | Required for `smtp` | No | None | SMTP provider port. Must be a valid TCP port. |
+| `SMTP_SECURE` | Optional | No | `false` | TLS mode flag for SMTP configuration. Must be `true` or `false`. |
+| `SMTP_USER` | Optional | Yes | None | SMTP username if provider requires authentication. Must be paired with `SMTP_PASSWORD`. |
+| `SMTP_PASSWORD` | Optional | Yes | None | SMTP password if provider requires authentication. Must be paired with `SMTP_USER`; never log or commit it. |
+| `SMTP_TIMEOUT_MS` | Optional | No | `10000` | SMTP connection/greeting/socket timeout in milliseconds. |
 | `LOG_LEVEL` | Optional | No | `info` | Logging verbosity. |
 | `LOG_FILE` | Optional | No | `logs/app.log` | Log file path. |
 | `SIMILARITY_TIER2_THRESHOLD` | Optional compatibility setting | No | `0.60` | Present in config; PR #107 does not change the approved scoring contract. |
