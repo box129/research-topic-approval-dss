@@ -92,11 +92,9 @@ function createNotificationEventService({
         return { created: 0, skipped: true, reason: 'missing_submission' };
       }
 
-      const reviewers = await prismaClient.user.findMany({
+      const activeAdminsPromise = prismaClient.user.findMany({
         where: {
-          role: {
-            in: ['LECTURER', 'ADMIN']
-          },
+          role: 'ADMIN',
           status: 'ACTIVE'
         },
         select: {
@@ -104,6 +102,49 @@ function createNotificationEventService({
           role: true
         }
       });
+
+      const assignedLecturersPromise = prismaClient.lecturerSuperviseeAssignment?.findMany
+        ? prismaClient.lecturerSuperviseeAssignment.findMany({
+          where: {
+            studentId: submission.studentId,
+            isActive: true,
+            lecturer: {
+              status: 'ACTIVE'
+            }
+          },
+          select: {
+            lecturer: {
+              select: {
+                id: true,
+                role: true
+              }
+            }
+          }
+        })
+        : Promise.resolve([]);
+
+      const [activeAdmins, assignedRows] = await Promise.all([
+        activeAdminsPromise,
+        assignedLecturersPromise
+      ]);
+      const assignedLecturers = assignedRows
+        .map((assignment) => assignment.lecturer)
+        .filter(Boolean);
+      const usesAssignmentRouting = assignedLecturers.length > 0;
+      const reviewers = usesAssignmentRouting
+        ? [...assignedLecturers, ...activeAdmins]
+        : await prismaClient.user.findMany({
+          where: {
+            role: {
+              in: ['LECTURER', 'ADMIN']
+            },
+            status: 'ACTIVE'
+          },
+          select: {
+            id: true,
+            role: true
+          }
+        });
 
       if (!reviewers.length) {
         return { created: 0, skipped: true, reason: 'no_active_reviewers' };
@@ -122,7 +163,8 @@ function createNotificationEventService({
             studentId: submission.studentId || actorUser?.id || null,
             category: submission.category || null,
             sessionId: submission.sessionId || null,
-            reviewerRole: role.toLowerCase()
+            reviewerRole: role.toLowerCase(),
+            routing: usesAssignmentRouting ? 'assigned_lecturer_plus_admin' : 'active_reviewer_fallback'
           }
         });
       }));
@@ -130,7 +172,8 @@ function createNotificationEventService({
       return {
         created: results.reduce((sum, result) => sum + result.created, 0),
         failed: results.reduce((sum, result) => sum + result.failed, 0),
-        recipientCount: reviewers.length
+        recipientCount: reviewers.length,
+        routing: usesAssignmentRouting ? 'assigned_lecturer_plus_admin' : 'active_reviewer_fallback'
       };
     } catch (error) {
       serviceLogger.warn('Submission-created notification event failed', {

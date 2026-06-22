@@ -4,7 +4,13 @@ import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import InfoCallout from '../../components/ui/InfoCallout';
 import PageHeader from '../../components/ui/PageHeader';
 import { useAuth } from '../../auth/AuthContext';
-import { listAdminUsers, updateAdminUserStatus } from '../../api/admin';
+import {
+  createAdminSuperviseeAssignment,
+  endAdminSuperviseeAssignment,
+  listAdminSuperviseeAssignments,
+  listAdminUsers,
+  updateAdminUserStatus
+} from '../../api/admin';
 
 const roleOptions = [
   { value: 'all', label: 'All roles' },
@@ -132,6 +138,174 @@ function UserRow({ currentUserId, isUpdating, onStatusChange, user }) {
   );
 }
 
+function AssignmentManagementSection({
+  assignmentError,
+  assignmentForm,
+  assignmentItems,
+  assignmentState,
+  assignmentStatusMessage,
+  creatingAssignment,
+  endingAssignmentId,
+  lecturers,
+  onAssignmentFieldChange,
+  onCreateAssignment,
+  onEndAssignment,
+  onRetry,
+  optionsState,
+  students
+}) {
+  const isLoading = assignmentState === 'loading';
+  const hasError = assignmentState === 'error';
+  const canCreate = assignmentForm.lecturerId && assignmentForm.studentId && !creatingAssignment;
+
+  return (
+    <section className="rounded-[1.5rem] border border-border-subtle bg-white p-5 shadow-sm">
+      <div className="flex flex-col gap-4 border-b border-border-subtle pb-4 xl:flex-row xl:items-start xl:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-text-primary">Lecturer-supervisee assignments</h2>
+          <p className="mt-1 max-w-3xl text-sm leading-6 text-text-secondary">
+            Assign real active students to real active lecturers. Assignments are audited, active-only duplicates are rejected, and ended assignments are deactivated rather than destroyed.
+          </p>
+        </div>
+        <span className="w-fit rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+          {isLoading ? 'Loading assignments' : `${assignmentItems.length} active shown`}
+        </span>
+      </div>
+
+      <div className="mt-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+        <form className="rounded-[1.25rem] border border-emerald-100 bg-[#fbfdf8] p-4" onSubmit={onCreateAssignment}>
+          <h3 className="text-base font-semibold text-text-primary">Create assignment</h3>
+          <p className="mt-1 text-sm leading-5 text-text-secondary">
+            Selection options are loaded from the existing admin users API. No placeholder lecturers or students are available.
+          </p>
+
+          <div className="mt-4 grid gap-3">
+            <label className="text-sm font-semibold text-text-primary">
+              Lecturer
+              <select
+                className="mt-1 w-full rounded-xl border border-border-subtle bg-white px-3 py-2 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                disabled={optionsState === 'loading'}
+                name="lecturerId"
+                onChange={onAssignmentFieldChange}
+                value={assignmentForm.lecturerId}
+              >
+                <option value="">Select a real lecturer</option>
+                {lecturers.map((lecturer) => (
+                  <option key={lecturer.id} value={lecturer.id}>
+                    {lecturer.name} ({lecturer.email})
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="text-sm font-semibold text-text-primary">
+              Student
+              <select
+                className="mt-1 w-full rounded-xl border border-border-subtle bg-white px-3 py-2 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                disabled={optionsState === 'loading'}
+                name="studentId"
+                onChange={onAssignmentFieldChange}
+                value={assignmentForm.studentId}
+              >
+                <option value="">Select a real student</option>
+                {students.map((student) => (
+                  <option key={student.id} value={student.id}>
+                    {student.name} ({student.email})
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="text-sm font-semibold text-text-primary">
+              Notes
+              <textarea
+                className="mt-1 min-h-20 w-full rounded-xl border border-border-subtle bg-white px-3 py-2 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                name="notes"
+                onChange={onAssignmentFieldChange}
+                placeholder="Optional assignment note"
+                value={assignmentForm.notes}
+              />
+            </label>
+
+            <button
+              className="rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-900 disabled:cursor-not-allowed disabled:bg-slate-400"
+              disabled={!canCreate}
+              type="submit"
+            >
+              {creatingAssignment ? 'Creating assignment...' : 'Create audited assignment'}
+            </button>
+          </div>
+        </form>
+
+        <div className="space-y-3">
+          {assignmentStatusMessage ? (
+            <InfoCallout message={assignmentStatusMessage} title="Assignment action recorded" variant="success" />
+          ) : null}
+
+          {assignmentError ? (
+            <div className="rounded-[1.25rem] border border-amber-100 bg-amber-50 p-4">
+              <InfoCallout message={assignmentError} title="Assignment workflow notice" variant="warning" />
+              {hasError ? (
+                <button
+                  className="mt-3 rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-900"
+                  onClick={onRetry}
+                  type="button"
+                >
+                  Retry assignments
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+
+          {isLoading ? (
+            <div className="grid gap-3">
+              {[0, 1].map((item) => (
+                <div key={item} className="h-24 animate-pulse rounded-[1.15rem] border border-border-subtle bg-surface-muted" />
+              ))}
+            </div>
+          ) : null}
+
+          {!isLoading && !hasError && assignmentItems.length === 0 ? (
+            <EmptyStatePanel
+              title="No active assignments returned"
+              message="The assignment endpoint returned an empty list. No fake lecturer-student relationships are shown."
+            />
+          ) : null}
+
+          {!isLoading && !hasError && assignmentItems.length > 0 ? (
+            <div className="space-y-3">
+              {assignmentItems.map((assignment) => (
+                <article key={assignment.id} className="rounded-[1.15rem] border border-border-subtle bg-white p-4 shadow-sm">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">Lecturer</p>
+                      <h3 className="mt-1 text-sm font-semibold text-text-primary">{assignment.lecturer?.name || 'Unknown lecturer'}</h3>
+                      <p className="mt-1 break-all text-xs text-text-secondary">{assignment.lecturer?.email || 'Email unavailable'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">Student</p>
+                      <h3 className="mt-1 text-sm font-semibold text-text-primary">{assignment.student?.name || 'Unknown student'}</h3>
+                      <p className="mt-1 break-all text-xs text-text-secondary">{assignment.student?.email || 'Email unavailable'}</p>
+                    </div>
+                    <button
+                      className="rounded-xl border border-rose-200 bg-white px-3 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={endingAssignmentId === assignment.id}
+                      onClick={() => onEndAssignment(assignment)}
+                      type="button"
+                    >
+                      {endingAssignmentId === assignment.id ? 'Ending...' : 'End assignment'}
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function UserManagementPage() {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
@@ -146,6 +320,20 @@ function UserManagementPage() {
     status: 'all',
     page: 1
   });
+  const [assignmentItems, setAssignmentItems] = useState([]);
+  const [assignmentState, setAssignmentState] = useState('loading');
+  const [assignmentError, setAssignmentError] = useState('');
+  const [assignmentStatusMessage, setAssignmentStatusMessage] = useState('');
+  const [assignmentForm, setAssignmentForm] = useState({
+    lecturerId: '',
+    studentId: '',
+    notes: ''
+  });
+  const [lecturerOptions, setLecturerOptions] = useState([]);
+  const [studentOptions, setStudentOptions] = useState([]);
+  const [assignmentOptionsState, setAssignmentOptionsState] = useState('loading');
+  const [creatingAssignment, setCreatingAssignment] = useState(false);
+  const [endingAssignmentId, setEndingAssignmentId] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -178,6 +366,108 @@ function UserManagementPage() {
       isMounted = false;
     };
   }, [filters]);
+
+  async function loadAssignmentWorkflow() {
+    setAssignmentState('loading');
+    setAssignmentOptionsState('loading');
+    setAssignmentError('');
+
+    try {
+      const [assignmentResult, lecturerResult, studentResult] = await Promise.all([
+        listAdminSuperviseeAssignments({
+          status: 'active',
+          limit: 25
+        }),
+        listAdminUsers({
+          role: 'lecturer',
+          status: 'active',
+          limit: 100,
+          sort: 'name',
+          direction: 'asc'
+        }),
+        listAdminUsers({
+          role: 'student',
+          status: 'active',
+          limit: 100,
+          sort: 'name',
+          direction: 'asc'
+        })
+      ]);
+
+      setAssignmentItems(assignmentResult.data?.items || []);
+      setLecturerOptions(lecturerResult.data?.items || []);
+      setStudentOptions(studentResult.data?.items || []);
+      setAssignmentState('success');
+      setAssignmentOptionsState('success');
+    } catch (error) {
+      setAssignmentItems([]);
+      setLecturerOptions([]);
+      setStudentOptions([]);
+      setAssignmentError(error?.response?.data?.error?.message || 'Assignment workflow data could not be loaded.');
+      setAssignmentState('error');
+      setAssignmentOptionsState('error');
+    }
+  }
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadInitialAssignmentWorkflow() {
+      setAssignmentState('loading');
+      setAssignmentOptionsState('loading');
+      setAssignmentError('');
+
+      try {
+        const [assignmentResult, lecturerResult, studentResult] = await Promise.all([
+          listAdminSuperviseeAssignments({
+            status: 'active',
+            limit: 25
+          }),
+          listAdminUsers({
+            role: 'lecturer',
+            status: 'active',
+            limit: 100,
+            sort: 'name',
+            direction: 'asc'
+          }),
+          listAdminUsers({
+            role: 'student',
+            status: 'active',
+            limit: 100,
+            sort: 'name',
+            direction: 'asc'
+          })
+        ]);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setAssignmentItems(assignmentResult.data?.items || []);
+        setLecturerOptions(lecturerResult.data?.items || []);
+        setStudentOptions(studentResult.data?.items || []);
+        setAssignmentState('success');
+        setAssignmentOptionsState('success');
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        setAssignmentItems([]);
+        setLecturerOptions([]);
+        setStudentOptions([]);
+        setAssignmentError(error?.response?.data?.error?.message || 'Assignment workflow data could not be loaded.');
+        setAssignmentState('error');
+        setAssignmentOptionsState('error');
+      }
+    }
+
+    loadInitialAssignmentWorkflow();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const totals = useMemo(() => {
     return users.reduce((summary, item) => {
@@ -234,6 +524,65 @@ function UserManagementPage() {
       setErrorMessage(error?.response?.data?.error?.message || 'Account status could not be updated.');
     } finally {
       setUpdatingUserId(null);
+    }
+  }
+
+  function handleAssignmentFieldChange(event) {
+    const { name, value } = event.target;
+    setAssignmentForm((current) => ({
+      ...current,
+      [name]: value
+    }));
+  }
+
+  async function handleCreateAssignment(event) {
+    event.preventDefault();
+    setCreatingAssignment(true);
+    setAssignmentError('');
+    setAssignmentStatusMessage('');
+
+    try {
+      const result = await createAdminSuperviseeAssignment({
+        lecturerId: Number(assignmentForm.lecturerId),
+        studentId: Number(assignmentForm.studentId),
+        notes: assignmentForm.notes
+      });
+      const created = result.data?.item;
+      if (created) {
+        setAssignmentItems((current) => [created, ...current]);
+      }
+      setAssignmentForm({
+        lecturerId: '',
+        studentId: '',
+        notes: ''
+      });
+      setAssignmentStatusMessage('Supervisee assignment created. Audit event SUPERVISEE_ASSIGNED was requested.');
+    } catch (error) {
+      setAssignmentError(error?.response?.data?.error?.message || 'Supervisee assignment could not be created.');
+    } finally {
+      setCreatingAssignment(false);
+    }
+  }
+
+  async function handleEndAssignment(assignment) {
+    const confirmed = window.confirm(`End assignment between ${assignment.lecturer?.email || 'this lecturer'} and ${assignment.student?.email || 'this student'}? This keeps a historical record.`);
+    if (!confirmed) {
+      return;
+    }
+
+    setEndingAssignmentId(assignment.id);
+    setAssignmentError('');
+    setAssignmentStatusMessage('');
+
+    try {
+      const result = await endAdminSuperviseeAssignment(assignment.id);
+      const ended = result.data?.item;
+      setAssignmentItems((current) => current.filter((item) => item.id !== assignment.id));
+      setAssignmentStatusMessage(`Assignment ended for ${ended?.student?.email || assignment.student?.email || 'the selected student'}. Audit event SUPERVISEE_ASSIGNMENT_ENDED was requested.`);
+    } catch (error) {
+      setAssignmentError(error?.response?.data?.error?.message || 'Supervisee assignment could not be ended.');
+    } finally {
+      setEndingAssignmentId(null);
     }
   }
 
@@ -307,6 +656,23 @@ function UserManagementPage() {
           </div>
         </div>
       </section>
+
+      <AssignmentManagementSection
+        assignmentError={assignmentError}
+        assignmentForm={assignmentForm}
+        assignmentItems={assignmentItems}
+        assignmentState={assignmentState}
+        assignmentStatusMessage={assignmentStatusMessage}
+        creatingAssignment={creatingAssignment}
+        endingAssignmentId={endingAssignmentId}
+        lecturers={lecturerOptions}
+        onAssignmentFieldChange={handleAssignmentFieldChange}
+        onCreateAssignment={handleCreateAssignment}
+        onEndAssignment={handleEndAssignment}
+        onRetry={loadAssignmentWorkflow}
+        optionsState={assignmentOptionsState}
+        students={studentOptions}
+      />
 
       <section className="rounded-[1.5rem] border border-border-subtle bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-3 border-b border-border-subtle pb-4 lg:flex-row lg:items-end lg:justify-between">

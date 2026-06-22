@@ -32,6 +32,30 @@ export async function updateAdminUserStatus(id, status) {
   };
 }
 
+export async function listAdminSuperviseeAssignments(params = {}) {
+  const response = await apiClient.get('/admin/supervisee-assignments', { params });
+  return {
+    data: response.data?.data,
+    meta: response.data?.meta
+  };
+}
+
+export async function createAdminSuperviseeAssignment(payload) {
+  const response = await apiClient.post('/admin/supervisee-assignments', payload);
+  return {
+    data: response.data?.data,
+    meta: response.data?.meta
+  };
+}
+
+export async function endAdminSuperviseeAssignment(id) {
+  const response = await apiClient.delete(`/admin/supervisee-assignments/${id}`);
+  return {
+    data: response.data?.data,
+    meta: response.data?.meta
+  };
+}
+
 export async function listAdminAuditLogs(params = {}) {
   const response = await apiClient.get('/admin/audit-logs', { params });
   return {

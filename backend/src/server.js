@@ -23,6 +23,7 @@ let adminReportsController;
 let lecturerResearchTrendsController;
 let notificationController;
 let readinessController;
+let superviseeAssignmentController;
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler.middleware');
 const { requireAuth, requireRole } = require('./middleware/auth.middleware');
 
@@ -214,6 +215,13 @@ const getNotificationController = () => {
   return notificationController;
 };
 
+const getSuperviseeAssignmentController = () => {
+  if (!superviseeAssignmentController) {
+    superviseeAssignmentController = require('./controllers/superviseeAssignment.controller');
+  }
+  return superviseeAssignmentController;
+};
+
 const getReadinessController = () => {
   if (!readinessController) {
     readinessController = require('./controllers/readiness.controller');
@@ -277,6 +285,10 @@ app.get('/api/v1/lecturer/research-trends', requireAuth, requireRole('lecturer')
   getLecturerResearchTrendsController().getResearchTrends(req, res, next);
 });
 
+app.get('/api/v1/lecturer/supervisees', requireAuth, requireRole('lecturer'), (req, res, next) => {
+  getSuperviseeAssignmentController().listLecturerSupervisees(req, res, next);
+});
+
 app.get('/api/v1/lecturer/submissions/:id', requireAuth, requireRole('lecturer'), (req, res, next) => {
   getSubmissionController().getLecturerSubmission(req, res, next);
 });
@@ -307,6 +319,22 @@ app.patch('/api/v1/admin/users/:id/status', requireAuth, requireRole('admin'), (
 
 app.get('/api/v1/admin/users/:id', requireAuth, requireRole('admin'), (req, res, next) => {
   getAdminUserController().getUserById(req, res, next);
+});
+
+app.get('/api/v1/admin/supervisee-assignments', requireAuth, requireRole('admin'), (req, res, next) => {
+  getSuperviseeAssignmentController().listAdminAssignments(req, res, next);
+});
+
+app.post('/api/v1/admin/supervisee-assignments', requireAuth, requireRole('admin'), (req, res, next) => {
+  getSuperviseeAssignmentController().createAdminAssignment(req, res, next);
+});
+
+app.patch('/api/v1/admin/supervisee-assignments/:id', requireAuth, requireRole('admin'), (req, res, next) => {
+  getSuperviseeAssignmentController().updateAdminAssignment(req, res, next);
+});
+
+app.delete('/api/v1/admin/supervisee-assignments/:id', requireAuth, requireRole('admin'), (req, res, next) => {
+  getSuperviseeAssignmentController().endAdminAssignment(req, res, next);
 });
 
 app.get('/api/v1/admin/settings', requireAuth, requireRole('admin'), (req, res, next) => {
