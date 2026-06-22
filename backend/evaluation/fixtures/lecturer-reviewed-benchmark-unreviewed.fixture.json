@@ -1,0 +1,87 @@
+{
+  "benchmark_id": "synthetic-unreviewed-validation-fixture",
+  "created_at": "2026-06-22T00:00:00.000Z",
+  "reviewer_type": "synthetic_fixture",
+  "review_status": "unreviewed_template_fixture",
+  "source_dataset": "synthetic_safe_fixture",
+  "privacy": {
+    "contains_direct_identifiers": false,
+    "anonymized": true,
+    "notes": "Synthetic fixture for validator tests only. Not lecturer-reviewed evidence."
+  },
+  "topic_pairs": [
+    {
+      "pair_id": "synthetic-pair-001",
+      "query": {
+        "title": "Knowledge of malaria prevention among mothers in Osogbo",
+        "population": "Mothers",
+        "location": "Osogbo",
+        "study_focus": "Malaria prevention knowledge",
+        "keywords": ["malaria", "prevention", "mothers"]
+      },
+      "candidate": {
+        "title": "Malaria prevention awareness among mothers in Osogbo",
+        "population": "Mothers",
+        "location": "Osogbo",
+        "study_focus": "Malaria prevention awareness",
+        "keywords": ["malaria", "awareness", "mothers"]
+      },
+      "system_prediction": {
+        "predicted_label": "HIGH",
+        "combined_score": 0.82,
+        "jaccard_score": 0.74,
+        "tfidf_score": 0.8,
+        "sbert_score": 0.88
+      },
+      "lecturer_review": {
+        "reviewer_label": "",
+        "reviewer_confidence": "",
+        "reviewer_notes": "",
+        "review_date": "",
+        "reviewer_code": ""
+      },
+      "privacy": {
+        "contains_direct_identifiers": false,
+        "anonymized": true
+      }
+    },
+    {
+      "pair_id": "synthetic-pair-002",
+      "query": {
+        "title": "Use of telemedicine services among rural patients",
+        "population": "Rural patients",
+        "location": "Osun State",
+        "study_focus": "Telemedicine service use",
+        "keywords": ["telemedicine", "rural patients"]
+      },
+      "candidate": {
+        "title": "Waste disposal practices among food vendors in urban markets",
+        "population": "Food vendors",
+        "location": "Urban markets",
+        "study_focus": "Waste disposal practices",
+        "keywords": ["waste disposal", "food vendors"]
+      },
+      "system_prediction": {
+        "predicted_label": "LOW",
+        "combined_score": 0.16,
+        "jaccard_score": 0.09,
+        "tfidf_score": 0.12,
+        "sbert_score": 0.22
+      },
+      "lecturer_review": {
+        "reviewer_label": "",
+        "reviewer_confidence": "",
+        "reviewer_notes": "",
+        "review_date": "",
+        "reviewer_code": ""
+      },
+      "privacy": {
+        "contains_direct_identifiers": false,
+        "anonymized": true
+      }
+    }
+  ],
+  "validation_notes": [
+    "This fixture is intentionally unreviewed and must not be presented as final lecturer evidence."
+  ]
+}

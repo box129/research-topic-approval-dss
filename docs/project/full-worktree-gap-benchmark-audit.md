@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document preserves the original PR #94 repository audit as historical context and records the current repository status after PRs #96 through #107.
+This document preserves the original PR #94 repository audit as historical context and records the current repository status after PRs #96 through #108.
 
 The original June 5 audit should not be read as current truth unless a section is explicitly labelled historical.
 
@@ -29,9 +29,9 @@ At that time, the repository had:
 
 Those gaps were correct for PR #94. They are historical now.
 
-## Current Status After PR #107
+## Current Status After PR #108
 
-Current branch context: `release/deployment-readiness-rc`.
+Current branch context: `evidence/lecturer-benchmark-validation`.
 
 Current implemented governance sequence:
 
@@ -49,6 +49,7 @@ Current implemented governance sequence:
 | #105 Evaluation/data-quality evidence | Added governed pilot evaluation reports, data-quality audit, scoring-contract drift evidence, and generated JSON/Markdown artifacts without production scoring changes. |
 | #106 Similarity scoring contract correction | Corrects production scoring to the approved weighted methodology and regenerates regression/evaluation evidence. |
 | #107 Deployment readiness + RC | Adds release-candidate runbooks, fail-fast production config validation, readiness endpoint, release gate automation, and focused CI. |
+| #108 Lecturer benchmark validation framework | Prepares lecturer review protocol, benchmark templates/schema, validator, synthetic fixtures, and departmental data-quality validation workflow without claiming final review results. |
 
 ## Current Implemented Areas
 
@@ -92,6 +93,7 @@ Current implemented governance sequence:
 | Evaluation/data-quality | PR #105 adds reproducible pilot evaluation and local database data-quality evidence; PR #106 reruns it against corrected scoring. |
 | Similarity scoring contract | Implemented with shared approved weights, fallback weights, risk boundaries, ranking, and tier gates. |
 | Deployment readiness | PR #107 adds `/api/v1/readiness`, release-candidate runbooks, release gate automation, and focused CI. |
+| Lecturer-reviewed validation framework | PR #108 adds protocol/template/schema/validator/workflow evidence. Final lecturer labels remain missing. |
 
 ### Prisma Models
 
@@ -163,6 +165,8 @@ This is a local database snapshot only. It does not represent the complete depar
 | Production tri-algorithm behavior | Reached for pilot | Full coverage exists and scoring now uses the approved weighted methodology. |
 | Approved FYP scoring contract | Reached | PR #106 implements the approved weights, fallback weights, boundaries, ranking, overall-risk rules, and tier gates. |
 | Topic data-quality audit | Reached for local snapshot | Departmental-scale quality remains not verified. |
+| Lecturer-reviewed benchmark framework | Prepared | PR #108 adds protocol/template/schema/validator/fixtures; no final lecturer labels are present. |
+| Departmental data-quality validation framework | Prepared | PR #108 adds workflow and proposed acceptance thresholds; no departmental-scale input is validated. |
 | Admin report exports | Deferred | Summary API/page exist; export generation is not implemented. |
 | Lecturer supervisees | Deferred | Requires assignment model/business rule. |
 | Production email delivery | Deferred | Provider modes exist; real transport remains unimplemented. |
@@ -226,8 +230,8 @@ cd sbert-service
 
 ## Current Gaps
 
-- Lecturer-reviewed, departmental-ground-truth evaluation dataset.
-- Departmental-scale data-quality audit.
+- Lecturer-reviewed, departmental-ground-truth evaluation dataset. PR #108 prepares the collection/validation framework only.
+- Departmental-scale data-quality audit. PR #108 prepares the validation workflow only.
 - Explicit supervisee assignment model/endpoint.
 - Admin reports export generation.
 - Audit export/purge/delete workflows.
@@ -241,6 +245,7 @@ cd sbert-service
 
 | PR | Scope | Rationale |
 | --- | --- | --- |
-| #107 | Deployment Readiness + Release Candidate | Run final build/test/smoke gates after scoring behavior is approved and stable. |
+| Post-#108 | Complete lecturer-reviewed validation | Collect approved lecturer labels, validate the benchmark, and rerun final effectiveness metrics. |
+| Post-#108 | Departmental-scale data-quality evidence | Run safe aggregate validation over approved departmental records. |
 
-PR #106 remains separate from PR #105. PR #105 measured and documented drift; PR #106 changed production behavior after explicit approval. PR #107 should stay focused on deployment readiness and release-candidate verification.
+PR #108 remains framework-only. It does not fabricate lecturer labels, departmental results, or new scoring claims.

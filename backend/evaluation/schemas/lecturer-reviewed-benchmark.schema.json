@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/topic-similarity/lecturer-reviewed-benchmark.schema.json",
+  "title": "Lecturer Reviewed Topic Similarity Benchmark",
+  "type": "object",
+  "required": [
+    "benchmark_id",
+    "created_at",
+    "reviewer_type",
+    "review_status",
+    "source_dataset",
+    "topic_pairs"
+  ],
+  "properties": {
+    "benchmark_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reviewer_type": {
+      "type": "string",
+      "enum": ["lecturer", "panel", "department_committee", "synthetic_fixture"]
+    },
+    "review_status": {
+      "type": "string",
+      "description": "Must explicitly state whether the file is unreviewed, partially reviewed, lecturer_reviewed, or finalized."
+    },
+    "source_dataset": {
+      "type": "string",
+      "minLength": 1
+    },
+    "privacy": {
+      "type": "object",
+      "properties": {
+        "contains_direct_identifiers": { "type": "boolean" },
+        "anonymized": { "type": "boolean" },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "topic_pairs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["pair_id", "query", "candidate", "system_prediction", "lecturer_review"],
+        "properties": {
+          "pair_id": { "type": "string", "minLength": 1 },
+          "query": { "$ref": "#/$defs/topic" },
+          "candidate": { "$ref": "#/$defs/topic" },
+          "system_prediction": {
+            "type": "object",
+            "properties": {
+              "predicted_label": { "type": ["string", "null"], "enum": ["LOW", "MEDIUM", "HIGH", null] },
+              "combined_score": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+              "jaccard_score": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+              "tfidf_score": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+              "sbert_score": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+            },
+            "additionalProperties": false
+          },
+          "lecturer_review": {
+            "type": "object",
+            "properties": {
+              "reviewer_label": { "type": "string", "enum": ["", "LOW", "MEDIUM", "HIGH", "UNSURE"] },
+              "reviewer_confidence": {
+                "oneOf": [
+                  { "type": "string", "enum": ["", "LOW", "MEDIUM", "HIGH"] },
+                  { "type": "integer", "minimum": 1, "maximum": 5 }
+                ]
+              },
+              "reviewer_notes": { "type": "string" },
+              "review_date": { "type": "string" },
+              "reviewer_code": { "type": "string" }
+            },
+            "additionalProperties": false
+          },
+          "privacy": {
+            "type": "object",
+            "properties": {
+              "contains_direct_identifiers": { "type": "boolean" },
+              "anonymized": { "type": "boolean" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "validation_notes": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "topic": {
+      "type": "object",
+      "required": ["title"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "population": { "type": "string" },
+        "location": { "type": "string" },
+        "study_focus": { "type": "string" },
+        "keywords": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string" } }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "x-validation-rules": [
+    "pair_id values must be unique; enforce with validate-lecturer-benchmark.js.",
+    "No direct student identifiers, matric numbers, emails, or confidential departmental records are allowed.",
+    "review_status must distinguish unreviewed/prepared files from lecturer_reviewed/finalized files.",
+    "Do not compute final effectiveness metrics until all intended pairs have valid lecturer labels."
+  ]
+}
