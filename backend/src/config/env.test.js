@@ -78,6 +78,77 @@ describe('env email configuration', () => {
     }))).toThrow(/Missing SMTP email configuration: SMTP_HOST, SMTP_PORT, EMAIL_FROM/);
   });
 
+  test('smtp config validation rejects missing host', () => {
+    expect(() => buildConfigWith(productionEnv({
+      EMAIL_PROVIDER: 'smtp',
+      EMAIL_FROM: 'no-reply@example.edu',
+      SMTP_HOST: undefined,
+      SMTP_PORT: '587'
+    }))).toThrow(/Missing SMTP email configuration: SMTP_HOST/);
+  });
+
+  test('smtp config validation rejects invalid port', () => {
+    expect(() => buildConfigWith(productionEnv({
+      EMAIL_PROVIDER: 'smtp',
+      EMAIL_FROM: 'no-reply@example.edu',
+      SMTP_HOST: 'smtp.example.edu',
+      SMTP_PORT: 'not-a-port'
+    }))).toThrow(/SMTP_PORT must be a valid integer/);
+
+    expect(() => buildConfigWith(productionEnv({
+      EMAIL_PROVIDER: 'smtp',
+      EMAIL_FROM: 'no-reply@example.edu',
+      SMTP_HOST: 'smtp.example.edu',
+      SMTP_PORT: '70000'
+    }))).toThrow(/SMTP_PORT must be a valid TCP port/);
+  });
+
+  test('smtp config validation rejects invalid secure flag and unpaired credentials', () => {
+    expect(() => buildConfigWith(productionEnv({
+      EMAIL_PROVIDER: 'smtp',
+      EMAIL_FROM: 'no-reply@example.edu',
+      SMTP_HOST: 'smtp.example.edu',
+      SMTP_PORT: '587',
+      SMTP_SECURE: 'sometimes'
+    }))).toThrow(/SMTP_SECURE must be either true or false/);
+
+    expect(() => buildConfigWith(productionEnv({
+      EMAIL_PROVIDER: 'smtp',
+      EMAIL_FROM: 'no-reply@example.edu',
+      SMTP_HOST: 'smtp.example.edu',
+      SMTP_PORT: '587',
+      SMTP_USER: 'smtp-user',
+      SMTP_PASSWORD: undefined
+    }))).toThrow(/SMTP_USER and SMTP_PASSWORD must be provided together/);
+  });
+
+  test('smtp config accepts explicit provider settings and tracks password configuration', () => {
+    const config = buildConfigWith(productionEnv({
+      EMAIL_PROVIDER: 'smtp',
+      EMAIL_FROM: 'no-reply@example.edu',
+      SMTP_HOST: 'smtp.example.edu',
+      SMTP_PORT: '587',
+      SMTP_SECURE: 'false',
+      SMTP_USER: 'smtp-user',
+      SMTP_PASSWORD: 'smtp-secret-password',
+      SMTP_TIMEOUT_MS: '15000'
+    }));
+
+    expect(config.email).toMatchObject({
+      provider: 'smtp',
+      from: 'no-reply@example.edu',
+      smtp: {
+        host: 'smtp.example.edu',
+        port: 587,
+        secure: false,
+        user: 'smtp-user',
+        passwordConfigured: true,
+        timeoutMs: 15000
+      }
+    });
+    expect(config.email.smtp.password).toBe('smtp-secret-password');
+  });
+
   test('production rejects weak or placeholder JWT secrets', () => {
     expect(() => buildConfigWith(productionEnv({
       JWT_SECRET: 'replace_with_a_long_random_secret_before_production'

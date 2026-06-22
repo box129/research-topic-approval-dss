@@ -119,4 +119,4 @@ These documents and templates are framework evidence only. There are no complete
 - Do not change similarity scoring, weights, thresholds, tiers, ranking, or fallback behavior without a dedicated evaluation-backed change.
 - Do not commit `.env`, secrets, `node_modules`, virtual environments, build outputs, smoke artifacts, screenshots, or reports.
 - Do not use `prisma migrate dev` or `prisma db push` for production-like deployments.
-- Do not claim real SMTP delivery, notification UI/event hooks, departmental-scale evaluation, or public production readiness until those are proven.
+- Do not claim provider-smoke-verified SMTP delivery, notification UI/event hooks, departmental-scale evaluation, or public production readiness until those are proven.

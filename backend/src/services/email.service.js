@@ -1,3 +1,4 @@
+const nodemailer = require('nodemailer');
 const config = require('../config/env');
 const logger = require('../config/logger');
 
@@ -81,13 +82,59 @@ function createSafeDeliveryResult({ provider, to, subject, delivered = false, st
   };
 }
 
+function countMailRecipients(value) {
+  return Array.isArray(value) ? value.length : 0;
+}
+
+function createSmtpTransport(emailConfig) {
+  const smtpConfig = emailConfig?.smtp || {};
+  const auth = smtpConfig.user && smtpConfig.password
+    ? {
+        user: smtpConfig.user,
+        pass: smtpConfig.password
+      }
+    : undefined;
+
+  return nodemailer.createTransport({
+    host: smtpConfig.host,
+    port: smtpConfig.port,
+    secure: Boolean(smtpConfig.secure),
+    auth,
+    connectionTimeout: smtpConfig.timeoutMs,
+    greetingTimeout: smtpConfig.timeoutMs,
+    socketTimeout: smtpConfig.timeoutMs
+  });
+}
+
+function createSafeSmtpDeliveryResult({ to, subject, info }) {
+  const acceptedCount = countMailRecipients(info?.accepted);
+  const rejectedCount = countMailRecipients(info?.rejected);
+  const delivered = acceptedCount > 0 && rejectedCount === 0;
+  const status = delivered ? 'sent' : (acceptedCount > 0 ? 'partial' : 'rejected');
+
+  return {
+    ...createSafeDeliveryResult({
+      provider: EMAIL_PROVIDERS.SMTP,
+      to,
+      subject,
+      delivered,
+      status
+    }),
+    acceptedCount,
+    rejectedCount,
+    messageId: info?.messageId || null
+  };
+}
+
 function createEmailService({
   emailConfig = config.email,
   authConfig = config.auth,
   appEnv = config.env,
-  serviceLogger = logger
+  serviceLogger = logger,
+  transportFactory = createSmtpTransport
 } = {}) {
   const provider = normalizeProvider(emailConfig?.provider) || (appEnv === 'production' ? EMAIL_PROVIDERS.DISABLED : EMAIL_PROVIDERS.MOCK);
+  let smtpTransport;
 
   const sendPasswordResetEmail = async ({ to, name, token }) => {
     const content = buildPasswordResetEmailContent({
@@ -124,14 +171,47 @@ function createEmailService({
     }
 
     if (provider === EMAIL_PROVIDERS.SMTP) {
-      serviceLogger.error('SMTP email provider requested but transport is not implemented', {
-        type: 'password_reset',
-        to: content.to,
-        provider
-      });
-      throw new EmailServiceError('SMTP email delivery is not implemented in this build.', {
-        code: 'EMAIL_PROVIDER_NOT_IMPLEMENTED'
-      });
+      try {
+        if (!smtpTransport) {
+          smtpTransport = transportFactory(emailConfig);
+        }
+
+        const info = await smtpTransport.sendMail({
+          from: emailConfig.from,
+          to: content.to,
+          subject: content.subject,
+          text: content.text,
+          html: content.html
+        });
+
+        const result = createSafeSmtpDeliveryResult({
+          to: content.to,
+          subject: content.subject,
+          info
+        });
+
+        serviceLogger.info('SMTP email accepted by transport', {
+          type: 'password_reset',
+          to: content.to,
+          provider,
+          acceptedCount: result.acceptedCount,
+          rejectedCount: result.rejectedCount
+        });
+
+        return result;
+      } catch (error) {
+        serviceLogger.error('SMTP email delivery failed', {
+          type: 'password_reset',
+          to: content.to,
+          provider,
+          errorName: error?.name,
+          errorCode: error?.code
+        });
+
+        throw new EmailServiceError('SMTP email delivery failed.', {
+          code: 'EMAIL_DELIVERY_FAILED'
+        });
+      }
     }
 
     throw new EmailServiceError('Unsupported email provider configured.', {
@@ -150,5 +230,6 @@ module.exports = {
   EMAIL_PROVIDERS,
   EmailServiceError,
   buildPasswordResetEmailContent,
-  createEmailService
+  createEmailService,
+  createSmtpTransport
 };

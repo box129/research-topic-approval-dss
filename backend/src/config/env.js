@@ -18,6 +18,37 @@ function effectiveCorsOrigin(source) {
   return envValue(source, 'FRONTEND_URL') || envValue(source, 'CORS_ORIGIN');
 }
 
+function parseBooleanEnv(value, key) {
+  const normalized = envValue({ [key]: value }, key);
+  if (normalized === undefined) {
+    return false;
+  }
+
+  const lowerValue = normalized.toLowerCase();
+  if (lowerValue === 'true') {
+    return true;
+  }
+
+  if (lowerValue === 'false') {
+    return false;
+  }
+
+  throw new Error(`${key} must be either true or false.`);
+}
+
+function parseOptionalInteger(value, key) {
+  const normalized = envValue({ [key]: value }, key);
+  if (normalized === undefined) {
+    return undefined;
+  }
+
+  if (!/^\d+$/.test(normalized)) {
+    throw new Error(`${key} must be a valid integer.`);
+  }
+
+  return Number.parseInt(normalized, 10);
+}
+
 /**
  * Validate required environment variables
  */
@@ -76,6 +107,19 @@ function validateEnv(source = process.env) {
     const missingSmtp = smtpRequired.filter(key => !envValue(source, key));
     if (missingSmtp.length > 0) {
       throw new Error(`Missing SMTP email configuration: ${missingSmtp.join(', ')}`);
+    }
+
+    const smtpPort = parseOptionalInteger(source.SMTP_PORT, 'SMTP_PORT');
+    if (!smtpPort || smtpPort < 1 || smtpPort > 65535) {
+      throw new Error('SMTP_PORT must be a valid TCP port between 1 and 65535.');
+    }
+
+    parseBooleanEnv(source.SMTP_SECURE, 'SMTP_SECURE');
+
+    const smtpUser = envValue(source, 'SMTP_USER');
+    const smtpPassword = envValue(source, 'SMTP_PASSWORD');
+    if ((smtpUser && !smtpPassword) || (!smtpUser && smtpPassword)) {
+      throw new Error('SMTP_USER and SMTP_PASSWORD must be provided together when SMTP authentication is used.');
     }
   }
 }
@@ -136,13 +180,15 @@ function buildConfig(source = process.env) {
     // Email delivery configuration
     email: {
       provider: (source.EMAIL_PROVIDER || (source.NODE_ENV === 'production' ? 'disabled' : 'mock')).toLowerCase(),
-      from: source.EMAIL_FROM || 'no-reply@localhost',
+      from: envValue(source, 'EMAIL_FROM') || 'no-reply@localhost',
       smtp: {
-        host: source.SMTP_HOST,
-        port: source.SMTP_PORT ? parseInt(source.SMTP_PORT, 10) : undefined,
-        secure: source.SMTP_SECURE === 'true',
-        user: source.SMTP_USER,
-        passwordConfigured: Boolean(source.SMTP_PASSWORD)
+        host: envValue(source, 'SMTP_HOST'),
+        port: parseOptionalInteger(source.SMTP_PORT, 'SMTP_PORT'),
+        secure: parseBooleanEnv(source.SMTP_SECURE, 'SMTP_SECURE'),
+        user: envValue(source, 'SMTP_USER'),
+        password: envValue(source, 'SMTP_PASSWORD'),
+        passwordConfigured: Boolean(envValue(source, 'SMTP_PASSWORD')),
+        timeoutMs: parseOptionalInteger(source.SMTP_TIMEOUT_MS, 'SMTP_TIMEOUT_MS') || 10000
       }
     },
 
@@ -166,6 +212,7 @@ module.exports = config;
 
 Object.defineProperties(module.exports, {
   buildConfig: { value: buildConfig },
+  parseBooleanEnv: { value: parseBooleanEnv },
   validateEnv: { value: validateEnv },
   effectiveCorsOrigin: { value: effectiveCorsOrigin }
 });

@@ -43,6 +43,7 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
     "natural": "6.10.2",
+    "nodemailer": "^9.0.1",
     "winston": "3.11.0"
   },
   "devDependencies": {
