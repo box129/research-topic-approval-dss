@@ -11,7 +11,7 @@ Topic Similarity MVP is a research-topic approval decision-support system. It co
 | Controlled release-candidate deployment | CONDITIONALLY SUPPORTED |
 | Public HTTPS production deployment | NOT VERIFIED |
 
-This repository is being prepared for `v0.4.0-rc1`. Do not treat local passing tests as proof of public production readiness. Public deployment still requires HTTPS, secrets management, backups, monitoring, operational ownership, and provider configuration.
+Current published pre-release: `v0.4.0-rc1`. Current post-RC work is preparing stable-release validation evidence. Do not treat local passing tests as proof of public production readiness. Public deployment still requires HTTPS, secrets management, backups, monitoring, operational ownership, and provider configuration.
 
 ## Main Services
 
@@ -93,6 +93,17 @@ npm run release:check
 ```
 
 Credentialed smoke tests are opt-in with `RELEASE_CHECK_SMOKE=1` and `SMOKE_*` credentials. Do not commit credentials.
+
+## Validation Framework
+
+Post-RC validation work prepares lecturer-reviewed benchmark collection and departmental-scale data-quality validation without claiming final results. PR #108 alone does not make the project a stable release. Start with:
+
+- [Lecturer review protocol](docs/validation/lecturer-review-protocol.md)
+- [Final effectiveness evaluation workflow](docs/validation/final-effectiveness-evaluation-workflow.md)
+- [Departmental data-quality validation workflow](docs/validation/departmental-data-quality-validation.md)
+- [Stable production readiness tracker](docs/release/stable-production-readiness-tracker.md)
+
+These documents and templates are framework evidence only. There are no completed lecturer labels yet, no departmental-scale data-quality proof yet, and stable release readiness still depends on collecting and validating real approved evidence.
 
 ## Documentation
 

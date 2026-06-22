@@ -1,0 +1,74 @@
+{
+  "benchmark_id": "synthetic-invalid-validation-fixture",
+  "created_at": "2026-06-22T00:00:00.000Z",
+  "reviewer_type": "synthetic_fixture",
+  "review_status": "lecturer_reviewed",
+  "source_dataset": "synthetic_safe_fixture",
+  "topic_pairs": [
+    {
+      "pair_id": "duplicate-pair",
+      "query": {
+        "title": "",
+        "population": "Synthetic population",
+        "location": "Synthetic location",
+        "study_focus": "Synthetic focus",
+        "keywords": ["synthetic"]
+      },
+      "candidate": {
+        "title": "Synthetic candidate topic for validation",
+        "population": "Synthetic population",
+        "location": "Synthetic location",
+        "study_focus": "Synthetic focus",
+        "keywords": ["synthetic"]
+      },
+      "system_prediction": {
+        "predicted_label": "MEDIUM",
+        "combined_score": 0.45,
+        "jaccard_score": 0.4,
+        "tfidf_score": 0.5,
+        "sbert_score": 0.44
+      },
+      "lecturer_review": {
+        "reviewer_label": "VERY_HIGH",
+        "reviewer_confidence": "CERTAIN",
+        "reviewer_notes": "Synthetic invalid row.",
+        "review_date": "2026-06-22",
+        "reviewer_code": "LREV-001"
+      }
+    },
+    {
+      "pair_id": "duplicate-pair",
+      "query": {
+        "title": "Synthetic query topic for validation",
+        "population": "Synthetic population",
+        "location": "Synthetic location",
+        "study_focus": "Synthetic focus",
+        "keywords": ["synthetic"]
+      },
+      "candidate": {
+        "title": "",
+        "population": "Synthetic population",
+        "location": "Synthetic location",
+        "study_focus": "Synthetic focus",
+        "keywords": ["synthetic"]
+      },
+      "system_prediction": {
+        "predicted_label": "LOW",
+        "combined_score": 0.12,
+        "jaccard_score": 0.1,
+        "tfidf_score": 0.11,
+        "sbert_score": 0.14
+      },
+      "lecturer_review": {
+        "reviewer_label": "",
+        "reviewer_confidence": "",
+        "reviewer_notes": "Contains suspicious identifier PH/2021/12345 and student@example.edu for validator testing.",
+        "review_date": "",
+        "reviewer_code": ""
+      }
+    }
+  ],
+  "validation_notes": [
+    "This fixture is intentionally invalid and should make the validator exit non-zero."
+  ]
+}

@@ -30,6 +30,8 @@ Historical note: PR #105 measured the previous implementation and identified sco
 
 PR #107 does not regenerate metrics, relabel the dataset, change scoring, or add benchmark claims. It adds deployment-readiness documentation and release-gate automation around the existing evidence.
 
+PR #108 prepares the lecturer-reviewed validation framework: review protocol, review template, JSON schema, validator, synthetic fixtures, and departmental data-quality validation workflow. It does not add completed lecturer labels or departmental-scale data-quality results.
+
 ## Latest Evaluation Result
 
 The generated evaluation ran in `sbert_available_full_tri_evaluation` mode against the local SBERT service at `http://localhost:8000`:
@@ -105,8 +107,10 @@ This is only a connected local database snapshot. It does not represent the comp
 | LOW/MEDIUM/HIGH class metrics | REACHED | Macro/weighted/per-class metrics and confusion matrices generated | Dataset remains pilot/manual. |
 | Dataset provenance documented | REACHED | `schema_version`, `provenance`, source classifications, tags | Marked as manually constructed pilot, not expert ground truth. |
 | Final lecturer-reviewed benchmark | NOT REACHED | No expert validation source in repo | Needs department/lecturer-reviewed cases. |
+| Lecturer-reviewed benchmark framework | PREPARED | `docs/validation/lecturer-review-protocol.md`, `backend/evaluation/templates/`, `backend/evaluation/schemas/`, `npm run validate:lecturer-benchmark` | Framework only; no completed lecturer labels are present. |
 | Topic data-quality audit | REACHED | `topic-data-quality-audit.json` database mode | Read-only safe-field audit generated. |
 | Embedding coverage for topic repository | PARTIALLY REACHED | Local audit reports 0 with embeddings, 9 without embeddings | Local snapshot only; departmental-scale coverage remains not yet verified. |
+| Departmental data-quality validation framework | PREPARED | `docs/validation/departmental-data-quality-validation.md` | Framework only; no departmental-scale input has been validated. |
 | Semantic duplicate governance | DEFERRED | Audit exact-title duplicate candidates only | Richer duplicate-existing checks remain outside PR #105. |
 | Production scoring or threshold update | REACHED FOR PR #106 CONTRACT | Shared config, controller behavior, evaluator, and regression tests now align | Future scoring changes still need separate approval and evaluation. |
 
@@ -118,6 +122,7 @@ This is only a connected local database snapshot. It does not represent the comp
 - PR #105 documented previous scoring drift; PR #106 corrected production scoring to the approved weighted methodology.
 - Data-quality duplicate detection uses normalized exact titles only.
 - The data-quality audit describes the current local database state at generation time and covers only nine records.
+- PR #108 prepares validation collection infrastructure, but final lecturer-reviewed labels and departmental-scale quality evidence remain missing.
 
 ## Reproduction
 
