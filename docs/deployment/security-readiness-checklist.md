@@ -12,7 +12,7 @@ This checklist is scoped to repository evidence available in PR #107. It is not 
 | Rate limiting | PARTIALLY VERIFIED | `express-rate-limit` is configured with `RATE_LIMIT_WINDOW_MS` and `RATE_LIMIT_MAX`; proxy-aware IP behavior is deployment-owned. |
 | Request body and upload limits | PARTIALLY VERIFIED | JSON body parser is standard; import uploads are limited to 5 MB by Multer. |
 | Admin-only import controls | VERIFIED | Import preview/commit routes use `requireAuth` and `requireRole('admin')`; admin-prefixed v1 routes are preferred. |
-| Audit logging | PARTIALLY VERIFIED | AuditLog foundation and selected admin/import/user events exist. Additional event hooks and export/purge policy remain future work. |
+| Audit logging | PARTIALLY VERIFIED | AuditLog foundation, selected event hooks, admin CSV export, retention policy, and guarded admin purge exist. Formal institutional retention approval and archive/legal-hold workflow remain future work. |
 | Password reset token hashing/expiry | VERIFIED | Reset token hash/expiry fields exist and expiry is configurable. Real delivery depends on provider mode. |
 | Email provider fail-closed behavior | PARTIALLY VERIFIED | Production rejects `EMAIL_PROVIDER=mock`; `disabled` is allowed. SMTP transport delivery remains deferred. |
 | Database least privilege | NOT VERIFIED | Least-privilege user creation is documented, but target database grants are environment-owned. |
@@ -38,3 +38,4 @@ Before any public production deployment, verify:
 7. Backups are configured and restore-tested.
 8. Monitoring and incident ownership are in place.
 9. Demo credentials are removed, disabled, or rotated.
+10. Audit retention settings are reviewed for the deployment and exported audit evidence is stored outside the repository.

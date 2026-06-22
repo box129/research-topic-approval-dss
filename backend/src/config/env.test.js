@@ -58,6 +58,11 @@ describe('env email configuration', () => {
     expect(config.cors.origin).toBe('http://localhost:5173');
     expect(config.auth.jwtSecret).toBe('local-dev-auth-secret-change-before-production');
     expect(config.email.provider).toBe('mock');
+    expect(config.auditLog).toEqual({
+      retentionDays: 365,
+      purgeMinAgeDays: 90,
+      purgeMaxBatch: 1000
+    });
   });
 
   test('production fails clearly when EMAIL_PROVIDER is missing', () => {
@@ -217,5 +222,38 @@ describe('env email configuration', () => {
       FRONTEND_URL: undefined,
       CORS_ORIGIN: '*'
     }))).toThrow(/Production CORS origin must be an explicit trusted origin/);
+  });
+
+  test('audit retention config accepts explicit bounded values', () => {
+    const config = buildConfigWith(productionEnv({
+      AUDIT_LOG_RETENTION_DAYS: '730',
+      AUDIT_LOG_PURGE_MIN_AGE_DAYS: '180',
+      AUDIT_LOG_PURGE_MAX_BATCH: '500'
+    }));
+
+    expect(config.auditLog).toEqual({
+      retentionDays: 730,
+      purgeMinAgeDays: 180,
+      purgeMaxBatch: 500
+    });
+  });
+
+  test('audit retention config rejects invalid and unsafe values', () => {
+    expect(() => buildConfigWith(productionEnv({
+      AUDIT_LOG_PURGE_MIN_AGE_DAYS: '0'
+    }))).toThrow(/AUDIT_LOG_PURGE_MIN_AGE_DAYS must be a positive integer/);
+
+    expect(() => buildConfigWith(productionEnv({
+      AUDIT_LOG_PURGE_MAX_BATCH: '9000'
+    }))).toThrow(/AUDIT_LOG_PURGE_MAX_BATCH must be less than or equal to 5000/);
+
+    expect(() => buildConfigWith(productionEnv({
+      AUDIT_LOG_RETENTION_DAYS: '30',
+      AUDIT_LOG_PURGE_MIN_AGE_DAYS: '90'
+    }))).toThrow(/AUDIT_LOG_RETENTION_DAYS must be a positive integer greater than or equal to 90/);
+
+    expect(() => buildConfigWith(productionEnv({
+      AUDIT_LOG_RETENTION_DAYS: 'not-a-number'
+    }))).toThrow(/AUDIT_LOG_RETENTION_DAYS must be a valid integer/);
   });
 });

@@ -3,7 +3,12 @@ import AdminDashboardLayout from '../../layouts/AdminDashboardLayout';
 import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import InfoCallout from '../../components/ui/InfoCallout';
 import PageHeader from '../../components/ui/PageHeader';
-import { getAdminAuditLogDetail, listAdminAuditLogs } from '../../api/admin';
+import {
+  getAdminAuditLogDetail,
+  listAdminAuditLogs,
+  previewAdminAuditLogPurge,
+  purgeAdminAuditLogs
+} from '../../api/admin';
 
 const roleOptions = [
   { value: 'all', label: 'All actor roles' },
@@ -180,6 +185,112 @@ function AuditDetailPanel({ auditLog, isLoading, errorMessage }) {
   );
 }
 
+function AuditRetentionPanel({
+  confirmation,
+  olderThanDays,
+  onConfirmationChange,
+  onOlderThanDaysChange,
+  onPreview,
+  onPurge,
+  preview,
+  purgeResult,
+  state
+}) {
+  const canPurge = Boolean(preview) && confirmation === 'CONFIRM_AUDIT_PURGE' && state.preview !== 'loading' && state.purge !== 'loading';
+
+  return (
+    <section className="rounded-[1.5rem] border border-amber-200 bg-amber-50/70 p-5 shadow-sm">
+      <div className="grid gap-4 xl:grid-cols-[0.85fr_1.15fr]">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-800">Retention policy</p>
+          <h2 className="mt-2 text-lg font-semibold text-text-primary">Audit purge governance</h2>
+          <p className="mt-2 text-sm leading-6 text-text-secondary">
+            Default retention is 365 days, purge requests must target logs at least 90 days old, and destructive purge requires preview plus the exact confirmation phrase.
+          </p>
+          <p className="mt-2 text-sm leading-6 text-text-secondary">
+            Audit CSV export already exists through Reports: `GET /api/v1/admin/reports/export/audit-logs`.
+          </p>
+        </div>
+
+        <div className="rounded-[1.15rem] border border-amber-200 bg-white p-4">
+          <form className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]" onSubmit={onPreview}>
+            <label className="text-sm font-semibold text-text-primary">
+              Purge logs older than days
+              <input
+                className="mt-1 w-full rounded-xl border border-border-subtle px-3 py-2 text-sm outline-none transition focus:border-amber-700 focus:ring-2 focus:ring-amber-100"
+                min="1"
+                name="olderThanDays"
+                onChange={onOlderThanDaysChange}
+                type="number"
+                value={olderThanDays}
+              />
+            </label>
+            <button
+              className="self-end rounded-xl bg-amber-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+              disabled={state.preview === 'loading' || state.purge === 'loading'}
+              type="submit"
+            >
+              {state.preview === 'loading' ? 'Previewing...' : 'Preview purge'}
+            </button>
+          </form>
+
+          {state.error ? (
+            <div className="mt-3">
+              <InfoCallout message={state.error} title="Audit purge notice" variant="warning" />
+            </div>
+          ) : null}
+
+          {preview ? (
+            <div className="mt-4 rounded-[1rem] border border-border-subtle bg-surface-muted p-4">
+              <p className="text-sm font-semibold text-text-primary">Preview result</p>
+              <div className="mt-3 grid gap-2 text-sm text-text-secondary sm:grid-cols-3">
+                <span>Candidate logs: {formatCount(preview.candidateCount)}</span>
+                <span>Will delete: {formatCount(preview.willDeleteCount)}</span>
+                <span>Cutoff: {formatDate(preview.cutoffDate)}</span>
+              </div>
+              <p className="mt-2 text-xs leading-5 text-text-muted">
+                Preview returns counts and grouped summaries only. Raw audit metadata bodies are not displayed.
+              </p>
+            </div>
+          ) : null}
+
+          <div className="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
+            <label className="text-sm font-semibold text-text-primary">
+              Type CONFIRM_AUDIT_PURGE to purge previewed logs
+              <input
+                className="mt-1 w-full rounded-xl border border-border-subtle px-3 py-2 text-sm outline-none transition focus:border-red-700 focus:ring-2 focus:ring-red-100"
+                name="confirmation"
+                onChange={onConfirmationChange}
+                placeholder="CONFIRM_AUDIT_PURGE"
+                type="text"
+                value={confirmation}
+              />
+            </label>
+            <button
+              className="self-end rounded-xl bg-red-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+              disabled={!canPurge}
+              onClick={onPurge}
+              type="button"
+            >
+              {state.purge === 'loading' ? 'Purging...' : 'Purge old audit logs'}
+            </button>
+          </div>
+
+          {purgeResult ? (
+            <div className="mt-3">
+              <InfoCallout
+                message={`${formatCount(purgeResult.deletedCount)} old audit logs purged. The purge action was audited as ${purgeResult.auditEventType}.`}
+                title="Audit purge completed"
+                variant="success"
+              />
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function AuditLogPage() {
   const [auditLogs, setAuditLogs] = useState([]);
   const [meta, setMeta] = useState(null);
@@ -193,6 +304,15 @@ function AuditLogPage() {
     eventType: '',
     search: '',
     page: 1
+  });
+  const [purgeOlderThanDays, setPurgeOlderThanDays] = useState('365');
+  const [purgeConfirmation, setPurgeConfirmation] = useState('');
+  const [purgePreview, setPurgePreview] = useState(null);
+  const [purgeResult, setPurgeResult] = useState(null);
+  const [purgeState, setPurgeState] = useState({
+    error: '',
+    preview: 'idle',
+    purge: 'idle'
   });
 
   useEffect(() => {
@@ -258,6 +378,48 @@ function AuditLogPage() {
     }
   }
 
+  async function handlePurgePreview(event) {
+    event.preventDefault();
+    setPurgeState({ error: '', preview: 'loading', purge: 'idle' });
+    setPurgeResult(null);
+    try {
+      const result = await previewAdminAuditLogPurge({
+        olderThanDays: Number(purgeOlderThanDays)
+      });
+      setPurgePreview(result.data?.purgePreview || null);
+      setPurgeState({ error: '', preview: 'success', purge: 'idle' });
+    } catch (error) {
+      setPurgePreview(null);
+      setPurgeState({
+        error: error?.response?.data?.error?.message || 'Audit purge preview could not be generated.',
+        preview: 'error',
+        purge: 'idle'
+      });
+    }
+  }
+
+  async function handlePurge() {
+    setPurgeState({ error: '', preview: 'success', purge: 'loading' });
+    setPurgeResult(null);
+    try {
+      const result = await purgeAdminAuditLogs({
+        olderThanDays: Number(purgeOlderThanDays),
+        confirmation: purgeConfirmation
+      });
+      setPurgeResult(result.data?.purge || null);
+      setPurgePreview(null);
+      setPurgeConfirmation('');
+      setPurgeState({ error: '', preview: 'idle', purge: 'success' });
+      setFilters((current) => ({ ...current }));
+    } catch (error) {
+      setPurgeState({
+        error: error?.response?.data?.error?.message || 'Audit purge could not be completed.',
+        preview: purgePreview ? 'success' : 'idle',
+        purge: 'error'
+      });
+    }
+  }
+
   const isLoading = pageState === 'loading';
   const hasError = pageState === 'error';
 
@@ -266,7 +428,7 @@ function AuditLogPage() {
       <PageHeader
         eyebrow="Governance trace"
         title="Audit Log"
-        subtitle="Read-only audit visibility connected to stored audit events. No fake activity, exports, deletion, or privileged audit actions are exposed."
+        subtitle="Audit visibility connected to stored events, safe CSV export through Reports, and guarded retention/purge controls."
       />
 
       <section className="overflow-hidden rounded-[2rem] border border-emerald-950/10 bg-[#eef4eb] shadow-[0_24px_80px_-58px_rgb(6_95_70_/_0.7)]">
@@ -281,16 +443,16 @@ function AuditLogPage() {
                   <p className="text-xs font-semibold uppercase tracking-wide text-emerald-100">Admin audit console</p>
                   <h1 className="mt-2 text-3xl font-bold text-white">Event trail and safe detail</h1>
                   <p className="mt-2 max-w-xl text-sm leading-6 text-emerald-50/80">
-                    Review stored governance events without inventing activity rows or exposing export/delete workflows.
+                    Review stored governance events without inventing activity rows. Purge operations require preview, policy age checks, and an audited confirmation.
                   </p>
                 </div>
               </div>
 
               <div className="rounded-[1.35rem] border border-white/15 bg-white/10 p-4 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100/80">Boundary</p>
-                <p className="mt-1 text-xl font-semibold text-white">Read-only evidence</p>
+                <p className="mt-1 text-xl font-semibold text-white">Governed evidence</p>
                 <p className="mt-2 text-sm leading-6 text-emerald-50/75">
-                  Filters and detail views use existing audit endpoints. Export and purge controls remain deferred.
+                  CSV export is available from Reports. Purge controls are deliberately constrained and audited.
                 </p>
               </div>
             </div>
@@ -310,8 +472,8 @@ function AuditLogPage() {
               </article>
               <article className="rounded-[1rem] border border-border-subtle border-l-4 border-l-slate-500 bg-white p-4 shadow-sm">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">Export status</p>
-                <p className="mt-2 text-2xl font-semibold text-text-primary">Deferred</p>
-                <p className="mt-2 text-sm leading-5 text-text-secondary">No audit export endpoint is connected.</p>
+                <p className="mt-2 text-2xl font-semibold text-text-primary">CSV</p>
+                <p className="mt-2 text-sm leading-5 text-text-secondary">Audit CSV export is available through admin reports.</p>
               </article>
             </div>
 
@@ -323,6 +485,22 @@ function AuditLogPage() {
           </div>
         </div>
       </section>
+
+      <AuditRetentionPanel
+        confirmation={purgeConfirmation}
+        olderThanDays={purgeOlderThanDays}
+        onConfirmationChange={(event) => setPurgeConfirmation(event.target.value)}
+        onOlderThanDaysChange={(event) => {
+          setPurgeOlderThanDays(event.target.value);
+          setPurgePreview(null);
+          setPurgeResult(null);
+        }}
+        onPreview={handlePurgePreview}
+        onPurge={handlePurge}
+        preview={purgePreview}
+        purgeResult={purgeResult}
+        state={purgeState}
+      />
 
       <section className="grid gap-5 xl:grid-cols-[1.25fr_0.75fr]">
         <div className="rounded-[1.5rem] border border-border-subtle bg-white p-5 shadow-sm">
