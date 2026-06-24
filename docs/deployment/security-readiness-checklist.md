@@ -14,7 +14,7 @@ This checklist is scoped to repository evidence available through PR #115. It is
 | Admin-only import controls | VERIFIED | Import preview/commit routes use `requireAuth` and `requireRole('admin')`; admin-prefixed v1 routes are preferred. |
 | Audit logging | PARTIALLY VERIFIED | AuditLog foundation, selected event hooks, admin CSV export, retention policy, and guarded admin purge exist. Formal institutional retention approval and archive/legal-hold workflow remain future work. |
 | Password reset token hashing/expiry | VERIFIED | Reset token hash/expiry fields exist and expiry is configurable. Real delivery depends on provider mode. |
-| Email provider fail-closed behavior | PARTIALLY VERIFIED | Production rejects `EMAIL_PROVIDER=mock`; `disabled` is allowed. SMTP transport delivery remains deferred. |
+| Email provider fail-closed behavior | PARTIALLY VERIFIED | Production rejects `EMAIL_PROVIDER=mock`; `disabled` is allowed. SMTP transport exists and manual provider smoke is available through `npm run smoke:smtp`; provider-level proof remains environment-owned until run with real credentials. |
 | Database least privilege | NOT VERIFIED | Least-privilege user creation is documented, but target database grants are environment-owned. |
 | PostgreSQL network exposure | PARTIALLY VERIFIED | Root Compose exposes PostgreSQL on a configurable local host port for verification. Public production must keep PostgreSQL private. |
 | SBERT service network exposure | PARTIALLY VERIFIED | Root Compose exposes SBERT on a configurable local host port for verification. Public exposure and network ACLs remain environment-owned. |

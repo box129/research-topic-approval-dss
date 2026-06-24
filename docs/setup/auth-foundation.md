@@ -45,14 +45,14 @@ Supported `EMAIL_PROVIDER` values:
 
 - `mock`: local/test-safe mode. It accepts email requests without external delivery and does not return raw reset links or tokens in the service result.
 - `disabled`: fail-closed mode. Password reset requests for real users fail clearly when delivery is intentionally unavailable.
-- `smtp`: validates SMTP-related environment variables, but SMTP transport is not implemented in this build because no mail transport dependency is installed.
+- `smtp`: sends through the configured SMTP provider using the backend Nodemailer transport.
 
 Production behavior:
 
 - `EMAIL_PROVIDER` must be set explicitly in production.
 - `EMAIL_PROVIDER=mock` is rejected in production.
 - `EMAIL_PROVIDER=smtp` requires `SMTP_HOST`, `SMTP_PORT`, and `EMAIL_FROM`.
-- Until a real SMTP/provider transport is implemented, production should use `disabled` or add a scoped provider integration with tests.
+- Provider-level delivery should be smoke-tested with deployment-owned credentials before claiming production email readiness.
 
 Development and test behavior:
 

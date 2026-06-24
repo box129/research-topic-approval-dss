@@ -14,7 +14,7 @@ This matrix documents the environment variables actually used by the repository 
 | Single-host deployment | CONDITIONALLY SUPPORTED | Native process deployment is documented; process manager/reverse proxy setup remains environment-owned. |
 | Horizontal scaling | NOT VERIFIED | Session cookies are JWT-backed, but SBERT, uploads, rate limits, and operational topology are not validated for scale-out. |
 | Database backup/restore | CONDITIONALLY SUPPORTED | Commands are documented with placeholders; real backup drills are not verified. |
-| Real email delivery | IMPLEMENTED, PROVIDER-SMOKE NOT VERIFIED | SMTP transport support exists for password reset delivery. Real provider smoke testing remains environment-owned. |
+| Real email delivery | SMTP SMOKE WORKFLOW ADDED, PROVIDER-SMOKE RESULT ENVIRONMENT-OWNED | SMTP transport support exists and `npm run smoke:smtp` can send one controlled provider-smoke email when deployment-owned SMTP credentials are supplied. Provider proof is still pending until the smoke is run against the chosen provider. |
 | SBERT availability | SUPPORTED AFTER VALIDATION | Local SBERT-active pilot evidence exists; release readiness still requires health checks in the target environment. |
 | Monitoring/alerting | NOT VERIFIED | Health/readiness endpoints are available; monitoring system selection is not implemented here. |
 | Zero-downtime deployment | NOT VERIFIED | No load balancer, rolling deploy, or blue/green workflow is included. |
@@ -48,6 +48,7 @@ This matrix documents the environment variables actually used by the repository 
 | `SMTP_USER` | Optional | Yes | None | SMTP username if provider requires authentication. Must be paired with `SMTP_PASSWORD`. |
 | `SMTP_PASSWORD` | Optional | Yes | None | SMTP password if provider requires authentication. Must be paired with `SMTP_USER`; never log or commit it. |
 | `SMTP_TIMEOUT_MS` | Optional | No | `10000` | SMTP connection/greeting/socket timeout in milliseconds. |
+| `SMTP_SMOKE_TO` | Manual smoke only | No | None | Controlled recipient for `npm run smoke:smtp`. Required only for provider smoke verification. |
 | `AUDIT_LOG_RETENTION_DAYS` | Optional governance setting | No | `365` | Default audit retention period used when purge requests do not provide a cutoff. Must be a positive integer and at least the purge minimum age. |
 | `AUDIT_LOG_PURGE_MIN_AGE_DAYS` | Optional governance setting | No | `90` | Minimum age for audit purge eligibility. Zero is rejected. |
 | `AUDIT_LOG_PURGE_MAX_BATCH` | Optional governance setting | No | `1000` | Maximum audit rows deleted by one purge request. Bounded by backend validation. |

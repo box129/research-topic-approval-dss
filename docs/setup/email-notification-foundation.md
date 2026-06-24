@@ -43,7 +43,79 @@ Forgot-password and reset-password behavior remains the existing token-link flow
 
 The database stores only `resetTokenHash` and expiry values. The email service receives the plaintext reset token only to build the reset link content, and service results/logs do not expose reset token hashes, password hashes, auth tokens, SMTP passwords, or API keys.
 
-No real external email is sent in automated tests. SMTP provider smoke testing should be manual and controlled:
+No real external email is sent in automated tests. SMTP provider smoke testing is manual and controlled.
+
+## Manual SMTP Provider Smoke
+
+PR #116 adds a one-message provider smoke script:
+
+```powershell
+npm run smoke:smtp
+```
+
+The script only runs when `EMAIL_PROVIDER=smtp`. It requires:
+
+```text
+EMAIL_PROVIDER=smtp
+SMTP_HOST=<provider host>
+SMTP_PORT=<provider port>
+SMTP_SECURE=true|false
+EMAIL_FROM=<verified sender>
+SMTP_SMOKE_TO=<controlled test recipient>
+```
+
+If the provider requires authentication, also set both:
+
+```text
+SMTP_USER=<provider username>
+SMTP_PASSWORD=<provider password or app password>
+```
+
+Optional:
+
+```text
+SMTP_TIMEOUT_MS=10000
+```
+
+The smoke sends one clearly labelled email with subject:
+
+```text
+[SMOKE] Research Topic Approval DSS SMTP provider verification
+```
+
+It prints only non-secret configuration metadata, accepted/rejected recipient counts, and a provider message id when returned. It must not print SMTP passwords, reset tokens, token hashes, password hashes, database data, or student records.
+
+PowerShell example:
+
+```powershell
+$env:EMAIL_PROVIDER='smtp'
+$env:SMTP_HOST='smtp.example.edu'
+$env:SMTP_PORT='587'
+$env:SMTP_SECURE='false'
+$env:EMAIL_FROM='no-reply@example.edu'
+$env:SMTP_USER='deployment-owned-user'
+$env:SMTP_PASSWORD='deployment-owned-secret'
+$env:SMTP_SMOKE_TO='controlled-recipient@example.edu'
+npm run smoke:smtp
+```
+
+Bash example:
+
+```bash
+EMAIL_PROVIDER=smtp \
+SMTP_HOST=smtp.example.edu \
+SMTP_PORT=587 \
+SMTP_SECURE=false \
+EMAIL_FROM=no-reply@example.edu \
+SMTP_USER=deployment-owned-user \
+SMTP_PASSWORD=deployment-owned-secret \
+SMTP_SMOKE_TO=controlled-recipient@example.edu \
+npm run smoke:smtp
+```
+
+The script is never run by normal CI or the release gate. Do not claim provider-level delivery is verified unless this smoke succeeds against the chosen SMTP provider and the controlled recipient confirms receipt.
+
+The existing password reset flow can also be tested manually after provider smoke succeeds:
 
 1. Configure `EMAIL_PROVIDER=smtp` plus `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `EMAIL_FROM`, and any required `SMTP_USER`/`SMTP_PASSWORD` outside Git.
 2. Start the backend in the target environment.
