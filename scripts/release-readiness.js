@@ -166,8 +166,8 @@ function checkDockerAvailability() {
   console.log('\n=== Docker/Compose verification ===');
   if (result.status === 0) {
     console.log((result.stdout || '').trim());
-    console.log('Skipped full Docker/Compose verification. This repository has no full-stack production Compose file.');
-    results.push({ label: 'Docker/Compose verification', status: 'skipped-not-verified', required: false });
+    console.log('Skipped heavy Docker/Compose verification in the release gate. Run docker compose config/build/up and npm run docker:smoke for PR-level container validation.');
+    results.push({ label: 'Docker/Compose verification', status: 'skipped-manual-pr-check-required', required: false });
     return;
   }
 
