@@ -1,0 +1,1 @@
+pair_id,review_batch_id,reviewer_code,review_date,first_pass_label,first_pass_confidence,requires_panel_resolution,panel_resolved_label,panel_resolution_notes,system_predicted_label,system_score,include_in_final_metrics,exclusion_reason
