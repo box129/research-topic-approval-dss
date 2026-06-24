@@ -1,29 +1,24 @@
-# Dockerfile for SBERT Service
-FROM python:3.10-slim
+FROM python:3.10-slim-bookworm
 
-# Set working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PIP_DEFAULT_TIMEOUT=180
+ENV PIP_RETRIES=10
 
-# Copy requirements first for better caching
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --upgrade pip setuptools wheel \
+    && python -m pip install --no-cache-dir --timeout 180 --retries 10 \
+      --index-url https://download.pytorch.org/whl/cpu \
+      torch==2.0.1+cpu torchvision==0.15.2+cpu \
+    && grep -vE '^(torch|torchvision)([<>=~!].*)?$' requirements.txt > /tmp/requirements-no-torch.txt \
+    && python -m pip install --no-cache-dir --timeout 180 --retries 10 -r /tmp/requirements-no-torch.txt
 
-# Copy application code
-COPY app.py .
+COPY . .
 
-# Expose port
 EXPOSE 8000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health')"
 
 # Run the application
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
