@@ -5,6 +5,7 @@
   "description": "Repository-level release readiness tooling for Topic Similarity MVP.",
   "scripts": {
     "docker:smoke": "node scripts/smoke/fullstack-compose-smoke.js",
+    "smoke:smtp": "node scripts/smoke/smtp-smoke.js",
     "release:check": "node scripts/release-readiness.js"
   }
 }
