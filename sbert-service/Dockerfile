@@ -13,7 +13,9 @@ RUN python -m pip install --upgrade pip setuptools wheel \
     && python -m pip install --no-cache-dir --timeout 180 --retries 10 \
       --index-url https://download.pytorch.org/whl/cpu \
       torch==2.0.1+cpu torchvision==0.15.2+cpu \
-    && grep -vE '^(torch|torchvision)([<>=~!].*)?$' requirements.txt > /tmp/requirements-no-torch.txt \
+    && grep -vE '^(torch|torchvision|transformers|huggingface-hub)([<>=~!].*)?$' requirements.txt > /tmp/requirements-no-torch.txt \
+    && python -m pip install --no-cache-dir --timeout 180 --retries 10 \
+      transformers==4.30.2 huggingface-hub==0.14.1 \
     && python -m pip install --no-cache-dir --timeout 180 --retries 10 -r /tmp/requirements-no-torch.txt
 
 COPY . .
