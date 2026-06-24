@@ -4,8 +4,8 @@ This tracker follows limitations from `v0.4.0-rc1` toward a stable FYP/public pr
 
 | Limitation | Status | Required PR or Evidence | Needed for FYP Stable Release | Needed for Public Production | Owner / Action | Current Post-RC Impact |
 | --- | --- | --- | --- | --- | --- | --- |
-| Pilot evaluation labels manually constructed | PARTIALLY ADDRESSED | Lecturer-reviewed benchmark collection and validated reviewed dataset | Yes | Indirect | Academic reviewer + project maintainer | Framework prepared; final labels not collected. |
-| Final lecturer-reviewed benchmark missing | PREPARED, NOT COMPLETED | Completed lecturer review file validated by `validate:lecturer-benchmark` and converted to evaluation dataset | Yes | Indirect | Lecturer/panel review | Protocol, template, schema, fixtures, validator, and workflow added. |
+| Pilot evaluation labels manually constructed | PARTIALLY ADDRESSED | Lecturer-reviewed benchmark collection and validated reviewed dataset | Yes | Indirect | Academic reviewer + project maintainer | Framework and lecturer evidence pack prepared; final labels not collected. |
+| Final lecturer-reviewed benchmark missing | EVIDENCE PACK PREPARED, NOT COMPLETED | Completed lecturer review file validated by `validate:lecturer-benchmark` and converted to evaluation dataset | Yes | Indirect | Lecturer/panel review | PR #108 adds protocol/schema/validator. PR #117 adds lecturer-facing validation protocol and CSV templates. No completed lecturer labels are present. |
 | Departmental-scale data-quality validation unverified | PREPARED, NOT COMPLETED | Safe aggregate audit over approved departmental records | Yes | Yes | Department data owner + project maintainer | Workflow and acceptance thresholds proposed. |
 | Real SMTP transport deferred | SMOKE WORKFLOW ADDED, PROVIDER-SMOKE RESULT PENDING | Run `npm run smoke:smtp` with deployment-owned SMTP credentials and controlled recipient; record provider result outside Git | No | Yes | Backend/operations | PR #109 adds Nodemailer SMTP transport and tests with injected transports. PR #116 adds a manual one-message SMTP provider smoke workflow, but provider delivery remains unverified until real credentials are supplied and the controlled recipient confirms receipt. |
 | Notification event hooks/frontend UI deferred | IMPLEMENTED, REALTIME/PREFERENCES DEFERRED | Optional notification preferences, realtime push, and future event-specific policy hooks | No | Product-dependent | Backend/frontend | PR #110 adds backend notification hooks. PR #111 adds authenticated frontend notification UI for real notification records. Realtime push and preferences remain deferred. |
@@ -51,3 +51,7 @@ PR #115 adds full-stack Docker/Compose readiness for local/staging-style verific
 ## Current PR #116 Boundary
 
 PR #116 adds a manual SMTP provider smoke workflow at `npm run smoke:smtp`. The script runs only with `EMAIL_PROVIDER=smtp`, requires explicit SMTP configuration and `SMTP_SMOKE_TO`, sends one clearly labelled test email, and avoids printing SMTP secrets or reset-token material. It does not run in normal CI, change auth/password-reset behavior, alter routes, add UI, change similarity scoring, or prove provider delivery without real deployment-owned credentials and recipient confirmation.
+
+## Current PR #117 Boundary
+
+PR #117 adds a lecturer validation evidence pack under `docs/evaluation`. It includes a lecturer-facing protocol, sample-only labelling template, and future results-recording template. It does not add real lecturer-reviewed labels, real student records, departmental-scale validation, scoring changes, threshold changes, backend behavior changes, routes, Prisma schema changes, or UI changes.
