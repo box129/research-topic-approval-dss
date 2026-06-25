@@ -32,6 +32,7 @@ Do not commit a filled version if it contains private service URLs, secrets, tok
 | Check | Result | Safe evidence |
 | --- | --- | --- |
 | Project/database created | `PASS / FAIL / NOT RUN` | provider dashboard status, no connection string |
+| Safe setup evidence note created | `PASS / FAIL / NOT RUN` | link to `neon-staging-setup-evidence.md` if used |
 | Region recorded safely | `PASS / FAIL / NOT RUN` | broad region label only if allowed |
 | `DATABASE_URL` stored outside Git | `PASS / FAIL / NOT RUN` | yes/no |
 | Prisma migrate deploy | `PASS / FAIL / NOT RUN` | command result only |
