@@ -12,9 +12,9 @@ This tracker follows limitations from `v0.4.0-rc1` toward a stable FYP/public pr
 | Lecturer supervisee workflow deferred | IMPLEMENTED, POLICY REFINEMENT OPTIONAL | Department-approved allocation policy refinements and future bulk workflow if needed | No | Product-dependent | Product/department | PR #112 adds a real assignment model, admin assignment workflow, lecturer supervisee view, and assignment-aware submission notification routing. |
 | Admin report exports deferred | CSV IMPLEMENTED, PDF/RETENTION DEFERRED | Optional PDF export, export retention/purge policy, and any async export job workflow | No | Product-dependent | Backend/admin | PR #113 adds admin-only audited CSV exports for safe report categories. PDF export and export retention/purge policy remain deferred. |
 | Audit export/purge/delete policy deferred | IMPLEMENTED, ARCHIVE/LEGAL-HOLD DEFERRED | Optional archive-before-delete, legal hold, and scheduled retention jobs | No | Yes | Governance/operations | PR #113 covers audit CSV export through admin reports. PR #114 adds project retention policy, configurable retention settings, admin purge preview, guarded audited purge, and admin UI controls. |
-| Monitoring and alerting environment-dependent | NOT VERIFIED | Deployment environment monitoring, alert ownership, runbook drill | No | Yes | Operations | No change. |
+| Monitoring and alerting environment-dependent | OPERATIONS PACK PREPARED, NOT VERIFIED | Deployment environment monitoring, alert ownership, runbook drill | No | Yes | Operations | PR #118 adds monitoring/logging, incident-response, secrets, HTTPS/domain, and backup/restore runbooks. Real monitoring provider setup and alert drills remain unverified. |
 | Full-stack Docker/Compose missing | ADDRESSED FOR LOCAL/STAGING-STYLE VERIFICATION, PUBLIC PRODUCTION UNPROVEN | Root Compose config, Dockerfiles, docs, and smoke verification | No | Yes if container deployment selected | Operations | PR #115 adds a full-stack Compose topology for PostgreSQL, backend, frontend, and SBERT, plus local smoke checks. Public HTTPS/container production remains unproven. |
-| Public production deployment unproven | NOT VERIFIED | HTTPS deployment, secrets, backup, monitoring, smoke evidence | No | Yes | Operations | No change. |
+| Public production deployment unproven | READINESS PACK PREPARED, DEPLOYMENT PROOF MISSING | HTTPS deployment, secrets, backup, monitoring, smoke evidence | No | Yes | Operations | PR #118 prepares the production operations readiness pack. Public deployment, staging proof, backup drills, TLS/domain setup, monitoring, and incident-response execution remain unverified. |
 
 ## Current PR #108 Boundary
 
@@ -55,3 +55,7 @@ PR #116 adds a manual SMTP provider smoke workflow at `npm run smoke:smtp`. The 
 ## Current PR #117 Boundary
 
 PR #117 adds a lecturer validation evidence pack under `docs/evaluation`. It includes a lecturer-facing protocol, sample-only labelling template, and future results-recording template. It does not add real lecturer-reviewed labels, real student records, departmental-scale validation, scoring changes, threshold changes, backend behavior changes, routes, Prisma schema changes, or UI changes.
+
+## Current PR #118 Boundary
+
+PR #118 adds production operations readiness documentation: backup/restore, secrets management, environment hardening, monitoring/logging, health/readiness operations, HTTPS/domain/TLS checklist, database ownership notes, and incident response/rollback. It is documentation only and does not prove public production deployment, staging deployment, monitoring configuration, backup drills, SMTP provider delivery, or incident-response execution.
