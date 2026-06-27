@@ -51,6 +51,7 @@ No secrets here.
 | Space created | `PASS / FAIL / NOT RUN` | yes/no |
 | SDK set to Docker | `PASS / FAIL / NOT RUN` | yes/no |
 | Safe setup evidence note created | `PASS / FAIL / NOT RUN` | link to `huggingface-sbert-space-setup-evidence.md` if used |
+| Online proof evidence note created | `PASS / FAIL / NOT RUN` | link to `huggingface-sbert-online-proof.md` if used |
 | `/health` response | `PASS / FAIL / NOT RUN` | status only |
 | Warmup behavior recorded | `PASS / FAIL / NOT RUN` | approximate duration |
 | `/embed` safe probe | `PASS / FAIL / NOT RUN` | dimension only, no vector |
