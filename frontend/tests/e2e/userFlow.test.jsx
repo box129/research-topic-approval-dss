@@ -81,6 +81,15 @@ describe('End-to-End User Flow Tests', () => {
     vi.restoreAllMocks();
   });
 
+  it('renders the public landing page at the root route', () => {
+    renderAppAt('/', buildAuthState(null));
+
+    expect(screen.getByRole('heading', { name: /research topic approval dss/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /continue to login/i })).toBeInTheDocument();
+    expect(screen.getByText(/staging\/demo notice/i)).toBeInTheDocument();
+    expect(screen.getByText(/similarity remains advisory/i)).toBeInTheDocument();
+  });
+
   it('redirects unauthenticated protected student route visits to the login shell', async () => {
     renderAppAt('/student/check-my-topic', buildAuthState(null));
 
