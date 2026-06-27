@@ -2,7 +2,7 @@
 
 ## Status
 
-PR #127 documents the exact Render backend deployment configuration for the free managed staging path. It does not deploy the Render service, run Prisma migrations against Neon, or prove full free staging deployment.
+PR #127 documented the exact Render backend deployment configuration for the free managed staging path. PR #128 corrects the Render build command based on the first successful online Render deployment proof. This document remains configuration guidance; the online evidence is recorded separately in [render-backend-online-proof.md](./render-backend-online-proof.md).
 
 This review is based on:
 
@@ -23,12 +23,14 @@ This review is based on:
 | Repository | Project GitHub repository |
 | Branch | Free staging deployment branch approved for Render, normally `main` after PRs merge |
 | Root directory | `backend` |
-| Build command | `npm ci && npx prisma generate` |
+| Build command | `npm install && npx prisma generate` |
 | Start command | `npm start` |
 | Health check path | `/api/v1/health` |
 
 Why:
 
+- The first Render deployment showed that `npm ci && npx prisma generate` is not suitable for the current backend lockfile state on Render.
+- The working Render build command is `npm install && npx prisma generate`.
 - `backend/package.json` defines `main` as `src/server.js`.
 - `npm start` runs `node src/server.js`.
 - `src/server.js` listens on `0.0.0.0` using `config.port`.
@@ -109,9 +111,9 @@ datasource db {
 }
 ```
 
-Migrations are not yet confirmed against Neon.
+PR #128 confirms `npx prisma migrate deploy` applied the seven existing migrations against Neon. A follow-up `npx prisma migrate status` attempt returned `P1001`, so final status connectivity confirmation remains pending.
 
-After setting the Neon `DATABASE_URL`, run from an approved Render shell/job or a local admin shell with the variable exported privately:
+For future redeploys or status confirmation, run from an approved Render shell/job or a local admin shell with the Neon `DATABASE_URL` exported privately:
 
 ```bash
 cd backend
@@ -173,7 +175,7 @@ Capture after deployment:
 - Render service created: `yes/no`
 - branch and commit hash
 - root directory: `backend`
-- build command used
+- build command used, expected as `npm install && npx prisma generate`
 - start command used
 - required environment variable names configured, without values
 - `/api/v1/health` result
@@ -195,16 +197,14 @@ Do not capture:
 
 ## Pending Work
 
-This review does not complete:
+PR #128 records that the Render backend service was created, built, started, and passed `/api/v1/health`, and that `npx prisma migrate deploy` applied the seven existing migrations against Neon. Still pending:
 
-- Render backend service creation.
-- Render environment variable entry.
-- Prisma migrations against Neon.
-- Render health/readiness proof.
+- follow-up Prisma `migrate status` confirmation after a post-deploy `P1001` connectivity error.
+- Render `/api/v1/readiness` proof.
 - Vercel frontend deployment.
 - Vercel `/api` routing to Render.
 - full free managed staging proof.
 
 ## Current Boundary
 
-The exact Render backend configuration is reviewed and ready to apply manually. The Render deployment itself remains pending.
+The exact Render backend configuration is reviewed and the build command has been corrected from online deployment evidence. Render health proof exists after PR #128, but full free staging remains pending until readiness, Vercel routing, and final evidence capture are complete.

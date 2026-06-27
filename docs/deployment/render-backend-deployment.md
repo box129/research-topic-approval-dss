@@ -2,7 +2,7 @@
 
 ## Status
 
-This document prepares Render Free backend deployment for FYP/demo staging. It does not deploy the backend and does not add Render-specific runtime configuration.
+This document prepares Render Free backend deployment for FYP/demo staging. PR #128 records the first safe online Render backend proof and corrects the build command to the one that succeeded on Render.
 
 ## Purpose
 
@@ -17,11 +17,13 @@ Suggested Render settings:
 | Service type | Web Service |
 | Root directory | `backend` |
 | Runtime | Node |
-| Build command | `npm ci && npx prisma generate` |
+| Build command | `npm install && npx prisma generate` |
 | Start command | `npm start` |
 | Health check path | `/api/v1/health` |
 
 Run migrations intentionally after Neon is configured. Do not use `prisma db push`.
+
+The earlier `npm ci && npx prisma generate` command is not suitable for the current backend lockfile state on Render. Use the working command above unless the lockfile state is later fixed and re-tested.
 
 ## Required Environment Variables
 
