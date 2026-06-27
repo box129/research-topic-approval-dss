@@ -113,7 +113,7 @@ backend
 - Set build command:
 
 ```bash
-npm ci && npx prisma generate
+npm install && npx prisma generate
 ```
 
 - Set start command:
@@ -151,6 +151,7 @@ Record safe evidence:
 
 - Render service created: `yes/no`
 - build result
+- build command used, expected as `npm install && npx prisma generate`
 - backend health result:
 
 ```bash
@@ -158,6 +159,8 @@ curl -fsS https://<render-backend-origin>/api/v1/health
 ```
 
 Do not record secret env values.
+
+Note: PR #128 records that `npm install && npx prisma generate` is the working Render build command for the current backend lockfile state. Do not use the earlier `npm ci && npx prisma generate` Render command unless it is re-tested successfully after lockfile changes.
 
 Output needed for Vercel:
 
