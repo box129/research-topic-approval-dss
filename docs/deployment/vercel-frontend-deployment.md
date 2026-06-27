@@ -2,7 +2,7 @@
 
 ## Status
 
-This document prepares Vercel frontend deployment for free managed staging. PR #129 adds the committed `frontend/vercel.json` rewrite configuration needed for Vercel to serve the React SPA and proxy relative `/api/*` calls to the Render backend.
+This document prepares Vercel frontend deployment for free managed staging. PR #129 adds the committed `frontend/vercel.json` rewrite configuration needed for Vercel to serve the React SPA and proxy relative `/api/*` calls to the Render backend. PR #130 records online Vercel proof in [vercel-frontend-online-proof.md](./vercel-frontend-online-proof.md).
 
 ## Purpose
 
@@ -68,12 +68,15 @@ After deployment:
 ```bash
 curl -fsSI https://<vercel-origin>/
 curl -fsS https://<vercel-origin>/api/v1/health
+curl -fsS https://<vercel-origin>/api/v1/readiness
 ```
 
 Pass:
 
 - frontend root returns HTTP 200
+- SPA routes such as `/login` return HTTP 200 and serve `index.html`
 - `/api/v1/health` reaches the Render backend through the Vercel origin
+- `/api/v1/readiness` reaches Render and reports the real backend readiness status
 - no frontend build logs expose secrets
 
 Fail:
@@ -89,7 +92,9 @@ Capture:
 - Vercel deployment status
 - build command and output directory
 - HTTP result for frontend root
+- SPA fallback result for a client route such as `/login`
 - API proxy health result
+- API proxy readiness result
 - known Vercel free-tier limitations
 
 Do not capture:
