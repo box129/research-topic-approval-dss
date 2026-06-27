@@ -2,7 +2,7 @@
 
 ## Status
 
-PR #122 adds a practical execution checklist for the free managed staging path. It does not complete deployment, prove provider availability, add real service URLs, or change application behavior.
+PR #122 adds a practical execution checklist for the free managed staging path. PR #130 records completed free managed staging readiness evidence for the Vercel -> Render -> Neon + Hugging Face SBERT chain. This checklist remains useful for reruns and evidence refreshes; it does not claim public production readiness.
 
 Selected FYP/demo stack:
 
@@ -21,6 +21,7 @@ Use this checklist with:
 - [huggingface-sbert-space.md](./huggingface-sbert-space.md)
 - [render-backend-deployment.md](./render-backend-deployment.md)
 - [vercel-frontend-deployment.md](./vercel-frontend-deployment.md)
+- [vercel-frontend-online-proof.md](./vercel-frontend-online-proof.md)
 - [free-staging-evidence-log-template.md](./free-staging-evidence-log-template.md)
 
 ## Safety Rules
@@ -265,6 +266,14 @@ CORS_ORIGIN=https://<vercel-origin>
 
 Update Render with the final Vercel origin after Vercel exists, then redeploy/restart Render if required.
 
+PR #130 evidence records:
+
+```text
+FRONTEND_URL=https://research-topic-approval-dss.vercel.app
+```
+
+Render was redeployed before the final checks.
+
 ### 6. Configure Frontend API Routing To Backend
 
 The frontend currently calls relative `/api/v1` and `/api/similarity/check` endpoints. For Vercel staging, the committed `frontend/vercel.json` configures routing so:
@@ -293,6 +302,7 @@ Pass:
 
 - Vercel `/api/v1/health` reaches Render.
 - Vercel `/api/v1/readiness` returns the real backend readiness response.
+- direct Render `/api/v1/readiness` is `ready` with `api`, `database`, and `sbert` available.
 - Browser login/session behavior is tested without fake responses.
 
 Fail:
@@ -319,7 +329,7 @@ Required evidence:
 - known free-tier issues
 - pass/fail conclusion
 
-Do not claim deployment complete until evidence is captured.
+PR #130 captures the Vercel frontend and Vercel-to-Render API proof. Credentialed browser workflow smoke remains separate unless explicitly run and recorded.
 
 ## Final Pass Criteria
 
@@ -349,4 +359,4 @@ Free staging fails when:
 
 ## Current Boundary
 
-This checklist prepares execution. It does not complete deployment, add provider configuration, or change the application.
+This checklist now records that free managed staging readiness has been proven for the Vercel -> Render -> Neon + Hugging Face SBERT chain as of PR #130. It does not prove public production readiness, lecturer validation completion, real SMTP smoke, credentialed browser workflow smoke, or departmental pilot deployment.

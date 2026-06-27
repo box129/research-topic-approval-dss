@@ -4,6 +4,8 @@
 
 Use this template only after executing the free managed staging setup. PR #122 adds the template but does not provide completed staging evidence.
 
+PR #130 records completed online evidence for the Vercel frontend, Vercel-to-Render API proxy, direct Render readiness, Neon availability, and Hugging Face SBERT availability. Use this template for future reruns or refreshed evidence captures.
+
 Do not commit a filled version if it contains private service URLs, secrets, tokens, database connection strings, screenshots with sensitive data, or real student records.
 
 ## Metadata
@@ -91,6 +93,7 @@ No env values here.
 | `frontend/vercel.json` rewrite config present | `PASS / FAIL / NOT RUN` | confirms `/api/:path*` proxies to Render and SPA fallback exists |
 | Build completed | `PASS / FAIL / NOT RUN` | build status only |
 | Frontend root loads | `PASS / FAIL / NOT RUN` | HTTP status |
+| SPA fallback route loads | `PASS / FAIL / NOT RUN` | `/login` returns HTTP 200 and serves `index.html` |
 | `/api/v1/health` via Vercel reaches Render | `PASS / FAIL / NOT RUN` | HTTP status and backend health summary |
 | `/api/similarity/check` route reaches Render | `PASS / FAIL / NOT RUN` | safe request status only, no real student topic |
 | `/api/v1/readiness` via Vercel reaches Render | `PASS / FAIL / NOT RUN` | readiness summary |
