@@ -2,7 +2,7 @@
 
 ## Status
 
-This document prepares Vercel frontend deployment for free managed staging. It does not deploy the frontend and does not add a committed Vercel project configuration.
+This document prepares Vercel frontend deployment for free managed staging. PR #129 adds the committed `frontend/vercel.json` rewrite configuration needed for Vercel to serve the React SPA and proxy relative `/api/*` calls to the Render backend.
 
 ## Purpose
 
@@ -28,7 +28,7 @@ Do not set or rely on `VITE_API_URL` for this PR. It is not used by the current 
 
 Required deployment setup:
 
-- configure `/api/*` from the Vercel origin to reach the Render backend
+- use the committed `frontend/vercel.json` rewrite configuration so `/api/*` from the Vercel origin reaches the Render backend
 - set the Render backend `FRONTEND_URL` to the Vercel frontend origin
 - set Render `CORS_ORIGIN` only if needed, and keep it explicit
 
@@ -37,18 +37,29 @@ Required deployment setup:
 Expected browser flow:
 
 ```text
-Browser -> https://<vercel-origin>/api/v1/... -> https://<render-backend-origin>/api/v1/...
+Browser -> https://<vercel-origin>/api/v1/... -> https://research-topic-approval-dss-backend.onrender.com/api/v1/...
 ```
 
-The current repository does not commit a `vercel.json` because a real Render backend origin is not available and must not be invented.
+The committed `frontend/vercel.json` contains:
 
-When the Render backend URL exists, choose one reviewed option:
+```json
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://research-topic-approval-dss-backend.onrender.com/api/:path*"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/index.html"
+    }
+  ]
+}
+```
 
-- configure Vercel rewrites to proxy `/api/:path*` to the Render backend
-- add a small committed `vercel.json` in a later config PR with the real approved staging backend origin
-- change the frontend API-base configuration in a later app/config PR, with tests, if proxying is not selected
+The first rewrite preserves existing frontend API behavior for `/api/v1`, `/api/similarity/check`, and other existing relative `/api/*` calls. The second rewrite preserves React Router SPA fallback routing by serving `index.html` for non-API paths.
 
-Do not hardcode a fake backend URL.
+Do not add `VITE_API_URL` or `VITE_API_BASE_URL` for this path. The current frontend API client still uses relative paths.
 
 ## Verification
 
