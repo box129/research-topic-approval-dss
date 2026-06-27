@@ -168,6 +168,14 @@ Output needed for Vercel:
 RENDER_BACKEND_ORIGIN=https://<render-backend-origin>
 ```
 
+PR #129 commits `frontend/vercel.json` for the approved staging backend origin:
+
+```text
+https://research-topic-approval-dss-backend.onrender.com
+```
+
+This is deploy configuration only. It does not prove Vercel deployment has succeeded.
+
 ### 4. Run Prisma Migrations
 
 Run migrations after Render has the Neon `DATABASE_URL`, or from a local/admin shell with the Neon `DATABASE_URL` exported only for that command.
@@ -259,7 +267,7 @@ Update Render with the final Vercel origin after Vercel exists, then redeploy/re
 
 ### 6. Configure Frontend API Routing To Backend
 
-The frontend currently calls relative `/api/v1` endpoints. For Vercel staging, configure routing so:
+The frontend currently calls relative `/api/v1` and `/api/similarity/check` endpoints. For Vercel staging, the committed `frontend/vercel.json` configures routing so:
 
 ```text
 https://<vercel-origin>/api/*
@@ -268,13 +276,12 @@ https://<vercel-origin>/api/*
 forwards to:
 
 ```text
-https://<render-backend-origin>/api/*
+https://research-topic-approval-dss-backend.onrender.com/api/*
 ```
 
 Checklist:
 
-- Configure the Vercel rewrite/proxy using provider settings or an approved deployment config.
-- Do not commit a real Render URL to the repository unless a later reviewed config PR explicitly chooses that route.
+- Confirm Vercel uses the committed `frontend/vercel.json` from PR #129.
 - Verify through the Vercel origin:
 
 ```bash

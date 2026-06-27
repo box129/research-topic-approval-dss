@@ -88,9 +88,11 @@ No env values here.
 | Check | Result | Safe evidence |
 | --- | --- | --- |
 | Project created | `PASS / FAIL / NOT RUN` | yes/no |
+| `frontend/vercel.json` rewrite config present | `PASS / FAIL / NOT RUN` | confirms `/api/:path*` proxies to Render and SPA fallback exists |
 | Build completed | `PASS / FAIL / NOT RUN` | build status only |
 | Frontend root loads | `PASS / FAIL / NOT RUN` | HTTP status |
 | `/api/v1/health` via Vercel reaches Render | `PASS / FAIL / NOT RUN` | HTTP status and backend health summary |
+| `/api/similarity/check` route reaches Render | `PASS / FAIL / NOT RUN` | safe request status only, no real student topic |
 | `/api/v1/readiness` via Vercel reaches Render | `PASS / FAIL / NOT RUN` | readiness summary |
 
 Notes:
