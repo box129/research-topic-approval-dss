@@ -66,6 +66,7 @@ No full embeddings, tokens, or real student topics.
 
 | Check | Result | Safe evidence |
 | --- | --- | --- |
+| Config review completed | `PASS / FAIL / NOT RUN` | link to `render-backend-config-review.md` if used |
 | Service created | `PASS / FAIL / NOT RUN` | yes/no |
 | Build completed | `PASS / FAIL / NOT RUN` | build status only |
 | Required env vars configured | `PASS / FAIL / NOT RUN` | variable names only |
