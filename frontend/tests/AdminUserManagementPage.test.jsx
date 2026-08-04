@@ -37,7 +37,7 @@ vi.mock('../src/api/admin', () => ({
   updateAdminUserStatus: vi.fn()
 }));
 
-vi.mock('../src/auth/AuthContext', () => ({
+vi.mock('../src/auth/useAuth', () => ({
   useAuth: () => ({
     user: {
       id: 1,

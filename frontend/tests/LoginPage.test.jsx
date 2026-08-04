@@ -3,9 +3,9 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import LoginPage from '../src/pages/auth/LoginPage';
-import { useAuth } from '../src/auth/AuthContext';
+import { useAuth } from '../src/auth/useAuth';
 
-vi.mock('../src/auth/AuthContext', () => ({
+vi.mock('../src/auth/useAuth', () => ({
   useAuth: vi.fn()
 }));
 

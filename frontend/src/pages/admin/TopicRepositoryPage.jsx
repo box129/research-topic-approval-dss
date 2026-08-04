@@ -210,7 +210,7 @@ function TopicRepositoryPage() {
         }
         setSummary(result.data || null);
         setSummaryState('success');
-      } catch (error) {
+      } catch {
         if (!isMounted) {
           return;
         }
@@ -239,7 +239,7 @@ function TopicRepositoryPage() {
         setTopics(result.data?.items || []);
         setListMeta(result.meta || null);
         setListState('success');
-      } catch (error) {
+      } catch {
         if (!isMounted) {
           return;
         }

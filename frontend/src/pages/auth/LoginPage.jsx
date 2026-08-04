@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../auth/AuthContext';
+import { useAuth } from '../../auth/useAuth';
 import { getDashboardPath } from '../../auth/roleRoutes';
 import InfoCallout from '../../components/ui/InfoCallout';
 import PrimaryButton from '../../components/ui/PrimaryButton';

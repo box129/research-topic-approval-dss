@@ -4,14 +4,14 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import AuthenticatedTopNav from '../src/layouts/AuthenticatedTopNav';
 import LoginPage from '../src/pages/auth/LoginPage';
-import { useAuth } from '../src/auth/AuthContext';
+import { useAuth } from '../src/auth/useAuth';
 import {
   listNotifications,
   markAllNotificationsRead,
   markNotificationRead
 } from '../src/api/notifications';
 
-vi.mock('../src/auth/AuthContext', () => ({
+vi.mock('../src/auth/useAuth', () => ({
   useAuth: vi.fn()
 }));
 

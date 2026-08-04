@@ -35,7 +35,7 @@ vi.mock('../src/api/admin', () => ({
   purgeAdminAuditLogs: vi.fn()
 }));
 
-vi.mock('../src/auth/AuthContext', () => ({
+vi.mock('../src/auth/useAuth', () => ({
   useAuth: () => ({
     user: {
       id: 1,

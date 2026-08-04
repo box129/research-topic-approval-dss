@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../../auth/AuthContext';
+import { useAuth } from '../../auth/useAuth';
 import InfoCallout from '../../components/ui/InfoCallout';
 import PrimaryButton from '../../components/ui/PrimaryButton';
 import TextInput from '../../components/ui/TextInput';

@@ -1,8 +1,7 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import apiClient from '../api/client';
-
-const AuthContext = createContext(null);
+import AuthContext from './authContext';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -72,13 +71,3 @@ export function AuthProvider({ children }) {
 AuthProvider.propTypes = {
   children: PropTypes.node.isRequired
 };
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
-
-  return context;
-}

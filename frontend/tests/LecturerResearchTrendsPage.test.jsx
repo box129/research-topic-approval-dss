@@ -28,7 +28,7 @@ vi.mock('../src/api/submissions', () => ({
   getLecturerResearchTrends: vi.fn()
 }));
 
-vi.mock('../src/auth/AuthContext', () => ({
+vi.mock('../src/auth/useAuth', () => ({
   useAuth: () => ({
     user: {
       id: 8,

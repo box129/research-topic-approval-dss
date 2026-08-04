@@ -290,7 +290,7 @@ function DashboardPage() {
         setSummary(result.data || null);
         setMeta(result.meta || null);
         setLoadState('success');
-      } catch (error) {
+      } catch {
         if (!isMounted) {
           return;
         }

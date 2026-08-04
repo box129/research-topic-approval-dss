@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { useAuth } from '../src/auth/AuthContext';
+import { useAuth } from '../src/auth/useAuth';
 import ForgotPasswordPage from '../src/pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from '../src/pages/auth/ResetPasswordPage';
 
-vi.mock('../src/auth/AuthContext', () => ({
+vi.mock('../src/auth/useAuth', () => ({
   useAuth: vi.fn()
 }));
 
