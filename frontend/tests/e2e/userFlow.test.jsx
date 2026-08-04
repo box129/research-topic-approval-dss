@@ -5,11 +5,11 @@ import { MemoryRouter } from 'react-router-dom';
 import MockAdapter from 'axios-mock-adapter';
 import axios from 'axios';
 
-vi.mock('../../src/auth/AuthContext', () => ({
+vi.mock('../../src/auth/useAuth', () => ({
   useAuth: vi.fn()
 }));
 
-import { useAuth } from '../../src/auth/AuthContext';
+import { useAuth } from '../../src/auth/useAuth';
 import App from '../../src/App';
 
 const validTopic = 'Machine learning methods for public health surveillance systems';

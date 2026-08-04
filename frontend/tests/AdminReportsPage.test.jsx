@@ -28,7 +28,7 @@ vi.mock('../src/api/admin', () => ({
   getAdminReportsSummary: vi.fn()
 }));
 
-vi.mock('../src/auth/AuthContext', () => ({
+vi.mock('../src/auth/useAuth', () => ({
   useAuth: () => ({
     user: {
       id: 1,

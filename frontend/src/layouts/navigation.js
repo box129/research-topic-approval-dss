@@ -5,7 +5,7 @@ export const roleNavigation = {
     { label: 'Check Similarity', path: '/lecturer/check-similarity' },
     { label: 'My Decisions', path: '/lecturer/my-decisions' },
     { label: 'Supervisees', path: '/lecturer/supervisees' },
-    { label: 'Research Trends', path: '/lecturer/research-trends', soon: true }
+    { label: 'Research Trends', path: '/lecturer/research-trends' }
   ],
   student: [
     { label: 'Dashboard', path: '/student/dashboard' },
@@ -20,7 +20,7 @@ export const roleNavigation = {
     { label: 'Topic Repository', path: '/admin/topic-repository' },
     { label: 'System Settings', path: '/admin/system-settings' },
     { label: 'Audit Log', path: '/admin/audit-log' },
-    { label: 'Reports', path: '/admin/reports', soon: true }
+    { label: 'Reports', path: '/admin/reports' }
   ]
 };
 

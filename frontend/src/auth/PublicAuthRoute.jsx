@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { Navigate } from 'react-router-dom';
 import LoadingState from '../components/ui/LoadingState';
-import { useAuth } from './AuthContext';
+import { useAuth } from './useAuth';
 import { getDashboardPath } from './roleRoutes';
 
 function PublicAuthRoute({ children }) {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import StudentDashboardPage from '../src/pages/student/DashboardPage';
@@ -9,7 +9,7 @@ vi.mock('../src/api/submissions', () => ({
   listSubmissions: vi.fn()
 }));
 
-vi.mock('../src/auth/AuthContext', () => ({
+vi.mock('../src/auth/useAuth', () => ({
   useAuth: () => ({
     user: {
       name: 'Student Demo User'

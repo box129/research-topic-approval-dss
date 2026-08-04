@@ -400,11 +400,8 @@ describe('TopicForm Component', () => {
       mockOnSubmit.mockResolvedValue();
       render(<TopicForm onSubmit={mockOnSubmit} />);
       
-      const textarea = screen.getByPlaceholderText(/enter your research topic/i);
       fillTopic('Machine learning algorithms for natural language processing tasks');
       
-      // Find the form and submit it
-      const form = textarea.closest('form');
       await user.click(screen.getByRole('button', { name: /check similarity/i }));
       
       await waitFor(() => {
