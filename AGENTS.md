@@ -40,6 +40,7 @@ Protect the similarity scoring, result tiering, LOW/MEDIUM/HIGH risk logic, API 
 ## Working Rules
 
 - Inspect the relevant files and docs before changing anything.
+- Before any visual or structural frontend change, read and follow `docs/ui/DESIGN.md`, `docs/ui/COMPONENT-MAP.md`, `docs/ui/REPRESENTATIVE-SCREEN-BRIEFS.md`, and `docs/ui/VISUAL-ACCEPTANCE-CRITERIA.md`. These documents are the mandatory Institutional Evidence Workflow design contract and validation policy.
 - Prefer small, low-risk edits over broad rewrites.
 - Do not guess when unsure; write `needs verification`.
 - Update docs when behavior, commands, ports, setup steps, or API shapes change.
