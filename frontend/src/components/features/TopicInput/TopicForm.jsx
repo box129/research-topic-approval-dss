@@ -40,11 +40,11 @@ const sanitizeInput = (text) => {
  * @param {Function} props.onSubmit - Callback function when form is submitted
  * @param {boolean} props.isLoading - Loading state during API call
  */
-const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
+const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default', compact = false, topicInputRef }) => {
   const [topic, setTopic] = useState('');
   const [keywords, setKeywords] = useState('');
   const [category, setCategory] = useState('');
-  const [error, setError] = useState('');
+  const [submissionError, setSubmissionError] = useState('');
   const isCheckerShell = ['student-checker', 'lecturer-checker'].includes(appearance);
   const isLecturerChecker = appearance === 'lecturer-checker';
 
@@ -102,7 +102,7 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
    */
   const handleTopicChange = (e) => {
     setTopic(e.target.value);
-    setError('');
+    setSubmissionError('');
   };
 
   /**
@@ -111,7 +111,7 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
    */
   const handleKeywordsChange = (e) => {
     setKeywords(e.target.value);
-    setError('');
+    setSubmissionError('');
   };
 
   /**
@@ -120,7 +120,7 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
    */
   const handleCategoryChange = (e) => {
     setCategory(e.target.value);
-    setError('');
+    setSubmissionError('');
   };
 
   /**
@@ -133,34 +133,40 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
     const validation = getValidationStatus();
     
     if (!validation.isValid) {
-      setError('Please enter a valid topic (7-24 words)');
       return;
     }
     
     // Validate keywords length
     if (keywords && keywords.trim().length > MAX_KEYWORDS_LENGTH) {
-      setError(`Keywords must be less than ${MAX_KEYWORDS_LENGTH} characters`);
       return;
     }
 
     try {
-      await onSubmit({
+      const submissionSucceeded = await onSubmit({
         topic: sanitizeInput(topic),
         keywords: sanitizeInput(keywords),
         category: sanitizeInput(category)
       });
       
-      // Clear form on successful submission
-      setTopic('');
-      setKeywords('');
-      setCategory('');
-      setError('');
+      if (submissionSucceeded !== false) {
+        setTopic('');
+        setKeywords('');
+        setCategory('');
+        setSubmissionError('');
+      }
     } catch (err) {
-      setError(err.message || 'An error occurred while checking similarity');
+      setSubmissionError(err.message || 'An error occurred while checking similarity');
     }
   };
 
   const validation = getValidationStatus();
+  const isTopicInvalid = Boolean(topic.trim()) && !validation.isValid;
+  const isKeywordsInvalid = keywords.trim().length > MAX_KEYWORDS_LENGTH;
+  const topicDescribedBy = [
+    'topic-guidance',
+    'topic-count',
+    isTopicInvalid ? 'topic-validation' : null
+  ].filter(Boolean).join(' ');
 
   return (
     <div className={isCheckerShell
@@ -168,11 +174,11 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
       : 'w-full max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md'
     }>
       {isCheckerShell ? (
-        <div className="mb-5">
+        <div className={compact ? 'mb-2' : 'mb-5'}>
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#1B5E20]">
             {isLecturerChecker ? 'Standalone topic check' : 'Check your research topic'}
           </p>
-          <h2 className="mt-2 font-serif text-2xl font-semibold text-[#1B5E20]">
+          <h2 className={`${compact ? 'mt-1 text-xl' : 'mt-2 text-2xl'} font-serif font-semibold text-[#1B5E20]`}>
             {isLecturerChecker ? 'Manual similarity pre-check' : 'Similarity pre-check'}
           </h2>
         </div>
@@ -182,7 +188,7 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
         </h2>
       )}
 
-      <form onSubmit={handleSubmit} className={isCheckerShell ? 'space-y-5' : 'space-y-6'}>
+      <form onSubmit={handleSubmit} noValidate className={compact ? 'space-y-2' : isCheckerShell ? 'space-y-5' : 'space-y-6'}>
         {/* Topic Input */}
         <div>
           <label 
@@ -193,16 +199,19 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
           </label>
           
           <textarea
+            ref={topicInputRef}
             id="topic"
             value={topic}
             onChange={handleTopicChange}
             disabled={isLoading}
+            aria-invalid={isTopicInvalid ? 'true' : undefined}
+            aria-describedby={topicDescribedBy}
             placeholder="Enter your research topic (7-24 words)..."
-            rows={isCheckerShell ? 5 : 4}
+            rows={compact ? 2 : isCheckerShell ? 5 : 4}
             className={`
               w-full px-4 py-3 rounded-lg border-2 
               ${validation.borderColor}
-              focus:outline-none focus:ring-2 ${isCheckerShell ? 'focus:ring-[#1B5E20]' : 'focus:ring-blue-500'} focus:border-transparent
+              focus:outline-none focus:ring-2 ${isTopicInvalid ? 'focus:border-red-500 focus:ring-red-500' : isCheckerShell ? 'focus:border-transparent focus:ring-[#1B5E20]' : 'focus:border-transparent focus:ring-blue-500'}
               disabled:bg-gray-100 disabled:cursor-not-allowed
               transition-colors duration-200
               resize-none
@@ -213,9 +222,9 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
           <div className="mt-2 space-y-1">
             {/* Word Count */}
             <div className="flex items-center justify-between text-sm">
-              <span className={`
+              <span id="topic-validation" className={`
                 font-medium
-                ${validation.wordCount < MIN_WORDS || validation.wordCount > MAX_WORDS 
+                ${topic.trim() && (validation.wordCount < MIN_WORDS || validation.wordCount > MAX_WORDS)
                   ? 'text-red-600' 
                   : validation.wordCount > 0 
                     ? 'text-green-600' 
@@ -225,9 +234,10 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
                 {validation.message || 'Enter your topic to see validation'}
               </span>
               <span
+                id="topic-count"
                 data-testid="word-count"
                 className={`
-                ${validation.wordCount < MIN_WORDS || validation.wordCount > MAX_WORDS
+                ${topic.trim() && (validation.wordCount < MIN_WORDS || validation.wordCount > MAX_WORDS)
                   ? 'text-red-600'
                   : validation.wordCount > 0
                     ? 'text-green-600'
@@ -239,7 +249,7 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
             </div>
 
             {/* Character Count */}
-            <div className="flex items-center justify-between text-sm">
+            <div id="topic-guidance" className={`${compact ? 'hidden' : 'flex'} items-center justify-between text-sm`}>
               <span className={`
                 ${!validation.isCharCountInGuideline && validation.charCount > 0
                   ? 'text-yellow-600' 
@@ -291,7 +301,7 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
             ))}
           </select>
 
-          <p className="mt-1 whitespace-normal break-keep text-left text-sm tracking-normal text-gray-500 hyphens-none [word-spacing:normal]">
+          <p className={`${compact ? 'hidden' : 'block'} mt-1 whitespace-normal break-keep text-left text-sm tracking-normal text-gray-500 hyphens-none [word-spacing:normal]`}>
             Select a category to refine results (optional)
           </p>
         </div>
@@ -311,22 +321,25 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
             value={keywords}
             onChange={handleKeywordsChange}
             disabled={isLoading}
+            aria-invalid={isKeywordsInvalid ? 'true' : undefined}
+            aria-describedby={`keyword-guidance${isKeywordsInvalid ? ' keyword-validation' : ''}`}
             placeholder="e.g., machine learning, neural networks, AI"
             className={`
-              w-full px-4 py-3 rounded-lg border-2 border-gray-300
-              focus:outline-none focus:ring-2 ${isCheckerShell ? 'focus:ring-[#1B5E20]' : 'focus:ring-blue-500'} focus:border-transparent
+              w-full px-4 py-3 rounded-lg border-2 ${isKeywordsInvalid ? 'border-red-500' : 'border-gray-300'}
+              focus:outline-none focus:ring-2 ${isKeywordsInvalid ? 'focus:border-red-500 focus:ring-red-500' : isCheckerShell ? 'focus:border-transparent focus:ring-[#1B5E20]' : 'focus:border-transparent focus:ring-blue-500'}
               disabled:bg-gray-100 disabled:cursor-not-allowed
               transition-colors duration-200
             `}
           />
           
-          <p className="mt-1 whitespace-normal break-keep text-left text-sm tracking-normal text-gray-500 hyphens-none [word-spacing:normal]">
+          <p id="keyword-guidance" className={`${compact ? 'hidden' : 'block'} mt-1 whitespace-normal break-keep text-left text-sm tracking-normal text-gray-500 hyphens-none [word-spacing:normal]`}>
             Add relevant keywords to improve similarity detection
           </p>
+          {isKeywordsInvalid && <p id="keyword-validation" className="mt-1 text-sm font-medium text-red-600">Keywords must be 500 characters or fewer.</p>}
         </div>
 
         {/* Error Message */}
-        {error && (
+        {submissionError && (
           <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded">
             <div className="flex items-center">
               <svg 
@@ -340,16 +353,16 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
                   clipRule="evenodd" 
                 />
               </svg>
-              <p className="text-sm text-red-700 font-medium">{error}</p>
+              <p className="text-sm text-red-700 font-medium">{submissionError}</p>
             </div>
           </div>
         )}
 
         {/* Submit Button */}
-        <button
+        {!(isLoading && appearance === 'student-checker') && <button
           type="submit"
           disabled={!validation.isValid || isLoading}
-          className={`
+          className={`flex
             w-full py-3 px-6 rounded-lg font-medium text-white
             transition-all duration-200
             ${!validation.isValid || isLoading
@@ -359,7 +372,7 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
                 : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-md hover:shadow-lg'
             }
             disabled:opacity-50
-            flex items-center justify-center
+            items-center justify-center
           `}
         >
           {isLoading ? (
@@ -389,10 +402,10 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
           ) : (
             'Check Similarity'
           )}
-        </button>
+        </button>}
 
         {/* Help Text */}
-        {isCheckerShell ? (
+        {isCheckerShell ? (!compact && (
           <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 px-4 py-3 text-sm leading-6 text-text-secondary">
             <p className="font-semibold text-[#1B5E20]">Validation benchmark</p>
             <p className="whitespace-normal break-keep text-left tracking-normal hyphens-none [word-spacing:normal]">
@@ -401,7 +414,7 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
                 : 'Use 7-24 clear words. Category and keywords are optional, but they can improve matching.'}
             </p>
           </div>
-        ) : (
+        )) : (
           <div className="mt-4 p-4 bg-blue-50 rounded-lg">
             <h3 className="text-sm font-semibold text-blue-900 mb-2">
               💡 Tips for Best Results:
@@ -422,7 +435,9 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default' }) => {
 TopicForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   isLoading: PropTypes.bool,
-  appearance: PropTypes.oneOf(['default', 'student-checker', 'lecturer-checker'])
+  appearance: PropTypes.oneOf(['default', 'student-checker', 'lecturer-checker']),
+  compact: PropTypes.bool,
+  topicInputRef: PropTypes.shape({ current: PropTypes.object })
 };
 
 export default TopicForm;

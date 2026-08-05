@@ -1,10 +1,9 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import InfoCallout from '../../components/ui/InfoCallout';
 import SecondaryButton from '../../components/ui/SecondaryButton';
 import TopicForm from '../../components/features/TopicInput/TopicForm';
 import ResultsDisplay from '../../components/features/Results/ResultsDisplay';
-import StudentDashboardLayout from '../../layouts/StudentDashboardLayout';
 
 function mapFypTier1Matches(matches = []) {
   return matches.map((match) => ({
@@ -13,10 +12,9 @@ function mapFypTier1Matches(matches = []) {
     supervisor_name: match.supervisor || '',
     session_year: match.year || '',
     category: match.category || '',
-    jaccard_score: match.jaccard || 0,
-    tfidf_score: match.tfidf || 0,
-    sbert_score: match.sbert || 0,
-    combined_similarity_score: match.sbert || match.jaccard || 0
+    jaccard_score: match.jaccard ?? 0,
+    tfidf_score: match.tfidf ?? 0,
+    sbert_score: match.sbert ?? null
   }));
 }
 
@@ -26,10 +24,9 @@ function mapFypTier2Matches(matches = []) {
     topic_title: match.title || '',
     supervisor_name: match.supervisor || '',
     session_year: match.approved_date || '',
-    jaccard_score: match.jaccard || 0,
-    tfidf_score: match.tfidf || 0,
-    sbert_score: match.sbert || 0,
-    combined_similarity_score: match.sbert || match.jaccard || 0
+    jaccard_score: match.jaccard ?? 0,
+    tfidf_score: match.tfidf ?? 0,
+    sbert_score: match.sbert ?? null
   }));
 }
 
@@ -39,10 +36,9 @@ function mapFypTier3Matches(matches = []) {
     topic_title: match.title || '',
     supervisor_name: match.reviewing_lecturer || '',
     session_year: match.review_started_at || '',
-    jaccard_score: match.jaccard || 0,
-    tfidf_score: match.tfidf || 0,
-    sbert_score: match.sbert || 0,
-    combined_similarity_score: match.sbert || match.jaccard || 0
+    jaccard_score: match.jaccard ?? 0,
+    tfidf_score: match.tfidf ?? 0,
+    sbert_score: match.sbert ?? null
   }));
 }
 
@@ -108,97 +104,119 @@ function CheckMyTopicPage() {
   const [results, setResults] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [checkedProposal, setCheckedProposal] = useState(null);
   const abortControllerRef = useRef(null);
+  const topicInputRef = useRef(null);
+  const errorAlertRef = useRef(null);
+  const [focusFreshForm, setFocusFreshForm] = useState(false);
 
   const handleSubmit = async (data) => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    abortControllerRef.current = new AbortController();
+    abortControllerRef.current?.abort();
+    const requestController = new AbortController();
+    abortControllerRef.current = requestController;
 
     setIsLoading(true);
     setError('');
     setResults(null);
+    setCheckedProposal(data);
 
     try {
       const response = await axios.post('/api/similarity/check', data, {
-        signal: abortControllerRef.current.signal
+        signal: requestController.signal
       });
 
       if (!response.data || typeof response.data !== 'object') {
         throw new Error('Invalid response format from server');
       }
 
+      if (abortControllerRef.current !== requestController) return false;
+
       setResults(mapSimilarityResponse(response.data));
+      return true;
     } catch (err) {
-      if (err.name === 'AbortError') {
-        return;
-      }
+      if (requestController.signal.aborted || err.name === 'AbortError' || err.name === 'CanceledError' || axios.isCancel?.(err)) return false;
+      if (abortControllerRef.current !== requestController) return false;
 
       setError(getSimilarityErrorMessage(err));
-      console.error('Student topic similarity check failed:', {
-        message: err.message,
-        status: err.response?.status,
-        timestamp: new Date().toISOString()
-      });
+      return false;
     } finally {
-      setIsLoading(false);
+      if (abortControllerRef.current === requestController) {
+        abortControllerRef.current = null;
+        setIsLoading(false);
+      }
     }
   };
 
   const handleReset = () => {
     setResults(null);
     setError('');
+    setCheckedProposal(null);
+    setFocusFreshForm(true);
   };
 
+  useEffect(() => {
+    if (!focusFreshForm || results) return undefined;
+
+    const animationFrame = requestAnimationFrame(() => {
+      topicInputRef.current?.focus();
+      setFocusFreshForm(false);
+    });
+
+    return () => cancelAnimationFrame(animationFrame);
+  }, [focusFreshForm, results]);
+
+  useEffect(() => {
+    if (!error) return undefined;
+
+    const animationFrame = requestAnimationFrame(() => errorAlertRef.current?.focus());
+    return () => cancelAnimationFrame(animationFrame);
+  }, [error]);
+
   return (
-    <StudentDashboardLayout open>
-      <header className="px-1 pt-1 sm:px-0">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary/70">Student portal</p>
-        <h1 className="mt-2 font-serif text-3xl font-semibold leading-tight text-[#1B5E20] sm:text-4xl">
+    <div className="space-y-5">
+      <header className="grid gap-2 border-b border-gray-200 pb-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,34rem)] lg:items-end">
+        <div><p className="text-xs font-bold uppercase tracking-[0.14em] text-brand-green-dark">Student · Topic workflow</p>
+        <h1 className="mt-2 text-3xl font-bold leading-tight text-brand-green-dark sm:text-4xl">
           Check My Topic
-        </h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-text-secondary">
-          Run a quick similarity check before submitting your public health research proposal.
+        </h1></div>
+        <p className="max-w-3xl text-sm leading-6 text-text-secondary lg:text-base">
+          Compare a proposed topic with stored research-topic records before deciding whether to submit it for lecturer review.
         </p>
       </header>
 
-      <aside className="rounded-2xl border border-emerald-200 bg-emerald-50/65 px-4 py-3 shadow-sm sm:px-5">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
-          <p className="shrink-0 text-xs font-bold uppercase tracking-[0.12em] text-[#1B5E20]">Pre-check only</p>
-          <div className="text-sm leading-6 text-text-secondary">
-            <p>This check does not submit your topic for lecturer approval, save a result, or create a decision record.</p>
-            <p className="mt-1">Formal approval remains lecturer-controlled after you submit a topic for review.</p>
-          </div>
-        </div>
+      <aside aria-label="Advisory boundary" className="border-l-4 border-blue-600 bg-blue-50 px-4 py-3 sm:px-5">
+        <p className="font-bold text-blue-950">Advisory pre-check</p>
+        <p className="mt-1 text-sm leading-6 text-blue-950">This private pre-check does not save or submit your topic. Similarity evidence supports your judgement but does not approve or reject a proposal.</p>
       </aside>
 
-      <section className="rounded-2xl border border-emerald-100 bg-white/95 p-4 shadow-sm sm:p-6">
-        <div className="mb-5 flex flex-col gap-2 border-b border-emerald-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#1B5E20]">Private checker</p>
-            <h2 className="mt-1 font-serif text-2xl font-semibold text-text-primary">Compare an idea before formal review</h2>
-          </div>
-          <span className="w-fit rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-            Nothing saved
-          </span>
-        </div>
-
-        <TopicForm appearance="student-checker" onSubmit={handleSubmit} isLoading={isLoading} />
-      </section>
-
       {error && !results && (
-        <InfoCallout
-          variant="danger"
-          title="Unable to check topic"
-          message={error}
-        />
+        <div ref={errorAlertRef} role="alert" tabIndex="-1" className="focus:outline-none">
+          <InfoCallout variant="danger" title="Unable to check topic" message={error} />
+        </div>
       )}
 
-      {!results && !error && (
+      {isLoading && (
+        <section aria-live="polite" className="flex flex-col gap-4 border border-blue-200 bg-blue-50 p-5 sm:flex-row sm:items-center">
+          <span aria-hidden="true" className="h-7 w-7 shrink-0 animate-spin rounded-full border-4 border-blue-200 border-t-blue-700 motion-reduce:animate-none" />
+          <div className="flex-1"><h2 className="text-lg font-bold text-blue-950">Checking similarity</h2><p className="mt-1 text-sm text-blue-900">Checking the proposed topic against supported research-topic records.</p></div>
+          <button type="button" disabled className="min-h-11 rounded-md bg-gray-400 px-5 font-bold text-white">Checking Similarity</button>
+        </section>
+      )}
+
+      {!results && (
+        <section className={`${error ? 'block' : 'grid lg:grid-cols-[minmax(0,2fr)_minmax(16rem,1fr)]'} gap-6 border border-gray-200 bg-white p-4 shadow-sm sm:p-6`}>
+          <TopicForm appearance="student-checker" onSubmit={handleSubmit} isLoading={isLoading} compact={isLoading || Boolean(error)} topicInputRef={topicInputRef} />
+          {!error && <aside aria-labelledby="check-context-title" className="border-t border-gray-200 pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+            <h2 id="check-context-title" className="text-lg font-bold text-brand-green-dark">What this check considers</h2>
+            <dl className="mt-4 space-y-4 text-sm"><div><dt className="font-bold">Exact overlap</dt><dd className="mt-1 text-text-secondary">Shared words and phrases.</dd></div><div><dt className="font-bold">Weighted terms</dt><dd className="mt-1 text-text-secondary">The relative importance of terms.</dd></div><div><dt className="font-bold">Semantic meaning</dt><dd className="mt-1 text-text-secondary">Conceptual similarity when the semantic service is available.</dd></div></dl>
+            <p className="mt-5 border-t border-gray-200 pt-4 text-sm text-text-secondary">The result is evidence for review, not an academic decision.</p>
+          </aside>}
+        </section>
+      )}
+
+      {!results && !error && !isLoading && (
         <section className="rounded-2xl border border-dashed border-emerald-200 bg-white/75 px-5 py-5 text-center">
-          <h2 className="font-serif text-xl font-semibold text-[#1B5E20]">
+          <h2 className="font-serif text-xl font-semibold text-brand-green-dark">
             {isLoading ? 'Checking topic' : 'Awaiting topic check'}
           </h2>
           <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-text-secondary">
@@ -210,11 +228,17 @@ function CheckMyTopicPage() {
       )}
 
       {results && (
-        <section className="animate-fade-in" aria-labelledby="student-results-title">
+        <section className="animate-fade-in space-y-4 motion-reduce:animate-none" aria-labelledby="student-results-title">
+          <section aria-labelledby="checked-proposal-title" className="border border-gray-200 bg-white px-5 py-4">
+            <h2 id="checked-proposal-title" className="text-lg font-bold text-brand-green-dark">Checked proposal</h2>
+            <p className="mt-2 font-semibold text-text-primary">{checkedProposal?.topic}</p>
+            <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2"><div><dt className="font-bold">Research area</dt><dd>{checkedProposal?.category || 'Not specified'}</dd></div><div><dt className="font-bold">Keywords</dt><dd>{checkedProposal?.keywords || 'Not specified'}</dd></div></dl>
+            <p className="mt-3 text-sm text-text-secondary">Temporary browser state only. This proposal was not saved or submitted.</p>
+          </section>
           <div className="flex flex-col gap-3 border-b border-emerald-100 pb-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#1B5E20]">Advisory result</p>
-              <h2 id="student-results-title" className="mt-1 font-serif text-2xl font-semibold text-[#1B5E20]">
+              <p className="text-xs font-bold uppercase tracking-[0.12em] text-brand-green-dark">Advisory result</p>
+              <h2 id="student-results-title" className="mt-1 font-serif text-2xl font-semibold text-brand-green-dark">
                 Your results
               </h2>
             </div>
@@ -228,7 +252,7 @@ function CheckMyTopicPage() {
           </div>
         </section>
       )}
-    </StudentDashboardLayout>
+    </div>
   );
 }
 
