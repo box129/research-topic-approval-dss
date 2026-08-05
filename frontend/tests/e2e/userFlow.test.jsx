@@ -84,10 +84,12 @@ describe('End-to-End User Flow Tests', () => {
   it('renders the public landing page at the root route', () => {
     renderAppAt('/', buildAuthState(null));
 
-    expect(screen.getByRole('heading', { name: /research topic approval dss/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /continue to login/i })).toBeInTheDocument();
-    expect(screen.getByText(/staging\/demo notice/i)).toBeInTheDocument();
-    expect(screen.getByText(/similarity remains advisory/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: /better research topics begin with better evidence/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /research topic approval dss home/i })).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: /sign in/i }).every(link => link.getAttribute('href') === '/login')).toBe(true);
+    expect(screen.getByText(/illustrative approval workflow/i)).toBeInTheDocument();
+    expect(screen.getByText(/similarity evidence supports the decision/i)).toBeInTheDocument();
+    expect(screen.getByText(/does not offer self-registration/i)).toBeInTheDocument();
   });
 
   it('redirects unauthenticated protected student route visits to the login shell', async () => {
