@@ -171,9 +171,24 @@ describe('Similarity Controller', () => {
       expect(response.body.data.tier2_current).toEqual([]);
       expect(response.body.data).toHaveProperty('tier3_under_review');
       expect(response.body.data.tier3_under_review).toEqual([]);
+      expect(Object.keys(response.body.data)).toEqual([
+        'input_topic',
+        'word_count',
+        'char_count',
+        'overall_risk',
+        'max_similarity',
+        'tier1_historical',
+        'tier2_current',
+        'tier3_under_review',
+        'recommendation'
+      ]);
       expect(response.body.data).toHaveProperty(
         'recommendation',
-        'Topic appears unique. Proceed with approval.'
+        'No high-similarity records were identified by this check. Review the proposal and its context before making a submission or approval decision.'
+      );
+      expect(response.body.data.recommendation).toMatch(/review the proposal/i);
+      expect(response.body.data.recommendation).not.toMatch(
+        /unique|originality|original|proceed with approval|safe to submit|cleared/i
       );
     });
 
