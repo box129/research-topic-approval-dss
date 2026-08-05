@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('renders the login page without crashing', async ({ page }, testInfo) => {
-  await page.goto('/');
+  await page.goto('/login');
 
   await expect(page.locator('body')).toBeVisible();
   await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible();
