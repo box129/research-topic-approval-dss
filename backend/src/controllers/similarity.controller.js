@@ -77,7 +77,7 @@ function buildRecommendation(overallRisk, tier3 = []) {
     return 'Moderate similarity detected. Review flagged topics before deciding.';
   }
 
-  return 'Topic appears unique. Proceed with approval.';
+  return 'No high-similarity records were identified by this check. Review the proposal and its context before making a submission or approval decision.';
 }
 
 function calculateMaxCombinedSimilarity(...tiers) {
