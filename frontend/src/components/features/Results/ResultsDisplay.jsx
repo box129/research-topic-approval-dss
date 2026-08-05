@@ -76,10 +76,13 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
   // Track which matches have expanded details
   const [expandedMatches, setExpandedMatches] = useState({});
   const isCheckerShell = ['student-checker', 'lecturer-checker'].includes(appearance);
+  const isStudentChecker = appearance === 'student-checker';
 
   // Risk level configuration
   const riskConfig = RISK_CONFIGS[results.risk_level] || RISK_CONFIGS.LOW;
-  const recommendation = results.recommendation || riskConfig.recommendation;
+  const recommendation = results.recommendation || (isStudentChecker && results.risk_level === 'LOW'
+    ? 'No high-similarity records were identified by this check. Review the proposal and its context before making a submission or approval decision.'
+    : riskConfig.recommendation);
 
   /**
    * Toggle details visibility for a match
@@ -107,8 +110,26 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
   const renderTopicMatch = (match, index, tierKey) => {
     const matchKey = `${tierKey}-${match.id}-${index}`;
     const isExpanded = expandedMatches[matchKey];
-    const score = match.combined_similarity_score || match.jaccard_score || 0;
+    const availableScores = [match.jaccard_score, match.tfidf_score, match.sbert_score]
+      .filter(value => typeof value === 'number');
+    const score = isStudentChecker
+      ? Math.max(0, ...availableScores)
+      : match.combined_similarity_score || match.jaccard_score || 0;
     const similarityLevel = getSimilarityLevel(score);
+    const studentMetadata = tierKey === 'tier3'
+      ? [
+          ['Reviewing lecturer', match.supervisor_name, `supervisor-${index}`],
+          ['Review started', match.session_year, `session-${index}`]
+        ]
+      : tierKey === 'tier2'
+        ? [
+            ['Supervisor', match.supervisor_name, `supervisor-${index}`],
+            ['Approved date', match.session_year, `session-${index}`]
+          ]
+        : [
+            ['Supervisor', match.supervisor_name, `supervisor-${index}`],
+            ['Session', match.session_year, `session-${index}`]
+          ];
 
     return (
       <div
@@ -133,16 +154,12 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
 
         {/* Metadata */}
         <div className="flex flex-wrap gap-3 mb-3 text-sm text-gray-600">
-          {match.supervisor_name && (
-            <span data-testid={`supervisor-${index}`}>
-              <strong>Supervisor:</strong> {match.supervisor_name}
-            </span>
-          )}
-          {match.session_year && (
-            <span data-testid={`session-${index}`}>
-              <strong>Year:</strong> {match.session_year}
-            </span>
-          )}
+          {isStudentChecker ? studentMetadata.map(([label, value, testId]) => value && (
+            <span key={label} data-testid={testId}><strong>{label}:</strong> {value}</span>
+          )) : <>
+            {match.supervisor_name && <span data-testid={`supervisor-${index}`}><strong>Supervisor:</strong> {match.supervisor_name}</span>}
+            {match.session_year && <span data-testid={`session-${index}`}><strong>Year:</strong> {match.session_year}</span>}
+          </>}
           {match.status && (
             <span data-testid={`status-${index}`}>
               <strong>Status:</strong> {match.status}
@@ -150,8 +167,27 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
           )}
         </div>
 
-        {/* Expandable Technical Details */}
-        <button
+        {isStudentChecker ? (
+          <details className="group text-sm text-blue-700">
+            <summary
+              className="w-fit cursor-pointer rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+              data-testid={`expand-details-${index}`}
+            >
+              <span className="group-open:hidden">Show Technical Details</span>
+              <span className="hidden group-open:inline">Hide Technical Details</span>
+            </summary>
+            <div className="mt-3 border-t border-gray-200 pt-3" data-testid={`algorithm-details-${index}`}>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Algorithm Scores (Technical)</p>
+              <div className="flex flex-wrap gap-2">
+                <span data-testid={`jaccard-badge-${index}`} className={`rounded-full px-3 py-1 text-xs font-medium ${getAlgorithmBadgeColor('jaccard')}`}>Jaccard: {formatScore(match.jaccard_score)}</span>
+                <span data-testid={`tfidf-badge-${index}`} className={`rounded-full px-3 py-1 text-xs font-medium ${getAlgorithmBadgeColor('tfidf')}`}>TF-IDF/Cosine: {formatScore(match.tfidf_score)}</span>
+                <span data-testid={`sbert-badge-${index}`} className={`rounded-full px-3 py-1 text-xs font-medium ${getAlgorithmBadgeColor('sbert')}`}>
+                  SBERT: {match.sbert_score === null || match.sbert_score === undefined ? 'Unavailable for this check' : formatScore(match.sbert_score)}
+                </span>
+              </div>
+            </div>
+          </details>
+        ) : <button
           onClick={() => toggleDetails(matchKey)}
           className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center transition-colors"
           data-testid={`expand-details-${index}`}
@@ -171,10 +207,10 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
               Show Technical Details
             </>
           )}
-        </button>
+        </button>}
 
         {/* Algorithm Scores (Hidden by Default) */}
-        {isExpanded && (
+        {!isStudentChecker && isExpanded && (
           <div className="mt-3 pt-3 border-t border-gray-200" data-testid={`algorithm-details-${index}`}>
             <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Algorithm Scores (Technical)</p>
             <div className="flex flex-wrap gap-2">
@@ -184,7 +220,7 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
                   className={`px-3 py-1 rounded-full text-xs font-medium ${getAlgorithmBadgeColor('jaccard')}`}
                   title="Exact token overlap"
                 >
-                  Exact Match: {formatScore(match.jaccard_score)}
+                  {isStudentChecker ? 'Jaccard' : 'Exact Match'}: {formatScore(match.jaccard_score)}
                 </span>
               )}
               {match.tfidf_score !== undefined && (
@@ -193,7 +229,7 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
                   className={`px-3 py-1 rounded-full text-xs font-medium ${getAlgorithmBadgeColor('tfidf')}`}
                   title="Term importance weighting"
                 >
-                  Term Weight: {formatScore(match.tfidf_score)}
+                  {isStudentChecker ? 'TF-IDF/Cosine' : 'Term Weight'}: {formatScore(match.tfidf_score)}
                 </span>
               )}
               {match.sbert_score !== undefined && match.sbert_score !== null && (
@@ -202,7 +238,7 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
                   className={`px-3 py-1 rounded-full text-xs font-medium ${getAlgorithmBadgeColor('sbert')}`}
                   title="Semantic understanding"
                 >
-                  Semantic: {formatScore(match.sbert_score)}
+                  {isStudentChecker ? 'SBERT' : 'Semantic'}: {formatScore(match.sbert_score)}
                 </span>
               )}
             </div>
@@ -243,6 +279,14 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
   if (isCheckerShell) {
     return (
       <div className="w-full p-4 sm:p-6" data-testid="results-display">
+        {!results.sbert_available && (
+          <div
+            data-testid="sbert-warning"
+            className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800"
+          >
+            <strong>Partial analysis:</strong> Semantic analysis is temporarily unavailable. Results are based on exact match and term weighting analysis.
+          </div>
+        )}
         <div className="grid gap-4 lg:grid-cols-[13rem_minmax(0,1fr)]">
           <div className="rounded-xl border border-emerald-100 bg-[#fbfdf8] p-5 text-center">
             <p className="text-xs font-bold uppercase tracking-[0.12em] text-text-muted">Similarity score</p>
@@ -274,40 +318,32 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
           </div>
         </div>
 
-        {!results.sbert_available && (
-          <div
-            data-testid="sbert-warning"
-            className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800"
-          >
-            <strong>Partial analysis:</strong> Semantic analysis is temporarily unavailable. Results are based on exact match and term weighting analysis.
-          </div>
-        )}
-
         <div className="mt-6">
           {renderTierSection(
             'tier1',
-            'Similar Past Projects',
+            isStudentChecker ? 'Historical topics' : 'Similar Past Projects',
             'The most similar topics from previous submission cycles. Review these to understand how your topic compares.',
             results.tier1_matches
           )}
 
           {renderTierSection(
             'tier2',
-            'Current Session Projects',
+            isStudentChecker ? 'Current-session topics' : 'Current Session Projects',
             'Topics from current submissions with significant similarity to yours.',
             results.tier2_matches
           )}
 
           {renderTierSection(
             'tier3',
-            'Under Review Projects',
+            isStudentChecker ? 'Under-review topics' : 'Under Review Projects',
             'Recently submitted topics under review that show some overlap with your submission.',
             results.tier3_matches
           )}
 
           {totalMatches === 0 && (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-6 text-center" data-testid="no-matches">
-              <p className="font-medium text-[#1B5E20]">No similar topics found. Your topic appears unique.</p>
+              <p className="font-medium text-[#1B5E20]">No meaningful matches were returned by this check.</p>
+              <p className="mt-2 text-sm text-text-secondary">This does not establish originality or guarantee approval. Review the proposal and its context before deciding whether to submit it.</p>
             </div>
           )}
         </div>

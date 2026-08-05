@@ -106,9 +106,42 @@ describe('End-to-End User Flow Tests', () => {
     expect(await screen.findByRole('heading', { name: /check my topic/i })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: /student navigation/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^check my topic$/i })).toHaveAttribute('href', '/student/check-my-topic');
-    expect(screen.getByText(/research similarity system/i)).toBeInTheDocument();
-    expect(screen.getByText(/pre-check only/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /research topic approval dss home/i })).toBeInTheDocument();
+    expect(screen.getByText(/advisory pre-check/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/enter your research topic/i)).toBeInTheDocument();
+  });
+
+  it('keeps the approved shell scoped to the exact checker route', async () => {
+    renderAppAt('/student/dashboard');
+
+    expect(await screen.findByText(/research similarity system/i)).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /research topic approval dss home/i })).not.toBeInTheDocument();
+  });
+
+  it('uses the approved shell for a trailing slash and preserves other role shells', async () => {
+    const { unmount } = renderAppAt('/student/check-my-topic/');
+    expect(await screen.findByRole('link', { name: /research topic approval dss home/i })).toBeInTheDocument();
+    unmount();
+
+    const lecturerRender = renderAppAt('/lecturer/dashboard', buildAuthState({ role: 'lecturer', name: 'Lecturer Test' }));
+    expect(await screen.findByText(/research similarity system/i)).toBeInTheDocument();
+    lecturerRender.unmount();
+
+    renderAppAt('/admin/dashboard', buildAuthState({ role: 'admin', name: 'Admin Test' }));
+    expect(await screen.findByText(/research similarity system/i)).toBeInTheDocument();
+  });
+
+  it('opens the responsive student menu and restores focus after Escape', async () => {
+    renderAppAt('/student/check-my-topic');
+    const menuButton = await screen.findByRole('button', { name: 'Menu' });
+
+    await user.click(menuButton);
+    expect(menuButton).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText(/account and session/i)).toBeInTheDocument();
+
+    await user.keyboard('{Escape}');
+    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
+    expect(menuButton).toHaveFocus();
   });
 
   it('posts the exact student similarity payload to the public similarity endpoint', async () => {
@@ -154,7 +187,9 @@ describe('End-to-End User Flow Tests', () => {
     expect(screen.getByTestId('results-display')).toBeInTheDocument();
     expect(screen.getByTestId('risk-title')).toHaveTextContent('High Risk');
     expect(screen.getByTestId('max-similarity')).toHaveTextContent('88%');
-    expect(screen.getByText(/public health surveillance systems/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/public health surveillance systems/i)).toHaveLength(2);
+    expect(screen.queryByPlaceholderText(/enter your research topic/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/temporary browser state only/i)).toBeInTheDocument();
   });
 
   it('renders successful LOW similarity results through ResultsDisplay', async () => {

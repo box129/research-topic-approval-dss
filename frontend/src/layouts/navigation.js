@@ -29,3 +29,18 @@ export const roleLabels = {
   student: 'Student',
   admin: 'Admin'
 };
+
+export const studentCheckerHomePath = '/student/dashboard';
+
+export const studentCheckerNavigationGroups = [
+  { label: 'Overview', items: [{ label: 'Dashboard', path: studentCheckerHomePath }] },
+  {
+    label: 'Topic workflow',
+    items: [
+      { label: 'Check My Topic', path: '/student/check-my-topic' },
+      { label: 'Submit Topic', path: '/student/submit-topic' },
+      { label: 'My Submissions', path: '/student/my-submissions' }
+    ]
+  },
+  { label: 'Explore', items: [{ label: 'Research Explorer', path: '/student/research-explorer' }] }
+];

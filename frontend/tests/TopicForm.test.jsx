@@ -264,6 +264,32 @@ describe('TopicForm Component', () => {
   // ==================== ADDITIONAL COMPREHENSIVE TESTS ====================
   
   describe('Additional Comprehensive Tests', () => {
+    it('applies field-specific accessible validation semantics', () => {
+      render(<TopicForm onSubmit={mockOnSubmit} appearance="student-checker" />);
+      const topicInput = fillTopic('Only three words');
+
+      expect(topicInput).toHaveAttribute('aria-invalid', 'true');
+      expect(topicInput).toHaveAttribute('aria-describedby', expect.stringContaining('topic-validation'));
+      expect(document.getElementById('topic-validation')).toHaveTextContent(/too short/i);
+
+      fireEvent.change(topicInput, { target: { value: 'Machine learning methods for public health surveillance systems' } });
+      expect(topicInput).not.toHaveAttribute('aria-invalid');
+
+      const keywordsInput = fillKeywords('k'.repeat(501));
+      expect(keywordsInput).toHaveAttribute('aria-invalid', 'true');
+      expect(keywordsInput).toHaveAttribute('aria-describedby', expect.stringContaining('keyword-validation'));
+      expect(topicInput).not.toHaveAttribute('aria-invalid');
+    });
+
+    it.each(['default', 'lecturer-checker'])('retains %s appearance validation behavior', (appearance) => {
+      render(<TopicForm onSubmit={mockOnSubmit} appearance={appearance} />);
+      const topicInput = fillTopic('Only three words');
+
+      expect(topicInput).toHaveAttribute('aria-invalid', 'true');
+      expect(screen.getByText(/too short: 3 words/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /check similarity/i })).toBeDisabled();
+    });
+
     it('handles keywords input correctly', async () => {
       mockOnSubmit.mockResolvedValue();
       render(<TopicForm onSubmit={mockOnSubmit} />);

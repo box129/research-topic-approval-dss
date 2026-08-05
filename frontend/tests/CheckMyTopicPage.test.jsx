@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axios from 'axios';
 import CheckMyTopicPage from '../src/pages/student/CheckMyTopicPage';
@@ -35,9 +35,9 @@ function buildFypResponse({ risk = 'LOW', maxSimilarity = 24, status = 'success'
 }
 
 async function submitTopic(user) {
-  await user.type(screen.getByPlaceholderText(/enter your research topic/i), validTopic);
-  await user.selectOptions(screen.getByLabelText(/research area/i), validCategory);
-  await user.type(screen.getByLabelText(/keywords/i), validKeywords);
+  fireEvent.change(screen.getByPlaceholderText(/enter your research topic/i), { target: { value: validTopic } });
+  fireEvent.change(screen.getByLabelText(/research area/i), { target: { value: validCategory } });
+  fireEvent.change(screen.getByLabelText(/keywords/i), { target: { value: validKeywords } });
   await user.click(screen.getByRole('button', { name: /check similarity/i }));
 }
 
@@ -61,8 +61,8 @@ describe('CheckMyTopicPage', () => {
     renderCheckMyTopicPage();
 
     expect(screen.getByRole('heading', { name: /check my topic/i })).toBeInTheDocument();
-    expect(screen.getByText(/pre-check only/i)).toBeInTheDocument();
-    expect(screen.getByText(/does not submit your topic for lecturer approval/i)).toBeInTheDocument();
+    expect(screen.getByText(/advisory pre-check/i)).toBeInTheDocument();
+    expect(screen.getByText(/does not save or submit your topic/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/enter your research topic/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /check similarity/i })).toBeInTheDocument();
   });
@@ -100,7 +100,7 @@ describe('CheckMyTopicPage', () => {
     await submitTopic(user);
 
     expect(screen.getByRole('button', { name: /checking similarity/i })).toBeDisabled();
-    expect(screen.getByText(/your topic is being compared against existing records/i)).toBeInTheDocument();
+    expect(screen.getByText(/checking the proposed topic against supported research-topic records/i)).toBeInTheDocument();
 
     resolveRequest(buildFypResponse());
     expect(await screen.findByTestId('student-results-container')).toBeInTheDocument();
@@ -132,6 +132,20 @@ describe('CheckMyTopicPage', () => {
     expect(screen.getByTestId('risk-title')).toHaveTextContent('Low Risk');
     expect(screen.getByTestId('max-similarity')).toHaveTextContent('18%');
     expect(screen.getByText(/machine learning in public health/i)).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/enter your research topic/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/temporary browser state only/i)).toBeInTheDocument();
+  });
+
+  it('renders an advisory no-match state without uniqueness or clearance claims', async () => {
+    const user = userEvent.setup();
+    axios.post.mockResolvedValue(buildFypResponse({ risk: 'LOW', maxSimilarity: 0 }));
+    renderCheckMyTopicPage();
+
+    await submitTopic(user);
+
+    expect(await screen.findByTestId('no-matches')).toHaveTextContent(/no meaningful matches/i);
+    expect(screen.getByTestId('no-matches')).toHaveTextContent(/does not establish originality/i);
+    expect(screen.getByTestId('no-matches')).not.toHaveTextContent(/unique|cleared|safe to submit/i);
   });
 
   it('renders MEDIUM partial_success result through ResultsDisplay', async () => {
@@ -139,7 +153,16 @@ describe('CheckMyTopicPage', () => {
     axios.post.mockResolvedValue(buildFypResponse({
       risk: 'MEDIUM',
       maxSimilarity: 62,
-      status: 'partial_success'
+      status: 'partial_success',
+      matches: [{
+        id: 9,
+        title: 'Related partial analysis record',
+        supervisor: 'Dr. Partial',
+        year: '2025/2026',
+        jaccard: 62,
+        tfidf: 58,
+        sbert: null
+      }]
     }));
     renderCheckMyTopicPage();
 
@@ -149,6 +172,34 @@ describe('CheckMyTopicPage', () => {
     expect(screen.getByTestId('risk-title')).toHaveTextContent('Medium Risk');
     expect(screen.getByTestId('sbert-warning')).toBeInTheDocument();
     expect(screen.getByText(/semantic analysis is temporarily unavailable/i)).toBeInTheDocument();
+    await user.click(screen.getByTestId('expand-details-0'));
+    expect(screen.getByTestId('sbert-badge-0')).toHaveTextContent('SBERT: Unavailable for this check');
+    expect(screen.getByTestId('sbert-badge-0')).not.toHaveTextContent('0%');
+  });
+
+  it('keeps the newest overlapping request active and ignores the older completion', async () => {
+    let resolveA;
+    let resolveB;
+    axios.post
+      .mockReturnValueOnce(new Promise(resolve => { resolveA = resolve; }))
+      .mockReturnValueOnce(new Promise(resolve => { resolveB = resolve; }));
+    renderCheckMyTopicPage();
+
+    fireEvent.change(screen.getByPlaceholderText(/enter your research topic/i), { target: { value: validTopic } });
+    const form = screen.getByPlaceholderText(/enter your research topic/i).closest('form');
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+    await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(2));
+
+    resolveA(buildFypResponse({ risk: 'LOW', maxSimilarity: 11 }));
+    await waitFor(() => expect(screen.getByRole('button', { name: /checking similarity/i })).toBeDisabled());
+    expect(screen.queryByTestId('student-results-container')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    resolveB(buildFypResponse({ risk: 'HIGH', maxSimilarity: 91 }));
+    expect(await screen.findByTestId('max-similarity')).toHaveTextContent('91%');
+    expect(screen.getByTestId('risk-title')).toHaveTextContent('High Risk');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('renders HIGH result through ResultsDisplay without blocking anything', async () => {
@@ -192,12 +243,18 @@ describe('CheckMyTopicPage', () => {
     await submitTopic(user);
 
     expect(await screen.findByText(/similarity service failed/i)).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveFocus();
+    expect(screen.getByPlaceholderText(/enter your research topic/i)).toHaveValue(validTopic);
+    expect(screen.getByLabelText(/research area/i)).toHaveValue(validCategory);
+    expect(screen.getByLabelText(/keywords/i)).toHaveValue(validKeywords);
+    expect(screen.getAllByRole('button', { name: /check similarity/i })).toHaveLength(1);
+    expect(screen.getByRole('button', { name: /check similarity/i })).toBeEnabled();
 
     axios.post.mockRejectedValueOnce({
       request: {}
     });
 
-    await user.type(screen.getByPlaceholderText(/enter your research topic/i), validTopic);
     await user.click(screen.getByRole('button', { name: /check similarity/i }));
 
     expect(await screen.findByText(/no response from server/i)).toBeInTheDocument();
@@ -216,6 +273,7 @@ describe('CheckMyTopicPage', () => {
 
     expect(screen.queryByTestId('student-results-container')).not.toBeInTheDocument();
     expect(screen.getByText(/awaiting topic check/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/enter your research topic/i)).toHaveFocus();
   });
 
   it('does not call lecturer submission endpoints or snapshot endpoints', async () => {

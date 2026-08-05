@@ -266,6 +266,28 @@ describe('ResultsDisplay Component - Redesigned', () => {
   });
 
   describe('Multiple Matches in Different Tiers', () => {
+    it('uses truthful under-review metadata labels for the student checker', () => {
+      render(<ResultsDisplay appearance="student-checker" results={{
+        ...mockLowRiskData,
+        tier1_matches: [],
+        tier3_matches: [{
+          id: 8,
+          topic_title: 'Under-review public health topic',
+          supervisor_name: 'Dr. Reviewing Lecturer',
+          session_year: '2026-08-05',
+          jaccard_score: 61,
+          tfidf_score: 64,
+          sbert_score: null
+        }]
+      }} />);
+
+      const tier = screen.getByTestId('tier-section-tier3');
+      expect(tier).toHaveTextContent('Reviewing lecturer: Dr. Reviewing Lecturer');
+      expect(tier).toHaveTextContent('Review started: 2026-08-05');
+      expect(tier).not.toHaveTextContent('Supervisor:');
+      expect(tier).not.toHaveTextContent('Year:');
+    });
+
     it('displays all tier sections with matches', () => {
       render(<ResultsDisplay results={mockHighRiskData} />);
       
