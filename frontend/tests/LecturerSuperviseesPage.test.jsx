@@ -52,7 +52,7 @@ describe('Lecturer SuperviseesPage', () => {
     listLecturerSupervisees.mockReturnValue(new Promise(() => {}));
     renderPage();
 
-    expect(screen.getByText(/loading assignments/i)).toBeInTheDocument();
+    expect(screen.getByText(/loading supervisees/i)).toBeInTheDocument();
   });
 
   it('renders real assigned supervisees from the endpoint', async () => {
@@ -86,9 +86,9 @@ describe('Lecturer SuperviseesPage', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByText(/no assigned supervisees returned/i)).toBeInTheDocument();
+      expect(screen.getByText(/no assigned supervisees/i)).toBeInTheDocument();
     });
-    expect(screen.getByText(/no fake supervisees, progress rows, or sample students/i)).toBeInTheDocument();
+    expect(screen.getByText(/no students are currently assigned to you/i)).toBeInTheDocument();
   });
 
   it('shows error and retry state without fallback rows', async () => {
@@ -111,9 +111,9 @@ describe('Lecturer SuperviseesPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/supervisee endpoint unavailable/i)).toBeInTheDocument();
     });
-    expect(screen.getByText(/no fallback supervisee rows are displayed/i)).toBeInTheDocument();
+    expect(screen.queryByText(/student one/i)).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /retry/i }));
+    fireEvent.click(screen.getByRole('button', { name: /try again/i }));
 
     await waitFor(() => {
       expect(screen.getByText(/student one/i)).toBeInTheDocument();

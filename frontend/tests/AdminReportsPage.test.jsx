@@ -180,7 +180,7 @@ describe('AdminReportsPage', () => {
     render(<AdminReportsPage />);
 
     expect(screen.getByRole('heading', { name: /reports/i })).toBeInTheDocument();
-    expect(screen.getByText(/read-only reporting summary connected to existing aggregate data/i)).toBeInTheDocument();
+    expect(screen.getByText(/Review administrative summaries and download supported CSV reports/i)).toBeInTheDocument();
 
     await waitFor(() => {
       expect(getAdminReportsSummary).toHaveBeenCalledTimes(1);
@@ -193,7 +193,7 @@ describe('AdminReportsPage', () => {
     expect(screen.getByText(/USER_STATUS_CHANGED/i)).toBeInTheDocument();
   });
 
-  it('shows CSV export actions and keeps PDF visibly deferred', async () => {
+  it('shows supported CSV export actions without adding PDF generation', async () => {
     render(<AdminReportsPage />);
 
     await waitFor(() => {
@@ -206,7 +206,7 @@ describe('AdminReportsPage', () => {
     expect(screen.getByRole('button', { name: /Download Similarity snapshots CSV/i })).toBeEnabled();
     expect(screen.getByRole('button', { name: /Download Audit logs CSV/i })).toBeEnabled();
     expect(screen.getByRole('button', { name: /Download Supervisee assignments CSV/i })).toBeEnabled();
-    expect(screen.getByRole('button', { name: /PDF export deferred/i })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: /PDF/i })).not.toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalled();
     expect(apiClient.post).not.toHaveBeenCalled();
     expect(apiClient.patch).not.toHaveBeenCalled();
@@ -295,7 +295,7 @@ describe('AdminReportsPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/Not enough report data yet/i)).toBeInTheDocument();
     });
-    expect(screen.getByText(/CSV exports will return header-only files when no rows exist/i)).toBeInTheDocument();
+    expect(screen.getByText(/CSV exports remain available/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Download Users CSV/i })).toBeEnabled();
   });
 
@@ -307,7 +307,7 @@ describe('AdminReportsPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/Reports summary unavailable/i)).toBeInTheDocument();
     });
-    expect(screen.getByText(/No fallback report metrics are displayed/i)).toBeInTheDocument();
+    expect(screen.getByText(/Reports summary could not be loaded/i)).toBeInTheDocument();
   });
 
   it('does not expose unsupported generated report actions', async () => {

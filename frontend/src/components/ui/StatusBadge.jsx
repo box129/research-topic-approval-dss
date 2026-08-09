@@ -14,7 +14,7 @@ function StatusBadge({ status = 'pending' }) {
   const label = normalized.replaceAll('_', ' ');
 
   return (
-    <span className={`inline-flex rounded-badge px-3 py-1 text-xs font-semibold capitalize ${STATUS_CLASSES[normalized] || STATUS_CLASSES.pending}`}>
+    <span className={`inline-flex rounded-badge px-3 py-1 text-xs font-semibold capitalize ${STATUS_CLASSES[normalized] || STATUS_CLASSES.not_submitted}`}>
       {label}
     </span>
   );

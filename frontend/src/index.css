@@ -84,6 +84,54 @@ html, body {
   background-color: var(--color-surface-page);
 }
 
+.authenticated-workspace :where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--color-brand-gold);
+  outline-offset: 2px;
+}
+
+.authenticated-workspace :where(input, select, textarea)[aria-invalid="true"]:focus-visible {
+  border-color: var(--color-feedback-danger);
+  outline-color: var(--color-feedback-danger);
+  box-shadow: 0 0 0 3px rgb(185 28 28 / 0.12);
+}
+
+.authenticated-workspace #main-content:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.authenticated-workspace #main-content:focus-visible {
+  outline: 2px solid var(--color-brand-gold);
+  outline-offset: -2px;
+}
+
+.workspace-console {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+}
+
+.workspace-record {
+  width: 100%;
+  max-width: 74rem;
+  margin-inline: auto;
+}
+
+.workspace-workflow {
+  width: 100%;
+  max-width: 48rem;
+  margin-inline: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .authenticated-workspace *,
+  .authenticated-workspace *::before,
+  .authenticated-workspace *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
 @layer utilities {
   .animate-fade-in {
     animation: fadeIn 0.3s ease-in-out;

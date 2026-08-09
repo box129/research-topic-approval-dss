@@ -173,20 +173,20 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default', compac
       ? 'w-full bg-white'
       : 'w-full max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md'
     }>
-      {isCheckerShell ? (
+      {isCheckerShell && !isLecturerChecker ? (
         <div className={compact ? 'mb-2' : 'mb-5'}>
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#1B5E20]">
-            {isLecturerChecker ? 'Standalone topic check' : 'Check your research topic'}
+            Check your research topic
           </p>
           <h2 className={`${compact ? 'mt-1 text-xl' : 'mt-2 text-2xl'} font-serif font-semibold text-[#1B5E20]`}>
-            {isLecturerChecker ? 'Manual similarity pre-check' : 'Similarity pre-check'}
+            Similarity pre-check
           </h2>
         </div>
-      ) : (
+      ) : !isCheckerShell ? (
         <h2 className="text-2xl font-bold text-gray-800 mb-6">
           Check Topic Similarity
         </h2>
-      )}
+      ) : null}
 
       <form onSubmit={handleSubmit} noValidate className={compact ? 'space-y-2' : isCheckerShell ? 'space-y-5' : 'space-y-6'}>
         {/* Topic Input */}

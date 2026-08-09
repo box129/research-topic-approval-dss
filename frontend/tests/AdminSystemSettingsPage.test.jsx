@@ -65,26 +65,27 @@ describe('AdminSystemSettingsPage', () => {
     render(<AdminSystemSettingsPage />);
 
     expect(screen.getByRole('heading', { name: /system settings/i })).toBeInTheDocument();
-    expect(screen.getByText(/read-only settings view connected to existing systemsetting records/i)).toBeInTheDocument();
+    expect(screen.getByText(/Review the configuration values currently stored by the system/i)).toBeInTheDocument();
 
     await waitFor(() => {
       expect(listAdminSettings).toHaveBeenCalledTimes(1);
     });
 
     expect(screen.getByText(/demo_auth_users_notice/i)).toBeInTheDocument();
+    expect(screen.getByText(/Demo authentication users/i)).toBeInTheDocument();
     expect(screen.getByText(/Demo users are available for local authentication testing/i)).toBeInTheDocument();
     expect(screen.getByText(/Updated by Admin User/i)).toBeInTheDocument();
   });
 
-  it('keeps settings updates clearly deferred and avoids mutation clients', async () => {
+  it('keeps settings read-only and avoids mutation clients', async () => {
     render(<AdminSystemSettingsPage />);
 
     await waitFor(() => {
       expect(listAdminSettings).toHaveBeenCalledTimes(1);
     });
 
-    expect(screen.getAllByText(/Settings updates remain deferred/i).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText(/No PATCH or save workflow is connected/i)).toBeInTheDocument();
+    expect(screen.getByText(/Configuration values can be reviewed here but cannot be changed/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /save|update/i })).not.toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalled();
     expect(apiClient.post).not.toHaveBeenCalled();
     expect(apiClient.patch).not.toHaveBeenCalled();
@@ -107,9 +108,9 @@ describe('AdminSystemSettingsPage', () => {
     render(<AdminSystemSettingsPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/No system settings returned/i)).toBeInTheDocument();
+      expect(screen.getByText(/No system settings/i)).toBeInTheDocument();
     });
-    expect(screen.getByText(/No placeholder configuration values are shown/i)).toBeInTheDocument();
+    expect(screen.getByText(/No configuration values are available/i)).toBeInTheDocument();
   });
 
   it('shows unavailable state when the settings endpoint fails', async () => {
@@ -120,7 +121,7 @@ describe('AdminSystemSettingsPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/System settings unavailable/i)).toBeInTheDocument();
     });
-    expect(screen.getByText(/No fallback configuration rows are displayed/i)).toBeInTheDocument();
+    expect(screen.getByText(/System settings could not be loaded/i)).toBeInTheDocument();
   });
 
   it('does not expose unsupported settings controls', async () => {

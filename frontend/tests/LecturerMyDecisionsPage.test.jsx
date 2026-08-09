@@ -140,7 +140,7 @@ describe('Lecturer MyDecisionsPage', () => {
     renderPage();
 
     expect(await screen.findByText(/No decisions returned/i)).toBeInTheDocument();
-    expect(screen.getByText(/No placeholder decisions are shown/i)).toBeInTheDocument();
+    expect(screen.getByText(/No completed decisions match the current filters/i)).toBeInTheDocument();
   });
 
   it('shows unavailable state when the endpoint fails', async () => {

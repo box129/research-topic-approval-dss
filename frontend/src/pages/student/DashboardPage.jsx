@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listSubmissions } from '../../api/submissions';
-import { useAuth } from '../../auth/useAuth';
 import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import ErrorState from '../../components/ui/ErrorState';
-import InfoCallout from '../../components/ui/InfoCallout';
 import LoadingState from '../../components/ui/LoadingState';
 import PrimaryButton from '../../components/ui/PrimaryButton';
 import SecondaryButton from '../../components/ui/SecondaryButton';
@@ -12,124 +10,50 @@ import StatusBadge from '../../components/ui/StatusBadge';
 import StudentDashboardLayout from '../../layouts/StudentDashboardLayout';
 
 const DECIDED_STATUSES = new Set(['approved', 'rejected', 'awaiting_revision']);
-const DASHBOARD_PRIMARY_BUTTON_CLASS = '!bg-[#1B5E20] hover:!bg-[#174f1b] focus:ring-[#1B5E20]/20';
-
-const STATUS_CARD_CLASSES = {
-  approved: 'border-emerald-200 bg-[#f3fbf1]',
-  awaiting_revision: 'border-brand-gold-light bg-[#fff9ea]',
-  pending: 'border-border-subtle bg-white',
-  pending_review: 'border-border-subtle bg-white',
-  rejected: 'border-brand-gold-light bg-[#fff9ea]'
-};
-
-function getSubmissionTimestamp(submission) {
-  const rawDate = submission?.submitted_at || submission?.created_at;
-  const timestamp = rawDate ? new Date(rawDate).getTime() : 0;
-  return Number.isFinite(timestamp) ? timestamp : 0;
-}
-
-function getMostRecentSubmission(submissions) {
-  return submissions.reduce((latest, submission) => {
-    if (!latest) {
-      return submission;
-    }
-
-    return getSubmissionTimestamp(submission) > getSubmissionTimestamp(latest) ? submission : latest;
-  }, null);
-}
-
-function formatDate(value) {
-  if (!value) {
-    return 'Not available yet';
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return 'Not available yet';
-  }
-
-  return new Intl.DateTimeFormat('en', {
-    dateStyle: 'medium',
-    timeStyle: 'short'
-  }).format(date);
-}
 
 function normalizeStatus(status) {
   return String(status || 'not_submitted').toLowerCase();
 }
 
-function getStatusMessage(submission) {
+function timestampOf(submission) {
+  const value = submission?.submitted_at || submission?.created_at;
+  const timestamp = value ? new Date(value).getTime() : 0;
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function latestSubmission(submissions) {
+  return submissions.reduce((latest, item) => !latest || timestampOf(item) > timestampOf(latest) ? item : latest, null);
+}
+
+function formatDate(value) {
+  if (!value) return 'Not available';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Not available';
+  return new Intl.DateTimeFormat('en', { dateStyle: 'medium' }).format(date);
+}
+
+function statusGuidance(submission) {
   const status = normalizeStatus(submission?.status);
-
-  if (status === 'pending_review' || status === 'pending') {
-    return {
-      calloutVariant: 'info',
-      title: 'Lecturer review is pending',
-      message: 'Your topic has been submitted and is waiting for lecturer review. No action is required right now.'
-    };
-  }
-
-  if (status === 'awaiting_revision') {
-    return {
-      calloutVariant: 'warning',
-      title: 'Revision requested',
-      message: submission?.decision_reason || 'A lecturer has requested changes. Review the feedback before submitting an updated topic.'
-    };
-  }
-
-  if (status === 'approved') {
-    return {
-      calloutVariant: 'success',
-      title: 'Topic approved',
-      message: 'Your topic has been approved. You can continue with the next academic steps for your proposal.'
-    };
-  }
-
-  if (status === 'rejected') {
-    return {
-      calloutVariant: 'danger',
-      title: 'Topic rejected',
-      message: submission?.decision_reason || 'This topic was not approved. Review your submission details before choosing your next step.'
-    };
-  }
-
-  return {
-    calloutVariant: 'info',
-    title: 'Submission status available',
-    message: submission?.decision_reason || 'Your latest submission status is shown below. Open My Submissions for the complete record.'
-  };
+  if (status === 'pending' || status === 'pending_review') return { title: 'Lecturer review is pending', message: 'No action is required on this record right now.', action: 'View My Submissions' };
+  if (status === 'awaiting_revision') return { title: 'Revision requested', message: 'Review the feedback above, then submit a revised topic for lecturer review.', action: 'View my submissions' };
+  if (status === 'approved') return { title: 'Topic approved', message: 'You can continue with the next academic steps provided by your department.', action: 'View My Submissions' };
+  if (status === 'rejected') return { title: 'Topic rejected', message: 'Review the feedback before choosing another proposal.', action: 'View My Submissions' };
+  return { title: 'Submission status available', message: 'Open My Submissions to review the recorded status and available information.', action: 'View My Submissions' };
 }
 
-function getPrimaryActionLabel(status) {
-  const normalizedStatus = normalizeStatus(status);
-
-  if (normalizedStatus === 'awaiting_revision') {
-    return 'Review Feedback';
-  }
-
-  return 'View My Submissions';
-}
-
-function getWelcomeHeading(name) {
-  const trimmedName = String(name || '').trim();
-
-  return trimmedName ? `Welcome back, ${trimmedName}.` : 'Welcome back.';
-}
-
-function DashboardMetadata({ helper, label, value }) {
-  return (
-    <div className="bg-white/90 px-4 py-3.5">
-      <p className="text-xs font-semibold text-text-secondary">{label}</p>
-      <p className="mt-1 text-base font-bold leading-snug text-text-primary sm:text-lg">{value}</p>
-      <p className="mt-1 text-[0.7rem] leading-4 text-text-muted">{helper}</p>
-    </div>
-  );
+function summaryFor(submissions) {
+  return submissions.reduce((summary, item) => {
+    const status = normalizeStatus(item.status);
+    summary.total += 1;
+    if (status === 'pending' || status === 'pending_review') summary.pending += 1;
+    if (status === 'awaiting_revision') summary.revision += 1;
+    if (status === 'approved') summary.approved += 1;
+    return summary;
+  }, { total: 0, pending: 0, revision: 0, approved: 0 });
 }
 
 function StudentDashboardPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [submissions, setSubmissions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -137,190 +61,66 @@ function StudentDashboardPage() {
   const loadSubmissions = useCallback(async () => {
     setIsLoading(true);
     setError('');
-
-    try {
-      setSubmissions(await listSubmissions());
-    } catch (err) {
-      setError(err.response?.data?.message || 'Unable to load student dashboard.');
-    } finally {
-      setIsLoading(false);
-    }
+    try { setSubmissions(await listSubmissions()); }
+    catch (err) { setError(err.response?.data?.message || 'Unable to load student dashboard.'); }
+    finally { setIsLoading(false); }
   }, []);
 
-  useEffect(() => {
-    loadSubmissions();
-  }, [loadSubmissions]);
-
-  const currentSubmission = useMemo(() => getMostRecentSubmission(submissions), [submissions]);
-  const statusSummary = getStatusMessage(currentSubmission);
-  const status = normalizeStatus(currentSubmission?.status);
-  const showDecisionDate = DECIDED_STATUSES.has(status);
-  const statusCardClass = STATUS_CARD_CLASSES[status] || 'border-border-subtle bg-white';
+  useEffect(() => { loadSubmissions(); }, [loadSubmissions]);
+  const current = useMemo(() => latestSubmission(submissions), [submissions]);
+  const summary = useMemo(() => summaryFor(submissions), [submissions]);
+  const guidance = statusGuidance(current);
+  const status = normalizeStatus(current?.status);
 
   return (
-    <StudentDashboardLayout open>
-      <header className="px-1 pt-1 sm:px-0">
-        <h1 className="text-xs font-bold uppercase tracking-[0.18em] text-[#1B5E20]">
-          Student Dashboard
-        </h1>
-        <h2 className="mt-1 font-serif text-2xl font-bold leading-tight text-[#1B5E20] sm:text-3xl">
-          {getWelcomeHeading(user?.name)}
-        </h2>
-        <p className="mt-1 text-sm text-text-secondary">
-          Here&apos;s the latest on your research topic submission.
-        </p>
+    <StudentDashboardLayout>
+      <header>
+        <h1 className="text-2xl font-bold text-text-primary">Student Dashboard</h1>
       </header>
 
       {isLoading && <LoadingState label="Loading student dashboard" />}
+      {!isLoading && error && <ErrorState title="Could not load student dashboard" message={error} onRetry={loadSubmissions} />}
 
-      {!isLoading && error && (
-        <ErrorState
-          title="Could not load student dashboard"
-          message={error}
-          onRetry={loadSubmissions}
+      {!isLoading && !error && !current && (
+        <EmptyStatePanel
+          title="No topic submitted yet"
+          message="Check an idea before submission or create a topic when you are ready for lecturer review."
+          action={<div className="flex flex-col justify-center gap-3 sm:flex-row"><PrimaryButton type="button" onClick={() => navigate('/student/submit-topic')}>Submit Topic</PrimaryButton><SecondaryButton type="button" onClick={() => navigate('/student/check-my-topic')}>Check My Topic</SecondaryButton></div>}
         />
       )}
 
-      {!isLoading && !error && !currentSubmission && (
+      {!isLoading && !error && current && (
         <>
-          <section className="rounded-[1.5rem] border border-dashed border-border-strong bg-white p-5 shadow-card sm:p-8 lg:p-10">
-            <EmptyStatePanel
-              className="border-0 p-3 shadow-none sm:p-6"
-              title="No topic submitted yet"
-              message="Start by submitting a proposed research topic or checking an idea before submission."
-              action={(
-                <div className="flex flex-col justify-center gap-3 sm:flex-row">
-                  <PrimaryButton
-                    type="button"
-                    className={DASHBOARD_PRIMARY_BUTTON_CLASS}
-                    onClick={() => navigate('/student/submit-topic')}
-                  >
-                    Submit Topic
-                  </PrimaryButton>
-                  <SecondaryButton type="button" onClick={() => navigate('/student/check-my-topic')}>
-                    Check My Topic First
-                  </SecondaryButton>
-                </div>
-              )}
-            />
-          </section>
-
-          <InfoCallout
-            title="Explore before you submit"
-            message="Research browsing is available from Research Explorer. Similarity score, reviewer assignment, notifications, and detailed activity are not available on this dashboard yet."
-            variant="warning"
-          />
-        </>
-      )}
-
-      {!isLoading && !error && currentSubmission && (
-        <>
-          <section className={`overflow-hidden rounded-[1.5rem] border shadow-[0_22px_60px_-44px_rgb(27_94_32_/_0.58)] ${statusCardClass}`}>
-            <div className="grid gap-4 p-5 sm:p-6 md:grid-cols-[minmax(0,1fr)_8rem] md:items-start lg:p-7">
-              <div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <StatusBadge status={currentSubmission.status} />
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#1B5E20]">Current Topic</p>
-                </div>
-                <h2 className="mt-3 max-w-4xl text-xl font-bold leading-snug text-text-primary sm:text-2xl lg:text-[1.65rem]">
-                  {currentSubmission.title}
-                </h2>
-                <p className="mt-2 max-w-3xl text-xs leading-5 text-text-secondary sm:text-sm">
-                  {currentSubmission.category || 'Uncategorised'}
-                  {currentSubmission.keywords ? ` - Keywords: ${currentSubmission.keywords}` : ''}
+          <article className="overflow-hidden rounded-[10px] border border-border-subtle bg-white shadow-card">
+            <div className="grid gap-4 p-5 lg:grid-cols-[minmax(0,2fr)_minmax(16rem,1fr)]">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-3"><StatusBadge status={current.status || 'not_submitted'} /><span className="text-xs font-bold uppercase tracking-wider text-text-muted">Latest submission</span></div>
+                <h2 className="mt-3 break-words text-xl font-bold leading-snug text-text-primary">{current.title}</h2>
+                <p className="mt-2 break-words text-sm text-text-secondary">
+                  {current.category || 'Uncategorised'} {' · '} Submitted {formatDate(current.submitted_at || current.created_at)}
+                  {current.session_name ? ` · ${current.session_name}` : ''}
+                  {current.keywords ? ` · Keywords: ${current.keywords}` : ''}
                 </p>
               </div>
-
-              <div className="w-fit min-w-36 justify-self-end rounded-[1rem] bg-white/90 px-4 py-3 text-center shadow-card md:min-w-0">
-                <p className="text-[0.65rem] font-bold uppercase tracking-[0.14em] text-text-muted">
-                  Similarity Score
-                </p>
-                <p className="mt-1 text-lg font-black leading-tight text-text-primary">Not available yet</p>
-              </div>
+              {current.decision_reason && DECIDED_STATUSES.has(status) && <aside className="rounded-lg border border-feedback-warning-border bg-feedback-warning-bg p-4"><h3 className="text-xs font-bold uppercase text-feedback-warning">Lecturer feedback</h3><p className="mt-2 break-words text-sm leading-6 text-feedback-warning">{current.decision_reason}</p>{current.decided_at && <p className="mt-2 text-xs text-feedback-warning">Decision recorded {formatDate(current.decided_at)}</p>}</aside>}
             </div>
+          </article>
 
-            <div className="border-t border-black/5 bg-white/65 p-5 sm:p-6">
-              <InfoCallout
-                title={statusSummary.title}
-                message={statusSummary.message}
-                variant={statusSummary.calloutVariant}
-                className="rounded-[0.9rem] border-l-4 bg-white/80"
-              />
+          <section className="rounded-[10px] border border-emerald-100 bg-emerald-50 p-4 sm:px-5" aria-labelledby="next-step-title"><h2 id="next-step-title" className="text-xs font-bold uppercase tracking-wider text-brand-green-dark">What happens next</h2><p className="mt-2 text-sm text-text-secondary"><strong className="text-text-primary">{guidance.title}.</strong> {guidance.message}</p></section>
 
-              <div className="mt-5 grid gap-px overflow-hidden rounded-[1rem] border border-border-subtle bg-border-subtle sm:grid-cols-2">
-                <DashboardMetadata
-                  label="Submitted"
-                  value={formatDate(currentSubmission.submitted_at || currentSubmission.created_at)}
-                  helper="From your latest submission record"
-                />
-                <DashboardMetadata
-                  label="Decision Date"
-                  value={showDecisionDate ? formatDate(currentSubmission.decided_at) : 'Not available yet'}
-                  helper="Shown when a lecturer decision is recorded"
-                />
-              </div>
-            </div>
-          </section>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            {status === 'awaiting_revision' ? (
+              <>
+                <PrimaryButton type="button" onClick={() => navigate('/student/submit-topic')}>Submit topic</PrimaryButton>
+                <SecondaryButton type="button" onClick={() => navigate('/student/my-submissions')}>{guidance.action}</SecondaryButton>
+              </>
+            ) : (
+              <PrimaryButton type="button" onClick={() => navigate('/student/my-submissions')}>{guidance.action}</PrimaryButton>
+            )}
+            <SecondaryButton type="button" onClick={() => navigate('/student/check-my-topic')}>Check another topic</SecondaryButton>
+          </div>
 
-          <section className="grid gap-5 md:grid-cols-[1fr_0.92fr]">
-            <div className="rounded-[1.25rem] border border-border-subtle bg-white p-5 shadow-card sm:p-6">
-              <h3 className="font-semibold text-text-primary">Recent Activity</h3>
-              <div className="mt-4 space-y-3.5">
-                <div className="flex gap-3">
-                  <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-brand-gold" />
-                  <div>
-                    <p className="text-sm font-semibold text-text-primary">Topic submission received</p>
-                    <p className="mt-0.5 text-xs leading-5 text-text-secondary">
-                      Submitted {formatDate(currentSubmission.submitted_at || currentSubmission.created_at)}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-border-strong" />
-                  <div>
-                    <p className="text-sm font-semibold text-text-primary">
-                      {showDecisionDate ? 'Decision recorded' : 'Lecturer decision pending'}
-                    </p>
-                    <p className="mt-0.5 text-xs leading-5 text-text-secondary">
-                      {showDecisionDate
-                        ? `Recorded ${formatDate(currentSubmission.decided_at)}`
-                        : 'Decision timing is not available until a lecturer records an outcome.'}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-border-strong" />
-                  <div>
-                    <p className="text-sm font-semibold text-text-primary">Dashboard data limits</p>
-                    <p className="mt-0.5 text-xs leading-5 text-text-secondary">
-                      Reviewer identity, notification counts, progress timeline, and risk score are not available from the current student submissions API.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-[1.25rem] border border-border-subtle bg-white p-5 shadow-card sm:p-6">
-              <h3 className="font-semibold text-text-primary">Quick Actions</h3>
-              <p className="mt-2 text-sm leading-6 text-text-secondary">
-                Open your submission history for the complete record and lecturer feedback.
-              </p>
-              <div className="mt-5 flex flex-col gap-3">
-                <PrimaryButton
-                  type="button"
-                  className={DASHBOARD_PRIMARY_BUTTON_CLASS}
-                  onClick={() => navigate('/student/my-submissions')}
-                >
-                  {getPrimaryActionLabel(currentSubmission.status)}
-                </PrimaryButton>
-                {status === 'awaiting_revision' && (
-                  <SecondaryButton type="button" onClick={() => navigate('/student/submit-topic')}>
-                    Submit Topic
-                  </SecondaryButton>
-                )}
-              </div>
-            </div>
-          </section>
+          <dl className="flex flex-wrap gap-2" aria-label="Submission summary"><div className="rounded-full border border-border-subtle bg-white px-3 py-1.5 text-sm"><dt className="inline font-semibold">Total submissions</dt><dd className="ml-2 inline font-bold">{summary.total}</dd></div><div className="rounded-full border border-status-pending-bg bg-white px-3 py-1.5 text-sm"><dt className="inline font-semibold">Pending</dt><dd className="ml-2 inline font-bold">{summary.pending}</dd></div><div className="rounded-full border border-status-revision-bg bg-white px-3 py-1.5 text-sm"><dt className="inline font-semibold">Awaiting revision</dt><dd className="ml-2 inline font-bold">{summary.revision}</dd></div><div className="rounded-full border border-status-approved-bg bg-white px-3 py-1.5 text-sm"><dt className="inline font-semibold">Approved</dt><dd className="ml-2 inline font-bold">{summary.approved}</dd></div></dl>
         </>
       )}
     </StudentDashboardLayout>

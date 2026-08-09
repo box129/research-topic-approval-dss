@@ -9,32 +9,32 @@ const EXPORT_TYPES = [
   {
     type: 'users',
     label: 'Users CSV',
-    description: 'Safe account fields only.'
+    description: 'Account names, roles and statuses.'
   },
   {
     type: 'submissions',
     label: 'Submissions CSV',
-    description: 'Submission workflow fields without private tokens.'
+    description: 'Submission workflow records.'
   },
   {
     type: 'topics',
     label: 'Topics CSV',
-    description: 'Lifecycle topic rows without embeddings or raw records.'
+    description: 'Topic lifecycle records.'
   },
   {
     type: 'similarity-snapshots',
     label: 'Similarity snapshots CSV',
-    description: 'Stored snapshot summary fields without raw result payloads.'
+    description: 'Stored similarity snapshot summaries.'
   },
   {
     type: 'audit-logs',
     label: 'Audit logs CSV',
-    description: 'Stored audit event fields without metadata body export.'
+    description: 'Stored audit event summaries.'
   },
   {
     type: 'supervisee-assignments',
     label: 'Supervisee assignments CSV',
-    description: 'Real assignment rows without private notes.'
+    description: 'Lecturer-supervisee assignment records.'
   }
 ];
 
@@ -63,7 +63,7 @@ function formatDate(value) {
 
 function SummaryCard({ accent = 'border-l-emerald-600', helper, label, value }) {
   return (
-    <article className={`rounded-[1rem] border border-border-subtle border-l-4 ${accent} bg-white p-4 shadow-sm`}>
+    <article className={`rounded-lg border border-border-subtle border-l-[3px] ${accent} bg-white p-3`}>
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">{label}</p>
       <p className="mt-2 text-2xl font-semibold text-text-primary">{value}</p>
       <p className="mt-2 text-sm leading-5 text-text-secondary">{helper}</p>
@@ -81,7 +81,7 @@ function CountPill({ label, value }) {
 
 function SectionCard({ children, title, subtitle }) {
   return (
-    <article className="rounded-[1.25rem] border border-border-subtle bg-white p-4 shadow-sm">
+    <article className="rounded-[10px] border border-border-subtle bg-white p-4 shadow-sm">
       <h2 className="text-base font-semibold text-text-primary">{title}</h2>
       {subtitle ? <p className="mt-1 text-sm leading-6 text-text-secondary">{subtitle}</p> : null}
       <div className="mt-4">{children}</div>
@@ -100,16 +100,16 @@ function triggerCsvDownload({ blob, filename }) {
   window.URL.revokeObjectURL(url);
 }
 
-function ExportActionsSection({ exportState, onExport, summary }) {
+function ExportActionsSection({ exportState, onExport }) {
   return (
     <SectionCard
-      subtitle="CSV downloads are generated from real backend rows and audited. PDF remains deferred."
+      subtitle="Download available report data as CSV. Each export is recorded in the audit log."
       title="CSV exports"
     >
       <div className="grid gap-3">
         {EXPORT_TYPES.map((exportType) => (
           <div
-            className="rounded-[0.9rem] border border-border-subtle bg-surface-muted p-3"
+            className="rounded-lg border border-border-subtle bg-surface-muted p-3"
             key={exportType.type}
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -118,7 +118,7 @@ function ExportActionsSection({ exportState, onExport, summary }) {
                 <p className="mt-1 text-xs leading-5 text-text-secondary">{exportType.description}</p>
               </div>
               <button
-                className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300"
                 disabled={Boolean(exportState.loadingType)}
                 onClick={() => onExport(exportType.type)}
                 type="button"
@@ -138,20 +138,11 @@ function ExportActionsSection({ exportState, onExport, summary }) {
 
       {exportState.error ? (
         <div className="mt-3">
-          <InfoCallout message={exportState.error} title="Export failed" variant="warning" />
+        <InfoCallout role="alert" message={exportState.error} title="Export failed" variant="warning" />
         </div>
       ) : null}
 
-      <p className="mt-3 text-sm leading-6 text-text-secondary">
-        {summary?.exports?.message || 'CSV exports are connected for safe report categories. PDF export generation is not connected.'}
-      </p>
-      <button
-        className="mt-3 rounded-xl border border-border-subtle bg-surface-muted px-4 py-2 text-sm font-semibold text-text-muted"
-        disabled
-        type="button"
-      >
-        PDF export deferred
-      </button>
+      <p className="mt-3 text-sm leading-6 text-text-secondary">CSV exports are available for the report categories above.</p>
     </SectionCard>
   );
 }
@@ -245,98 +236,53 @@ function ReportsPage() {
       <PageHeader
         eyebrow="Governance reporting"
         title="Reports"
-        subtitle="Read-only reporting summary connected to existing aggregate data with safe audited CSV exports. No fake metrics, PDF downloads, charts, or generated analytics are exposed."
+        subtitle="Review administrative summaries and download supported CSV reports."
       />
 
-      <section className="overflow-hidden rounded-[2rem] border border-emerald-950/10 bg-[#eef4eb] shadow-[0_24px_80px_-58px_rgb(6_95_70_/_0.7)]">
-        <div className="grid gap-0 xl:grid-cols-[0.76fr_1.24fr]">
-          <div className="bg-[linear-gradient(150deg,#022c22,#064e3b)] p-5 text-white sm:p-7">
-            <div className="flex h-full flex-col justify-between gap-7">
-              <div className="space-y-5">
-                <span className="inline-flex w-fit rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-50">
-                  Real aggregate data
-                </span>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-emerald-100">Admin reports console</p>
-                  <h1 className="mt-2 text-3xl font-bold text-white">Read-only governance summary</h1>
-                  <p className="mt-2 max-w-xl text-sm leading-6 text-emerald-50/80">
-                    Counts are aggregated from existing users, submissions, topic lifecycle tables, snapshots, and audit logs.
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-[1.35rem] border border-white/15 bg-white/10 p-4 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100/80">Export boundary</p>
-                <p className="mt-1 text-xl font-semibold text-white">Audited CSV exports</p>
-                <p className="mt-2 text-sm leading-6 text-emerald-50/75">
-                  CSV exports use real database rows and record an audit event. PDF exports remain deferred.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-5 p-5 sm:p-6 lg:p-7">
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div aria-live="polite" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <SummaryCard
                 accent="border-l-emerald-600"
-                helper="Existing user records only."
+                helper="User records"
                 label="Users"
                 value={isLoading ? 'Loading...' : formatCount(summary?.users?.total)}
               />
               <SummaryCard
                 accent="border-l-blue-500"
-                helper="Existing student submissions only."
+                helper="Student submissions"
                 label="Submissions"
                 value={isLoading ? 'Loading...' : formatCount(summary?.submissions?.total)}
               />
               <SummaryCard
                 accent="border-l-amber-500"
-                helper="Lifecycle topic tables only."
+                helper="Repository records"
                 label="Topics"
                 value={isLoading ? 'Loading...' : formatCount(summary?.topics?.total)}
               />
               <SummaryCard
                 accent="border-l-rose-500"
-                helper="Stored audit events only."
+                helper="Recorded events"
                 label="Audit events"
                 value={isLoading ? 'Loading...' : formatCount(summary?.auditLogs?.total)}
               />
-            </div>
+      </div>
 
-            <InfoCallout
-              title="No fake reports or exports"
-              message={summary?.exports?.message || 'CSV exports are available only for implemented safe admin report categories. PDF export remains deferred.'}
-              variant="warning"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-[1.5rem] border border-border-subtle bg-white p-5 shadow-sm">
+      <section className="rounded-[10px] border border-border-subtle bg-white p-5 shadow-sm">
         <div className="border-b border-border-subtle pb-4">
           <h2 className="text-lg font-semibold text-text-primary">Report summary sections</h2>
           <p className="mt-1 max-w-3xl text-sm leading-6 text-text-secondary">
-            These sections render aggregate values returned by `GET /api/v1/admin/reports/summary`. Empty values remain empty.
+            Administrative totals and distributions from the current system records.
           </p>
         </div>
 
         <div className="mt-5 space-y-4">
           {errorMessage ? (
-            <InfoCallout message={errorMessage} title="Reports notice" variant="warning" />
-          ) : null}
-
-          {hasError ? (
-            <InfoCallout
-              message="The reports summary endpoint could not be reached. No fallback report metrics are displayed."
-              title="Reports summary unavailable"
-              variant="warning"
-            />
+        <InfoCallout role={hasError ? 'alert' : undefined} message={errorMessage} title={hasError ? 'Reports summary unavailable' : 'Reports notice'} variant="warning" />
           ) : null}
 
           {isLoading ? (
             <div className="grid gap-4 lg:grid-cols-2">
               {[0, 1, 2, 3].map((item) => (
-                <div key={item} className="h-36 animate-pulse rounded-[1.25rem] border border-border-subtle bg-surface-muted" />
+                <div key={item} className="h-36 animate-pulse rounded-[10px] border border-border-subtle bg-surface-muted" />
               ))}
             </div>
           ) : null}
@@ -344,13 +290,12 @@ function ReportsPage() {
           {!isLoading && !hasError && !hasReportData ? (
             <>
               <EmptyStatePanel
-                message="The reports endpoint returned zero aggregate data. No placeholder metrics or charts are shown. CSV exports will return header-only files when no rows exist."
+                message="There is not yet enough activity to populate the report summary. CSV exports remain available."
                 title="Not enough report data yet"
               />
               <ExportActionsSection
                 exportState={exportState}
                 onExport={handleExport}
-                summary={summary}
               />
             </>
           ) : null}
@@ -420,7 +365,7 @@ function ReportsPage() {
                 {summary.auditLogs?.topEventTypes?.length ? (
                   <div className="mt-4 space-y-2">
                     {summary.auditLogs.topEventTypes.map((event) => (
-                      <div key={event.eventType} className="flex items-center justify-between gap-3 rounded-[0.9rem] border border-border-subtle bg-surface-muted px-3 py-2 text-sm">
+                      <div key={event.eventType} className="flex items-center justify-between gap-3 rounded-lg border border-border-subtle bg-surface-muted px-3 py-2 text-sm">
                         <span className="font-semibold text-text-primary">{event.eventType}</span>
                         <span className="text-text-secondary">{formatCount(event.count)}</span>
                       </div>
@@ -434,15 +379,14 @@ function ReportsPage() {
               <ExportActionsSection
                 exportState={exportState}
                 onExport={handleExport}
-                summary={summary}
               />
             </div>
           ) : null}
         </div>
 
         {meta?.generatedAt ? (
-          <div className="mt-5 rounded-[1rem] border border-border-subtle bg-surface-muted px-4 py-3 text-sm text-text-secondary">
-            Generated {formatDate(meta.generatedAt)}. {meta.dataCoverage || 'Read-only report aggregates from existing tables.'}
+          <div className="mt-5 rounded-lg border border-border-subtle bg-surface-muted px-4 py-3 text-sm text-text-secondary">
+            Generated {formatDate(meta.generatedAt)}.
           </div>
         ) : null}
       </section>

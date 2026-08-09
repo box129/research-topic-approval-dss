@@ -165,7 +165,6 @@ describe('Lecturer ResearchTrendsPage', () => {
       expect(getLecturerResearchTrends).toHaveBeenCalledTimes(1);
     });
 
-    expect(screen.getByText(/Real aggregate data/i)).toBeInTheDocument();
     expect(screen.getByText(/Topic records/i)).toBeInTheDocument();
     expect(screen.getByText('45')).toBeInTheDocument();
     expect(screen.getAllByText(/Public Health/i).length).toBeGreaterThanOrEqual(1);
@@ -174,17 +173,16 @@ describe('Lecturer ResearchTrendsPage', () => {
     expect(screen.getByText(/Partial success/i)).toBeInTheDocument();
   });
 
-  it('keeps keyword trends and recommendations explicitly deferred', async () => {
+  it('keeps unsupported additional analysis explicitly unavailable', async () => {
     renderPage();
 
     await waitFor(() => {
       expect(getLecturerResearchTrends).toHaveBeenCalledTimes(1);
     });
 
-    expect(screen.getByText(/Keyword trends deferred/i)).toBeInTheDocument();
-    expect(screen.getByText(/Keyword trend extraction and clustering are not generated/i)).toBeInTheDocument();
-    expect(screen.getByText(/Recommendations deferred/i)).toBeInTheDocument();
-    expect(screen.getByText(/Research recommendations are deferred/i)).toBeInTheDocument();
+    expect(screen.getByText(/Additional analysis/i)).toBeInTheDocument();
+    expect(screen.getByText(/Keyword trends and research recommendations are not currently available/i)).toBeInTheDocument();
+    expect(screen.queryByText(/deferred/i)).not.toBeInTheDocument();
   });
 
   it('shows an honest zero-data state without placeholder charts or insights', async () => {
@@ -196,7 +194,7 @@ describe('Lecturer ResearchTrendsPage', () => {
       expect(screen.getByText(/Not enough trend data yet/i)).toBeInTheDocument();
     });
 
-    expect(screen.getByText(/No placeholder charts, fake keywords, fake recommendations, or invented research insights are displayed/i)).toBeInTheDocument();
+    expect(screen.getByText(/No aggregate trend information is currently available/i)).toBeInTheDocument();
   });
 
   it('shows unavailable state without fallback trend data', async () => {
@@ -208,7 +206,7 @@ describe('Lecturer ResearchTrendsPage', () => {
       expect(screen.getByText(/Research trends unavailable/i)).toBeInTheDocument();
     });
 
-    expect(screen.getByText(/No fallback charts, insights, or recommendations are displayed/i)).toBeInTheDocument();
+    expect(screen.getByText(/Unable to load lecturer research trends/i)).toBeInTheDocument();
   });
 
   it('does not expose mutations, exports, generated charts, or fake recommendation actions', async () => {

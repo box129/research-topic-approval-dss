@@ -150,6 +150,21 @@ describe('NotificationCenter', () => {
     expect(screen.queryByLabelText(/unread notifications/i)).not.toBeInTheDocument();
   });
 
+  it('moves focus into the notification dialog and restores it after Escape', async () => {
+    const user = userEvent.setup();
+    mockNotificationList();
+    renderTopNav('student');
+    const trigger = screen.getByRole('button', { name: /open notifications/i });
+
+    await user.click(trigger);
+
+    const panel = screen.getByRole('dialog', { name: /notifications/i });
+    expect(within(panel).getByRole('button', { name: /close notifications/i })).toHaveFocus();
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog', { name: /notifications/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /open notifications/i })).toHaveFocus();
+  });
+
   it('shows error state and retries notification loading', async () => {
     const user = userEvent.setup();
     listNotifications
@@ -169,7 +184,7 @@ describe('NotificationCenter', () => {
     renderTopNav('admin');
 
     await user.click(screen.getByRole('button', { name: /open notifications/i }));
-    expect(await screen.findByText(/unable to load notification records/i)).toBeInTheDocument();
+    expect(await screen.findByRole('alert')).toHaveTextContent(/unable to load notification records/i);
 
     await user.click(screen.getByRole('button', { name: /retry/i }));
 

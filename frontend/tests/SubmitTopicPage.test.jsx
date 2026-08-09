@@ -1,5 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import SubmitTopicPage from '../src/pages/student/SubmitTopicPage';
@@ -8,6 +8,8 @@ import { createSubmission } from '../src/api/submissions';
 vi.mock('../src/api/submissions', () => ({
   createSubmission: vi.fn()
 }));
+
+const validTitle = 'Assessing student access to digital library resources today';
 
 function renderSubmitTopicPage() {
   return render(
@@ -19,13 +21,15 @@ function renderSubmitTopicPage() {
   );
 }
 
-async function fillValidSubmission(user) {
-  await user.type(
-    screen.getByLabelText(/research topic title/i),
-    'Assessing student access to digital library resources today'
-  );
-  await user.type(screen.getByLabelText(/category/i), 'Education');
-  await user.type(screen.getByLabelText(/keywords/i), 'students, library, access');
+function fillValidSubmission() {
+  fireEvent.change(screen.getByLabelText(/research topic title/i), { target: { value: validTitle } });
+  fireEvent.change(screen.getByLabelText(/category/i), { target: { value: 'Education' } });
+  fireEvent.change(screen.getByLabelText(/keywords/i), { target: { value: 'students, library, access' } });
+}
+
+async function openReview(user) {
+  await user.click(screen.getByRole('button', { name: /review and submit/i }));
+  return screen.getByRole('region', { name: /before you submit/i });
 }
 
 describe('SubmitTopicPage', () => {
@@ -33,123 +37,181 @@ describe('SubmitTopicPage', () => {
     vi.clearAllMocks();
   });
 
-  it('renders the form, guidance, and submit button', () => {
+  it('renders the guided form with required and optional fields', () => {
     renderSubmitTopicPage();
 
-    expect(screen.getByRole('heading', { name: /submit your research topic/i })).toBeInTheDocument();
-    expect(screen.getByText(/before you submit/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/research topic title/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/category/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/keywords/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /submit for review/i })).toBeInTheDocument();
-    expect(screen.getByText(/after submission/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /^submit topic$/i })).toBeInTheDocument();
+    expect(screen.getByText(/submitting creates a pending topic/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/research topic title/i)).toBeRequired();
+    expect(screen.getByLabelText(/category/i)).not.toBeRequired();
+    expect(screen.getByLabelText(/keywords/i)).not.toBeRequired();
+    expect(screen.getByRole('button', { name: /review and submit/i })).toBeInTheDocument();
   });
 
-  it('validates required title', async () => {
+  it('validates the required title accessibly without posting', async () => {
     const user = userEvent.setup();
     renderSubmitTopicPage();
 
-    await user.click(screen.getByRole('button', { name: /submit for review/i }));
+    await user.click(screen.getByRole('button', { name: /review and submit/i }));
 
+    const title = screen.getByLabelText(/research topic title/i);
     expect(screen.getByText('Title is required.')).toBeInTheDocument();
+    expect(title).toHaveAttribute('aria-invalid', 'true');
+    expect(title).toHaveAccessibleDescription(/title is required/i);
+    await waitFor(() => expect(title).toHaveFocus());
     expect(createSubmission).not.toHaveBeenCalled();
   });
 
-  it('validates the 7 to 24 word title rule', async () => {
+  it.each([
+    ['Too short title', '3'],
+    ['one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty twenty-one twenty-two twenty-three twenty-four twenty-five', '25']
+  ])('enforces the 7 to 24 word title rule for a %s word title', async (title, count) => {
     const user = userEvent.setup();
     renderSubmitTopicPage();
 
-    await user.type(screen.getByLabelText(/research topic title/i), 'Too short title');
-    await user.click(screen.getByRole('button', { name: /submit for review/i }));
+    fireEvent.change(screen.getByLabelText(/research topic title/i), { target: { value: title } });
+    expect(screen.getByText(`${count} words`)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /review and submit/i }));
 
     expect(screen.getByText('Title must be 7 to 24 words.')).toBeInTheDocument();
     expect(createSubmission).not.toHaveBeenCalled();
   });
 
-  it('submits exactly the title, category, and keywords payload', async () => {
+  it('opens a local review state and performs no POST before confirmation', async () => {
+    const user = userEvent.setup();
+    renderSubmitTopicPage();
+    fillValidSubmission();
+
+    const review = await openReview(user);
+
+    expect(createSubmission).not.toHaveBeenCalled();
+    expect(within(review).getByText(validTitle)).toBeInTheDocument();
+    expect(within(review).getByText('Education')).toBeInTheDocument();
+    expect(within(review).getByText('students, library, access')).toBeInTheDocument();
+    expect(within(review).getByText(/nothing has been saved yet/i)).toBeInTheDocument();
+    expect(review).toHaveFocus();
+    expect(screen.getByLabelText(/research topic title/i)).toBeDisabled();
+    expect(screen.getByLabelText(/category/i)).toBeDisabled();
+    expect(screen.getByLabelText(/keywords/i)).toBeDisabled();
+  });
+
+  it('returns to editing without losing field values', async () => {
+    const user = userEvent.setup();
+    renderSubmitTopicPage();
+    fillValidSubmission();
+    await openReview(user);
+
+    await user.click(screen.getByRole('button', { name: /back to edit/i }));
+
+    expect(screen.getByLabelText(/research topic title/i)).toHaveValue(validTitle);
+    expect(screen.getByLabelText(/category/i)).toHaveValue('Education');
+    expect(screen.getByLabelText(/keywords/i)).toHaveValue('students, library, access');
+    expect(screen.getByLabelText(/research topic title/i)).toHaveFocus();
+    expect(createSubmission).not.toHaveBeenCalled();
+  });
+
+  it('sends the existing exact payload only after final confirmation', async () => {
     const user = userEvent.setup();
     createSubmission.mockResolvedValue({ id: 1 });
     renderSubmitTopicPage();
+    fillValidSubmission();
+    await openReview(user);
 
-    await fillValidSubmission(user);
-    await user.click(screen.getByRole('button', { name: /submit for review/i }));
+    await user.click(screen.getByRole('button', { name: /confirm submission/i }));
 
     await waitFor(() => {
+      expect(createSubmission).toHaveBeenCalledTimes(1);
       expect(createSubmission).toHaveBeenCalledWith({
-        title: 'Assessing student access to digital library resources today',
+        title: validTitle,
         category: 'Education',
         keywords: 'students, library, access'
       });
     });
   });
 
-  it('disables the form and submit button while submission is pending', async () => {
+  it('submits optional fields as empty strings without requiring them', async () => {
+    const user = userEvent.setup();
+    createSubmission.mockResolvedValue({ id: 1 });
+    renderSubmitTopicPage();
+
+    fireEvent.change(screen.getByLabelText(/research topic title/i), { target: { value: validTitle } });
+    await openReview(user);
+    await user.click(screen.getByRole('button', { name: /confirm submission/i }));
+
+    await waitFor(() => expect(createSubmission).toHaveBeenCalledWith({
+      title: validTitle,
+      category: '',
+      keywords: ''
+    }));
+  });
+
+  it('announces pending submission and prevents duplicate activation', async () => {
     const user = userEvent.setup();
     let resolveSubmission;
     createSubmission.mockReturnValue(new Promise((resolve) => {
       resolveSubmission = resolve;
     }));
     renderSubmitTopicPage();
+    fillValidSubmission();
+    await openReview(user);
 
-    await fillValidSubmission(user);
-    await user.click(screen.getByRole('button', { name: /submit for review/i }));
+    const confirmButton = screen.getByRole('button', { name: /confirm submission/i });
+    fireEvent.click(confirmButton);
+    fireEvent.click(confirmButton);
 
-    await waitFor(() => {
-      expect(screen.getByLabelText(/research topic title/i)).toBeDisabled();
-      expect(screen.getByLabelText(/category/i)).toBeDisabled();
-      expect(screen.getByLabelText(/keywords/i)).toBeDisabled();
-      expect(screen.getByRole('button', { name: /loading/i })).toBeDisabled();
-    });
+    expect(await screen.findByText(/submitting topic for review/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /loading/i })).toBeDisabled();
+    expect(screen.getByLabelText(/research topic title/i)).toBeDisabled();
+    expect(createSubmission).toHaveBeenCalledTimes(1);
 
     resolveSubmission({ id: 1 });
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /submit for review/i })).not.toBeDisabled();
-    });
+    expect(await screen.findByText(/topic submitted for review/i)).toBeInTheDocument();
   });
 
-  it('shows success and resets fields after successful submission', async () => {
+  it('focuses a request error and preserves values for recovery', async () => {
     const user = userEvent.setup();
-    createSubmission.mockResolvedValue({ id: 1 });
-    renderSubmitTopicPage();
-
-    await fillValidSubmission(user);
-    await user.click(screen.getByRole('button', { name: /submit for review/i }));
-
-    expect(await screen.findByText('Topic submitted for review.')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /view my submissions/i })).toHaveAttribute(
-      'href',
-      '/student/my-submissions'
-    );
-    expect(screen.getByLabelText(/research topic title/i)).toHaveValue('');
-    expect(screen.getByLabelText(/category/i)).toHaveValue('');
-    expect(screen.getByLabelText(/keywords/i)).toHaveValue('');
-  });
-
-  it('shows server error messages and fallback errors on rejection', async () => {
-    const user = userEvent.setup();
-    createSubmission.mockRejectedValueOnce({
+    createSubmission.mockRejectedValue({
       response: { data: { message: 'Submission window is closed.' } }
     });
     renderSubmitTopicPage();
+    fillValidSubmission();
+    await openReview(user);
+    await user.click(screen.getByRole('button', { name: /confirm submission/i }));
 
-    await fillValidSubmission(user);
-    await user.click(screen.getByRole('button', { name: /submit for review/i }));
-
-    expect(await screen.findByText('Submission window is closed.')).toBeInTheDocument();
-
-    createSubmission.mockRejectedValueOnce(new Error('Network error'));
-    await user.click(screen.getByRole('button', { name: /submit for review/i }));
-
-    expect(await screen.findByText('Unable to submit topic.')).toBeInTheDocument();
+    const alert = await screen.findByRole('alert');
+    await waitFor(() => expect(alert).toHaveFocus());
+    expect(alert).toHaveTextContent('Submission window is closed.');
+    expect(screen.getByLabelText(/research topic title/i)).toHaveValue(validTitle);
+    expect(screen.getByLabelText(/category/i)).toHaveValue('Education');
+    expect(screen.getByLabelText(/keywords/i)).toHaveValue('students, library, access');
+    expect(screen.getByRole('button', { name: /review and submit/i })).toBeEnabled();
   });
 
-  it('does not expose similarity, risk, or functional pre-check UI', () => {
+  it('uses the fallback request error without losing the proposal', async () => {
+    const user = userEvent.setup();
+    createSubmission.mockRejectedValue(new Error('Network error'));
     renderSubmitTopicPage();
+    fireEvent.change(screen.getByLabelText(/research topic title/i), { target: { value: validTitle } });
+    await openReview(user);
+    await user.click(screen.getByRole('button', { name: /confirm submission/i }));
 
-    expect(screen.queryByText(/similarity/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/risk/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/pre-check/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/coming later/i).length).toBeGreaterThan(0);
-    expect(screen.queryByRole('button', { name: /pre-check/i })).not.toBeInTheDocument();
+    expect(await screen.findByText('Unable to submit topic.')).toBeInTheDocument();
+    expect(screen.getByLabelText(/research topic title/i)).toHaveValue(validTitle);
+  });
+
+  it('replaces the editable workflow with a truthful success state', async () => {
+    const user = userEvent.setup();
+    createSubmission.mockResolvedValue({ id: 'private-id', reviewer_name: 'Dr. Hidden Reviewer' });
+    renderSubmitTopicPage();
+    fillValidSubmission();
+    await openReview(user);
+    await user.click(screen.getByRole('button', { name: /confirm submission/i }));
+
+    expect(await screen.findByRole('heading', { name: /topic submitted for review/i })).toBeInTheDocument();
+    expect(screen.queryByLabelText(/research topic title/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /confirm submission/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /view my submissions/i })).toHaveAttribute('href', '/student/my-submissions');
+    expect(screen.getByRole('link', { name: /return to dashboard/i })).toHaveAttribute('href', '/student/dashboard');
+    expect(screen.queryByText(/private-id|dr\. hidden reviewer|unique|original|approved/i)).not.toBeInTheDocument();
   });
 });

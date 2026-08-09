@@ -79,7 +79,7 @@ describe('LecturerDashboardPage', () => {
     renderLecturerDashboard();
 
     expect(await screen.findByText(/no pending reviews/i)).toBeInTheDocument();
-    expect(screen.getByText(/student submissions with pending review status/i)).toBeInTheDocument();
+    expect(screen.getByText(/student submissions awaiting lecturer review/i)).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /no pending reviews/i })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /open pending reviews/i }));
@@ -87,7 +87,7 @@ describe('LecturerDashboardPage', () => {
     expect(screen.getByTestId('location-display')).toHaveTextContent('/lecturer/pending-reviews');
   });
 
-  it('shows pending count from returned data and honest unavailable placeholders', async () => {
+  it('shows pending count from returned data without unsupported dashboard placeholders', async () => {
     listLecturerPendingSubmissions.mockResolvedValue([
       { id: 1, title: 'First pending topic', status: 'pending_review' },
       { id: 2, title: 'Second pending topic', status: 'pending_review' }
@@ -95,10 +95,9 @@ describe('LecturerDashboardPage', () => {
     renderLecturerDashboard();
 
     expect(await screen.findByText(/first pending topic/i)).toBeInTheDocument();
-    expect(screen.getByText(/loaded from the existing pending review queue/i)).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
-    expect(screen.getAllByText(/not available yet/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/not connected yet/i).length).toBeGreaterThan(0);
+    expect(screen.getByLabelText(/pending reviews 2/i)).toHaveTextContent('2');
+    expect(screen.queryByText(/not available yet/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/not connected yet/i)).not.toBeInTheDocument();
   });
 
   it('renders compact pending review cards with safe returned fields', async () => {
@@ -186,6 +185,6 @@ describe('LecturerDashboardPage', () => {
     expect(screen.queryByText(/94/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/approved two topics yesterday/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/critical high-risk submission/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/risk summaries are not connected/i)).toBeInTheDocument();
+    expect(screen.queryByText(/risk summaries/i)).not.toBeInTheDocument();
   });
 });

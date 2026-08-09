@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import ConfirmActionModal from '../../components/ui/ConfirmActionModal';
-import DashboardStatusCard from '../../components/ui/DashboardStatusCard';
 import ErrorState from '../../components/ui/ErrorState';
 import InfoCallout from '../../components/ui/InfoCallout';
 import LoadingState from '../../components/ui/LoadingState';
@@ -39,9 +38,9 @@ function formatDate(value) {
 
 function DetailItem({ label, value }) {
   return (
-    <div className="rounded-[1rem] border border-emerald-50 bg-[#f6fbf1] p-3">
+    <div className="rounded-[8px] border border-border-subtle bg-surface-page p-3">
       <dt className="text-xs font-semibold uppercase tracking-wide text-text-muted">{label}</dt>
-      <dd className="mt-1 text-sm text-text-primary">{value || 'Not provided'}</dd>
+      <dd className="mt-1 break-words text-sm text-text-primary">{value || 'Not provided'}</dd>
     </div>
   );
 }
@@ -113,6 +112,7 @@ function SubmissionDetailPage() {
 
     if (requireReason && !normalizedReason) {
       setDecisionReasonError('Decision rationale is required when rejecting a submission.');
+      requestAnimationFrame(() => document.getElementById('decision-rationale')?.focus());
       return;
     }
 
@@ -212,24 +212,6 @@ function SubmissionDetailPage() {
         )}
       />
 
-      <ol className="grid gap-3 rounded-[1.35rem] border border-emerald-100 bg-white/85 p-3 shadow-card sm:grid-cols-3" aria-label="Submission review workflow">
-        {[
-          ['1', 'Submission', 'Review API-returned topic fields'],
-          ['2', 'Evidence', 'Inspect saved and temporary checks'],
-          ['3', 'Decision', 'Use controlled status actions']
-        ].map(([number, label, helper]) => (
-          <li key={label} className="flex gap-3 rounded-[1rem] border border-emerald-50 bg-[#f7fbf4] p-3">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-green text-xs font-bold text-white">
-              {number}
-            </span>
-            <div>
-              <p className="text-sm font-semibold text-text-primary">{label}</p>
-              <p className="mt-1 text-xs leading-5 text-text-muted">{helper}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
-
       {isLoading && <LoadingState label="Loading submission details" />}
 
       {!isLoading && error && !submission && (
@@ -257,75 +239,30 @@ function SubmissionDetailPage() {
       )}
 
       {!isLoading && submission && (
-        <div className="space-y-7">
-          <section className="overflow-hidden rounded-[1.8rem] border border-emerald-100 border-t-4 border-t-brand-gold bg-white shadow-[0_22px_70px_-42px_rgb(4_120_87_/_0.55)]">
-            <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.34fr)]">
-              <div className="bg-[#f6fbf1] p-5 sm:p-7">
-                <div className="max-w-4xl">
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-green">Submitted Topic</p>
-                  <h2 className="mt-3 text-2xl font-bold leading-tight text-text-primary sm:text-3xl">{submission.title}</h2>
-                  <p className="mt-3 text-sm leading-6 text-text-secondary">
-                  Similarity evidence is advisory. Final decisions remain lecturer-controlled.
-                  </p>
-                </div>
+        <div className="space-y-5">
+          <section className="rounded-[10px] border border-border-subtle bg-white p-5 shadow-card sm:p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">Submitted topic</p>
+                <h2 className="mt-2 break-words text-xl font-bold leading-7 text-text-primary">{submission.title}</h2>
               </div>
-
-              <aside className="border-t border-emerald-100 p-5 sm:p-7 lg:border-l lg:border-t-0">
-                <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
-                  Review state
-                </p>
-                <div className="mt-3">
-                  <StatusBadge status={submission.status} />
-                </div>
-                <p className="mt-4 text-sm leading-6 text-text-secondary">
-                  Decisions remain available only through the existing lecturer decision panel below.
-                </p>
-              </aside>
+              <div className="shrink-0"><StatusBadge status={submission.status} /></div>
             </div>
-
-            <div className="p-5 sm:p-7">
-              <div className="grid gap-4 md:grid-cols-3">
-                <DashboardStatusCard
-                  label="Submitted"
-                  value={formatDate(submission.submitted_at)}
-                  helper="From the submission record"
-                />
-                <DashboardStatusCard
-                  label="Academic Session"
-                  value={submission.session_name || 'Not provided'}
-                  helper="Returned by the submission API"
-                />
-                <DashboardStatusCard
-                  label="Category"
-                  value={submission.category || 'Uncategorised'}
-                  helper="Student supplied field"
-                />
-              </div>
-
-              <div className="mt-6 rounded-[1.35rem] border border-emerald-100 bg-white p-4">
-                <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
-                      Researcher profile
-                    </p>
-                    <h3 className="text-lg font-semibold text-text-primary">Student and topic metadata</h3>
-                  </div>
-                  <span className="w-fit rounded-full bg-[#f6fbf1] px-3 py-1 text-xs font-semibold text-text-muted">
-                    API returned fields
-                  </span>
-                </div>
-                <dl className="grid gap-4 md:grid-cols-2">
-                  <DetailItem label="Student Name" value={submission.student_name} />
-                  <DetailItem label="Student Email" value={submission.student_email} />
-                  <DetailItem label="Keywords" value={submission.keywords} />
-                  <DetailItem label="Created Date" value={formatDate(submission.created_at)} />
-                </dl>
-              </div>
-            </div>
+            <p className="mt-3 text-sm text-text-secondary">
+              Similarity evidence is advisory. Final decisions remain lecturer-controlled.
+            </p>
+            <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <DetailItem label="Student name" value={submission.student_name} />
+              <DetailItem label="Student email" value={submission.student_email} />
+              <DetailItem label="Academic session" value={submission.session_name} />
+              <DetailItem label="Category" value={submission.category || 'Uncategorised'} />
+              <DetailItem label="Keywords" value={submission.keywords} />
+              <DetailItem label="Submitted" value={formatDate(submission.submitted_at)} />
+            </dl>
           </section>
 
-          <section className="overflow-hidden rounded-[1.6rem] border border-emerald-100 bg-white shadow-card">
-            <div className="border-b border-emerald-100 bg-[linear-gradient(135deg,#fbfdf8,#fffdf7)] p-5 sm:p-7">
+          <section className="overflow-hidden rounded-[10px] border border-border-subtle bg-white shadow-card">
+            <div className="border-b border-border-subtle p-5">
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
@@ -342,7 +279,7 @@ function SubmissionDetailPage() {
               </div>
             </div>
 
-            <div className="p-5 sm:p-7">
+            <div className="p-5">
 
             {isLoadingSnapshots && (
               <div>
@@ -376,7 +313,7 @@ function SubmissionDetailPage() {
                   const tierCounts = snapshot.result_summary?.tierCounts || {};
 
                   return (
-                    <article key={snapshot.id} className="rounded-[1.25rem] border border-emerald-100 bg-[#f7fbf4] p-5">
+                    <article key={snapshot.id} className="rounded-[8px] border border-border-subtle bg-surface-page p-4">
                       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
@@ -415,15 +352,15 @@ function SubmissionDetailPage() {
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-[1.6rem] border border-emerald-100 bg-white shadow-card">
+          <section className="overflow-hidden rounded-[10px] border border-border-subtle bg-white shadow-card">
             <div className="grid gap-0 lg:grid-cols-[minmax(0,0.45fr)_minmax(0,0.55fr)]">
-              <div className="border-b border-emerald-100 bg-[linear-gradient(145deg,#f6fbf1,#fffdf7)] p-5 sm:p-7 lg:border-b-0 lg:border-r">
+              <div className="border-b border-border-subtle bg-surface-page p-5 lg:border-b-0 lg:border-r">
                 <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
                   Similarity evidence
                 </p>
                 <h3 className="mt-2 text-xl font-semibold text-text-primary">Similarity Pre-check</h3>
                 <p className="mt-3 text-sm leading-6 text-text-secondary">
-                  Run the existing lecturer similarity checker against this submitted topic. Results are temporary and do not change the submission status.
+                  Run and save a similarity check for this submitted topic. It records advisory evidence and does not change the submission status or lecturer decision.
                 </p>
                 <div className="mt-5">
                   <PrimaryButton type="button" disabled={isCheckingSimilarity} onClick={handleSimilarityCheck}>
@@ -432,7 +369,7 @@ function SubmissionDetailPage() {
                 </div>
               </div>
 
-              <div className="min-w-0 p-5 sm:p-7">
+              <div className="min-w-0 p-5">
                 <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-text-muted">
                   Check output
                 </p>
@@ -461,23 +398,23 @@ function SubmissionDetailPage() {
                 )}
 
                 {similarityResults && (
-                  <div className="rounded-[1rem] border border-border-subtle bg-surface-muted p-2">
+                  <div className="rounded-[8px] border border-border-subtle bg-surface-muted p-2">
                     <ResultsDisplay results={similarityResults} />
                   </div>
                 )}
 
                 {!isCheckingSimilarity && !similarityError && !similarityResults && (
                   <InfoCallout
-                    title="No temporary check result"
-                    message="Run a similarity check when you need advisory evidence for this submitted topic."
+                    title="No additional check result"
+                    message="Run a similarity check when you need to record additional advisory evidence for this submitted topic."
                   />
                 )}
               </div>
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-[1.6rem] border border-emerald-100 border-l-4 border-l-brand-gold bg-white shadow-card">
-            <div className="border-b border-emerald-100 bg-[linear-gradient(135deg,#fbfdf8,#fffdf7)] p-5 sm:p-7">
+          <section className="overflow-hidden rounded-[10px] border border-border-subtle bg-white shadow-card">
+            <div className="border-b border-border-subtle bg-surface-page p-5">
               <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
@@ -485,7 +422,7 @@ function SubmissionDetailPage() {
                   </p>
                   <h3 className="text-lg font-semibold text-text-primary">Lecturer Decision</h3>
                   <p className="mt-1 text-sm text-text-secondary">
-                    This updates only the submission status. Similarity results, lifecycle writes, emails, audit trail, and reporting remain out of scope.
+                    Record the academic decision after reviewing the submission, available evidence, and rationale.
                   </p>
                 </div>
                 {!canUpdateStatus && (
@@ -496,7 +433,7 @@ function SubmissionDetailPage() {
               </div>
             </div>
 
-            <div className="space-y-4 p-5 sm:p-7">
+            <div className="space-y-4 p-5">
               <TextAreaInput
                 id="decision-rationale"
                 label="Decision rationale / comment"
@@ -504,7 +441,7 @@ function SubmissionDetailPage() {
                 value={decisionReason}
                 disabled={!canUpdateStatus || isUpdating}
                 error={decisionReasonError}
-                helperText="This is a lecturer-provided rationale, not an automatic similarity decision. It is required when rejecting a topic."
+                helperText="Required when rejecting a topic. Similarity evidence remains advisory."
                 placeholder="Add the reason for this decision..."
                 onChange={(event) => {
                   setDecisionReason(event.target.value);
@@ -543,7 +480,7 @@ function SubmissionDetailPage() {
 
             {!canUpdateStatus && submission.decision_reason && (
               <InfoCallout
-                className="mx-5 mb-5 sm:mx-7 sm:mb-7"
+                className="mx-5 mb-5"
                 title="Stored lecturer rationale"
                 message={submission.decision_reason}
               >
@@ -567,7 +504,7 @@ function SubmissionDetailPage() {
         variant={pendingDecision?.status === 'rejected' ? 'danger' : 'default'}
       >
         <p className="text-sm text-text-secondary">
-          This will update the submission status through the existing lecturer decision API.
+          Confirm this lecturer decision. The submission status will be updated immediately.
         </p>
       </ConfirmActionModal>
     </LecturerDashboardLayout>

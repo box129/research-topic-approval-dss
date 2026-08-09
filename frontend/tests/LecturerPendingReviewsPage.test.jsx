@@ -231,6 +231,7 @@ describe('Lecturer PendingReviewsPage', () => {
     expect(screen.queryByText(/dr\. hidden reviewer/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/fake activity item/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('navigation', { name: /pagination/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/risk labels and score summaries are not returned/i)).toBeInTheDocument();
+    expect(screen.queryByText(/risk labels/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/score summaries/i)).not.toBeInTheDocument();
   });
 });

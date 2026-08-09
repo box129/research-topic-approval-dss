@@ -219,18 +219,17 @@ describe('AdminTopicRepositoryPage', () => {
     render(<AdminTopicRepositoryPage />);
 
     expect(screen.getByRole('heading', { name: /topic repository/i })).toBeInTheDocument();
-    expect(screen.getByText(/read-only topic repository view with an admin-audited .xlsx import preview/i)).toBeInTheDocument();
+    expect(screen.getByText(/Review stored research topics and manage spreadsheet imports/i)).toBeInTheDocument();
 
     await waitFor(() => {
       expect(getAdminTopicsSummary).toHaveBeenCalledTimes(1);
       expect(listAdminTopics).toHaveBeenCalledTimes(1);
     });
 
-    expect(screen.getByText(/read-only repository data/i)).toBeInTheDocument();
     expect(screen.getByText(/Malaria prevention in rural communities/i)).toBeInTheDocument();
     expect(screen.getByText(/Hand hygiene compliance in hospitals/i)).toBeInTheDocument();
-    expect(screen.getByText(/Public Health: 2/i)).toBeInTheDocument();
-    expect(screen.getByText(/Missing category: 1/i)).toBeInTheDocument();
+    expect(screen.getByText(/All topics/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Under review/i).length).toBeGreaterThanOrEqual(1);
   });
 
   it('keeps missing fields and unavailable embeddings honest', async () => {
@@ -241,7 +240,7 @@ describe('AdminTopicRepositoryPage', () => {
     });
 
     expect(screen.getByText(/Context incomplete/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/Import warnings/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/import warning/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/Embedding unavailable/i)).toBeInTheDocument();
     expect(screen.getAllByText(/Not recorded/i).length).toBeGreaterThanOrEqual(2);
   });
@@ -292,7 +291,7 @@ describe('AdminTopicRepositoryPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/No topic records returned/i)).toBeInTheDocument();
     });
-    expect(screen.getByText(/No placeholder topics are shown/i)).toBeInTheDocument();
+    expect(screen.getByText(/No topics match the selected filters/i)).toBeInTheDocument();
   });
 
   it('shows unavailable states when repository endpoints fail', async () => {
@@ -305,7 +304,7 @@ describe('AdminTopicRepositoryPage', () => {
       expect(screen.getByText(/Repository summary unavailable/i)).toBeInTheDocument();
       expect(screen.getByText(/Topic records unavailable/i)).toBeInTheDocument();
     });
-    expect(screen.getByText(/No fallback topic rows are displayed/i)).toBeInTheDocument();
+    expect(screen.getByText(/Topic records could not be loaded/i)).toBeInTheDocument();
   });
 
   it('allows selecting an xlsx file for the real admin import workflow', async () => {
@@ -316,7 +315,7 @@ describe('AdminTopicRepositoryPage', () => {
     await waitFor(() => {
       expect(screen.getByText(`Selected file: ${file.name}`)).toBeInTheDocument();
     });
-    expect(screen.getByText(/admin-only and audited by the backend/i)).toBeInTheDocument();
+    expect(screen.getByText(/Previewing does not save topic records/i)).toBeInTheDocument();
   });
 
   it('shows preview loading state and calls the real preview helper with the selected file', async () => {
@@ -348,7 +347,7 @@ describe('AdminTopicRepositoryPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/Preview complete/i)).toBeInTheDocument();
     });
-    expect(screen.getByText(/Preview parsed 3 accepted normalized records/i)).toBeInTheDocument();
+    expect(screen.getByText(/Preview found 3 accepted records/i)).toBeInTheDocument();
     expect(screen.getByText(/Preview import report/i)).toBeInTheDocument();
     expect(screen.getByText(/Total rows/i)).toBeInTheDocument();
     expect(screen.getByText('5')).toBeInTheDocument();
@@ -373,7 +372,7 @@ describe('AdminTopicRepositoryPage', () => {
       expect(screen.getByText(/Import preview failed/i)).toBeInTheDocument();
     });
     expect(screen.getByText(/Only .xlsx import files are supported/i)).toBeInTheDocument();
-    expect(screen.getByText(/No fallback import report or fake preview rows are displayed/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Preview import report/i)).not.toBeInTheDocument();
   });
 
   it('keeps commit disabled before successful preview', async () => {
@@ -459,19 +458,15 @@ describe('AdminTopicRepositoryPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/Import commit failed/i)).toBeInTheDocument();
     });
-    expect(
-      screen.getByText(/^Commit failed\. No fallback persistence report or fake commit result is displayed\.$/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/^Commit failed\.$/i)).toBeInTheDocument();
   });
 
-  it('clearly leaves duplicate-existing and richer row-level reports deferred', async () => {
+  it('does not expose unsupported repository workflows', async () => {
     render(<AdminTopicRepositoryPage />);
 
-    expect(screen.getAllByText(/duplicate-existing checks/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/row-level operator reports/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/embedding generation/i).length).toBeGreaterThan(0);
     expect(screen.queryByText(/duplicate existing rows: 0/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/row 12/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /edit|delete|migrate/i })).not.toBeInTheDocument();
     await waitFor(() => {
       expect(listAdminTopics).toHaveBeenCalledTimes(1);
     });

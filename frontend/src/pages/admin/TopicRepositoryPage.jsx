@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import AdminDashboardLayout from '../../layouts/AdminDashboardLayout';
 import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import InfoCallout from '../../components/ui/InfoCallout';
@@ -60,7 +60,7 @@ function buildListParams(filters) {
 
 function SummaryCard({ label, value, helper, accent = 'border-l-emerald-600' }) {
   return (
-    <article className={`rounded-[1rem] border border-border-subtle border-l-4 ${accent} bg-white p-4 shadow-sm`}>
+    <article className={`rounded-lg border border-border-subtle border-l-[3px] ${accent} bg-white p-3`}>
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">{label}</p>
       <p className="mt-2 text-2xl font-semibold text-text-primary">{formatCount(value)}</p>
       <p className="mt-2 text-sm leading-5 text-text-secondary">{helper}</p>
@@ -83,7 +83,7 @@ function ImportReportGrid({ report, title }) {
   ];
 
   return (
-    <div className="rounded-[1.15rem] border border-border-subtle bg-white p-4 shadow-sm">
+    <div className="rounded-[10px] border border-border-subtle bg-white p-4 shadow-sm">
       <h3 className="text-sm font-bold uppercase tracking-[0.14em] text-text-primary">{title}</h3>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map(([label, key]) => (
@@ -110,7 +110,7 @@ function PersistenceReportGrid({ report }) {
   ];
 
   return (
-    <div className="rounded-[1.15rem] border border-border-subtle bg-white p-4 shadow-sm">
+    <div className="rounded-[10px] border border-border-subtle bg-white p-4 shadow-sm">
       <h3 className="text-sm font-bold uppercase tracking-[0.14em] text-text-primary">Commit persistence report</h3>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map(([label, value]) => (
@@ -129,7 +129,7 @@ function TopicRow({ topic }) {
   const missingContext = !topic.dataQuality?.hasContextFields;
 
   return (
-    <article className="rounded-[1.15rem] border border-border-subtle bg-white p-4 shadow-sm">
+    <article className="rounded-lg border border-border-subtle bg-white p-4">
       <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[1.35fr_0.85fr_0.9fr_0.82fr] lg:items-start">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -257,11 +257,6 @@ function TopicRepositoryPage() {
   }, [filters]);
 
   const totals = summary?.totals || {};
-  const dataQuality = summary?.dataQuality || {};
-  const topCategories = useMemo(
-    () => (summary?.byCategory || []).slice(0, 4),
-    [summary]
-  );
   const isLoading = listState === 'loading';
   const hasListError = listState === 'error';
 
@@ -343,44 +338,16 @@ function TopicRepositoryPage() {
       <PageHeader
         eyebrow="Repository oversight"
         title="Topic Repository"
-        subtitle="Read-only topic repository view with an admin-audited .xlsx import preview and commit workflow. Exports, edits, deletes, migrations, and fabricated topic rows stay unavailable."
+        subtitle="Review stored research topics and manage spreadsheet imports."
       />
 
-      <section className="overflow-hidden rounded-[2rem] border border-emerald-950/10 bg-[#eef4eb] shadow-[0_24px_80px_-58px_rgb(6_95_70_/_0.7)]">
-        <div className="grid gap-0 xl:grid-cols-[0.78fr_1.22fr]">
-          <div className="bg-[linear-gradient(150deg,#022c22,#064e3b)] p-5 text-white sm:p-7">
-            <div className="flex h-full flex-col justify-between gap-7">
-              <div className="space-y-5">
-                <span className="inline-flex w-fit rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-50">
-                  Read-only repository data
-                </span>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-emerald-100">Admin repository console</p>
-                  <h1 className="mt-2 text-3xl font-bold text-white">Lifecycle topic records</h1>
-                  <p className="mt-2 max-w-xl text-sm leading-6 text-emerald-50/80">
-                    Browse real imported or stored topic records across historical, current-session, and under-review tables, then use the scoped import panel for audited .xlsx preview and commit.
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-[1.35rem] border border-white/15 bg-white/10 p-4 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100/80">
-                  Boundary
-                </p>
-                <p className="mt-1 text-xl font-semibold text-white">No fake repository rows</p>
-                <p className="mt-2 text-sm leading-6 text-emerald-50/75">
-                  Empty responses remain empty. Export, duplicate-existing checks, migration, embedding generation, and edit actions stay deferred.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-5 p-5 sm:p-6 lg:p-7">
+      <section aria-label="Topic repository summary">
             {summaryState === 'error' ? (
               <InfoCallout
+                role="alert"
                 variant="warning"
                 title="Repository summary unavailable"
-                message="Summary counts could not be loaded. The list still avoids fallback metrics or fake category totals."
+                message="Summary counts could not be loaded. Repository records may still be available below."
               />
             ) : null}
 
@@ -411,54 +378,14 @@ function TopicRepositoryPage() {
               />
             </div>
 
-            <div className="rounded-[1.35rem] border border-border-subtle bg-white p-4 shadow-sm">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-text-primary">Data coverage</h2>
-                  <p className="mt-1 text-sm leading-6 text-text-secondary">
-                    Coverage is derived from stored fields only. Missing values are labelled as missing, not replaced.
-                  </p>
-                </div>
-                <span className="inline-flex w-fit rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
-                  Real table reads
-                </span>
-              </div>
-
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-[1rem] border border-border-subtle bg-surface-muted px-4 py-3">
-                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-text-muted">With embeddings</p>
-                  <p className="mt-1 text-lg font-semibold text-text-primary">{formatCount(buildSummaryValue(dataQuality.withEmbeddings, summaryState))}</p>
-                </div>
-                <div className="rounded-[1rem] border border-border-subtle bg-surface-muted px-4 py-3">
-                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-text-muted">Missing context</p>
-                  <p className="mt-1 text-lg font-semibold text-text-primary">{formatCount(buildSummaryValue(dataQuality.missingContextFields, summaryState))}</p>
-                </div>
-                <div className="rounded-[1rem] border border-border-subtle bg-surface-muted px-4 py-3">
-                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-text-muted">Import warnings</p>
-                  <p className="mt-1 text-lg font-semibold text-text-primary">{formatCount(buildSummaryValue(dataQuality.withImportWarnings, summaryState))}</p>
-                </div>
-              </div>
-
-              {topCategories.length ? (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {topCategories.map((category) => (
-                    <span key={`${category.category || 'missing'}-${category.count}`} className="inline-flex rounded-full border border-border-subtle bg-white px-3 py-1 text-xs font-semibold text-text-secondary">
-                      {category.category || 'Missing category'}: {formatCount(category.count)}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          </div>
-        </div>
       </section>
 
-      <section className="rounded-[1.5rem] border border-border-subtle bg-white p-5 shadow-sm">
+      <section className="rounded-[10px] border border-border-subtle bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-3 border-b border-border-subtle pb-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-text-primary">Repository records</h2>
             <p className="mt-1 max-w-3xl text-sm leading-6 text-text-secondary">
-              Search and lifecycle filters call the read-only admin topic repository endpoint. Import preview and commit are handled separately by the audited import panel below.
+              Search by topic details or filter by lifecycle.
             </p>
           </div>
 
@@ -501,16 +428,17 @@ function TopicRepositoryPage() {
         <div className="mt-5">
           {hasListError ? (
             <InfoCallout
+              role="alert"
               variant="warning"
               title="Topic records unavailable"
-              message="The read-only topic repository endpoint could not be reached. No fallback topic rows are displayed."
+              message="Topic records could not be loaded. Try again later."
             />
           ) : null}
 
           {isLoading ? (
             <div className="grid gap-3">
               {[0, 1, 2].map((item) => (
-                <div key={item} className="h-32 animate-pulse rounded-[1.15rem] border border-border-subtle bg-surface-muted" />
+                <div key={item} className="h-32 animate-pulse rounded-[10px] border border-border-subtle bg-surface-muted" />
               ))}
             </div>
           ) : null}
@@ -518,7 +446,7 @@ function TopicRepositoryPage() {
           {!isLoading && !hasListError && topics.length === 0 ? (
             <EmptyStatePanel
               title="No topic records returned"
-              message="The repository endpoint returned an empty list for the selected filters. No placeholder topics are shown."
+              message="No topics match the selected filters."
             />
           ) : null}
 
@@ -543,25 +471,16 @@ function TopicRepositoryPage() {
         ) : null}
       </section>
 
-      <InfoCallout
-        variant="warning"
-        title="Import governance remains scoped"
-        message="Backend import endpoints are admin-protected and audited. This page now exposes preview and commit only; exports, migrations, duplicate-resolution actions, embedding generation, CSV import, and topic edits remain deferred."
-      />
-
-      <section className="rounded-[1.5rem] border border-amber-200 bg-[#fffaf0] p-5 shadow-sm">
+      <section className="rounded-[10px] border border-amber-200 bg-[#fffaf0] p-5 shadow-sm">
         <div className="flex flex-col gap-3 border-b border-amber-200/80 pb-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-800">Admin import workflow</p>
             <h2 className="mt-1 text-xl font-semibold text-text-primary">Preview and commit .xlsx topics</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-text-secondary">
-              Select a spreadsheet, preview it through the real admin import endpoint, then commit only after a successful preview.
-              Preview and commit are admin-only and audited by the backend.
+              Choose a spreadsheet, preview its accepted and skipped rows, then commit only after reviewing the preview.
             </p>
           </div>
-          <span className="inline-flex w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-amber-800 shadow-sm">
-            Audited admin operation
-          </span>
+          <span className="inline-flex w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-amber-800 shadow-sm">Spreadsheet import</span>
         </div>
 
         <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-end">
@@ -595,29 +514,30 @@ function TopicRepositoryPage() {
         </div>
 
         <p id="topic-import-file-help" className="mt-3 text-sm leading-6 text-text-secondary">
-          Supported file type: `.xlsx`. The backend returns aggregate import and persistence reports; duplicate-existing checks,
-          row-level operator reports, embeddings, similarity integration, CSV import, export/download, edit/delete, and migration workflows remain deferred.
+          Supported file type: .xlsx. Previewing does not save topic records.
         </p>
 
         {importFile ? (
-          <p className="mt-3 rounded-[1rem] border border-amber-200 bg-white px-4 py-3 text-sm font-semibold text-text-primary">
+          <p className="mt-3 rounded-[10px] border border-amber-200 bg-white px-4 py-3 text-sm font-semibold text-text-primary">
             Selected file: {importFile.name}
           </p>
         ) : null}
 
         {previewState === 'error' ? (
           <InfoCallout
+            role="alert"
             variant="warning"
             title="Import preview failed"
-            message={`${previewError} No fallback import report or fake preview rows are displayed.`}
+            message={previewError}
           />
         ) : null}
 
         {previewState === 'success' && previewResult ? (
           <div className="mt-5 space-y-4">
             <InfoCallout
+              role="status"
               title="Preview complete"
-              message={`Preview parsed ${formatCount(previewResult.records?.length || 0)} accepted normalized record${previewResult.records?.length === 1 ? '' : 's'} from the selected file. This count comes from the backend preview response.`}
+              message={`Preview found ${formatCount(previewResult.records?.length || 0)} accepted record${previewResult.records?.length === 1 ? '' : 's'} in the selected file. Review the report before committing.`}
             />
             <ImportReportGrid report={previewResult.import_report} title="Preview import report" />
           </div>
@@ -625,17 +545,19 @@ function TopicRepositoryPage() {
 
         {commitState === 'error' ? (
           <InfoCallout
+            role="alert"
             variant="warning"
             title="Import commit failed"
-            message={`${commitError} No fallback persistence report or fake commit result is displayed.`}
+            message={commitError}
           />
         ) : null}
 
         {commitState === 'success' && commitResult ? (
           <div className="mt-5 space-y-4">
             <InfoCallout
+              role="status"
               title="Commit complete"
-              message="The backend commit endpoint returned a real persistence report for the selected file."
+              message="The spreadsheet import is complete. Review the persistence report below."
             />
             <ImportReportGrid report={commitResult.import_report} title="Commit import report" />
             <PersistenceReportGrid report={commitResult.persistence_report} />

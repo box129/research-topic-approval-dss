@@ -48,57 +48,39 @@ describe('ResearchExplorerPage', () => {
     fetchSpy.mockRestore();
   });
 
-  it('renders Research Explorer header and student-facing guidance', () => {
+  it('renders one concise, student-facing unavailable explanation', () => {
     renderResearchExplorerPage();
 
     expect(screen.getByRole('heading', { name: /research explorer/i })).toBeInTheDocument();
-    expect(screen.getByText(/explorer-ready shell/i)).toBeInTheDocument();
-    expect(screen.getByText(/no student-safe read endpoint is connected yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/approved-topic browsing is not currently available in the student workspace/i)).toBeInTheDocument();
+    expect(screen.getByText(/check a proposed topic for similarity or submit a topic/i)).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /approved-topic browsing/i })).not.toBeInTheDocument();
   });
 
-  it('shows disabled search control', () => {
+  it('renders genuinely disabled search and category controls', () => {
     renderResearchExplorerPage();
 
     expect(screen.getByLabelText(/search approved topics/i)).toBeDisabled();
-    expect(screen.getByText(/search will become available/i)).toBeInTheDocument();
-  });
-
-  it('shows disabled filter control', () => {
-    renderResearchExplorerPage();
-
+    expect(screen.getByLabelText(/search approved topics/i)).toHaveAttribute('placeholder', 'Not currently available');
     expect(screen.getByLabelText(/category/i)).toBeDisabled();
-    expect(screen.getByText(/filters are disabled/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/category/i)).toHaveValue('Not currently available');
   });
 
-  it('shows honest empty state instead of fake approved topics', () => {
-    renderResearchExplorerPage();
-
-    expect(screen.getByText('No approved topic explorer data is available yet.')).toBeInTheDocument();
-    expect(screen.getByText(/no approved-topic browsing endpoint is currently connected/i)).toBeInTheDocument();
-    expect(screen.queryByText(/machine learning/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/malaria prevention/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/sample approved topic/i)).not.toBeInTheDocument();
-  });
-
-  it('links to Check My Topic', async () => {
+  it('provides only the supported Student destinations', async () => {
     const user = userEvent.setup();
-    renderResearchExplorerPage();
+    const { unmount } = renderResearchExplorerPage();
 
+    expect(screen.getAllByRole('button')).toHaveLength(2);
     await user.click(screen.getByRole('button', { name: /check my topic/i }));
-
     expect(screen.getByTestId('location-display')).toHaveTextContent('/student/check-my-topic');
-  });
 
-  it('links to Submit Topic', async () => {
-    const user = userEvent.setup();
+    unmount();
     renderResearchExplorerPage();
-
     await user.click(screen.getByRole('button', { name: /submit topic/i }));
-
     expect(screen.getByTestId('location-display')).toHaveTextContent('/student/submit-topic');
   });
 
-  it('does not call fetch, axios, apiClient, or repository endpoints', () => {
+  it('does not make a data request', () => {
     renderResearchExplorerPage();
 
     expect(fetchSpy).not.toHaveBeenCalled();
@@ -108,33 +90,11 @@ describe('ResearchExplorerPage', () => {
     expect(apiClient.post).not.toHaveBeenCalled();
   });
 
-  it('does not expose deferred analytics, export, or recommendation features', () => {
+  it('does not expose fake records or unsupported explorer features', () => {
     renderResearchExplorerPage();
 
-    expect(screen.queryByText(/advanced analytics/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/heatmap/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/export/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/recommendation engine/i)).not.toBeInTheDocument();
-  });
-
-  it('does not expose similarity scores, snapshots, lecturer, or admin UI', () => {
-    renderResearchExplorerPage();
-
-    expect(screen.queryByText(/similarity score/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/snapshot/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/lecturer/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/admin/i)).not.toBeInTheDocument();
-  });
-
-  it('shows planned explorer areas without fake topic details', () => {
-    renderResearchExplorerPage();
-
-    expect(screen.getAllByText(/approved topics/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/category discovery/i)).toBeInTheDocument();
-    expect(screen.getByText(/keyword trends/i)).toBeInTheDocument();
-    expect(screen.getByText(/underexplored areas/i)).toBeInTheDocument();
-    expect(screen.queryByText(/supervisor/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/session year/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/topic details/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/sample approved topic|machine learning|malaria prevention/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/trend|recommendation|research gap|analytics|pagination|export/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /details/i })).not.toBeInTheDocument();
   });
 });

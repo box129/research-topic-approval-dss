@@ -59,7 +59,7 @@ async function expectInViewport(locator) {
 
 async function expectDesktopControlsDoNotOverlap(page) {
   const boxes = await Promise.all([
-    page.getByTestId('student-role').boundingBox(),
+    page.getByTestId('student-account').boundingBox(),
     page.getByRole('button', { name: 'Open notifications' }).boundingBox(),
     page.getByTestId('student-logout').boundingBox()
   ]);
@@ -121,15 +121,15 @@ test('captures approved default and responsive navigation evidence', async ({ pa
   await page.setViewportSize({ width: 768, height: 1024 });
   await page.getByRole('button', { name: 'Menu' }).click();
   await expect(page.getByText('Account and session')).toBeVisible();
-  await expect(page.getByText(/student evidence · student account/i)).toBeVisible();
+  await expect(page.getByLabel('Student mobile navigation').getByText(/student evidence · student/i)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Open notifications' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
   await scrollToTop(page);
   await page.screenshot({ path: `${evidenceDirectory}/tablet-menu-open.png` });
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByRole('button', { name: 'Close', exact: true }).click();
-  await expect(page.getByText('Student', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Close menu' }).click();
+  await expect(page.getByRole('link', { name: 'Research Topic Approval DSS home' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Menu' })).toBeVisible();
   await scrollToTop(page);
   await page.screenshot({ path: `${evidenceDirectory}/mobile-default.png` });

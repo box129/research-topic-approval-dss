@@ -98,12 +98,9 @@ describe('AdminDashboardPage', () => {
     render(<AdminDashboardPage />);
 
     expect(screen.getByRole('heading', { name: /admin dashboard/i })).toBeInTheDocument();
-    expect(screen.getByText(/system oversight console/i)).toBeInTheDocument();
-    expect(screen.getByText(/admin metrics use a read-only summary endpoint/i)).toBeInTheDocument();
+    expect(screen.getByText(/monitor service status and key administrative metrics/i)).toBeInTheDocument();
 
-    await waitFor(() => {
-      expect(screen.getByText(/read-only counts connected/i)).toBeInTheDocument();
-    });
+    await waitFor(() => expect(getAdminDashboardSummary).toHaveBeenCalledTimes(1));
   });
 
   it('calls the dashboard summary API and renders returned real counts', async () => {
@@ -185,7 +182,7 @@ describe('AdminDashboardPage', () => {
     await waitFor(() => {
       expect(screen.getAllByText(/summary unavailable/i).length).toBeGreaterThanOrEqual(1);
     });
-    expect(screen.getByText(/does not substitute fake data/i)).toBeInTheDocument();
+    expect(screen.getByText(/Administrative metrics could not be loaded/i)).toBeInTheDocument();
     expect(screen.getAllByText(/Unavailable/i).length).toBeGreaterThanOrEqual(4);
   });
 
@@ -208,9 +205,7 @@ describe('AdminDashboardPage', () => {
   it('does not expose fake dashboard activity, reports, exports, or workflow links', async () => {
     render(<AdminDashboardPage />);
 
-    await waitFor(() => {
-      expect(screen.getByText(/recent activity is not displayed on this dashboard yet/i)).toBeInTheDocument();
-    });
+    await waitFor(() => expect(getAdminDashboardSummary).toHaveBeenCalledTimes(1));
 
     expect(screen.queryByText(/critical high-risk submission/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/generated monthly report/i)).not.toBeInTheDocument();

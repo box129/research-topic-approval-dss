@@ -191,7 +191,7 @@ function CheckMyTopicPage() {
 
       {error && !results && (
         <div ref={errorAlertRef} role="alert" tabIndex="-1" className="focus:outline-none">
-          <InfoCallout variant="danger" title="Unable to check topic" message={error} />
+          <InfoCallout role={null} variant="danger" title="Unable to check topic" message={error} />
         </div>
       )}
 

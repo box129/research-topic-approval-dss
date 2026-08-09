@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import AdminUserManagementPage from '../src/pages/admin/UserManagementPage';
 import apiClient from '../src/api/client';
 import axios from 'axios';
@@ -219,7 +219,7 @@ describe('AdminUserManagementPage', () => {
     render(<AdminUserManagementPage />);
 
     expect(screen.getByRole('heading', { name: /user management/i })).toBeInTheDocument();
-    expect(screen.getByText(/read-only user directory connected to existing account records/i)).toBeInTheDocument();
+    expect(screen.getByText(/Review account records, assignments and account status/i)).toBeInTheDocument();
 
     await waitFor(() => {
       expect(listAdminUsers).toHaveBeenCalledWith(expect.objectContaining({
@@ -268,29 +268,7 @@ describe('AdminUserManagementPage', () => {
     });
   });
 
-  it('performs only the audited status update action after confirmation', async () => {
-    render(<AdminUserManagementPage />);
-
-    await waitFor(() => {
-      expect(screen.getAllByText(/Student One/i).length).toBeGreaterThan(0);
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /suspend account/i }));
-
-    await waitFor(() => {
-      expect(updateAdminUserStatus).toHaveBeenCalledWith(2, 'suspended');
-      expect(screen.getByText(/Audit event USER_STATUS_CHANGED was requested/i)).toBeInTheDocument();
-    });
-
-    expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('student.one@example.edu'));
-    expect(apiClient.post).not.toHaveBeenCalled();
-    expect(apiClient.delete).not.toHaveBeenCalled();
-    expect(axios.post).not.toHaveBeenCalled();
-    expect(axios.delete).not.toHaveBeenCalled();
-  });
-
-  it('does not call the status update helper when confirmation is cancelled', async () => {
-    window.confirm.mockReturnValue(false);
+  it('performs the status update only after modal confirmation', async () => {
     render(<AdminUserManagementPage />);
 
     await waitFor(() => {
@@ -300,6 +278,54 @@ describe('AdminUserManagementPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /suspend account/i }));
 
     expect(updateAdminUserStatus).not.toHaveBeenCalled();
+    const dialog = screen.getByRole('dialog', { name: /Suspend this account/i });
+    fireEvent.click(within(dialog).getByRole('button', { name: /Suspend account/i }));
+
+    await waitFor(() => {
+      expect(updateAdminUserStatus).toHaveBeenCalledWith(2, 'suspended');
+      expect(screen.getByText(/Account status updated for student.one@example.edu/i)).toBeInTheDocument();
+    });
+
+    expect(window.confirm).not.toHaveBeenCalled();
+    expect(apiClient.post).not.toHaveBeenCalled();
+    expect(apiClient.delete).not.toHaveBeenCalled();
+    expect(axios.post).not.toHaveBeenCalled();
+    expect(axios.delete).not.toHaveBeenCalled();
+  });
+
+  it('does not call the status update helper when confirmation is cancelled', async () => {
+    render(<AdminUserManagementPage />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/Student One/i).length).toBeGreaterThan(0);
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /suspend account/i }));
+    const dialog = screen.getByRole('dialog', { name: /Suspend this account/i });
+    fireEvent.click(within(dialog).getByRole('button', { name: /Cancel/i }));
+
+    expect(updateAdminUserStatus).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('uses a non-destructive confirmation before activating an account', async () => {
+    render(<AdminUserManagementPage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /activate account/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /activate account/i }));
+
+    expect(updateAdminUserStatus).not.toHaveBeenCalled();
+    const dialog = screen.getByRole('dialog', { name: /Activate this account/i });
+    const confirmButton = within(dialog).getByRole('button', { name: /Activate account/i });
+    expect(confirmButton).not.toHaveClass('bg-feedback-danger');
+    fireEvent.click(confirmButton);
+
+    await waitFor(() => {
+      expect(updateAdminUserStatus).toHaveBeenCalledWith(3, 'active');
+    });
   });
 
   it('shows an honest empty state when the user list is empty', async () => {
@@ -330,9 +356,9 @@ describe('AdminUserManagementPage', () => {
     render(<AdminUserManagementPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/No user records returned/i)).toBeInTheDocument();
+      expect(screen.getByText(/No user records/i)).toBeInTheDocument();
     });
-    expect(screen.getByText(/No placeholder accounts are shown/i)).toBeInTheDocument();
+    expect(screen.getByText(/No accounts match the selected filters/i)).toBeInTheDocument();
   });
 
   it('shows unavailable states when the users endpoint fails', async () => {
@@ -353,7 +379,7 @@ describe('AdminUserManagementPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/User records unavailable/i)).toBeInTheDocument();
     });
-    expect(screen.getByText(/No fallback user rows are displayed/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/User records could not be loaded/i).length).toBeGreaterThanOrEqual(1);
   });
 
   it('does not expose unsupported account actions', async () => {
@@ -403,7 +429,7 @@ describe('AdminUserManagementPage', () => {
     fireEvent.change(screen.getByLabelText(/notes/i), {
       target: { name: 'notes', value: 'Department-approved allocation.' }
     });
-    fireEvent.click(screen.getByRole('button', { name: /create audited assignment/i }));
+    fireEvent.click(screen.getByRole('button', { name: /create assignment/i }));
 
     await waitFor(() => {
       expect(createAdminSuperviseeAssignment).toHaveBeenCalledWith({
@@ -411,7 +437,7 @@ describe('AdminUserManagementPage', () => {
         studentId: 2,
         notes: 'Department-approved allocation.'
       });
-      expect(screen.getByText(/audit event SUPERVISEE_ASSIGNED was requested/i)).toBeInTheDocument();
+      expect(screen.getByText(/Supervisee assignment created/i)).toBeInTheDocument();
     });
   });
 
@@ -426,7 +452,7 @@ describe('AdminUserManagementPage', () => {
 
     await waitFor(() => {
       expect(endAdminSuperviseeAssignment).toHaveBeenCalledWith(10);
-      expect(screen.getByText(/audit event SUPERVISEE_ASSIGNMENT_ENDED was requested/i)).toBeInTheDocument();
+      expect(screen.getByText(/Assignment ended for student.one@example.edu/i)).toBeInTheDocument();
     });
     expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('lecturer.one@example.edu'));
   });
