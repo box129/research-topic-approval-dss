@@ -3,6 +3,7 @@ import AdminDashboardLayout from '../../layouts/AdminDashboardLayout';
 import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import InfoCallout from '../../components/ui/InfoCallout';
 import PageHeader from '../../components/ui/PageHeader';
+import ConfirmActionModal from '../../components/ui/ConfirmActionModal';
 import { useAuth } from '../../auth/useAuth';
 import {
   createAdminSuperviseeAssignment,
@@ -88,7 +89,7 @@ function UserRow({ currentUserId, isUpdating, onStatusChange, user }) {
   const actionLabel = nextStatus === 'suspended' ? 'Suspend account' : 'Activate account';
 
   return (
-    <article className="rounded-[1.15rem] border border-border-subtle bg-white p-4 shadow-sm">
+    <article className="rounded-lg border border-border-subtle bg-white p-4">
       <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[1.25fr_0.65fr_0.72fr_0.8fr_auto] lg:items-center">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -159,12 +160,12 @@ function AssignmentManagementSection({
   const canCreate = assignmentForm.lecturerId && assignmentForm.studentId && !creatingAssignment;
 
   return (
-    <section className="rounded-[1.5rem] border border-border-subtle bg-white p-5 shadow-sm">
+    <section className="rounded-[10px] border border-border-subtle bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-4 border-b border-border-subtle pb-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-text-primary">Lecturer-supervisee assignments</h2>
           <p className="mt-1 max-w-3xl text-sm leading-6 text-text-secondary">
-            Assign real active students to real active lecturers. Assignments are audited, active-only duplicates are rejected, and ended assignments are deactivated rather than destroyed.
+            Assign active students to active lecturers. Changes are recorded in the audit log and ended assignments retain their history.
           </p>
         </div>
         <span className="w-fit rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
@@ -173,10 +174,10 @@ function AssignmentManagementSection({
       </div>
 
       <div className="mt-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
-        <form className="rounded-[1.25rem] border border-emerald-100 bg-[#fbfdf8] p-4" onSubmit={onCreateAssignment}>
+        <form className="rounded-[10px] border border-emerald-100 bg-[#fbfdf8] p-4" onSubmit={onCreateAssignment}>
           <h3 className="text-base font-semibold text-text-primary">Create assignment</h3>
           <p className="mt-1 text-sm leading-5 text-text-secondary">
-            Selection options are loaded from the existing admin users API. No placeholder lecturers or students are available.
+            Select an active lecturer and student, then add an optional note.
           </p>
 
           <div className="mt-4 grid gap-3">
@@ -189,7 +190,7 @@ function AssignmentManagementSection({
                 onChange={onAssignmentFieldChange}
                 value={assignmentForm.lecturerId}
               >
-                <option value="">Select a real lecturer</option>
+                <option value="">Select a lecturer</option>
                 {lecturers.map((lecturer) => (
                   <option key={lecturer.id} value={lecturer.id}>
                     {lecturer.name} ({lecturer.email})
@@ -207,7 +208,7 @@ function AssignmentManagementSection({
                 onChange={onAssignmentFieldChange}
                 value={assignmentForm.studentId}
               >
-                <option value="">Select a real student</option>
+                <option value="">Select a student</option>
                 {students.map((student) => (
                   <option key={student.id} value={student.id}>
                     {student.name} ({student.email})
@@ -232,7 +233,7 @@ function AssignmentManagementSection({
               disabled={!canCreate}
               type="submit"
             >
-              {creatingAssignment ? 'Creating assignment...' : 'Create audited assignment'}
+              {creatingAssignment ? 'Creating assignment...' : 'Create assignment'}
             </button>
           </div>
         </form>
@@ -243,8 +244,8 @@ function AssignmentManagementSection({
           ) : null}
 
           {assignmentError ? (
-            <div className="rounded-[1.25rem] border border-amber-100 bg-amber-50 p-4">
-              <InfoCallout message={assignmentError} title="Assignment workflow notice" variant="warning" />
+            <div className="rounded-[10px] border border-amber-100 bg-amber-50 p-4">
+        <InfoCallout role="alert" message={assignmentError} title="Assignment workflow notice" variant="warning" />
               {hasError ? (
                 <button
                   className="mt-3 rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-900"
@@ -260,22 +261,22 @@ function AssignmentManagementSection({
           {isLoading ? (
             <div className="grid gap-3">
               {[0, 1].map((item) => (
-                <div key={item} className="h-24 animate-pulse rounded-[1.15rem] border border-border-subtle bg-surface-muted" />
+                <div key={item} className="h-24 animate-pulse rounded-[10px] border border-border-subtle bg-surface-muted" />
               ))}
             </div>
           ) : null}
 
           {!isLoading && !hasError && assignmentItems.length === 0 ? (
             <EmptyStatePanel
-              title="No active assignments returned"
-              message="The assignment endpoint returned an empty list. No fake lecturer-student relationships are shown."
+              title="No active assignments"
+              message="No active lecturer-supervisee assignments are available."
             />
           ) : null}
 
           {!isLoading && !hasError && assignmentItems.length > 0 ? (
             <div className="space-y-3">
               {assignmentItems.map((assignment) => (
-                <article key={assignment.id} className="rounded-[1.15rem] border border-border-subtle bg-white p-4 shadow-sm">
+                <article key={assignment.id} className="rounded-[10px] border border-border-subtle bg-white p-4 shadow-sm">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">Lecturer</p>
@@ -314,6 +315,7 @@ function UserManagementPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
   const [updatingUserId, setUpdatingUserId] = useState(null);
+  const [pendingStatusChange, setPendingStatusChange] = useState(null);
   const [filters, setFilters] = useState({
     role: 'all',
     search: '',
@@ -501,13 +503,13 @@ function UserManagementPage() {
     }));
   }
 
-  async function handleStatusChange(targetUser, nextStatus) {
-    const verb = nextStatus === 'suspended' ? 'suspend' : 'activate';
-    const confirmed = window.confirm(`Confirm ${verb} for ${targetUser.email}? This audited action changes only account status.`);
-    if (!confirmed) {
-      return;
-    }
+  function handleStatusChange(targetUser, nextStatus) {
+    setPendingStatusChange({ targetUser, nextStatus });
+  }
 
+  async function confirmStatusChange() {
+    if (!pendingStatusChange) return;
+    const { targetUser, nextStatus } = pendingStatusChange;
     setUpdatingUserId(targetUser.id);
     setStatusMessage('');
     setErrorMessage('');
@@ -519,7 +521,8 @@ function UserManagementPage() {
           item.id === updatedUser.id ? updatedUser : item
         )));
       }
-      setStatusMessage(`Account status updated for ${targetUser.email}. Audit event USER_STATUS_CHANGED was requested.`);
+        setStatusMessage(`Account status updated for ${targetUser.email}.`);
+      setPendingStatusChange(null);
     } catch (error) {
       setErrorMessage(error?.response?.data?.error?.message || 'Account status could not be updated.');
     } finally {
@@ -556,7 +559,7 @@ function UserManagementPage() {
         studentId: '',
         notes: ''
       });
-      setAssignmentStatusMessage('Supervisee assignment created. Audit event SUPERVISEE_ASSIGNED was requested.');
+      setAssignmentStatusMessage('Supervisee assignment created.');
     } catch (error) {
       setAssignmentError(error?.response?.data?.error?.message || 'Supervisee assignment could not be created.');
     } finally {
@@ -578,7 +581,7 @@ function UserManagementPage() {
       const result = await endAdminSuperviseeAssignment(assignment.id);
       const ended = result.data?.item;
       setAssignmentItems((current) => current.filter((item) => item.id !== assignment.id));
-      setAssignmentStatusMessage(`Assignment ended for ${ended?.student?.email || assignment.student?.email || 'the selected student'}. Audit event SUPERVISEE_ASSIGNMENT_ENDED was requested.`);
+      setAssignmentStatusMessage(`Assignment ended for ${ended?.student?.email || assignment.student?.email || 'the selected student'}.`);
     } catch (error) {
       setAssignmentError(error?.response?.data?.error?.message || 'Supervisee assignment could not be ended.');
     } finally {
@@ -594,67 +597,33 @@ function UserManagementPage() {
       <PageHeader
         eyebrow="Account governance"
         title="User Management"
-        subtitle="Read-only user directory connected to existing account records, with a narrow audited status action. No fake users, role changes, invitations, password resets, or delete controls are exposed."
+        subtitle="Review account records, assignments and account status."
       />
 
-      <section className="overflow-hidden rounded-[2rem] border border-emerald-950/10 bg-[#eef4eb] shadow-[0_24px_80px_-58px_rgb(6_95_70_/_0.7)]">
-        <div className="grid gap-0 xl:grid-cols-[0.76fr_1.24fr]">
-          <div className="bg-[linear-gradient(150deg,#022c22,#064e3b)] p-5 text-white sm:p-7">
-            <div className="flex h-full flex-col justify-between gap-7">
-              <div className="space-y-5">
-                <span className="inline-flex w-fit rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-50">
-                  Real account records
-                </span>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-emerald-100">Admin user console</p>
-                  <h1 className="mt-2 text-3xl font-bold text-white">Directory and account status</h1>
-                  <p className="mt-2 max-w-xl text-sm leading-6 text-emerald-50/80">
-                    Review existing users by role and status. Account creation, role changes, resets, invitations, and deletion stay deferred.
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-[1.35rem] border border-white/15 bg-white/10 p-4 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100/80">Mutation boundary</p>
-                <p className="mt-1 text-xl font-semibold text-white">Status only, audited</p>
-                <p className="mt-2 text-sm leading-6 text-emerald-50/75">
-                  The only enabled action is a constrained active or suspended status update for non-admin accounts.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-5 p-5 sm:p-6 lg:p-7">
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <article className="rounded-[1rem] border border-border-subtle border-l-4 border-l-emerald-600 bg-white p-4 shadow-sm">
+      <section aria-label="User summary">
+            <div aria-live="polite" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <article className="rounded-lg border border-border-subtle border-l-[3px] border-l-emerald-600 bg-white p-3">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">Visible rows</p>
                 <p className="mt-2 text-2xl font-semibold text-text-primary">{isLoading ? 'Loading...' : formatCount(users.length)}</p>
-                <p className="mt-2 text-sm leading-5 text-text-secondary">Current filtered page from the admin users endpoint.</p>
+                <p className="mt-2 text-sm leading-5 text-text-secondary">Accounts matching the current filters.</p>
               </article>
-              <article className="rounded-[1rem] border border-border-subtle border-l-4 border-l-blue-500 bg-white p-4 shadow-sm">
+              <article className="rounded-lg border border-border-subtle border-l-[3px] border-l-blue-500 bg-white p-3">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">Students</p>
                 <p className="mt-2 text-2xl font-semibold text-text-primary">{isLoading ? 'Loading...' : formatCount(totals.student)}</p>
-                <p className="mt-2 text-sm leading-5 text-text-secondary">Counted only from returned records.</p>
+                <p className="mt-2 text-sm leading-5 text-text-secondary">Students in the current results.</p>
               </article>
-              <article className="rounded-[1rem] border border-border-subtle border-l-4 border-l-amber-500 bg-white p-4 shadow-sm">
+              <article className="rounded-lg border border-border-subtle border-l-[3px] border-l-amber-500 bg-white p-3">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">Lecturers</p>
                 <p className="mt-2 text-2xl font-semibold text-text-primary">{isLoading ? 'Loading...' : formatCount(totals.lecturer)}</p>
-                <p className="mt-2 text-sm leading-5 text-text-secondary">No workload or assignment counts are inferred.</p>
+                <p className="mt-2 text-sm leading-5 text-text-secondary">Lecturers in the current results.</p>
               </article>
-              <article className="rounded-[1rem] border border-border-subtle border-l-4 border-l-rose-500 bg-white p-4 shadow-sm">
+              <article className="rounded-lg border border-border-subtle border-l-[3px] border-l-rose-500 bg-white p-3">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">Suspended</p>
                 <p className="mt-2 text-2xl font-semibold text-text-primary">{isLoading ? 'Loading...' : formatCount(totals.suspended)}</p>
                 <p className="mt-2 text-sm leading-5 text-text-secondary">Status from stored user records.</p>
               </article>
             </div>
 
-            <InfoCallout
-              title="No privileged account workflow is invented"
-              message="This page does not create users, change roles, reset passwords, invite accounts, delete records, or show fake last-active values."
-              variant="info"
-            />
-          </div>
-        </div>
       </section>
 
       <AssignmentManagementSection
@@ -674,12 +643,12 @@ function UserManagementPage() {
         students={studentOptions}
       />
 
-      <section className="rounded-[1.5rem] border border-border-subtle bg-white p-5 shadow-sm">
+      <section className="rounded-[10px] border border-border-subtle bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-3 border-b border-border-subtle pb-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-text-primary">Account records</h2>
             <p className="mt-1 max-w-3xl text-sm leading-6 text-text-secondary">
-              Filters call the admin users endpoint with safe pagination and sorting. Sensitive fields are not rendered.
+              Search and filter the account directory by role and status.
             </p>
           </div>
 
@@ -736,29 +705,21 @@ function UserManagementPage() {
           ) : null}
 
           {errorMessage ? (
-            <InfoCallout message={errorMessage} title="User management notice" variant="warning" />
-          ) : null}
-
-          {hasError ? (
-            <InfoCallout
-              message="The read-only user endpoint could not be reached. No fallback user rows are displayed."
-              title="User records unavailable"
-              variant="warning"
-            />
+        <InfoCallout role={hasError ? 'alert' : undefined} message={errorMessage} title={hasError ? 'User records unavailable' : 'User management notice'} variant="warning" />
           ) : null}
 
           {isLoading ? (
             <div className="grid gap-3">
               {[0, 1, 2].map((item) => (
-                <div key={item} className="h-28 animate-pulse rounded-[1.15rem] border border-border-subtle bg-surface-muted" />
+                <div key={item} className="h-28 animate-pulse rounded-[10px] border border-border-subtle bg-surface-muted" />
               ))}
             </div>
           ) : null}
 
           {!isLoading && !hasError && users.length === 0 ? (
             <EmptyStatePanel
-              message="The users endpoint returned an empty list for the selected filters. No placeholder accounts are shown."
-              title="No user records returned"
+              message="No accounts match the selected filters."
+              title="No user records"
             />
           ) : null}
 
@@ -788,6 +749,17 @@ function UserManagementPage() {
           </div>
         ) : null}
       </section>
+
+      <ConfirmActionModal
+        confirmLabel={pendingStatusChange?.nextStatus === 'suspended' ? 'Suspend account' : 'Activate account'}
+        isConfirming={Boolean(updatingUserId)}
+        isOpen={Boolean(pendingStatusChange)}
+        message={pendingStatusChange ? `${pendingStatusChange.targetUser.email} will be ${pendingStatusChange.nextStatus === 'suspended' ? 'unable' : 'able'} to sign in.` : ''}
+        onCancel={() => setPendingStatusChange(null)}
+        onConfirm={confirmStatusChange}
+        title={pendingStatusChange?.nextStatus === 'suspended' ? 'Suspend this account?' : 'Activate this account?'}
+        variant={pendingStatusChange?.nextStatus === 'suspended' ? 'danger' : 'default'}
+      />
     </AdminDashboardLayout>
   );
 }

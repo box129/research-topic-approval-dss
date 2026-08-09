@@ -1,225 +1,92 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import InfoCallout from '../../components/ui/InfoCallout';
-import PrimaryButton from '../../components/ui/PrimaryButton';
-import TextAreaInput from '../../components/ui/TextAreaInput';
-import TextInput from '../../components/ui/TextInput';
 import { createSubmission } from '../../api/submissions';
-import StudentDashboardLayout from '../../layouts/StudentDashboardLayout';
+import PrimaryButton from '../../components/ui/PrimaryButton';
+import SecondaryButton from '../../components/ui/SecondaryButton';
+import StatusBadge from '../../components/ui/StatusBadge';
 
-const MIN_TITLE_WORDS = 7;
-const MAX_TITLE_WORDS = 24;
-const SUBMIT_PRIMARY_BUTTON_CLASS = '!bg-[#1B5E20] hover:!bg-[#174f1b] focus:ring-[#1B5E20]/20';
-const submitSteps = [
-  { label: 'Enter topic', state: 'active', helper: 'Current step' },
-  { label: 'Pre-check', state: 'coming later', helper: 'Coming later' },
-  { label: 'Confirm', state: 'coming later', helper: 'Coming later' }
-];
-
-function countWords(value) {
-  return String(value || '').trim().split(/\s+/).filter(Boolean).length;
-}
+const MIN_WORDS = 7;
+const MAX_WORDS = 24;
+const countWords = (value) => String(value || '').trim().split(/\s+/).filter(Boolean).length;
 
 function SubmitTopicPage() {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
   const [keywords, setKeywords] = useState('');
-  const [error, setError] = useState('');
+  const [titleError, setTitleError] = useState('');
+  const [requestError, setRequestError] = useState('');
+  const [isReviewing, setIsReviewing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [createdSubmission, setCreatedSubmission] = useState(null);
-
+  const [submitted, setSubmitted] = useState(false);
+  const errorRef = useRef(null);
+  const reviewRef = useRef(null);
+  const submissionPendingRef = useRef(false);
+  const titleInputRef = useRef(null);
   const wordCount = useMemo(() => countWords(title), [title]);
-  const titleIsValid = wordCount >= MIN_TITLE_WORDS && wordCount <= MAX_TITLE_WORDS;
 
-  const handleSubmit = async (event) => {
+  useEffect(() => {
+    if (requestError) errorRef.current?.focus();
+  }, [requestError]);
+
+  useEffect(() => {
+    if (isReviewing) reviewRef.current?.focus();
+  }, [isReviewing]);
+
+  const validate = () => {
+    if (!title.trim()) { setTitleError('Title is required.'); return false; }
+    if (wordCount < MIN_WORDS || wordCount > MAX_WORDS) { setTitleError(`Title must be ${MIN_WORDS} to ${MAX_WORDS} words.`); return false; }
+    setTitleError('');
+    return true;
+  };
+
+  const openReview = (event) => {
     event.preventDefault();
-    setError('');
-    setCreatedSubmission(null);
+    setRequestError('');
+    if (validate()) setIsReviewing(true);
+    else requestAnimationFrame(() => titleInputRef.current?.focus());
+  };
 
-    if (!title.trim()) {
-      setError('Title is required.');
+  const confirmSubmission = async () => {
+    if (submissionPendingRef.current) return;
+    if (!validate()) {
+      setIsReviewing(false);
       return;
     }
-
-    if (!titleIsValid) {
-      setError(`Title must be ${MIN_TITLE_WORDS} to ${MAX_TITLE_WORDS} words.`);
-      return;
-    }
-
+    submissionPendingRef.current = true;
     setIsSubmitting(true);
+    setRequestError('');
     try {
-      const submission = await createSubmission({
-        title,
-        category,
-        keywords
-      });
-      setCreatedSubmission(submission);
-      setTitle('');
-      setCategory('');
-      setKeywords('');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Unable to submit topic.');
+      await createSubmission({ title, category, keywords });
+      setSubmitted(true);
+      setIsReviewing(false);
+      setTitle(''); setCategory(''); setKeywords('');
+    } catch (error) {
+      setRequestError(error.response?.data?.message || 'Unable to submit topic.');
+      setIsReviewing(false);
     } finally {
+      submissionPendingRef.current = false;
       setIsSubmitting(false);
     }
   };
 
+  if (submitted) return (
+    <div className="workspace-workflow">
+      <h1 className="text-2xl font-bold text-text-primary">Submit Topic</h1>
+      <section className="mt-5 rounded-[10px] border border-border-subtle bg-white p-6 shadow-card" role="status"><StatusBadge status="pending_review" /><h2 className="mt-4 text-xl font-bold">Topic submitted for review</h2><p className="mt-2 text-sm leading-6 text-text-secondary">Your topic is now pending lecturer review. Track its status and any feedback in My Submissions.</p><div className="mt-5 flex flex-col gap-3 sm:flex-row"><Link className="inline-flex min-h-11 items-center justify-center rounded-md bg-brand-green px-4 font-semibold text-white" to="/student/my-submissions">View My Submissions</Link><Link className="inline-flex min-h-11 items-center justify-center rounded-md border border-border-strong px-4 font-semibold" to="/student/dashboard">Return to Dashboard</Link></div></section>
+    </div>
+  );
+
   return (
-    <StudentDashboardLayout open>
-      <header className="px-1 pt-1 sm:px-0">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#1B5E20]">
-          Student Portal
-        </p>
-        <h1 className="mt-1 font-serif text-3xl font-bold leading-tight text-[#1B5E20] sm:text-4xl">
-          Submit Your Research Topic
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-text-secondary">
-          Share a clear proposed topic for lecturer review.
-        </p>
-      </header>
-
-      <div className="space-y-5 sm:space-y-6">
-        <div className="rounded-[1.25rem] border border-emerald-100 bg-white/85 px-4 py-4 shadow-card sm:px-6">
-          <ol className="grid grid-cols-3 gap-2 text-[0.62rem] font-bold uppercase tracking-[0.1em] text-text-muted sm:text-xs sm:tracking-[0.16em]">
-            {submitSteps.map((step, index) => (
-              <li key={step.label} className="relative flex min-w-0 items-start gap-2 sm:gap-3">
-                <span className={[
-                  'relative z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[0.65rem]',
-                  step.state === 'active'
-                    ? 'border-[#1B5E20] bg-[#1B5E20] text-white'
-                    : 'border-border-strong bg-white text-text-muted'
-                ].join(' ')}>
-                  {index + 1}
-                </span>
-                <span className="min-w-0 pt-0.5">
-                  <span className={step.state === 'active' ? 'block text-[#1B5E20]' : 'block'}>
-                    {step.label}
-                  </span>
-                  <span className={[
-                    'mt-1 block text-[0.58rem] normal-case tracking-normal',
-                    step.state === 'active' ? 'text-[#1B5E20]' : 'text-text-muted'
-                  ].join(' ')}>
-                    {step.helper}
-                  </span>
-                </span>
-              </li>
-            ))}
-          </ol>
-        </div>
-
-        <form onSubmit={handleSubmit} className="overflow-hidden rounded-[1.75rem] border border-emerald-100 bg-white shadow-[0_22px_70px_-45px_rgb(27_94_32_/_0.4)]">
-          <div className="border-b border-border-subtle bg-[#f8fbf7] px-5 py-5 sm:px-8 sm:py-6">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#1B5E20]">
-              Enter Topic
-            </p>
-            <h2 className="mt-2 text-xl font-bold text-text-primary sm:text-2xl">
-              Proposed Research Topic
-            </h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-text-secondary">
-              Enter the title you want reviewed. Category and keywords are optional context for your lecturer.
-            </p>
-          </div>
-
-          <div className="space-y-7 p-5 sm:p-8">
-            <div>
-              <TextAreaInput
-                id="topic-title"
-                label="Research Topic Title"
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                disabled={isSubmitting}
-                rows={6}
-                placeholder="Enter your research title here..."
-                helperText="Write a clear and specific title for lecturer review."
-                className="min-h-36 bg-[#f8faf8] p-4 text-base sm:min-h-40"
-              />
-              <div className="mt-3 border-t border-border-subtle pt-3">
-                <div className="flex flex-wrap items-center justify-between gap-2 text-[0.68rem] font-bold uppercase tracking-[0.1em] text-text-muted">
-                  <span>{wordCount} words</span>
-                  <span className={title && !titleIsValid ? 'text-feedback-danger' : ''}>
-                    {MIN_TITLE_WORDS}-{MAX_TITLE_WORDS} words required
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid gap-5 md:grid-cols-2">
-              <TextInput
-                id="topic-category"
-                label="Category"
-                value={category}
-                onChange={(event) => setCategory(event.target.value)}
-                disabled={isSubmitting}
-                placeholder="Optional"
-              />
-
-              <TextInput
-                id="topic-keywords"
-                label="Keywords"
-                value={keywords}
-                onChange={(event) => setKeywords(event.target.value)}
-                disabled={isSubmitting}
-                placeholder="Optional, comma-separated"
-              />
-            </div>
-
-            <InfoCallout
-              title="Before you submit"
-              message="Submitting creates a pending topic for lecturer review. This page submits directly and does not generate a score."
-              className="bg-[#f1fbf4]"
-            />
-
-            {error && (
-              <InfoCallout variant="danger" message={error} />
-            )}
-
-            {createdSubmission && (
-              <InfoCallout variant="success" title="Topic submitted for review.">
-                <Link to="/student/my-submissions" className="font-semibold underline">
-                  View my submissions
-                </Link>
-              </InfoCallout>
-            )}
-
-            <div className="flex justify-end border-t border-border-subtle pt-5">
-              <PrimaryButton
-                type="submit"
-                disabled={isSubmitting}
-                isLoading={isSubmitting}
-                className={`w-full sm:w-auto ${SUBMIT_PRIMARY_BUTTON_CLASS}`}
-              >
-                Submit for Review
-              </PrimaryButton>
-            </div>
-          </div>
-        </form>
-
-        <aside className="rounded-[1.5rem] border border-emerald-100 bg-white/90 p-5 shadow-card sm:p-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-[#1B5E20]">After submission</h2>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-text-secondary">
-                This page only creates a pending topic submission after you press Submit for Review.
-              </p>
-            </div>
-            <span className="inline-flex w-fit rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-[#1B5E20]">
-              Lecturer review workflow
-            </span>
-          </div>
-          <ul className="mt-4 grid gap-3 text-sm leading-6 text-text-secondary md:grid-cols-3">
-            <li className="rounded-card border border-border-subtle bg-[#f7fbf4] px-4 py-3">
-              Your topic will be saved with pending review status.
-            </li>
-            <li className="rounded-card border border-border-subtle bg-[#f7fbf4] px-4 py-3">
-              You can track it from My Submissions.
-            </li>
-            <li className="rounded-card border border-border-subtle bg-[#f7fbf4] px-4 py-3">
-              Your lecturer will review it through the approval workflow.
-            </li>
-          </ul>
-        </aside>
-      </div>
-    </StudentDashboardLayout>
+    <div className="workspace-workflow">
+      <header><h1 className="text-2xl font-bold text-text-primary">Submit Topic</h1><p className="mt-1 text-sm text-text-secondary">Submitting creates a pending topic for lecturer review.</p></header>
+      {requestError && <div ref={errorRef} tabIndex="-1" role="alert" className="mt-5 border-l-4 border-feedback-danger bg-feedback-danger-bg p-4"><h2 className="font-bold text-feedback-danger">Submission failed</h2><p className="mt-1 text-sm text-feedback-danger">{requestError}</p></div>}
+      <form onSubmit={openReview} noValidate className="mt-5 rounded-[10px] border border-border-subtle bg-white p-5 shadow-card sm:p-6">
+        <div><label htmlFor="submission-title" className="text-sm font-semibold">Research Topic Title <span className="text-feedback-danger">*</span></label><textarea ref={titleInputRef} id="submission-title" rows="4" required value={title} onChange={(event) => { setTitle(event.target.value); if (titleError) setTitleError(''); }} aria-invalid={Boolean(titleError)} aria-describedby={`submission-title-help submission-title-count${titleError ? ' submission-title-error' : ''}`} disabled={isReviewing || isSubmitting} className={`mt-2 w-full rounded-md border bg-white px-3 py-2 ${titleError ? 'border-feedback-danger' : 'border-border-strong'}`} placeholder="Enter the topic title you want reviewed" /><p id="submission-title-help" className="mt-1 text-sm text-text-muted">Write a clear, specific title.</p><div id="submission-title-count" className="mt-2 flex justify-between gap-3 text-xs font-bold uppercase text-text-muted"><span>{wordCount} words</span><span>7–24 words required</span></div>{titleError && <p id="submission-title-error" className="mt-2 text-sm font-semibold text-feedback-danger">{titleError}</p>}</div>
+        <div className="mt-5 grid gap-5 sm:grid-cols-2"><label htmlFor="submission-category" className="text-sm font-semibold">Category <span className="font-normal text-text-muted">(optional)</span><input id="submission-category" value={category} onChange={(event) => setCategory(event.target.value)} disabled={isReviewing || isSubmitting} className="mt-2 block min-h-11 w-full rounded-md border border-border-strong px-3" placeholder="e.g. Epidemiology" /></label><label htmlFor="submission-keywords" className="text-sm font-semibold">Keywords <span className="font-normal text-text-muted">(optional)</span><input id="submission-keywords" value={keywords} onChange={(event) => setKeywords(event.target.value)} disabled={isReviewing || isSubmitting} className="mt-2 block min-h-11 w-full rounded-md border border-border-strong px-3" placeholder="Comma-separated" /></label></div>
+        <p className="mt-5 text-sm text-text-secondary">Want advisory evidence first? <Link className="font-semibold underline" to="/student/check-my-topic">Check My Topic</Link>. This form does not run a similarity check.</p>
+        {!isReviewing ? <div className="mt-5 border-t border-border-subtle pt-5"><PrimaryButton type="submit" className="w-full" disabled={isSubmitting}>Review and submit</PrimaryButton></div> : <section ref={reviewRef} tabIndex="-1" className="mt-5 rounded-lg border border-border-strong bg-surface-muted p-4" aria-labelledby="review-title"><h2 id="review-title" className="text-xs font-bold uppercase text-text-muted">Before you submit</h2><p className="mt-2 break-words font-semibold">{title}</p><dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2"><div><dt className="font-semibold">Category</dt><dd>{category || 'Not provided'}</dd></div><div><dt className="font-semibold">Keywords</dt><dd>{keywords || 'Not provided'}</dd></div></dl><p className="mt-3 text-sm text-text-secondary">Nothing has been saved yet. Confirming creates a pending topic for lecturer review.</p><div className="mt-4 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><SecondaryButton type="button" onClick={() => { setIsReviewing(false); requestAnimationFrame(() => titleInputRef.current?.focus()); }} disabled={isSubmitting}>Back to edit</SecondaryButton><PrimaryButton type="button" onClick={confirmSubmission} isLoading={isSubmitting} disabled={isSubmitting}>Confirm submission</PrimaryButton></div><p className="sr-only" aria-live="polite">{isSubmitting ? 'Submitting topic for review.' : ''}</p></section>}
+      </form>
+    </div>
   );
 }
 

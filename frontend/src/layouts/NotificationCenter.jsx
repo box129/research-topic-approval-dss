@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   listNotifications,
@@ -33,6 +33,8 @@ function getNotificationKey(item) {
 }
 
 function NotificationCenter() {
+  const triggerRef = useRef(null);
+  const panelRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
   const [items, setItems] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -95,6 +97,19 @@ function NotificationCenter() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    panelRef.current?.querySelector('[data-notification-close]')?.focus();
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
   const handleToggle = () => {
     setIsOpen((current) => !current);
@@ -166,14 +181,17 @@ function NotificationCenter() {
   return (
     <div className="relative">
       <button
+        ref={triggerRef}
         type="button"
         aria-expanded={isOpen}
         aria-haspopup="dialog"
+        aria-label="Open notifications"
         onClick={handleToggle}
-        className="relative rounded-md border border-white/15 px-2 py-1.5 text-xs font-semibold text-emerald-50 transition-colors hover:bg-white/10 hover:text-white sm:px-3"
+        className="relative inline-flex h-10 w-10 items-center justify-center rounded-md border border-white/15 text-emerald-50 transition-colors hover:bg-white/10 hover:text-white"
       >
-        <span className="sr-only">Open notifications</span>
-        <span aria-hidden="true">Notifications</span>
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M10 2a6 6 0 0 0-6 6v3.586l-.707.707A1 1 0 0 0 4 14h12a1 1 0 0 0 .707-1.707L16 11.586V8a6 6 0 0 0-6-6ZM8.05 16a2 2 0 0 0 3.9 0h-3.9Z" />
+        </svg>
         {unreadCount > 0 && (
           <span
             aria-label={`${unreadLabel} unread notifications`}
@@ -186,9 +204,10 @@ function NotificationCenter() {
 
       {isOpen && (
         <section
+          ref={panelRef}
           role="dialog"
           aria-label="Notifications"
-          className="absolute right-0 top-11 z-50 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-emerald-900/10 bg-white text-gray-900 shadow-2xl shadow-emerald-950/20"
+          className="absolute right-0 top-11 z-50 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-[10px] border border-emerald-900/10 bg-white text-gray-900 shadow-modal"
         >
           <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-4 py-3">
             <div>
@@ -197,25 +216,39 @@ function NotificationCenter() {
                 {unreadCount === 0 ? 'No unread notifications' : `${unreadCount} unread`}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={handleMarkAllRead}
-              disabled={isMutating || unreadCount === 0}
-              className="rounded-md px-2 py-1 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:text-gray-400"
-            >
-              Mark all read
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={handleMarkAllRead}
+                disabled={isMutating || unreadCount === 0}
+                className="rounded-md px-2 py-1 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:text-gray-400"
+              >
+                Mark all read
+              </button>
+              <button
+                data-notification-close
+                type="button"
+                aria-label="Close notifications"
+                onClick={() => {
+                  setIsOpen(false);
+                  triggerRef.current?.focus();
+                }}
+                className="min-h-10 rounded-md px-2 text-xs font-bold text-gray-600 hover:bg-gray-100"
+              >
+                Close
+              </button>
+            </div>
           </div>
 
           <div className="max-h-[26rem] overflow-y-auto p-3">
             {panelStatus === 'loading' && (
-              <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 px-4 py-5 text-sm font-semibold text-emerald-800">
+              <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 px-4 py-5 text-sm font-semibold text-emerald-800">
                 Loading notifications...
               </div>
             )}
 
             {panelStatus === 'error' && (
-              <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-4">
+              <div role="alert" className="rounded-lg border border-red-100 bg-red-50 px-4 py-4">
                 <p className="text-sm font-bold text-red-800">{error}</p>
                 <button
                   type="button"
@@ -228,7 +261,7 @@ function NotificationCenter() {
             )}
 
             {panelStatus === 'empty' && (
-              <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-5 text-sm text-gray-600">
+              <div className="rounded-lg border border-gray-100 bg-gray-50 px-4 py-5 text-sm text-gray-600">
                 No notifications yet.
               </div>
             )}
@@ -242,7 +275,7 @@ function NotificationCenter() {
                     <li
                       key={getNotificationKey(item)}
                       className={[
-                        'rounded-xl border px-3 py-3 text-left shadow-sm',
+                        'rounded-lg border px-3 py-3 text-left shadow-sm',
                         isUnread
                           ? 'border-emerald-100 bg-emerald-50/70'
                           : 'border-gray-100 bg-white'

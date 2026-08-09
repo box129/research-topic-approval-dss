@@ -27,7 +27,7 @@ export const roleNavigation = {
 export const roleLabels = {
   lecturer: 'Lecturer',
   student: 'Student',
-  admin: 'Admin'
+  admin: 'Administrator'
 };
 
 export const studentCheckerHomePath = '/student/dashboard';

@@ -74,9 +74,14 @@ describe('Lecturer CheckSimilarityPage', () => {
     renderCheckSimilarityPage();
 
     expect(screen.getByRole('heading', { name: /check similarity/i })).toBeInTheDocument();
-    expect(screen.getByText(/manual check only/i)).toBeInTheDocument();
-    expect(screen.getByText(/does not approve, reject, block, or save a topic/i)).toBeInTheDocument();
-    expect(screen.getByText(/similarity evidence is advisory/i)).toBeInTheDocument();
+    expect(screen.getByText(/manual advisory check/i)).toBeInTheDocument();
+    expect(screen.getByText(/without changing a submission, snapshot, or lecturer decision/i)).toBeInTheDocument();
+    expect(screen.getByText('Advisory pre-check')).toBeInTheDocument();
+    expect(screen.getByText('This check is temporary. It does not save a snapshot or change a submission or lecturer decision.')).toBeInTheDocument();
+    expect(screen.queryByText('Standalone topic check')).not.toBeInTheDocument();
+    expect(screen.queryByText('Manual similarity pre-check')).not.toBeInTheDocument();
+    expect(screen.queryByText(/decision write/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/snapshot saved/i)).not.toBeInTheDocument();
     expect(screen.getByPlaceholderText(/enter your research topic/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /check similarity/i })).toBeInTheDocument();
   });

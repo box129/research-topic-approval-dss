@@ -150,65 +150,20 @@ function CheckSimilarityPage() {
         subtitle="Run a manual advisory check on any research topic without changing a submission, snapshot, or lecturer decision."
       />
 
-      <section className="overflow-hidden rounded-[1.8rem] border border-emerald-100 bg-[#f7fbf2] shadow-[0_22px_70px_-42px_rgb(4_120_87_/_0.55)]">
-        <div className="border-b border-emerald-100 bg-[linear-gradient(145deg,#f6fbf1,#fffdf7)] px-4 py-4 sm:px-6">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-green">
-                Manual checker workspace
-              </p>
-              <h2 className="mt-1 max-w-4xl whitespace-normal break-keep text-2xl font-semibold tracking-normal text-text-primary hyphens-none [word-spacing:normal]">
-                Enter a topic, run the check, then review the advisory evidence.
-              </h2>
-            </div>
-            <div className="flex flex-wrap gap-2 text-xs font-semibold hyphens-none" aria-label="Manual checker boundaries">
-              <span className="whitespace-nowrap rounded-full border border-emerald-100 bg-white px-3 py-1 text-[#1B5E20] shadow-sm">
-                Standalone check
-              </span>
-              <span className="whitespace-nowrap rounded-full border border-amber-100 bg-amber-50 px-3 py-1 text-amber-700">
-                No decision write
-              </span>
-              <span className="whitespace-nowrap rounded-full border border-slate-200 bg-white px-3 py-1 text-text-muted shadow-sm">
-                No snapshot saved
-              </span>
-            </div>
-          </div>
-        </div>
+      <section className="mx-auto w-full max-w-[68rem] space-y-5">
+        <InfoCallout
+          title="Advisory pre-check"
+          message="This check is temporary. It does not save a snapshot or change a submission or lecturer decision."
+        />
 
-        <div className="grid gap-5 p-4 sm:p-6">
-          <div className="rounded-[1.35rem] border border-border-subtle border-t-4 border-t-[#1B5E20] bg-white p-4 shadow-sm sm:p-6">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)]">
+          <div className="rounded-[10px] border border-border-subtle bg-white p-5 shadow-card sm:p-6">
+            <h2 className="mb-4 text-base font-bold text-text-primary">Topic to check</h2>
             <TopicForm appearance="lecturer-checker" onSubmit={handleSubmit} isLoading={isLoading} />
           </div>
 
-          <div className="rounded-[1.15rem] border border-emerald-100 bg-white px-4 py-3 text-sm leading-6 text-text-secondary shadow-sm">
-            <div className="grid gap-3 whitespace-normal break-keep tracking-normal hyphens-none [word-spacing:normal] lg:grid-cols-3">
-              <p className="min-w-0 text-left">
-                <span className="font-semibold text-[#1B5E20]">Manual check only:</span>{' '}
-                this standalone check does not approve, reject, block, or save a topic.
-              </p>
-              <p className="min-w-0 text-left">
-                <span className="font-semibold text-[#1B5E20]">Similarity evidence is advisory:</span>{' '}
-                use it to guide review conversations, not to update a submission.
-              </p>
-              <p className="min-w-0 text-left">
-                <span className="font-semibold text-[#1B5E20]">Local result only:</span>{' '}
-                the result stays on this screen and no snapshot is saved.
-              </p>
-            </div>
-          </div>
-
-          <div className="min-w-0 rounded-[1.35rem] border border-emerald-100 bg-white p-4 shadow-sm sm:p-6">
-            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-green">
-                  Similarity results
-                </p>
-                <h2 className="text-xl font-semibold text-text-primary">Advisory result</h2>
-              </div>
-              <span className="w-fit rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-[#1B5E20]">
-                No workflow mutation
-              </span>
-            </div>
+          <div className="min-w-0 rounded-[10px] border border-border-subtle bg-white p-5 shadow-card sm:p-6">
+            <h2 className="mb-4 text-base font-bold text-text-primary">Advisory result</h2>
 
             {error && !results && (
               <div data-testid="error-display" className="mb-6">
@@ -239,8 +194,8 @@ function CheckSimilarityPage() {
               <EmptyStatePanel
                 title={isLoading ? 'Checking similarity' : 'Awaiting manual check'}
                 message={isLoading
-                  ? 'The topic is being compared against existing records. No submission status will change.'
-                  : 'Fill out the form above to view advisory similarity guidance. Nothing is saved from this standalone check.'}
+                  ? 'The topic is being compared against existing records.'
+                  : 'Fill out the form to view similarity guidance.'}
               />
             )}
           </div>

@@ -1,34 +1,22 @@
 import PropTypes from 'prop-types';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import AuthenticatedTopNav from './AuthenticatedTopNav';
-import StudentCheckerTopNav from './StudentCheckerTopNav';
 
 function AppLayout({ role }) {
-  const location = useLocation();
-  const normalizedPathname = location.pathname.replace(/\/+$/, '') || '/';
-  const isStudentCheckerTarget = role === 'student'
-    && normalizedPathname === '/student/check-my-topic';
-
   return (
-    <div className={isStudentCheckerTarget ? 'min-h-screen bg-surface-page' : 'min-h-screen bg-[#eef7e8]'}>
-      {isStudentCheckerTarget
-        ? <StudentCheckerTopNav />
-        : <AuthenticatedTopNav role={role} />}
+    <div className="authenticated-workspace flex min-h-screen flex-col bg-surface-page">
+      <AuthenticatedTopNav role={role} />
       <main
-        id={isStudentCheckerTarget ? 'main-content' : undefined}
-        tabIndex={isStudentCheckerTarget ? -1 : undefined}
-        className={isStudentCheckerTarget
-          ? 'mx-auto w-full max-w-[76rem] px-4 py-6 sm:px-6 lg:py-8'
-          : 'mx-auto w-full max-w-[78rem] px-4 py-8 sm:px-6 lg:py-10'}
+        id="main-content"
+        tabIndex={-1}
+        className="workspace-console flex-1 px-4 py-7 sm:px-6 sm:py-8"
       >
         <Outlet />
       </main>
-      {isStudentCheckerTarget && (
-        <footer className="mx-auto flex w-full max-w-[76rem] flex-col gap-1 border-t border-border-subtle px-4 py-5 text-sm text-text-secondary sm:flex-row sm:justify-between sm:px-6">
-          <span>Research Topic Approval DSS</span>
-          <span>Authenticated student workspace</span>
-        </footer>
-      )}
+      <footer className="workspace-console flex flex-col gap-1 border-t border-border-subtle px-4 py-4 text-xs text-text-muted sm:flex-row sm:justify-between sm:px-6">
+        <span>UNIOSUN Research Topic Approval DSS</span>
+        <span>Authenticated {role === 'admin' ? 'administrator' : role} workspace</span>
+      </footer>
     </div>
   );
 }

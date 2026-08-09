@@ -279,6 +279,7 @@ describe('Lecturer SubmissionDetailPage', () => {
     await user.click(screen.getByRole('button', { name: /^reject$/i }));
 
     expect(screen.getByText(/decision rationale is required/i)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByLabelText(/decision rationale/i)).toHaveFocus());
     expect(updateLecturerSubmissionStatus).not.toHaveBeenCalled();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });

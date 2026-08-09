@@ -143,7 +143,7 @@ describe('AdminAuditLogPage', () => {
     render(<AdminAuditLogPage />);
 
     expect(screen.getByRole('heading', { name: /audit log/i })).toBeInTheDocument();
-    expect(screen.getByText(/Audit visibility connected to stored events/i)).toBeInTheDocument();
+    expect(screen.getByText(/Review stored governance events and manage guarded retention controls/i)).toBeInTheDocument();
 
     await waitFor(() => {
       expect(listAdminAuditLogs).toHaveBeenCalledWith({
@@ -156,7 +156,7 @@ describe('AdminAuditLogPage', () => {
     expect(screen.getByText(/admin@example.edu/i)).toBeInTheDocument();
     expect(screen.getByText(/Request req-123/i)).toBeInTheDocument();
     expect(screen.getByText(/Audit purge governance/i)).toBeInTheDocument();
-    expect(screen.getByText(/Audit CSV export already exists through Reports/i)).toBeInTheDocument();
+    expect(screen.getByText(/Audit history can be exported from Reports/i)).toBeInTheDocument();
     expect(screen.queryByText(/fake login/i)).not.toBeInTheDocument();
   });
 
@@ -199,7 +199,7 @@ describe('AdminAuditLogPage', () => {
 
     await waitFor(() => {
       expect(getAdminAuditLogDetail).toHaveBeenCalledWith(42);
-      expect(screen.getByText(/Selected audit event/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Selected audit event/i).length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText(/"status": "suspended"/i)).toBeInTheDocument();
     });
 
@@ -230,7 +230,7 @@ describe('AdminAuditLogPage', () => {
 
     expect(screen.getByText(/Candidate logs: 4/i)).toBeInTheDocument();
     expect(screen.getByText(/Will delete: 4/i)).toBeInTheDocument();
-    expect(screen.getByText(/Raw audit metadata bodies are not displayed/i)).toBeInTheDocument();
+    expect(screen.getByText(/A completed purge cannot be reversed/i)).toBeInTheDocument();
     expect(screen.queryByText(/private metadata/i)).not.toBeInTheDocument();
     expect(purgeAdminAuditLogs).not.toHaveBeenCalled();
   });
@@ -248,7 +248,9 @@ describe('AdminAuditLogPage', () => {
       expect(screen.getByText(/Candidate logs: 4/i)).toBeInTheDocument();
     });
 
-    expect(screen.getByRole('button', { name: /Purge old audit logs/i })).toBeDisabled();
+    const purgeButton = screen.getByRole('button', { name: /Purge old audit logs/i });
+    expect(purgeButton).toBeDisabled();
+    expect(purgeButton).toHaveClass('bg-red-700');
 
     fireEvent.change(screen.getByPlaceholderText(/CONFIRM_AUDIT_PURGE/i), {
       target: { value: 'CONFIRM_AUDIT_PURGE' }
@@ -308,9 +310,9 @@ describe('AdminAuditLogPage', () => {
     render(<AdminAuditLogPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/No audit logs returned/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/No audit events/i).length).toBeGreaterThanOrEqual(1);
     });
-    expect(screen.getByText(/No placeholder audit events are shown/i)).toBeInTheDocument();
+    expect(screen.getByText(/No audit events match the selected filters/i)).toBeInTheDocument();
   });
 
   it('does not expose uncontrolled audit export or deletion controls', async () => {

@@ -80,7 +80,7 @@ function safeMetadataPreview(metadata) {
 
 function AuditLogRow({ auditLog, isSelected, isLoadingDetail, onSelect }) {
   return (
-    <article className="rounded-[1.15rem] border border-border-subtle bg-white p-4 shadow-sm">
+    <article className="rounded-lg border border-border-subtle bg-white p-4">
       <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[1fr_0.95fr_0.8fr_auto] lg:items-start">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -129,14 +129,14 @@ function AuditDetailPanel({ auditLog, isLoading, errorMessage }) {
     return (
       <InfoCallout
         title="Audit detail"
-        message="Select an audit row to load safe detail from the audit-log detail endpoint."
+        message="Select an audit event to review its recorded detail."
         variant="info"
       />
     );
   }
 
   if (isLoading) {
-    return <div className="h-44 animate-pulse rounded-[1.15rem] border border-border-subtle bg-surface-muted" />;
+    return <div className="h-44 animate-pulse rounded-[10px] border border-border-subtle bg-surface-muted" />;
   }
 
   if (errorMessage) {
@@ -150,16 +150,14 @@ function AuditDetailPanel({ auditLog, isLoading, errorMessage }) {
   }
 
   return (
-    <article className="rounded-[1.15rem] border border-border-subtle bg-white p-4 shadow-sm">
+    <article className="rounded-[10px] border border-border-subtle bg-white p-4 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-text-muted">Selected audit event</p>
           <h2 className="mt-1 text-lg font-semibold text-text-primary">{auditLog.event_type}</h2>
           <p className="mt-1 text-sm text-text-secondary">{formatDate(auditLog.created_at)}</p>
         </div>
-        <span className="inline-flex w-fit rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
-          Safe detail
-        </span>
+        <span className="inline-flex w-fit rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">Recorded event</span>
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -199,7 +197,7 @@ function AuditRetentionPanel({
   const canPurge = Boolean(preview) && confirmation === 'CONFIRM_AUDIT_PURGE' && state.preview !== 'loading' && state.purge !== 'loading';
 
   return (
-    <section className="rounded-[1.5rem] border border-amber-200 bg-amber-50/70 p-5 shadow-sm">
+    <section className="rounded-[10px] border border-amber-200 bg-amber-50/70 p-5 shadow-sm">
       <div className="grid gap-4 xl:grid-cols-[0.85fr_1.15fr]">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-800">Retention policy</p>
@@ -207,12 +205,10 @@ function AuditRetentionPanel({
           <p className="mt-2 text-sm leading-6 text-text-secondary">
             Default retention is 365 days, purge requests must target logs at least 90 days old, and destructive purge requires preview plus the exact confirmation phrase.
           </p>
-          <p className="mt-2 text-sm leading-6 text-text-secondary">
-            Audit CSV export already exists through Reports: `GET /api/v1/admin/reports/export/audit-logs`.
-          </p>
+          <p className="mt-2 text-sm leading-6 text-text-secondary">Audit history can be exported from Reports before records are purged.</p>
         </div>
 
-        <div className="rounded-[1.15rem] border border-amber-200 bg-white p-4">
+        <div className="rounded-[10px] border border-amber-200 bg-white p-4">
           <form className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]" onSubmit={onPreview}>
             <label className="text-sm font-semibold text-text-primary">
               Purge logs older than days
@@ -236,7 +232,7 @@ function AuditRetentionPanel({
 
           {state.error ? (
             <div className="mt-3">
-              <InfoCallout message={state.error} title="Audit purge notice" variant="warning" />
+          <InfoCallout role="alert" message={state.error} title="Audit purge notice" variant="warning" />
             </div>
           ) : null}
 
@@ -249,7 +245,7 @@ function AuditRetentionPanel({
                 <span>Cutoff: {formatDate(preview.cutoffDate)}</span>
               </div>
               <p className="mt-2 text-xs leading-5 text-text-muted">
-                Preview returns counts and grouped summaries only. Raw audit metadata bodies are not displayed.
+                Review these counts carefully. A completed purge cannot be reversed.
               </p>
             </div>
           ) : null}
@@ -428,62 +424,28 @@ function AuditLogPage() {
       <PageHeader
         eyebrow="Governance trace"
         title="Audit Log"
-        subtitle="Audit visibility connected to stored events, safe CSV export through Reports, and guarded retention/purge controls."
+        subtitle="Review stored governance events and manage guarded retention controls."
       />
 
-      <section className="overflow-hidden rounded-[2rem] border border-emerald-950/10 bg-[#eef4eb] shadow-[0_24px_80px_-58px_rgb(6_95_70_/_0.7)]">
-        <div className="grid gap-0 xl:grid-cols-[0.76fr_1.24fr]">
-          <div className="bg-[linear-gradient(150deg,#022c22,#064e3b)] p-5 text-white sm:p-7">
-            <div className="flex h-full flex-col justify-between gap-7">
-              <div className="space-y-5">
-                <span className="inline-flex w-fit rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-50">
-                  Real audit records
-                </span>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-emerald-100">Admin audit console</p>
-                  <h1 className="mt-2 text-3xl font-bold text-white">Event trail and safe detail</h1>
-                  <p className="mt-2 max-w-xl text-sm leading-6 text-emerald-50/80">
-                    Review stored governance events without inventing activity rows. Purge operations require preview, policy age checks, and an audited confirmation.
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-[1.35rem] border border-white/15 bg-white/10 p-4 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100/80">Boundary</p>
-                <p className="mt-1 text-xl font-semibold text-white">Governed evidence</p>
-                <p className="mt-2 text-sm leading-6 text-emerald-50/75">
-                  CSV export is available from Reports. Purge controls are deliberately constrained and audited.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-5 p-5 sm:p-6 lg:p-7">
-            <div className="grid gap-3 sm:grid-cols-3">
-              <article className="rounded-[1rem] border border-border-subtle border-l-4 border-l-emerald-600 bg-white p-4 shadow-sm">
+      <section aria-label="Audit log summary">
+            <div aria-live="polite" className="grid gap-3 sm:grid-cols-3">
+              <article className="rounded-lg border border-border-subtle border-l-[3px] border-l-emerald-600 bg-white p-3">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">Visible rows</p>
                 <p className="mt-2 text-2xl font-semibold text-text-primary">{isLoading ? 'Loading...' : formatCount(auditLogs.length)}</p>
-                <p className="mt-2 text-sm leading-5 text-text-secondary">Current page from the audit-log endpoint.</p>
+                <p className="mt-2 text-sm leading-5 text-text-secondary">Events on the current page.</p>
               </article>
-              <article className="rounded-[1rem] border border-border-subtle border-l-4 border-l-amber-500 bg-white p-4 shadow-sm">
+              <article className="rounded-lg border border-border-subtle border-l-[3px] border-l-amber-500 bg-white p-3">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">Total matches</p>
                 <p className="mt-2 text-2xl font-semibold text-text-primary">{isLoading ? 'Loading...' : formatCount(meta?.pagination?.total || 0)}</p>
-                <p className="mt-2 text-sm leading-5 text-text-secondary">Reported by pagination metadata only.</p>
+                <p className="mt-2 text-sm leading-5 text-text-secondary">Events matching the current filters.</p>
               </article>
-              <article className="rounded-[1rem] border border-border-subtle border-l-4 border-l-slate-500 bg-white p-4 shadow-sm">
+              <article className="rounded-lg border border-border-subtle border-l-[3px] border-l-slate-500 bg-white p-3">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">Export status</p>
                 <p className="mt-2 text-2xl font-semibold text-text-primary">CSV</p>
                 <p className="mt-2 text-sm leading-5 text-text-secondary">Audit CSV export is available through admin reports.</p>
               </article>
             </div>
 
-            <InfoCallout
-              title="No fake audit activity"
-              message="Empty responses stay empty. This page does not fabricate logins, imports, user changes, settings changes, report exports, or system events."
-              variant="info"
-            />
-          </div>
-        </div>
       </section>
 
       <AuditRetentionPanel
@@ -503,16 +465,16 @@ function AuditLogPage() {
       />
 
       <section className="grid gap-5 xl:grid-cols-[1.25fr_0.75fr]">
-        <div className="rounded-[1.5rem] border border-border-subtle bg-white p-5 shadow-sm">
-          <div className="flex flex-col gap-3 border-b border-border-subtle pb-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="rounded-[10px] border border-border-subtle bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-3 border-b border-border-subtle pb-4">
             <div>
               <h2 className="text-lg font-semibold text-text-primary">Audit events</h2>
               <p className="mt-1 max-w-3xl text-sm leading-6 text-text-secondary">
-                Search and filters call the read-only audit-log endpoint. Detail uses the audit-log detail endpoint.
+                Search and filter recorded administrative events.
               </p>
             </div>
 
-            <form className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_11rem_12rem_auto] lg:min-w-[48rem]" onSubmit={handleSubmit}>
+            <form className="grid w-full gap-3 sm:grid-cols-[minmax(0,1fr)_11rem_12rem_auto]" onSubmit={handleSubmit}>
               <label className="text-sm font-semibold text-text-primary">
                 <span className="sr-only">Search audit logs</span>
                 <input
@@ -559,29 +521,21 @@ function AuditLogPage() {
 
           <div className="mt-5 space-y-4">
             {errorMessage ? (
-              <InfoCallout message={errorMessage} title="Audit log notice" variant="warning" />
-            ) : null}
-
-            {hasError ? (
-              <InfoCallout
-                message="The audit-log endpoint could not be reached. No fallback audit rows are displayed."
-                title="Audit logs unavailable"
-                variant="warning"
-              />
+        <InfoCallout role={hasError ? 'alert' : undefined} message={errorMessage} title={hasError ? 'Audit logs unavailable' : 'Audit log notice'} variant="warning" />
             ) : null}
 
             {isLoading ? (
               <div className="grid gap-3">
                 {[0, 1, 2].map((item) => (
-                  <div key={item} className="h-28 animate-pulse rounded-[1.15rem] border border-border-subtle bg-surface-muted" />
+                  <div key={item} className="h-28 animate-pulse rounded-[10px] border border-border-subtle bg-surface-muted" />
                 ))}
               </div>
             ) : null}
 
             {!isLoading && !hasError && auditLogs.length === 0 ? (
               <EmptyStatePanel
-                message="The audit-log endpoint returned an empty list for the selected filters. No placeholder audit events are shown."
-                title="No audit logs returned"
+                message="No audit events match the selected filters."
+                title="No audit events"
               />
             ) : null}
 
@@ -612,12 +566,10 @@ function AuditLogPage() {
           ) : null}
         </div>
 
-        <div className="rounded-[1.5rem] border border-border-subtle bg-white p-5 shadow-sm">
+        <div className="rounded-[10px] border border-border-subtle bg-white p-5 shadow-sm">
           <div className="border-b border-border-subtle pb-4">
-            <h2 className="text-lg font-semibold text-text-primary">Safe detail</h2>
-            <p className="mt-1 text-sm leading-6 text-text-secondary">
-              Detail data is loaded only from `GET /api/v1/admin/audit-logs/:id`.
-            </p>
+            <h2 className="text-lg font-semibold text-text-primary">Event detail</h2>
+            <p className="mt-1 text-sm leading-6 text-text-secondary">Recorded context for the selected audit event.</p>
           </div>
           <div className="mt-5">
             <AuditDetailPanel

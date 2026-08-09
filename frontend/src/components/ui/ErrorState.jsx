@@ -3,7 +3,7 @@ import SecondaryButton from './SecondaryButton';
 
 function ErrorState({ title = 'Something went wrong', message, onRetry }) {
   return (
-    <div className="rounded-card border border-feedback-danger-border bg-feedback-danger-bg p-6 shadow-card">
+    <div role="alert" className="rounded-card border border-feedback-danger-border bg-feedback-danger-bg p-6 shadow-card">
       <h2 className="font-semibold text-feedback-danger">{title}</h2>
       {message && <p className="mt-2 text-sm text-feedback-danger">{message}</p>}
       {onRetry && (
