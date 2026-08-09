@@ -1,0 +1,84 @@
+{
+  "audit": {
+    "id": "sbert-baseline-reproduction-audit",
+    "version": "1.0.0",
+    "generatedAt": "2026-08-09T15:10:00.000Z",
+    "historicalCommit": "e756c2e3bf2f357feb3c4da545d721d99cae7f69",
+    "currentCommit": "83dd3af9fdcd7317ead11c93bac2ee1001c12cbd"
+  },
+  "classification": "HISTORICAL BASELINE INVALIDATED",
+  "classificationRationale": "An independent reimplementation of the historical FastAPI deterministic hash fallback reproduces every stored historical SBERT-only score exactly (16/16). The current service-derived scores match direct SentenceTransformer all-MiniLM-L6-v2 cosine scores for all six traced cases. Therefore the historical artifact is fallback output, not the intended all-MiniLM-L6-v2 cosine baseline.",
+  "historicalArtifact": {
+    "resultPath": "backend/evaluation/results/topic-similarity-evaluation.json",
+    "datasetPath": "backend/evaluation/datasets/pilot-topic-pairs.json",
+    "reportedModel": "all-MiniLM-L6-v2",
+    "hashFallbackReproduction": {
+      "matchedCases": 16,
+      "totalCases": 16,
+      "scoreCalculation": "sha256(lowercase text) -> 384 deterministic values -> cosine -> clamp [0,1] -> round to 3 decimals"
+    }
+  },
+  "semanticCodeComparison": {
+    "confirmedUnchanged": [
+      "sbert-service/app.py is unchanged between e756c2e and current HEAD, including SentenceTransformer loading, deterministic fallback, /embed response shape, and /health behavior.",
+      "backend/src/services/sbert.service.js is unchanged between e756c2e and current HEAD, including POST /embed, vector parsing, cosine calculation, clamp to [0,1], and three-decimal rounding.",
+      "The evaluation dataset is unchanged between e756c2e and current HEAD."
+    ],
+    "currentRunnerDifference": "backend/scripts/run-topic-evaluation.js changed production-combined and lexical-fallback scoring after e756c2e, but its SBERT-only path remains submitted.title/existing.title -> calculateSbertSimilarities -> normalizeScore. This cannot explain the stored SBERT-only values.",
+    "historicalFallbackBehavior": "The source catches sentence-transformers import/model/encode failures and emits deterministic hash vectors while keeping model set truthy. /health returns status=healthy and MODEL_NAME.split('/')[-1] regardless of fallback mode."
+  },
+  "currentServiceFingerprint": {
+    "endpoint": "http://localhost:8000",
+    "healthResponse": { "status": "healthy", "model": "all-MiniLM-L6-v2" },
+    "configuredModelName": "sentence-transformers/all-MiniLM-L6-v2",
+    "embeddingDimension": 384,
+    "actualRuntimeBehavior": "CONFIRMED real all-MiniLM-L6-v2 behavior by direct-model score agreement on six raw-title pairs.",
+    "fallbackExists": true,
+    "fallbackCanReturnHealthy200": true,
+    "healthReportsRuntimeMode": false,
+    "modelLoadPath": "UNKNOWN from the health API and process output; direct execution loaded sentence-transformers/all-MiniLM-L6-v2 from the local Hugging Face cache.",
+    "environmentControls": {
+      "model": "No model environment variable is read by sbert-service/app.py; MODEL_NAME is hard-coded.",
+      "clientTarget": "SBERT_SERVICE_URL can select a different service endpoint.",
+      "clientTimeout": "SBERT_TIMEOUT can affect request failure timing but not successful-score math."
+    },
+    "directEnvironment": {
+      "python": "3.14.0",
+      "sentenceTransformers": "5.2.3",
+      "transformers": "5.3.0",
+      "torch": "2.10.0+cpu",
+      "requirementsAtHistoricalAndCurrentCommit": "sentence-transformers==2.2.2; torch==2.0.1; numpy==1.24.3; fastapi==0.109.0; uvicorn==0.27.0"
+    }
+  },
+  "sixCaseTrace": [
+    { "id": "case-001", "category": "exact_duplicate", "topicA": "Knowledge of malaria prevention among mothers in Osogbo", "topicB": "Knowledge of malaria prevention among mothers in Osogbo", "endpoint": "POST /embed", "responseShape": { "keys": ["embedding", "dimension"], "dimension": 384 }, "embeddingNormalization": "Source does not pass normalize_embeddings; observed direct vectors are L2-normalized.", "similarity": "Node client cosine(dot/(normA*normB)), clamp [0,1], round 3 decimals", "historicalScore": 1.0, "currentTitleOnly": 1.0, "absoluteDifference": 0.0, "directModelScore": 1.0, "serviceDirectDifference": 0.0 },
+    { "id": "case-002", "category": "near_duplicate", "topicA": "Factors affecting exclusive breastfeeding among nursing mothers in Ede", "topicB": "Influencing factors of exclusive breastfeeding practice among nursing mothers in Ede", "endpoint": "POST /embed", "responseShape": { "keys": ["embedding", "dimension"], "dimension": 384 }, "embeddingNormalization": "Source does not pass normalize_embeddings; observed direct vectors are L2-normalized.", "similarity": "Node client cosine(dot/(normA*normB)), clamp [0,1], round 3 decimals", "historicalScore": 0.0, "currentTitleOnly": 0.971, "absoluteDifference": 0.971, "directModelScore": 0.971, "serviceDirectDifference": 0.0, "historicalHashFallbackRawCosine": -0.08136498376598407, "explanation": "CONFIRMED: the historical deterministic fallback produced a negative cosine, which the shared client clamps to zero." },
+    { "id": "case-003", "category": "paraphrased_duplicate", "topicA": "Use of mobile reminders for antenatal clinic attendance in Ile-Ife", "topicB": "SMS prompts to improve prenatal appointment attendance in Ile-Ife", "endpoint": "POST /embed", "responseShape": { "keys": ["embedding", "dimension"], "dimension": 384 }, "embeddingNormalization": "Source does not pass normalize_embeddings; observed direct vectors are L2-normalized.", "similarity": "Node client cosine(dot/(normA*normB)), clamp [0,1], round 3 decimals", "historicalScore": 0.365, "currentTitleOnly": 0.711, "absoluteDifference": 0.346, "directModelScore": 0.711, "serviceDirectDifference": 0.0 },
+    { "id": "case-007", "category": "unrelated_public_health", "topicA": "Perception of telemedicine services among rural patients", "topicB": "Waste management practices among food vendors in urban markets", "endpoint": "POST /embed", "responseShape": { "keys": ["embedding", "dimension"], "dimension": 384 }, "embeddingNormalization": "Source does not pass normalize_embeddings; observed direct vectors are L2-normalized.", "similarity": "Node client cosine(dot/(normA*normB)), clamp [0,1], round 3 decimals", "historicalScore": 0.401, "currentTitleOnly": 0.1, "absoluteDifference": 0.301, "directModelScore": 0.1, "serviceDirectDifference": 0.0 },
+    { "id": "case-010", "category": "synonym_duplicate", "topicA": "Determinants of contraceptive use among married women", "topicB": "Factors influencing family planning uptake among married women", "endpoint": "POST /embed", "responseShape": { "keys": ["embedding", "dimension"], "dimension": 384 }, "embeddingNormalization": "Source does not pass normalize_embeddings; observed direct vectors are L2-normalized.", "similarity": "Node client cosine(dot/(normA*normB)), clamp [0,1], round 3 decimals", "historicalScore": 0.171, "currentTitleOnly": 0.498, "absoluteDifference": 0.327, "directModelScore": 0.498, "serviceDirectDifference": 0.0 },
+    { "id": "case-016", "category": "clearly_unrelated", "topicA": "Lassa fever awareness among rural residents", "topicB": "Academic performance among computer science students", "endpoint": "POST /embed", "responseShape": { "keys": ["embedding", "dimension"], "dimension": 384 }, "embeddingNormalization": "Source does not pass normalize_embeddings; observed direct vectors are L2-normalized.", "similarity": "Node client cosine(dot/(normA*normB)), clamp [0,1], round 3 decimals", "historicalScore": 0.296, "currentTitleOnly": 0.0, "absoluteDifference": 0.296, "directModelScore": 0.0, "serviceDirectDifference": 0.0 }
+  ],
+  "historicalEnvironmentEvidence": {
+    "confirmed": [
+      "The requirements file at e756c2e and current HEAD is identical and pins sentence-transformers 2.2.2 and torch 2.0.1.",
+      "The historical source contains the fallback implementation that exactly reproduces the stored artifact.",
+      "Docker/Compose SBERT changes occurred after e756c2e and do not alter the historical code path."
+    ],
+    "inferred": [
+      "The historical service was running with sentence-transformers unavailable, model loading failed, or encoding failed; each path selects the same deterministic fallback."
+    ],
+    "unknown": [
+      "The precise historical exception and installed package state are not retained in the artifact.",
+      "The historical runtime model cache and process logs are unavailable."
+    ]
+  },
+  "pilotConsequence": {
+    "status": "VALID AS CURRENT-MODEL PILOT",
+    "rationale": "TITLE_ONLY and STRUCTURED_CONTEXT were both scored against the same currently verified real-model service; their relative comparison remains valid as a current-model pilot. It must not use the historical fallback artifact as a semantic baseline or claim final effectiveness."
+  },
+  "limitations": [
+    "Direct verification used currently installed package versions rather than the historical pinned environment, but it exactly matched the live service for every traced case.",
+    "The current health endpoint cannot independently disclose fallback/runtime mode; direct model agreement supplies the runtime evidence for the traced pairs.",
+    "The pilot dataset remains manually constructed and is not lecturer-reviewed ground truth."
+  ]
+}

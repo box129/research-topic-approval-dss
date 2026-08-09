@@ -10,6 +10,7 @@
     "test:coverage": "jest --coverage --coverageReporters=text --coverageReporters=html",
     "import:fixture": "node scripts/generate-import-sample-fixture.js",
     "evaluate:topics": "node scripts/run-topic-evaluation.js",
+    "evaluate:sbert-input-representations": "node scripts/run-sbert-input-representation-pilot.js",
     "audit:data-quality": "node scripts/run-topic-data-quality-audit.js",
     "validate:lecturer-benchmark": "node scripts/validate-lecturer-benchmark.js",
     "prisma:generate": "prisma generate",
