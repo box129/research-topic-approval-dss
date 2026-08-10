@@ -1,0 +1,6153 @@
+{
+  "experiment": {
+    "id": "expanded-semantic-model-evaluation",
+    "generatedAt": "2026-08-10T17:23:47.213Z",
+    "commitHash": "c06db5a",
+    "scope": "Evaluation only; no production selection."
+  },
+  "benchmark": {
+    "path": "backend/evaluation/datasets/expanded-semantic-benchmark.json",
+    "sha256Before": "b8e295e5a08c13f31d139b726105dc0f03a246243d2a7883938c2e425f5ea3c0",
+    "support": {
+      "LOW": 39,
+      "MEDIUM": 41,
+      "HIGH": 40
+    },
+    "totalCases": 120,
+    "missingContextPairs": 15,
+    "provenance": {
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "created_for": "Expanded semantic similarity evaluation design",
+      "validation_status": "not_department_expert_validated",
+      "notes": [
+        "This is technical evaluation data, not lecturer-reviewed or departmental ground truth.",
+        "Cases were constructed before expanded model evaluation to reduce leakage."
+      ]
+    },
+    "sha256After": "b8e295e5a08c13f31d139b726105dc0f03a246243d2a7883938c2e425f5ea3c0"
+  },
+  "representation": {
+    "canonical": "Title: <title>\\nPopulation: <population>\\nLocation: <location>\\nStudy focus: <study_focus>",
+    "blankFields": "omitted"
+  },
+  "inputDeduplication": {
+    "totalTopicSides": 240,
+    "uniqueCanonicalInputs": 229,
+    "duplicatesAvoided": 11
+  },
+  "models": {
+    "sbert": {
+      "provider": {
+        "name": "SBERT",
+        "model": "sentence-transformers/all-MiniLM-L6-v2"
+      },
+      "status": "SUCCESS",
+      "dimension": 384,
+      "storage": {
+        "float32BytesPerEmbedding": 1536,
+        "float32BytesFor5000Embeddings": 7680000,
+        "excludes": [
+          "PostgreSQL row overhead",
+          "pgvector index overhead",
+          "metadata",
+          "replication",
+          "page/storage overhead"
+        ]
+      },
+      "rawCaseResults": [
+        {
+          "id": "expanded-low-001",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.095468
+          }
+        },
+        {
+          "id": "expanded-low-002",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.573052
+          }
+        },
+        {
+          "id": "expanded-low-003",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.61453
+          }
+        },
+        {
+          "id": "expanded-low-004",
+          "expected_class": "LOW",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.714301
+          }
+        },
+        {
+          "id": "expanded-low-005",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": true,
+          "scores": {
+            "sbert": 0.552177
+          }
+        },
+        {
+          "id": "expanded-low-006",
+          "expected_class": "LOW",
+          "category": "shared_terminology",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.421117
+          }
+        },
+        {
+          "id": "expanded-low-007",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.254065
+          }
+        },
+        {
+          "id": "expanded-low-008",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": true,
+          "scores": {
+            "sbert": 0.474363
+          }
+        },
+        {
+          "id": "expanded-low-009",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.448807
+          }
+        },
+        {
+          "id": "expanded-low-010",
+          "expected_class": "MEDIUM",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.727395
+          }
+        },
+        {
+          "id": "expanded-low-011",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.581752
+          }
+        },
+        {
+          "id": "expanded-low-012",
+          "expected_class": "LOW",
+          "category": "shared_terminology",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.560429
+          }
+        },
+        {
+          "id": "expanded-low-013",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.194154
+          }
+        },
+        {
+          "id": "expanded-low-014",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.51224
+          }
+        },
+        {
+          "id": "expanded-low-015",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.372273
+          }
+        },
+        {
+          "id": "expanded-low-016",
+          "expected_class": "MEDIUM",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.704019
+          }
+        },
+        {
+          "id": "expanded-low-017",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": true,
+          "scores": {
+            "sbert": 0.45341
+          }
+        },
+        {
+          "id": "expanded-low-018",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.481544
+          }
+        },
+        {
+          "id": "expanded-low-019",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.268283
+          }
+        },
+        {
+          "id": "expanded-low-020",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.585335
+          }
+        },
+        {
+          "id": "expanded-low-021",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.680329
+          }
+        },
+        {
+          "id": "expanded-low-022",
+          "expected_class": "LOW",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.48697
+          }
+        },
+        {
+          "id": "expanded-low-023",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.499593
+          }
+        },
+        {
+          "id": "expanded-low-024",
+          "expected_class": "LOW",
+          "category": "shared_terminology",
+          "incomplete_context": true,
+          "scores": {
+            "sbert": 0.620772
+          }
+        },
+        {
+          "id": "expanded-low-025",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.339712
+          }
+        },
+        {
+          "id": "expanded-low-026",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.518273
+          }
+        },
+        {
+          "id": "expanded-low-027",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.505067
+          }
+        },
+        {
+          "id": "expanded-low-028",
+          "expected_class": "LOW",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.674913
+          }
+        },
+        {
+          "id": "expanded-low-029",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.53163
+          }
+        },
+        {
+          "id": "expanded-low-030",
+          "expected_class": "LOW",
+          "category": "shared_terminology",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.457167
+          }
+        },
+        {
+          "id": "expanded-low-031",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.314778
+          }
+        },
+        {
+          "id": "expanded-low-032",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.523523
+          }
+        },
+        {
+          "id": "expanded-low-033",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.516345
+          }
+        },
+        {
+          "id": "expanded-low-034",
+          "expected_class": "LOW",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.615219
+          }
+        },
+        {
+          "id": "expanded-low-035",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.522642
+          }
+        },
+        {
+          "id": "expanded-low-036",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": true,
+          "scores": {
+            "sbert": 0.255015
+          }
+        },
+        {
+          "id": "expanded-low-037",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.326737
+          }
+        },
+        {
+          "id": "expanded-low-038",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.480935
+          }
+        },
+        {
+          "id": "expanded-low-039",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.453933
+          }
+        },
+        {
+          "id": "expanded-low-040",
+          "expected_class": "MEDIUM",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.485438
+          }
+        },
+        {
+          "id": "expanded-medium-001",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": true,
+          "scores": {
+            "sbert": 0.589842
+          }
+        },
+        {
+          "id": "expanded-medium-002",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.909851
+          }
+        },
+        {
+          "id": "expanded-medium-003",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.783029
+          }
+        },
+        {
+          "id": "expanded-medium-004",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.815573
+          }
+        },
+        {
+          "id": "expanded-medium-005",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.740788
+          }
+        },
+        {
+          "id": "expanded-medium-006",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.635324
+          }
+        },
+        {
+          "id": "expanded-medium-007",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.909394
+          }
+        },
+        {
+          "id": "expanded-medium-008",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": true,
+          "scores": {
+            "sbert": 0.868339
+          }
+        },
+        {
+          "id": "expanded-medium-009",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.913802
+          }
+        },
+        {
+          "id": "expanded-medium-010",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.694317
+          }
+        },
+        {
+          "id": "expanded-medium-011",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.610499
+          }
+        },
+        {
+          "id": "expanded-medium-012",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.912124
+          }
+        },
+        {
+          "id": "expanded-medium-013",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.770464
+          }
+        },
+        {
+          "id": "expanded-medium-014",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.946954
+          }
+        },
+        {
+          "id": "expanded-medium-015",
+          "expected_class": "LOW",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": true,
+          "scores": {
+            "sbert": 0.572439
+          }
+        },
+        {
+          "id": "expanded-medium-016",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.607045
+          }
+        },
+        {
+          "id": "expanded-medium-017",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.659187
+          }
+        },
+        {
+          "id": "expanded-medium-018",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.913665
+          }
+        },
+        {
+          "id": "expanded-medium-019",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.793427
+          }
+        },
+        {
+          "id": "expanded-medium-020",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.98067
+          }
+        },
+        {
+          "id": "expanded-medium-021",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.782955
+          }
+        },
+        {
+          "id": "expanded-medium-022",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.80438
+          }
+        },
+        {
+          "id": "expanded-medium-023",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.666117
+          }
+        },
+        {
+          "id": "expanded-medium-024",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": true,
+          "scores": {
+            "sbert": 0.821842
+          }
+        },
+        {
+          "id": "expanded-medium-025",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.806411
+          }
+        },
+        {
+          "id": "expanded-medium-026",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.953446
+          }
+        },
+        {
+          "id": "expanded-medium-027",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.792481
+          }
+        },
+        {
+          "id": "expanded-medium-028",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.822535
+          }
+        },
+        {
+          "id": "expanded-medium-029",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.801443
+          }
+        },
+        {
+          "id": "expanded-medium-030",
+          "expected_class": "LOW",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.635861
+          }
+        },
+        {
+          "id": "expanded-medium-031",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.764472
+          }
+        },
+        {
+          "id": "expanded-medium-032",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.920025
+          }
+        },
+        {
+          "id": "expanded-medium-033",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.744603
+          }
+        },
+        {
+          "id": "expanded-medium-034",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.941319
+          }
+        },
+        {
+          "id": "expanded-medium-035",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.786722
+          }
+        },
+        {
+          "id": "expanded-medium-036",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.898034
+          }
+        },
+        {
+          "id": "expanded-medium-037",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.791039
+          }
+        },
+        {
+          "id": "expanded-medium-038",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.990152
+          }
+        },
+        {
+          "id": "expanded-medium-039",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.652384
+          }
+        },
+        {
+          "id": "expanded-medium-040",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": true,
+          "scores": {
+            "sbert": 0.824297
+          }
+        },
+        {
+          "id": "expanded-high-001",
+          "expected_class": "HIGH",
+          "category": "exact_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 1
+          }
+        },
+        {
+          "id": "expanded-high-002",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.901123
+          }
+        },
+        {
+          "id": "expanded-high-003",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": true,
+          "scores": {
+            "sbert": 0.795689
+          }
+        },
+        {
+          "id": "expanded-high-004",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.872419
+          }
+        },
+        {
+          "id": "expanded-high-005",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.91778
+          }
+        },
+        {
+          "id": "expanded-high-006",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.976
+          }
+        },
+        {
+          "id": "expanded-high-007",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.781088
+          }
+        },
+        {
+          "id": "expanded-high-008",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.934439
+          }
+        },
+        {
+          "id": "expanded-high-009",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.972472
+          }
+        },
+        {
+          "id": "expanded-high-010",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": true,
+          "scores": {
+            "sbert": 0.840525
+          }
+        },
+        {
+          "id": "expanded-high-011",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.981157
+          }
+        },
+        {
+          "id": "expanded-high-012",
+          "expected_class": "HIGH",
+          "category": "exact_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 1
+          }
+        },
+        {
+          "id": "expanded-high-013",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.852777
+          }
+        },
+        {
+          "id": "expanded-high-014",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": true,
+          "scores": {
+            "sbert": 0.938646
+          }
+        },
+        {
+          "id": "expanded-high-015",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.923422
+          }
+        },
+        {
+          "id": "expanded-high-016",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.93451
+          }
+        },
+        {
+          "id": "expanded-high-017",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.989474
+          }
+        },
+        {
+          "id": "expanded-high-018",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.914144
+          }
+        },
+        {
+          "id": "expanded-high-019",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.955629
+          }
+        },
+        {
+          "id": "expanded-high-020",
+          "expected_class": "HIGH",
+          "category": "exact_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 1
+          }
+        },
+        {
+          "id": "expanded-high-021",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.899346
+          }
+        },
+        {
+          "id": "expanded-high-022",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.899614
+          }
+        },
+        {
+          "id": "expanded-high-023",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.97422
+          }
+        },
+        {
+          "id": "expanded-high-024",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.922752
+          }
+        },
+        {
+          "id": "expanded-high-025",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.845392
+          }
+        },
+        {
+          "id": "expanded-high-026",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.939163
+          }
+        },
+        {
+          "id": "expanded-high-027",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": true,
+          "scores": {
+            "sbert": 0.847481
+          }
+        },
+        {
+          "id": "expanded-high-028",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.841163
+          }
+        },
+        {
+          "id": "expanded-high-029",
+          "expected_class": "HIGH",
+          "category": "exact_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 1
+          }
+        },
+        {
+          "id": "expanded-high-030",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.908463
+          }
+        },
+        {
+          "id": "expanded-high-031",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.957759
+          }
+        },
+        {
+          "id": "expanded-high-032",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.903827
+          }
+        },
+        {
+          "id": "expanded-high-033",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.870294
+          }
+        },
+        {
+          "id": "expanded-high-034",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.91123
+          }
+        },
+        {
+          "id": "expanded-high-035",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.965146
+          }
+        },
+        {
+          "id": "expanded-high-036",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.935816
+          }
+        },
+        {
+          "id": "expanded-high-037",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.949053
+          }
+        },
+        {
+          "id": "expanded-high-038",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.969266
+          }
+        },
+        {
+          "id": "expanded-high-039",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "sbert": 0.934332
+          }
+        },
+        {
+          "id": "expanded-high-040",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": true,
+          "scores": {
+            "sbert": 0.89983
+          }
+        }
+      ],
+      "metrics": {
+        "classStatistics": {
+          "LOW": {
+            "support": 39,
+            "mean": 0.479209,
+            "median": 0.505067,
+            "minimum": 0.095468,
+            "maximum": 0.714301,
+            "standardDeviation": 0.13771
+          },
+          "MEDIUM": {
+            "support": 41,
+            "mean": 0.793556,
+            "median": 0.793427,
+            "minimum": 0.485438,
+            "maximum": 0.990152,
+            "standardDeviation": 0.117231
+          },
+          "HIGH": {
+            "support": 40,
+            "mean": 0.921386,
+            "median": 0.928877,
+            "minimum": 0.781088,
+            "maximum": 1,
+            "standardDeviation": 0.055229
+          }
+        },
+        "spearman": {
+          "support": 120,
+          "coefficient": 0.841858
+        },
+        "concordance": {
+          "HIGH_gt_MEDIUM": {
+            "comparisons": 1640,
+            "correct": 1359,
+            "ties": 0,
+            "rate": 0.828659
+          },
+          "HIGH_gt_LOW": {
+            "comparisons": 1560,
+            "correct": 1560,
+            "ties": 0,
+            "rate": 1
+          },
+          "MEDIUM_gt_LOW": {
+            "comparisons": 1599,
+            "correct": 1541,
+            "ties": 0,
+            "rate": 0.963727
+          },
+          "overall": {
+            "comparisons": 4799,
+            "correct": 4460,
+            "rate": 0.92936
+          }
+        },
+        "classMargins": {
+          "highMinusMedium": 0.12783,
+          "mediumMinusLow": 0.314347,
+          "highMinusLow": 0.442177
+        }
+      },
+      "exploratoryCrossValidatedClassification": {
+        "seed": 20260810,
+        "folds": [
+          {
+            "fold": 1,
+            "trainingCases": 95,
+            "heldOutCases": 25,
+            "t1": 0.644122,
+            "t2": 0.832411,
+            "trainingMacroF1": 0.814483
+          },
+          {
+            "fold": 2,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.59619,
+            "t2": 0.832411,
+            "trainingMacroF1": 0.833199
+          },
+          {
+            "fold": 3,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.628048,
+            "t2": 0.831849,
+            "trainingMacroF1": 0.810105
+          },
+          {
+            "fold": 4,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.585797,
+            "t2": 0.832411,
+            "trainingMacroF1": 0.790142
+          },
+          {
+            "fold": 5,
+            "trainingCases": 97,
+            "heldOutCases": 23,
+            "t1": 0.587589,
+            "t2": 0.832411,
+            "trainingMacroF1": 0.803481
+          }
+        ],
+        "overall": {
+          "accuracy": 0.783333,
+          "macroPrecision": 0.787087,
+          "macroRecall": 0.785293,
+          "macroF1": 0.779049
+        },
+        "perClass": {
+          "LOW": {
+            "precision": 0.888889,
+            "recall": 0.820513,
+            "f1": 0.853333
+          },
+          "MEDIUM": {
+            "precision": 0.727273,
+            "recall": 0.585366,
+            "f1": 0.648649
+          },
+          "HIGH": {
+            "precision": 0.745098,
+            "recall": 0.95,
+            "f1": 0.835165
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 32,
+            "MEDIUM": 7,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 4,
+            "MEDIUM": 24,
+            "HIGH": 13
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 2,
+            "HIGH": 38
+          }
+        }
+      },
+      "completeVsIncomplete": {
+        "complete": {
+          "caseCount": 105,
+          "metrics": {
+            "classStatistics": {
+              "LOW": {
+                "support": 33,
+                "mean": 0.477605,
+                "median": 0.505067,
+                "minimum": 0.095468,
+                "maximum": 0.714301,
+                "standardDeviation": 0.140832
+              },
+              "MEDIUM": {
+                "support": 37,
+                "mean": 0.795445,
+                "median": 0.792481,
+                "minimum": 0.485438,
+                "maximum": 0.990152,
+                "standardDeviation": 0.117921
+              },
+              "HIGH": {
+                "support": 35,
+                "mean": 0.929522,
+                "median": 0.934439,
+                "minimum": 0.781088,
+                "maximum": 1,
+                "standardDeviation": 0.051026
+              }
+            },
+            "spearman": {
+              "support": 105,
+              "coefficient": 0.840432
+            },
+            "concordance": {
+              "HIGH_gt_MEDIUM": {
+                "comparisons": 1295,
+                "correct": 1082,
+                "ties": 0,
+                "rate": 0.835521
+              },
+              "HIGH_gt_LOW": {
+                "comparisons": 1155,
+                "correct": 1155,
+                "ties": 0,
+                "rate": 1
+              },
+              "MEDIUM_gt_LOW": {
+                "comparisons": 1221,
+                "correct": 1175,
+                "ties": 0,
+                "rate": 0.962326
+              },
+              "overall": {
+                "comparisons": 3671,
+                "correct": 3412,
+                "rate": 0.929447
+              }
+            },
+            "classMargins": {
+              "highMinusMedium": 0.134077,
+              "mediumMinusLow": 0.31784,
+              "highMinusLow": 0.451917
+            }
+          }
+        },
+        "incomplete": {
+          "caseCount": 15,
+          "metrics": {
+            "classStatistics": {
+              "LOW": {
+                "support": 6,
+                "mean": 0.488029,
+                "median": 0.51327,
+                "minimum": 0.255015,
+                "maximum": 0.620772,
+                "standardDeviation": 0.118702
+              },
+              "MEDIUM": {
+                "support": 4,
+                "mean": 0.77608,
+                "median": 0.823069,
+                "minimum": 0.589842,
+                "maximum": 0.868339,
+                "standardDeviation": 0.109105
+              },
+              "HIGH": {
+                "support": 5,
+                "mean": 0.864434,
+                "median": 0.847481,
+                "minimum": 0.795689,
+                "maximum": 0.938646,
+                "standardDeviation": 0.049689
+              }
+            },
+            "spearman": {
+              "support": 15,
+              "coefficient": 0.835711
+            },
+            "concordance": {
+              "HIGH_gt_MEDIUM": {
+                "comparisons": 20,
+                "correct": 15,
+                "ties": 0,
+                "rate": 0.75
+              },
+              "HIGH_gt_LOW": {
+                "comparisons": 30,
+                "correct": 30,
+                "ties": 0,
+                "rate": 1
+              },
+              "MEDIUM_gt_LOW": {
+                "comparisons": 24,
+                "correct": 23,
+                "ties": 0,
+                "rate": 0.958333
+              },
+              "overall": {
+                "comparisons": 74,
+                "correct": 68,
+                "rate": 0.918919
+              }
+            },
+            "classMargins": {
+              "highMinusMedium": 0.088354,
+              "mediumMinusLow": 0.288051,
+              "highMinusLow": 0.376405
+            }
+          }
+        },
+        "meanDeltaByClass": {
+          "LOW": 0.010424,
+          "MEDIUM": -0.019365,
+          "HIGH": -0.065088
+        }
+      },
+      "scenarioAnalysis": {
+        "clearly_unrelated": {
+          "support": 7,
+          "mean": 0.256171,
+          "orderingFailures": []
+        },
+        "misleading_lexical_overlap": {
+          "support": 9,
+          "mean": 0.489364,
+          "orderingFailures": []
+        },
+        "same_context_unrelated_focus": {
+          "support": 7,
+          "mean": 0.513041,
+          "orderingFailures": []
+        },
+        "broad_disease_different_question": {
+          "support": 7,
+          "mean": 0.629751,
+          "orderingFailures": []
+        },
+        "generic_public_health_overlap": {
+          "support": 6,
+          "mean": 0.523534,
+          "orderingFailures": []
+        },
+        "shared_terminology": {
+          "support": 4,
+          "mean": 0.514871,
+          "orderingFailures": []
+        },
+        "same_disease_different_population": {
+          "support": 7,
+          "mean": 0.775007,
+          "orderingFailures": []
+        },
+        "same_disease_different_location": {
+          "support": 7,
+          "mean": 0.938491,
+          "orderingFailures": []
+        },
+        "similar_intervention_different_context": {
+          "support": 6,
+          "mean": 0.764885,
+          "orderingFailures": []
+        },
+        "related_focus_same_context": {
+          "support": 8,
+          "mean": 0.770231,
+          "orderingFailures": []
+        },
+        "related_outcome": {
+          "support": 6,
+          "mean": 0.710793,
+          "orderingFailures": []
+        },
+        "lexical_context_distinction": {
+          "support": 6,
+          "mean": 0.802808,
+          "orderingFailures": []
+        },
+        "exact_duplicate": {
+          "support": 4,
+          "mean": 1,
+          "orderingFailures": []
+        },
+        "near_duplicate": {
+          "support": 6,
+          "mean": 0.92689,
+          "orderingFailures": []
+        },
+        "paraphrase": {
+          "support": 7,
+          "mean": 0.894869,
+          "orderingFailures": []
+        },
+        "synonym_substitution": {
+          "support": 6,
+          "mean": 0.884296,
+          "orderingFailures": []
+        },
+        "rephrased_wording": {
+          "support": 6,
+          "mean": 0.933059,
+          "orderingFailures": []
+        },
+        "fragmented_title": {
+          "support": 5,
+          "mean": 0.963178,
+          "orderingFailures": []
+        },
+        "documentation_difference": {
+          "support": 6,
+          "mean": 0.884999,
+          "orderingFailures": []
+        }
+      },
+      "embeddingSource": "fresh_execution",
+      "checkpointCreatedAt": null,
+      "execution": {
+        "method": "direct SentenceTransformer",
+        "environment": {
+          "python": "3.14.0",
+          "sentenceTransformers": "5.2.3",
+          "torch": "2.10.0+cpu",
+          "platform": "Windows-11-10.0.26200-SP0"
+        },
+        "wallClockMilliseconds": 30204,
+        "verifiedRealModel": true,
+        "noHashFallback": true
+      },
+      "consumption": {
+        "apiRequests": 0,
+        "embeddingInputs": 229,
+        "successfulRequests": 0,
+        "failures": 0,
+        "retries": 0,
+        "retryEvents": []
+      }
+    },
+    "openai": {
+      "provider": {
+        "name": "OpenAI",
+        "model": "text-embedding-3-large",
+        "keyEnv": "OPENAI_API_KEY",
+        "pricePerMillionTokens": 0.13
+      },
+      "status": "SUCCESS",
+      "dimension": 3072,
+      "storage": {
+        "float32BytesPerEmbedding": 12288,
+        "float32BytesFor5000Embeddings": 61440000,
+        "excludes": [
+          "PostgreSQL row overhead",
+          "pgvector index overhead",
+          "metadata",
+          "replication",
+          "page/storage overhead"
+        ]
+      },
+      "rawCaseResults": [
+        {
+          "id": "expanded-low-001",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.405711
+          }
+        },
+        {
+          "id": "expanded-low-002",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.830477
+          }
+        },
+        {
+          "id": "expanded-low-003",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.790323
+          }
+        },
+        {
+          "id": "expanded-low-004",
+          "expected_class": "LOW",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.81941
+          }
+        },
+        {
+          "id": "expanded-low-005",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": true,
+          "scores": {
+            "openai": 0.676108
+          }
+        },
+        {
+          "id": "expanded-low-006",
+          "expected_class": "LOW",
+          "category": "shared_terminology",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.622387
+          }
+        },
+        {
+          "id": "expanded-low-007",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.554398
+          }
+        },
+        {
+          "id": "expanded-low-008",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": true,
+          "scores": {
+            "openai": 0.723843
+          }
+        },
+        {
+          "id": "expanded-low-009",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.71833
+          }
+        },
+        {
+          "id": "expanded-low-010",
+          "expected_class": "MEDIUM",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.852825
+          }
+        },
+        {
+          "id": "expanded-low-011",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.733395
+          }
+        },
+        {
+          "id": "expanded-low-012",
+          "expected_class": "LOW",
+          "category": "shared_terminology",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.707668
+          }
+        },
+        {
+          "id": "expanded-low-013",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.522325
+          }
+        },
+        {
+          "id": "expanded-low-014",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.775507
+          }
+        },
+        {
+          "id": "expanded-low-015",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.749852
+          }
+        },
+        {
+          "id": "expanded-low-016",
+          "expected_class": "MEDIUM",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.827666
+          }
+        },
+        {
+          "id": "expanded-low-017",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": true,
+          "scores": {
+            "openai": 0.55566
+          }
+        },
+        {
+          "id": "expanded-low-018",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.710938
+          }
+        },
+        {
+          "id": "expanded-low-019",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.518221
+          }
+        },
+        {
+          "id": "expanded-low-020",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.827383
+          }
+        },
+        {
+          "id": "expanded-low-021",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.816404
+          }
+        },
+        {
+          "id": "expanded-low-022",
+          "expected_class": "LOW",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.705759
+          }
+        },
+        {
+          "id": "expanded-low-023",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.659455
+          }
+        },
+        {
+          "id": "expanded-low-024",
+          "expected_class": "LOW",
+          "category": "shared_terminology",
+          "incomplete_context": true,
+          "scores": {
+            "openai": 0.731343
+          }
+        },
+        {
+          "id": "expanded-low-025",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.637442
+          }
+        },
+        {
+          "id": "expanded-low-026",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.716338
+          }
+        },
+        {
+          "id": "expanded-low-027",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.739303
+          }
+        },
+        {
+          "id": "expanded-low-028",
+          "expected_class": "LOW",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.700746
+          }
+        },
+        {
+          "id": "expanded-low-029",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.787977
+          }
+        },
+        {
+          "id": "expanded-low-030",
+          "expected_class": "LOW",
+          "category": "shared_terminology",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.759182
+          }
+        },
+        {
+          "id": "expanded-low-031",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.573905
+          }
+        },
+        {
+          "id": "expanded-low-032",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.666909
+          }
+        },
+        {
+          "id": "expanded-low-033",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.715444
+          }
+        },
+        {
+          "id": "expanded-low-034",
+          "expected_class": "LOW",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.756084
+          }
+        },
+        {
+          "id": "expanded-low-035",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.684563
+          }
+        },
+        {
+          "id": "expanded-low-036",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": true,
+          "scores": {
+            "openai": 0.640471
+          }
+        },
+        {
+          "id": "expanded-low-037",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.54712
+          }
+        },
+        {
+          "id": "expanded-low-038",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.683529
+          }
+        },
+        {
+          "id": "expanded-low-039",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.647792
+          }
+        },
+        {
+          "id": "expanded-low-040",
+          "expected_class": "MEDIUM",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.635172
+          }
+        },
+        {
+          "id": "expanded-medium-001",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": true,
+          "scores": {
+            "openai": 0.756507
+          }
+        },
+        {
+          "id": "expanded-medium-002",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.957988
+          }
+        },
+        {
+          "id": "expanded-medium-003",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.879663
+          }
+        },
+        {
+          "id": "expanded-medium-004",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.867198
+          }
+        },
+        {
+          "id": "expanded-medium-005",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.899822
+          }
+        },
+        {
+          "id": "expanded-medium-006",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.914562
+          }
+        },
+        {
+          "id": "expanded-medium-007",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.920711
+          }
+        },
+        {
+          "id": "expanded-medium-008",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": true,
+          "scores": {
+            "openai": 0.863618
+          }
+        },
+        {
+          "id": "expanded-medium-009",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.920712
+          }
+        },
+        {
+          "id": "expanded-medium-010",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.844446
+          }
+        },
+        {
+          "id": "expanded-medium-011",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.827453
+          }
+        },
+        {
+          "id": "expanded-medium-012",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.946081
+          }
+        },
+        {
+          "id": "expanded-medium-013",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.813109
+          }
+        },
+        {
+          "id": "expanded-medium-014",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.937199
+          }
+        },
+        {
+          "id": "expanded-medium-015",
+          "expected_class": "LOW",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": true,
+          "scores": {
+            "openai": 0.675957
+          }
+        },
+        {
+          "id": "expanded-medium-016",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.880931
+          }
+        },
+        {
+          "id": "expanded-medium-017",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.865454
+          }
+        },
+        {
+          "id": "expanded-medium-018",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.888459
+          }
+        },
+        {
+          "id": "expanded-medium-019",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.810025
+          }
+        },
+        {
+          "id": "expanded-medium-020",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.969888
+          }
+        },
+        {
+          "id": "expanded-medium-021",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.859066
+          }
+        },
+        {
+          "id": "expanded-medium-022",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.851008
+          }
+        },
+        {
+          "id": "expanded-medium-023",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.874022
+          }
+        },
+        {
+          "id": "expanded-medium-024",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": true,
+          "scores": {
+            "openai": 0.836439
+          }
+        },
+        {
+          "id": "expanded-medium-025",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.841876
+          }
+        },
+        {
+          "id": "expanded-medium-026",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.916469
+          }
+        },
+        {
+          "id": "expanded-medium-027",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.898494
+          }
+        },
+        {
+          "id": "expanded-medium-028",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.859747
+          }
+        },
+        {
+          "id": "expanded-medium-029",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.934218
+          }
+        },
+        {
+          "id": "expanded-medium-030",
+          "expected_class": "LOW",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.773361
+          }
+        },
+        {
+          "id": "expanded-medium-031",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.844251
+          }
+        },
+        {
+          "id": "expanded-medium-032",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.955717
+          }
+        },
+        {
+          "id": "expanded-medium-033",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.793166
+          }
+        },
+        {
+          "id": "expanded-medium-034",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.940028
+          }
+        },
+        {
+          "id": "expanded-medium-035",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.859637
+          }
+        },
+        {
+          "id": "expanded-medium-036",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.935779
+          }
+        },
+        {
+          "id": "expanded-medium-037",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.865835
+          }
+        },
+        {
+          "id": "expanded-medium-038",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.974686
+          }
+        },
+        {
+          "id": "expanded-medium-039",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.812856
+          }
+        },
+        {
+          "id": "expanded-medium-040",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": true,
+          "scores": {
+            "openai": 0.804901
+          }
+        },
+        {
+          "id": "expanded-high-001",
+          "expected_class": "HIGH",
+          "category": "exact_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 1
+          }
+        },
+        {
+          "id": "expanded-high-002",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.936958
+          }
+        },
+        {
+          "id": "expanded-high-003",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": true,
+          "scores": {
+            "openai": 0.789052
+          }
+        },
+        {
+          "id": "expanded-high-004",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.912162
+          }
+        },
+        {
+          "id": "expanded-high-005",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.931409
+          }
+        },
+        {
+          "id": "expanded-high-006",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.965773
+          }
+        },
+        {
+          "id": "expanded-high-007",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.938418
+          }
+        },
+        {
+          "id": "expanded-high-008",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.949223
+          }
+        },
+        {
+          "id": "expanded-high-009",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.971403
+          }
+        },
+        {
+          "id": "expanded-high-010",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": true,
+          "scores": {
+            "openai": 0.880626
+          }
+        },
+        {
+          "id": "expanded-high-011",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.972565
+          }
+        },
+        {
+          "id": "expanded-high-012",
+          "expected_class": "HIGH",
+          "category": "exact_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 1
+          }
+        },
+        {
+          "id": "expanded-high-013",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.929599
+          }
+        },
+        {
+          "id": "expanded-high-014",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": true,
+          "scores": {
+            "openai": 0.847425
+          }
+        },
+        {
+          "id": "expanded-high-015",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.927079
+          }
+        },
+        {
+          "id": "expanded-high-016",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.927837
+          }
+        },
+        {
+          "id": "expanded-high-017",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.971699
+          }
+        },
+        {
+          "id": "expanded-high-018",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.926716
+          }
+        },
+        {
+          "id": "expanded-high-019",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.964205
+          }
+        },
+        {
+          "id": "expanded-high-020",
+          "expected_class": "HIGH",
+          "category": "exact_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 1
+          }
+        },
+        {
+          "id": "expanded-high-021",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.913307
+          }
+        },
+        {
+          "id": "expanded-high-022",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.908758
+          }
+        },
+        {
+          "id": "expanded-high-023",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.976762
+          }
+        },
+        {
+          "id": "expanded-high-024",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.941302
+          }
+        },
+        {
+          "id": "expanded-high-025",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.950772
+          }
+        },
+        {
+          "id": "expanded-high-026",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.935021
+          }
+        },
+        {
+          "id": "expanded-high-027",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": true,
+          "scores": {
+            "openai": 0.871406
+          }
+        },
+        {
+          "id": "expanded-high-028",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.903571
+          }
+        },
+        {
+          "id": "expanded-high-029",
+          "expected_class": "HIGH",
+          "category": "exact_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 1
+          }
+        },
+        {
+          "id": "expanded-high-030",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.939186
+          }
+        },
+        {
+          "id": "expanded-high-031",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.960183
+          }
+        },
+        {
+          "id": "expanded-high-032",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.937252
+          }
+        },
+        {
+          "id": "expanded-high-033",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.907123
+          }
+        },
+        {
+          "id": "expanded-high-034",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.9403
+          }
+        },
+        {
+          "id": "expanded-high-035",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.935837
+          }
+        },
+        {
+          "id": "expanded-high-036",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.958838
+          }
+        },
+        {
+          "id": "expanded-high-037",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.96403
+          }
+        },
+        {
+          "id": "expanded-high-038",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.970248
+          }
+        },
+        {
+          "id": "expanded-high-039",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "openai": 0.946716
+          }
+        },
+        {
+          "id": "expanded-high-040",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": true,
+          "scores": {
+            "openai": 0.926768
+          }
+        }
+      ],
+      "metrics": {
+        "classStatistics": {
+          "LOW": {
+            "support": 39,
+            "mean": 0.688744,
+            "median": 0.707668,
+            "minimum": 0.405711,
+            "maximum": 0.830477,
+            "standardDeviation": 0.094818
+          },
+          "MEDIUM": {
+            "support": 41,
+            "mean": 0.871651,
+            "median": 0.865835,
+            "minimum": 0.635172,
+            "maximum": 0.974686,
+            "standardDeviation": 0.06388
+          },
+          "HIGH": {
+            "support": 40,
+            "mean": 0.938238,
+            "median": 0.938802,
+            "minimum": 0.789052,
+            "maximum": 1,
+            "standardDeviation": 0.04117
+          }
+        },
+        "spearman": {
+          "support": 120,
+          "coefficient": 0.832642
+        },
+        "concordance": {
+          "HIGH_gt_MEDIUM": {
+            "comparisons": 1640,
+            "correct": 1342,
+            "ties": 0,
+            "rate": 0.818293
+          },
+          "HIGH_gt_LOW": {
+            "comparisons": 1560,
+            "correct": 1555,
+            "ties": 0,
+            "rate": 0.996795
+          },
+          "MEDIUM_gt_LOW": {
+            "comparisons": 1599,
+            "correct": 1537,
+            "ties": 0,
+            "rate": 0.961226
+          },
+          "overall": {
+            "comparisons": 4799,
+            "correct": 4434,
+            "rate": 0.923942
+          }
+        },
+        "classMargins": {
+          "highMinusMedium": 0.066587,
+          "mediumMinusLow": 0.182907,
+          "highMinusLow": 0.249494
+        }
+      },
+      "exploratoryCrossValidatedClassification": {
+        "seed": 20260810,
+        "folds": [
+          {
+            "fold": 1,
+            "trainingCases": 95,
+            "heldOutCases": 25,
+            "t1": 0.791745,
+            "t2": 0.901033,
+            "trainingMacroF1": 0.831559
+          },
+          {
+            "fold": 2,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.797612,
+            "t2": 0.901697,
+            "trainingMacroF1": 0.833685
+          },
+          {
+            "fold": 3,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.791745,
+            "t2": 0.901697,
+            "trainingMacroF1": 0.811709
+          },
+          {
+            "fold": 4,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.791745,
+            "t2": 0.923714,
+            "trainingMacroF1": 0.782199
+          },
+          {
+            "fold": 5,
+            "trainingCases": 97,
+            "heldOutCases": 23,
+            "t1": 0.78228,
+            "t2": 0.923714,
+            "trainingMacroF1": 0.805629
+          }
+        ],
+        "overall": {
+          "accuracy": 0.75,
+          "macroPrecision": 0.753633,
+          "macroRecall": 0.75197,
+          "macroF1": 0.751424
+        },
+        "perClass": {
+          "LOW": {
+            "precision": 0.891892,
+            "recall": 0.846154,
+            "f1": 0.868421
+          },
+          "MEDIUM": {
+            "precision": 0.657895,
+            "recall": 0.609756,
+            "f1": 0.632911
+          },
+          "HIGH": {
+            "precision": 0.711111,
+            "recall": 0.8,
+            "f1": 0.752941
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 33,
+            "MEDIUM": 6,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 3,
+            "MEDIUM": 25,
+            "HIGH": 13
+          },
+          "HIGH": {
+            "LOW": 1,
+            "MEDIUM": 7,
+            "HIGH": 32
+          }
+        }
+      },
+      "completeVsIncomplete": {
+        "complete": {
+          "caseCount": 105,
+          "metrics": {
+            "classStatistics": {
+              "LOW": {
+                "support": 33,
+                "mean": 0.692656,
+                "median": 0.710938,
+                "minimum": 0.405711,
+                "maximum": 0.830477,
+                "standardDeviation": 0.0995
+              },
+              "MEDIUM": {
+                "support": 37,
+                "mean": 0.877736,
+                "median": 0.874022,
+                "minimum": 0.635172,
+                "maximum": 0.974686,
+                "standardDeviation": 0.063014
+              },
+              "HIGH": {
+                "support": 35,
+                "mean": 0.948979,
+                "median": 0.941302,
+                "minimum": 0.903571,
+                "maximum": 1,
+                "standardDeviation": 0.026908
+              }
+            },
+            "spearman": {
+              "support": 105,
+              "coefficient": 0.851894
+            },
+            "concordance": {
+              "HIGH_gt_MEDIUM": {
+                "comparisons": 1295,
+                "correct": 1109,
+                "ties": 0,
+                "rate": 0.856371
+              },
+              "HIGH_gt_LOW": {
+                "comparisons": 1155,
+                "correct": 1155,
+                "ties": 0,
+                "rate": 1
+              },
+              "MEDIUM_gt_LOW": {
+                "comparisons": 1221,
+                "correct": 1177,
+                "ties": 0,
+                "rate": 0.963964
+              },
+              "overall": {
+                "comparisons": 3671,
+                "correct": 3441,
+                "rate": 0.937347
+              }
+            },
+            "classMargins": {
+              "highMinusMedium": 0.071243,
+              "mediumMinusLow": 0.18508,
+              "highMinusLow": 0.256323
+            }
+          }
+        },
+        "incomplete": {
+          "caseCount": 15,
+          "metrics": {
+            "classStatistics": {
+              "LOW": {
+                "support": 6,
+                "mean": 0.66723,
+                "median": 0.676033,
+                "minimum": 0.55566,
+                "maximum": 0.731343,
+                "standardDeviation": 0.058644
+              },
+              "MEDIUM": {
+                "support": 4,
+                "mean": 0.815366,
+                "median": 0.82067,
+                "minimum": 0.756507,
+                "maximum": 0.863618,
+                "standardDeviation": 0.039832
+              },
+              "HIGH": {
+                "support": 5,
+                "mean": 0.863055,
+                "median": 0.871406,
+                "minimum": 0.789052,
+                "maximum": 0.926768,
+                "standardDeviation": 0.045075
+              }
+            },
+            "spearman": {
+              "support": 15,
+              "coefficient": 0.871798
+            },
+            "concordance": {
+              "HIGH_gt_MEDIUM": {
+                "comparisons": 20,
+                "correct": 16,
+                "ties": 0,
+                "rate": 0.8
+              },
+              "HIGH_gt_LOW": {
+                "comparisons": 30,
+                "correct": 30,
+                "ties": 0,
+                "rate": 1
+              },
+              "MEDIUM_gt_LOW": {
+                "comparisons": 24,
+                "correct": 24,
+                "ties": 0,
+                "rate": 1
+              },
+              "overall": {
+                "comparisons": 74,
+                "correct": 70,
+                "rate": 0.945946
+              }
+            },
+            "classMargins": {
+              "highMinusMedium": 0.047689,
+              "mediumMinusLow": 0.148136,
+              "highMinusLow": 0.195825
+            }
+          }
+        },
+        "meanDeltaByClass": {
+          "LOW": -0.025426,
+          "MEDIUM": -0.06237,
+          "HIGH": -0.085924
+        }
+      },
+      "scenarioAnalysis": {
+        "clearly_unrelated": {
+          "support": 7,
+          "mean": 0.537017,
+          "orderingFailures": []
+        },
+        "misleading_lexical_overlap": {
+          "support": 9,
+          "mean": 0.730599,
+          "orderingFailures": [
+            "expanded-low-002",
+            "expanded-low-020"
+          ]
+        },
+        "same_context_unrelated_focus": {
+          "support": 7,
+          "mean": 0.739635,
+          "orderingFailures": [
+            "expanded-low-021"
+          ]
+        },
+        "broad_disease_different_question": {
+          "support": 7,
+          "mean": 0.756809,
+          "orderingFailures": [
+            "expanded-low-004"
+          ]
+        },
+        "generic_public_health_overlap": {
+          "support": 6,
+          "mean": 0.68286,
+          "orderingFailures": []
+        },
+        "shared_terminology": {
+          "support": 4,
+          "mean": 0.705145,
+          "orderingFailures": []
+        },
+        "same_disease_different_population": {
+          "support": 7,
+          "mean": 0.836045,
+          "orderingFailures": []
+        },
+        "same_disease_different_location": {
+          "support": 7,
+          "mean": 0.939366,
+          "orderingFailures": []
+        },
+        "similar_intervention_different_context": {
+          "support": 6,
+          "mean": 0.837843,
+          "orderingFailures": []
+        },
+        "related_focus_same_context": {
+          "support": 8,
+          "mean": 0.857639,
+          "orderingFailures": []
+        },
+        "related_outcome": {
+          "support": 6,
+          "mean": 0.876768,
+          "orderingFailures": []
+        },
+        "lexical_context_distinction": {
+          "support": 6,
+          "mean": 0.882447,
+          "orderingFailures": []
+        },
+        "exact_duplicate": {
+          "support": 4,
+          "mean": 1,
+          "orderingFailures": []
+        },
+        "near_duplicate": {
+          "support": 6,
+          "mean": 0.955352,
+          "orderingFailures": []
+        },
+        "paraphrase": {
+          "support": 7,
+          "mean": 0.919131,
+          "orderingFailures": []
+        },
+        "synonym_substitution": {
+          "support": 6,
+          "mean": 0.906848,
+          "orderingFailures": []
+        },
+        "rephrased_wording": {
+          "support": 6,
+          "mean": 0.94284,
+          "orderingFailures": []
+        },
+        "fragmented_title": {
+          "support": 5,
+          "mean": 0.944078,
+          "orderingFailures": []
+        },
+        "documentation_difference": {
+          "support": 6,
+          "mean": 0.924163,
+          "orderingFailures": []
+        }
+      },
+      "embeddingSource": "fresh_execution",
+      "checkpointCreatedAt": null,
+      "checkpointRetryEvents": [],
+      "execution": {
+        "wallClockMilliseconds": 8401
+      },
+      "consumption": {
+        "apiRequests": 4,
+        "embeddingInputs": 229,
+        "successfulRequests": 4,
+        "failures": 0,
+        "retries": 0,
+        "retryEvents": [],
+        "reportedInputTokens": 6196,
+        "estimatedListPriceUsd": 0.000805,
+        "pricingSnapshot": "August 2026 list-price snapshot"
+      }
+    },
+    "voyage": {
+      "provider": {
+        "name": "Voyage AI",
+        "model": "voyage-4-large",
+        "keyEnv": "VOYAGE_API_KEY",
+        "pricePerMillionTokens": 0.12
+      },
+      "status": "SUCCESS",
+      "dimension": 1024,
+      "storage": {
+        "float32BytesPerEmbedding": 4096,
+        "float32BytesFor5000Embeddings": 20480000,
+        "excludes": [
+          "PostgreSQL row overhead",
+          "pgvector index overhead",
+          "metadata",
+          "replication",
+          "page/storage overhead"
+        ]
+      },
+      "rawCaseResults": [
+        {
+          "id": "expanded-low-001",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.506436
+          }
+        },
+        {
+          "id": "expanded-low-002",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.865482
+          }
+        },
+        {
+          "id": "expanded-low-003",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.863742
+          }
+        },
+        {
+          "id": "expanded-low-004",
+          "expected_class": "LOW",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.803632
+          }
+        },
+        {
+          "id": "expanded-low-005",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": true,
+          "scores": {
+            "voyage": 0.663302
+          }
+        },
+        {
+          "id": "expanded-low-006",
+          "expected_class": "LOW",
+          "category": "shared_terminology",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.675377
+          }
+        },
+        {
+          "id": "expanded-low-007",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.575265
+          }
+        },
+        {
+          "id": "expanded-low-008",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": true,
+          "scores": {
+            "voyage": 0.749723
+          }
+        },
+        {
+          "id": "expanded-low-009",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.760461
+          }
+        },
+        {
+          "id": "expanded-low-010",
+          "expected_class": "MEDIUM",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.877856
+          }
+        },
+        {
+          "id": "expanded-low-011",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.741792
+          }
+        },
+        {
+          "id": "expanded-low-012",
+          "expected_class": "LOW",
+          "category": "shared_terminology",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.734465
+          }
+        },
+        {
+          "id": "expanded-low-013",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.553382
+          }
+        },
+        {
+          "id": "expanded-low-014",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.785894
+          }
+        },
+        {
+          "id": "expanded-low-015",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.758376
+          }
+        },
+        {
+          "id": "expanded-low-016",
+          "expected_class": "MEDIUM",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.870685
+          }
+        },
+        {
+          "id": "expanded-low-017",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": true,
+          "scores": {
+            "voyage": 0.685183
+          }
+        },
+        {
+          "id": "expanded-low-018",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.717138
+          }
+        },
+        {
+          "id": "expanded-low-019",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.625226
+          }
+        },
+        {
+          "id": "expanded-low-020",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.827618
+          }
+        },
+        {
+          "id": "expanded-low-021",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.81378
+          }
+        },
+        {
+          "id": "expanded-low-022",
+          "expected_class": "LOW",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.719139
+          }
+        },
+        {
+          "id": "expanded-low-023",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.6905
+          }
+        },
+        {
+          "id": "expanded-low-024",
+          "expected_class": "LOW",
+          "category": "shared_terminology",
+          "incomplete_context": true,
+          "scores": {
+            "voyage": 0.714038
+          }
+        },
+        {
+          "id": "expanded-low-025",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.646091
+          }
+        },
+        {
+          "id": "expanded-low-026",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.759913
+          }
+        },
+        {
+          "id": "expanded-low-027",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.805841
+          }
+        },
+        {
+          "id": "expanded-low-028",
+          "expected_class": "LOW",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.803217
+          }
+        },
+        {
+          "id": "expanded-low-029",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.778336
+          }
+        },
+        {
+          "id": "expanded-low-030",
+          "expected_class": "LOW",
+          "category": "shared_terminology",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.717326
+          }
+        },
+        {
+          "id": "expanded-low-031",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.613792
+          }
+        },
+        {
+          "id": "expanded-low-032",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.68397
+          }
+        },
+        {
+          "id": "expanded-low-033",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.778806
+          }
+        },
+        {
+          "id": "expanded-low-034",
+          "expected_class": "LOW",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.793209
+          }
+        },
+        {
+          "id": "expanded-low-035",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.692286
+          }
+        },
+        {
+          "id": "expanded-low-036",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": true,
+          "scores": {
+            "voyage": 0.653694
+          }
+        },
+        {
+          "id": "expanded-low-037",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.602591
+          }
+        },
+        {
+          "id": "expanded-low-038",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.690952
+          }
+        },
+        {
+          "id": "expanded-low-039",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.71353
+          }
+        },
+        {
+          "id": "expanded-low-040",
+          "expected_class": "MEDIUM",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.706429
+          }
+        },
+        {
+          "id": "expanded-medium-001",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": true,
+          "scores": {
+            "voyage": 0.835114
+          }
+        },
+        {
+          "id": "expanded-medium-002",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.975121
+          }
+        },
+        {
+          "id": "expanded-medium-003",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.931292
+          }
+        },
+        {
+          "id": "expanded-medium-004",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.91445
+          }
+        },
+        {
+          "id": "expanded-medium-005",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.89272
+          }
+        },
+        {
+          "id": "expanded-medium-006",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.906207
+          }
+        },
+        {
+          "id": "expanded-medium-007",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.925307
+          }
+        },
+        {
+          "id": "expanded-medium-008",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": true,
+          "scores": {
+            "voyage": 0.910899
+          }
+        },
+        {
+          "id": "expanded-medium-009",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.949182
+          }
+        },
+        {
+          "id": "expanded-medium-010",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.88723
+          }
+        },
+        {
+          "id": "expanded-medium-011",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.863097
+          }
+        },
+        {
+          "id": "expanded-medium-012",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.962163
+          }
+        },
+        {
+          "id": "expanded-medium-013",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.871057
+          }
+        },
+        {
+          "id": "expanded-medium-014",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.97471
+          }
+        },
+        {
+          "id": "expanded-medium-015",
+          "expected_class": "LOW",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": true,
+          "scores": {
+            "voyage": 0.751709
+          }
+        },
+        {
+          "id": "expanded-medium-016",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.895722
+          }
+        },
+        {
+          "id": "expanded-medium-017",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.908317
+          }
+        },
+        {
+          "id": "expanded-medium-018",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.944661
+          }
+        },
+        {
+          "id": "expanded-medium-019",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.875822
+          }
+        },
+        {
+          "id": "expanded-medium-020",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.98351
+          }
+        },
+        {
+          "id": "expanded-medium-021",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.849705
+          }
+        },
+        {
+          "id": "expanded-medium-022",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.881922
+          }
+        },
+        {
+          "id": "expanded-medium-023",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.893718
+          }
+        },
+        {
+          "id": "expanded-medium-024",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": true,
+          "scores": {
+            "voyage": 0.886743
+          }
+        },
+        {
+          "id": "expanded-medium-025",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.90114
+          }
+        },
+        {
+          "id": "expanded-medium-026",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.979209
+          }
+        },
+        {
+          "id": "expanded-medium-027",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.920344
+          }
+        },
+        {
+          "id": "expanded-medium-028",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.93521
+          }
+        },
+        {
+          "id": "expanded-medium-029",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.953486
+          }
+        },
+        {
+          "id": "expanded-medium-030",
+          "expected_class": "LOW",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.841533
+          }
+        },
+        {
+          "id": "expanded-medium-031",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.855243
+          }
+        },
+        {
+          "id": "expanded-medium-032",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.975976
+          }
+        },
+        {
+          "id": "expanded-medium-033",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.813438
+          }
+        },
+        {
+          "id": "expanded-medium-034",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.971992
+          }
+        },
+        {
+          "id": "expanded-medium-035",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.899549
+          }
+        },
+        {
+          "id": "expanded-medium-036",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.963853
+          }
+        },
+        {
+          "id": "expanded-medium-037",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.909207
+          }
+        },
+        {
+          "id": "expanded-medium-038",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.986083
+          }
+        },
+        {
+          "id": "expanded-medium-039",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.804299
+          }
+        },
+        {
+          "id": "expanded-medium-040",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": true,
+          "scores": {
+            "voyage": 0.795865
+          }
+        },
+        {
+          "id": "expanded-high-001",
+          "expected_class": "HIGH",
+          "category": "exact_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 1
+          }
+        },
+        {
+          "id": "expanded-high-002",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.972627
+          }
+        },
+        {
+          "id": "expanded-high-003",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": true,
+          "scores": {
+            "voyage": 0.947084
+          }
+        },
+        {
+          "id": "expanded-high-004",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.981062
+          }
+        },
+        {
+          "id": "expanded-high-005",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.968494
+          }
+        },
+        {
+          "id": "expanded-high-006",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.985834
+          }
+        },
+        {
+          "id": "expanded-high-007",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.976533
+          }
+        },
+        {
+          "id": "expanded-high-008",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.982013
+          }
+        },
+        {
+          "id": "expanded-high-009",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.990138
+          }
+        },
+        {
+          "id": "expanded-high-010",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": true,
+          "scores": {
+            "voyage": 0.950347
+          }
+        },
+        {
+          "id": "expanded-high-011",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.993734
+          }
+        },
+        {
+          "id": "expanded-high-012",
+          "expected_class": "HIGH",
+          "category": "exact_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 1
+          }
+        },
+        {
+          "id": "expanded-high-013",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.973364
+          }
+        },
+        {
+          "id": "expanded-high-014",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": true,
+          "scores": {
+            "voyage": 0.961179
+          }
+        },
+        {
+          "id": "expanded-high-015",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.96866
+          }
+        },
+        {
+          "id": "expanded-high-016",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.973701
+          }
+        },
+        {
+          "id": "expanded-high-017",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.992113
+          }
+        },
+        {
+          "id": "expanded-high-018",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.9734
+          }
+        },
+        {
+          "id": "expanded-high-019",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.982952
+          }
+        },
+        {
+          "id": "expanded-high-020",
+          "expected_class": "HIGH",
+          "category": "exact_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 1
+          }
+        },
+        {
+          "id": "expanded-high-021",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.976179
+          }
+        },
+        {
+          "id": "expanded-high-022",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.96505
+          }
+        },
+        {
+          "id": "expanded-high-023",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.990584
+          }
+        },
+        {
+          "id": "expanded-high-024",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.977887
+          }
+        },
+        {
+          "id": "expanded-high-025",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.971059
+          }
+        },
+        {
+          "id": "expanded-high-026",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.982355
+          }
+        },
+        {
+          "id": "expanded-high-027",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": true,
+          "scores": {
+            "voyage": 0.9168
+          }
+        },
+        {
+          "id": "expanded-high-028",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.978662
+          }
+        },
+        {
+          "id": "expanded-high-029",
+          "expected_class": "HIGH",
+          "category": "exact_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 1
+          }
+        },
+        {
+          "id": "expanded-high-030",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.981994
+          }
+        },
+        {
+          "id": "expanded-high-031",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.985344
+          }
+        },
+        {
+          "id": "expanded-high-032",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.971647
+          }
+        },
+        {
+          "id": "expanded-high-033",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.967559
+          }
+        },
+        {
+          "id": "expanded-high-034",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.976112
+          }
+        },
+        {
+          "id": "expanded-high-035",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.984301
+          }
+        },
+        {
+          "id": "expanded-high-036",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.985035
+          }
+        },
+        {
+          "id": "expanded-high-037",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.984555
+          }
+        },
+        {
+          "id": "expanded-high-038",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.987998
+          }
+        },
+        {
+          "id": "expanded-high-039",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "voyage": 0.980549
+          }
+        },
+        {
+          "id": "expanded-high-040",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": true,
+          "scores": {
+            "voyage": 0.979232
+          }
+        }
+      ],
+      "metrics": {
+        "classStatistics": {
+          "LOW": {
+            "support": 39,
+            "mean": 0.721968,
+            "median": 0.719139,
+            "minimum": 0.506436,
+            "maximum": 0.865482,
+            "standardDeviation": 0.083277
+          },
+          "MEDIUM": {
+            "support": 41,
+            "mean": 0.903379,
+            "median": 0.906207,
+            "minimum": 0.706429,
+            "maximum": 0.986083,
+            "standardDeviation": 0.058435
+          },
+          "HIGH": {
+            "support": 40,
+            "mean": 0.977903,
+            "median": 0.979891,
+            "minimum": 0.9168,
+            "maximum": 1,
+            "standardDeviation": 0.015427
+          }
+        },
+        "spearman": {
+          "support": 120,
+          "coefficient": 0.883903
+        },
+        "concordance": {
+          "HIGH_gt_MEDIUM": {
+            "comparisons": 1640,
+            "correct": 1494,
+            "ties": 0,
+            "rate": 0.910976
+          },
+          "HIGH_gt_LOW": {
+            "comparisons": 1560,
+            "correct": 1560,
+            "ties": 0,
+            "rate": 1
+          },
+          "MEDIUM_gt_LOW": {
+            "comparisons": 1599,
+            "correct": 1547,
+            "ties": 0,
+            "rate": 0.96748
+          },
+          "overall": {
+            "comparisons": 4799,
+            "correct": 4601,
+            "rate": 0.958741
+          }
+        },
+        "classMargins": {
+          "highMinusMedium": 0.074524,
+          "mediumMinusLow": 0.181411,
+          "highMinusLow": 0.255935
+        }
+      },
+      "exploratoryCrossValidatedClassification": {
+        "seed": 20260810,
+        "folds": [
+          {
+            "fold": 1,
+            "trainingCases": 95,
+            "heldOutCases": 25,
+            "t1": 0.831366,
+            "t2": 0.964452,
+            "trainingMacroF1": 0.840999
+          },
+          {
+            "fold": 2,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.845619,
+            "t2": 0.964452,
+            "trainingMacroF1": 0.874247
+          },
+          {
+            "fold": 3,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.831366,
+            "t2": 0.963607,
+            "trainingMacroF1": 0.865178
+          },
+          {
+            "fold": 4,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.80964,
+            "t2": 0.964452,
+            "trainingMacroF1": 0.844403
+          },
+          {
+            "fold": 5,
+            "trainingCases": 97,
+            "heldOutCases": 23,
+            "t1": 0.831366,
+            "t2": 0.965706,
+            "trainingMacroF1": 0.842954
+          }
+        ],
+        "overall": {
+          "accuracy": 0.808333,
+          "macroPrecision": 0.80753,
+          "macroRecall": 0.809907,
+          "macroF1": 0.80801
+        },
+        "perClass": {
+          "LOW": {
+            "precision": 0.871795,
+            "recall": 0.871795,
+            "f1": 0.871795
+          },
+          "MEDIUM": {
+            "precision": 0.736842,
+            "recall": 0.682927,
+            "f1": 0.708861
+          },
+          "HIGH": {
+            "precision": 0.813953,
+            "recall": 0.875,
+            "f1": 0.843373
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 34,
+            "MEDIUM": 5,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 5,
+            "MEDIUM": 28,
+            "HIGH": 8
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 5,
+            "HIGH": 35
+          }
+        }
+      },
+      "completeVsIncomplete": {
+        "complete": {
+          "caseCount": 105,
+          "metrics": {
+            "classStatistics": {
+              "LOW": {
+                "support": 33,
+                "mean": 0.725427,
+                "median": 0.734465,
+                "minimum": 0.506436,
+                "maximum": 0.865482,
+                "standardDeviation": 0.088574
+              },
+              "MEDIUM": {
+                "support": 37,
+                "mean": 0.908376,
+                "median": 0.908317,
+                "minimum": 0.706429,
+                "maximum": 0.986083,
+                "standardDeviation": 0.057545
+              },
+              "HIGH": {
+                "support": 35,
+                "mean": 0.981757,
+                "median": 0.981994,
+                "minimum": 0.96505,
+                "maximum": 1,
+                "standardDeviation": 0.009674
+              }
+            },
+            "spearman": {
+              "support": 105,
+              "coefficient": 0.889053
+            },
+            "concordance": {
+              "HIGH_gt_MEDIUM": {
+                "comparisons": 1295,
+                "correct": 1197,
+                "ties": 0,
+                "rate": 0.924324
+              },
+              "HIGH_gt_LOW": {
+                "comparisons": 1155,
+                "correct": 1155,
+                "ties": 0,
+                "rate": 1
+              },
+              "MEDIUM_gt_LOW": {
+                "comparisons": 1221,
+                "correct": 1183,
+                "ties": 0,
+                "rate": 0.968878
+              },
+              "overall": {
+                "comparisons": 3671,
+                "correct": 3535,
+                "rate": 0.962953
+              }
+            },
+            "classMargins": {
+              "highMinusMedium": 0.073381,
+              "mediumMinusLow": 0.182949,
+              "highMinusLow": 0.25633
+            }
+          }
+        },
+        "incomplete": {
+          "caseCount": 15,
+          "metrics": {
+            "classStatistics": {
+              "LOW": {
+                "support": 6,
+                "mean": 0.702942,
+                "median": 0.69961,
+                "minimum": 0.653694,
+                "maximum": 0.751709,
+                "standardDeviation": 0.038734
+              },
+              "MEDIUM": {
+                "support": 4,
+                "mean": 0.857155,
+                "median": 0.860929,
+                "minimum": 0.795865,
+                "maximum": 0.910899,
+                "standardDeviation": 0.044739
+              },
+              "HIGH": {
+                "support": 5,
+                "mean": 0.950928,
+                "median": 0.950347,
+                "minimum": 0.9168,
+                "maximum": 0.979232,
+                "standardDeviation": 0.020426
+              }
+            },
+            "spearman": {
+              "support": 15,
+              "coefficient": 0.940175
+            },
+            "concordance": {
+              "HIGH_gt_MEDIUM": {
+                "comparisons": 20,
+                "correct": 20,
+                "ties": 0,
+                "rate": 1
+              },
+              "HIGH_gt_LOW": {
+                "comparisons": 30,
+                "correct": 30,
+                "ties": 0,
+                "rate": 1
+              },
+              "MEDIUM_gt_LOW": {
+                "comparisons": 24,
+                "correct": 24,
+                "ties": 0,
+                "rate": 1
+              },
+              "overall": {
+                "comparisons": 74,
+                "correct": 74,
+                "rate": 1
+              }
+            },
+            "classMargins": {
+              "highMinusMedium": 0.093773,
+              "mediumMinusLow": 0.154213,
+              "highMinusLow": 0.247986
+            }
+          }
+        },
+        "meanDeltaByClass": {
+          "LOW": -0.022485,
+          "MEDIUM": -0.051221,
+          "HIGH": -0.030829
+        }
+      },
+      "scenarioAnalysis": {
+        "clearly_unrelated": {
+          "support": 7,
+          "mean": 0.588969,
+          "orderingFailures": []
+        },
+        "misleading_lexical_overlap": {
+          "support": 9,
+          "mean": 0.748265,
+          "orderingFailures": [
+            "expanded-low-002",
+            "expanded-low-020"
+          ]
+        },
+        "same_context_unrelated_focus": {
+          "support": 7,
+          "mean": 0.784934,
+          "orderingFailures": [
+            "expanded-low-003",
+            "expanded-low-021",
+            "expanded-low-027"
+          ]
+        },
+        "broad_disease_different_question": {
+          "support": 7,
+          "mean": 0.79631,
+          "orderingFailures": [
+            "expanded-low-004",
+            "expanded-low-028"
+          ]
+        },
+        "generic_public_health_overlap": {
+          "support": 6,
+          "mean": 0.708567,
+          "orderingFailures": []
+        },
+        "shared_terminology": {
+          "support": 4,
+          "mean": 0.710301,
+          "orderingFailures": []
+        },
+        "same_disease_different_population": {
+          "support": 7,
+          "mean": 0.881841,
+          "orderingFailures": []
+        },
+        "same_disease_different_location": {
+          "support": 7,
+          "mean": 0.969358,
+          "orderingFailures": []
+        },
+        "similar_intervention_different_context": {
+          "support": 6,
+          "mean": 0.869278,
+          "orderingFailures": []
+        },
+        "related_focus_same_context": {
+          "support": 8,
+          "mean": 0.885836,
+          "orderingFailures": []
+        },
+        "related_outcome": {
+          "support": 6,
+          "mean": 0.901815,
+          "orderingFailures": []
+        },
+        "lexical_context_distinction": {
+          "support": 6,
+          "mean": 0.917527,
+          "orderingFailures": [
+            "expanded-medium-030"
+          ]
+        },
+        "exact_duplicate": {
+          "support": 4,
+          "mean": 1,
+          "orderingFailures": []
+        },
+        "near_duplicate": {
+          "support": 6,
+          "mean": 0.980357,
+          "orderingFailures": []
+        },
+        "paraphrase": {
+          "support": 7,
+          "mean": 0.974397,
+          "orderingFailures": []
+        },
+        "synonym_substitution": {
+          "support": 6,
+          "mean": 0.960512,
+          "orderingFailures": []
+        },
+        "rephrased_wording": {
+          "support": 6,
+          "mean": 0.979274,
+          "orderingFailures": []
+        },
+        "fragmented_title": {
+          "support": 5,
+          "mean": 0.982188,
+          "orderingFailures": []
+        },
+        "documentation_difference": {
+          "support": 6,
+          "mean": 0.977261,
+          "orderingFailures": []
+        }
+      },
+      "embeddingSource": "fresh_execution",
+      "checkpointCreatedAt": null,
+      "checkpointRetryEvents": [],
+      "execution": {
+        "wallClockMilliseconds": 2956
+      },
+      "consumption": {
+        "apiRequests": 1,
+        "embeddingInputs": 229,
+        "successfulRequests": 1,
+        "failures": 0,
+        "retries": 0,
+        "retryEvents": [],
+        "reportedInputTokens": 6206,
+        "estimatedListPriceUsd": 0.000745,
+        "pricingSnapshot": "August 2026 list-price snapshot"
+      }
+    },
+    "gemini": {
+      "provider": {
+        "name": "Google Gemini",
+        "model": "gemini-embedding-2",
+        "keyEnv": "GEMINI_API_KEY",
+        "pricePerMillionTokens": 0.2
+      },
+      "status": "SUCCESS",
+      "dimension": 3072,
+      "storage": {
+        "float32BytesPerEmbedding": 12288,
+        "float32BytesFor5000Embeddings": 61440000,
+        "excludes": [
+          "PostgreSQL row overhead",
+          "pgvector index overhead",
+          "metadata",
+          "replication",
+          "page/storage overhead"
+        ]
+      },
+      "rawCaseResults": [
+        {
+          "id": "expanded-low-001",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.822316
+          }
+        },
+        {
+          "id": "expanded-low-002",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.942044
+          }
+        },
+        {
+          "id": "expanded-low-003",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.938532
+          }
+        },
+        {
+          "id": "expanded-low-004",
+          "expected_class": "LOW",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.933646
+          }
+        },
+        {
+          "id": "expanded-low-005",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": true,
+          "scores": {
+            "gemini": 0.873271
+          }
+        },
+        {
+          "id": "expanded-low-006",
+          "expected_class": "LOW",
+          "category": "shared_terminology",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.855991
+          }
+        },
+        {
+          "id": "expanded-low-007",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.857397
+          }
+        },
+        {
+          "id": "expanded-low-008",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": true,
+          "scores": {
+            "gemini": 0.919242
+          }
+        },
+        {
+          "id": "expanded-low-009",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.919118
+          }
+        },
+        {
+          "id": "expanded-low-010",
+          "expected_class": "MEDIUM",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.938733
+          }
+        },
+        {
+          "id": "expanded-low-011",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.899041
+          }
+        },
+        {
+          "id": "expanded-low-012",
+          "expected_class": "LOW",
+          "category": "shared_terminology",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.938581
+          }
+        },
+        {
+          "id": "expanded-low-013",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.854715
+          }
+        },
+        {
+          "id": "expanded-low-014",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.922293
+          }
+        },
+        {
+          "id": "expanded-low-015",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.914595
+          }
+        },
+        {
+          "id": "expanded-low-016",
+          "expected_class": "MEDIUM",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.943891
+          }
+        },
+        {
+          "id": "expanded-low-017",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": true,
+          "scores": {
+            "gemini": 0.857299
+          }
+        },
+        {
+          "id": "expanded-low-018",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.87355
+          }
+        },
+        {
+          "id": "expanded-low-019",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.847514
+          }
+        },
+        {
+          "id": "expanded-low-020",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.936813
+          }
+        },
+        {
+          "id": "expanded-low-021",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.939642
+          }
+        },
+        {
+          "id": "expanded-low-022",
+          "expected_class": "LOW",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.887092
+          }
+        },
+        {
+          "id": "expanded-low-023",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.870671
+          }
+        },
+        {
+          "id": "expanded-low-024",
+          "expected_class": "LOW",
+          "category": "shared_terminology",
+          "incomplete_context": true,
+          "scores": {
+            "gemini": 0.923719
+          }
+        },
+        {
+          "id": "expanded-low-025",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.87953
+          }
+        },
+        {
+          "id": "expanded-low-026",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.913164
+          }
+        },
+        {
+          "id": "expanded-low-027",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.91315
+          }
+        },
+        {
+          "id": "expanded-low-028",
+          "expected_class": "LOW",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.91088
+          }
+        },
+        {
+          "id": "expanded-low-029",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.924282
+          }
+        },
+        {
+          "id": "expanded-low-030",
+          "expected_class": "LOW",
+          "category": "shared_terminology",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.92925
+          }
+        },
+        {
+          "id": "expanded-low-031",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.861403
+          }
+        },
+        {
+          "id": "expanded-low-032",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.890909
+          }
+        },
+        {
+          "id": "expanded-low-033",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.915142
+          }
+        },
+        {
+          "id": "expanded-low-034",
+          "expected_class": "LOW",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.905391
+          }
+        },
+        {
+          "id": "expanded-low-035",
+          "expected_class": "LOW",
+          "category": "generic_public_health_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.885095
+          }
+        },
+        {
+          "id": "expanded-low-036",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": true,
+          "scores": {
+            "gemini": 0.841876
+          }
+        },
+        {
+          "id": "expanded-low-037",
+          "expected_class": "LOW",
+          "category": "clearly_unrelated",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.85492
+          }
+        },
+        {
+          "id": "expanded-low-038",
+          "expected_class": "LOW",
+          "category": "misleading_lexical_overlap",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.878186
+          }
+        },
+        {
+          "id": "expanded-low-039",
+          "expected_class": "LOW",
+          "category": "same_context_unrelated_focus",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.893714
+          }
+        },
+        {
+          "id": "expanded-low-040",
+          "expected_class": "MEDIUM",
+          "category": "broad_disease_different_question",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.888335
+          }
+        },
+        {
+          "id": "expanded-medium-001",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": true,
+          "scores": {
+            "gemini": 0.904933
+          }
+        },
+        {
+          "id": "expanded-medium-002",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.97709
+          }
+        },
+        {
+          "id": "expanded-medium-003",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.929642
+          }
+        },
+        {
+          "id": "expanded-medium-004",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.958818
+          }
+        },
+        {
+          "id": "expanded-medium-005",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.946621
+          }
+        },
+        {
+          "id": "expanded-medium-006",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.969755
+          }
+        },
+        {
+          "id": "expanded-medium-007",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.969375
+          }
+        },
+        {
+          "id": "expanded-medium-008",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": true,
+          "scores": {
+            "gemini": 0.937948
+          }
+        },
+        {
+          "id": "expanded-medium-009",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.955979
+          }
+        },
+        {
+          "id": "expanded-medium-010",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.951459
+          }
+        },
+        {
+          "id": "expanded-medium-011",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.938914
+          }
+        },
+        {
+          "id": "expanded-medium-012",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.974862
+          }
+        },
+        {
+          "id": "expanded-medium-013",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.924686
+          }
+        },
+        {
+          "id": "expanded-medium-014",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.972935
+          }
+        },
+        {
+          "id": "expanded-medium-015",
+          "expected_class": "LOW",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": true,
+          "scores": {
+            "gemini": 0.871325
+          }
+        },
+        {
+          "id": "expanded-medium-016",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.959872
+          }
+        },
+        {
+          "id": "expanded-medium-017",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.941744
+          }
+        },
+        {
+          "id": "expanded-medium-018",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.971384
+          }
+        },
+        {
+          "id": "expanded-medium-019",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.929845
+          }
+        },
+        {
+          "id": "expanded-medium-020",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.981995
+          }
+        },
+        {
+          "id": "expanded-medium-021",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.938938
+          }
+        },
+        {
+          "id": "expanded-medium-022",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.94776
+          }
+        },
+        {
+          "id": "expanded-medium-023",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.945967
+          }
+        },
+        {
+          "id": "expanded-medium-024",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": true,
+          "scores": {
+            "gemini": 0.952231
+          }
+        },
+        {
+          "id": "expanded-medium-025",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.957659
+          }
+        },
+        {
+          "id": "expanded-medium-026",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.978062
+          }
+        },
+        {
+          "id": "expanded-medium-027",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.956168
+          }
+        },
+        {
+          "id": "expanded-medium-028",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.959844
+          }
+        },
+        {
+          "id": "expanded-medium-029",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.961505
+          }
+        },
+        {
+          "id": "expanded-medium-030",
+          "expected_class": "LOW",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.939528
+          }
+        },
+        {
+          "id": "expanded-medium-031",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.931983
+          }
+        },
+        {
+          "id": "expanded-medium-032",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.976424
+          }
+        },
+        {
+          "id": "expanded-medium-033",
+          "expected_class": "MEDIUM",
+          "category": "similar_intervention_different_context",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.925041
+          }
+        },
+        {
+          "id": "expanded-medium-034",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.983435
+          }
+        },
+        {
+          "id": "expanded-medium-035",
+          "expected_class": "MEDIUM",
+          "category": "related_outcome",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.95582
+          }
+        },
+        {
+          "id": "expanded-medium-036",
+          "expected_class": "MEDIUM",
+          "category": "lexical_context_distinction",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.979094
+          }
+        },
+        {
+          "id": "expanded-medium-037",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_population",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.952795
+          }
+        },
+        {
+          "id": "expanded-medium-038",
+          "expected_class": "MEDIUM",
+          "category": "same_disease_different_location",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.982012
+          }
+        },
+        {
+          "id": "expanded-medium-039",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.935505
+          }
+        },
+        {
+          "id": "expanded-medium-040",
+          "expected_class": "MEDIUM",
+          "category": "related_focus_same_context",
+          "incomplete_context": true,
+          "scores": {
+            "gemini": 0.919039
+          }
+        },
+        {
+          "id": "expanded-high-001",
+          "expected_class": "HIGH",
+          "category": "exact_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 1
+          }
+        },
+        {
+          "id": "expanded-high-002",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.977603
+          }
+        },
+        {
+          "id": "expanded-high-003",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": true,
+          "scores": {
+            "gemini": 0.940469
+          }
+        },
+        {
+          "id": "expanded-high-004",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.973809
+          }
+        },
+        {
+          "id": "expanded-high-005",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.981941
+          }
+        },
+        {
+          "id": "expanded-high-006",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.99229
+          }
+        },
+        {
+          "id": "expanded-high-007",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.975424
+          }
+        },
+        {
+          "id": "expanded-high-008",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.983364
+          }
+        },
+        {
+          "id": "expanded-high-009",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.990651
+          }
+        },
+        {
+          "id": "expanded-high-010",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": true,
+          "scores": {
+            "gemini": 0.951051
+          }
+        },
+        {
+          "id": "expanded-high-011",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.991707
+          }
+        },
+        {
+          "id": "expanded-high-012",
+          "expected_class": "HIGH",
+          "category": "exact_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 1
+          }
+        },
+        {
+          "id": "expanded-high-013",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.976714
+          }
+        },
+        {
+          "id": "expanded-high-014",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": true,
+          "scores": {
+            "gemini": 0.967284
+          }
+        },
+        {
+          "id": "expanded-high-015",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.978802
+          }
+        },
+        {
+          "id": "expanded-high-016",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.972904
+          }
+        },
+        {
+          "id": "expanded-high-017",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.99148
+          }
+        },
+        {
+          "id": "expanded-high-018",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.9824
+          }
+        },
+        {
+          "id": "expanded-high-019",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.986218
+          }
+        },
+        {
+          "id": "expanded-high-020",
+          "expected_class": "HIGH",
+          "category": "exact_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 1
+          }
+        },
+        {
+          "id": "expanded-high-021",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.977457
+          }
+        },
+        {
+          "id": "expanded-high-022",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.968322
+          }
+        },
+        {
+          "id": "expanded-high-023",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.989085
+          }
+        },
+        {
+          "id": "expanded-high-024",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.981424
+          }
+        },
+        {
+          "id": "expanded-high-025",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.973923
+          }
+        },
+        {
+          "id": "expanded-high-026",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.982386
+          }
+        },
+        {
+          "id": "expanded-high-027",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": true,
+          "scores": {
+            "gemini": 0.958275
+          }
+        },
+        {
+          "id": "expanded-high-028",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.967749
+          }
+        },
+        {
+          "id": "expanded-high-029",
+          "expected_class": "HIGH",
+          "category": "exact_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 1
+          }
+        },
+        {
+          "id": "expanded-high-030",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.987511
+          }
+        },
+        {
+          "id": "expanded-high-031",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.989825
+          }
+        },
+        {
+          "id": "expanded-high-032",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.971817
+          }
+        },
+        {
+          "id": "expanded-high-033",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.971426
+          }
+        },
+        {
+          "id": "expanded-high-034",
+          "expected_class": "HIGH",
+          "category": "synonym_substitution",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.978742
+          }
+        },
+        {
+          "id": "expanded-high-035",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.977039
+          }
+        },
+        {
+          "id": "expanded-high-036",
+          "expected_class": "HIGH",
+          "category": "paraphrase",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.988583
+          }
+        },
+        {
+          "id": "expanded-high-037",
+          "expected_class": "HIGH",
+          "category": "near_duplicate",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.988478
+          }
+        },
+        {
+          "id": "expanded-high-038",
+          "expected_class": "HIGH",
+          "category": "fragmented_title",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.988249
+          }
+        },
+        {
+          "id": "expanded-high-039",
+          "expected_class": "HIGH",
+          "category": "rephrased_wording",
+          "incomplete_context": false,
+          "scores": {
+            "gemini": 0.982974
+          }
+        },
+        {
+          "id": "expanded-high-040",
+          "expected_class": "HIGH",
+          "category": "documentation_difference",
+          "incomplete_context": true,
+          "scores": {
+            "gemini": 0.982368
+          }
+        }
+      ],
+      "metrics": {
+        "classStatistics": {
+          "LOW": {
+            "support": 39,
+            "mean": 0.895765,
+            "median": 0.899041,
+            "minimum": 0.822316,
+            "maximum": 0.942044,
+            "standardDeviation": 0.032683
+          },
+          "MEDIUM": {
+            "support": 41,
+            "mean": 0.951417,
+            "median": 0.952795,
+            "minimum": 0.888335,
+            "maximum": 0.983435,
+            "standardDeviation": 0.021623
+          },
+          "HIGH": {
+            "support": 40,
+            "mean": 0.980494,
+            "median": 0.982155,
+            "minimum": 0.940469,
+            "maximum": 1,
+            "standardDeviation": 0.012547
+          }
+        },
+        "spearman": {
+          "support": 120,
+          "coefficient": 0.851309
+        },
+        "concordance": {
+          "HIGH_gt_MEDIUM": {
+            "comparisons": 1640,
+            "correct": 1446,
+            "ties": 0,
+            "rate": 0.881707
+          },
+          "HIGH_gt_LOW": {
+            "comparisons": 1560,
+            "correct": 1559,
+            "ties": 0,
+            "rate": 0.999359
+          },
+          "MEDIUM_gt_LOW": {
+            "comparisons": 1599,
+            "correct": 1487,
+            "ties": 0,
+            "rate": 0.929956
+          },
+          "overall": {
+            "comparisons": 4799,
+            "correct": 4492,
+            "rate": 0.936028
+          }
+        },
+        "classMargins": {
+          "highMinusMedium": 0.029077,
+          "mediumMinusLow": 0.055652,
+          "highMinusLow": 0.084729
+        }
+      },
+      "exploratoryCrossValidatedClassification": {
+        "seed": 20260810,
+        "folds": [
+          {
+            "fold": 1,
+            "trainingCases": 95,
+            "heldOutCases": 25,
+            "t1": 0.924484,
+            "t2": 0.96381,
+            "trainingMacroF1": 0.790062
+          },
+          {
+            "fold": 2,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.924484,
+            "t2": 0.971405,
+            "trainingMacroF1": 0.795378
+          },
+          {
+            "fold": 3,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.924484,
+            "t2": 0.971405,
+            "trainingMacroF1": 0.806083
+          },
+          {
+            "fold": 4,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.924484,
+            "t2": 0.973372,
+            "trainingMacroF1": 0.764205
+          },
+          {
+            "fold": 5,
+            "trainingCases": 97,
+            "heldOutCases": 23,
+            "t1": 0.92438,
+            "t2": 0.970591,
+            "trainingMacroF1": 0.783612
+          }
+        ],
+        "overall": {
+          "accuracy": 0.75,
+          "macroPrecision": 0.759748,
+          "macroRecall": 0.751339,
+          "macroF1": 0.753311
+        },
+        "perClass": {
+          "LOW": {
+            "precision": 0.911765,
+            "recall": 0.794872,
+            "f1": 0.849315
+          },
+          "MEDIUM": {
+            "precision": 0.634146,
+            "recall": 0.634146,
+            "f1": 0.634146
+          },
+          "HIGH": {
+            "precision": 0.733333,
+            "recall": 0.825,
+            "f1": 0.776471
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 31,
+            "MEDIUM": 8,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 3,
+            "MEDIUM": 26,
+            "HIGH": 12
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 7,
+            "HIGH": 33
+          }
+        }
+      },
+      "completeVsIncomplete": {
+        "complete": {
+          "caseCount": 105,
+          "metrics": {
+            "classStatistics": {
+              "LOW": {
+                "support": 33,
+                "mean": 0.898427,
+                "median": 0.905391,
+                "minimum": 0.822316,
+                "maximum": 0.942044,
+                "standardDeviation": 0.032382
+              },
+              "MEDIUM": {
+                "support": 37,
+                "mean": 0.95389,
+                "median": 0.955979,
+                "minimum": 0.888335,
+                "maximum": 0.983435,
+                "standardDeviation": 0.020502
+              },
+              "HIGH": {
+                "support": 35,
+                "mean": 0.983437,
+                "median": 0.9824,
+                "minimum": 0.967749,
+                "maximum": 1,
+                "standardDeviation": 0.009029
+              }
+            },
+            "spearman": {
+              "support": 105,
+              "coefficient": 0.869241
+            },
+            "concordance": {
+              "HIGH_gt_MEDIUM": {
+                "comparisons": 1295,
+                "correct": 1181,
+                "ties": 0,
+                "rate": 0.911969
+              },
+              "HIGH_gt_LOW": {
+                "comparisons": 1155,
+                "correct": 1155,
+                "ties": 0,
+                "rate": 1
+              },
+              "MEDIUM_gt_LOW": {
+                "comparisons": 1221,
+                "correct": 1148,
+                "ties": 0,
+                "rate": 0.940213
+              },
+              "overall": {
+                "comparisons": 3671,
+                "correct": 3484,
+                "rate": 0.94906
+              }
+            },
+            "classMargins": {
+              "highMinusMedium": 0.029547,
+              "mediumMinusLow": 0.055463,
+              "highMinusLow": 0.08501
+            }
+          }
+        },
+        "incomplete": {
+          "caseCount": 15,
+          "metrics": {
+            "classStatistics": {
+              "LOW": {
+                "support": 6,
+                "mean": 0.881122,
+                "median": 0.872298,
+                "minimum": 0.841876,
+                "maximum": 0.923719,
+                "standardDeviation": 0.030367
+              },
+              "MEDIUM": {
+                "support": 4,
+                "mean": 0.928538,
+                "median": 0.928494,
+                "minimum": 0.904933,
+                "maximum": 0.952231,
+                "standardDeviation": 0.018009
+              },
+              "HIGH": {
+                "support": 5,
+                "mean": 0.959889,
+                "median": 0.958275,
+                "minimum": 0.940469,
+                "maximum": 0.982368,
+                "standardDeviation": 0.014268
+              }
+            },
+            "spearman": {
+              "support": 15,
+              "coefficient": 0.830013
+            },
+            "concordance": {
+              "HIGH_gt_MEDIUM": {
+                "comparisons": 20,
+                "correct": 18,
+                "ties": 0,
+                "rate": 0.9
+              },
+              "HIGH_gt_LOW": {
+                "comparisons": 30,
+                "correct": 30,
+                "ties": 0,
+                "rate": 1
+              },
+              "MEDIUM_gt_LOW": {
+                "comparisons": 24,
+                "correct": 20,
+                "ties": 0,
+                "rate": 0.833333
+              },
+              "overall": {
+                "comparisons": 74,
+                "correct": 68,
+                "rate": 0.918919
+              }
+            },
+            "classMargins": {
+              "highMinusMedium": 0.031351,
+              "mediumMinusLow": 0.047416,
+              "highMinusLow": 0.078767
+            }
+          }
+        },
+        "meanDeltaByClass": {
+          "LOW": -0.017305,
+          "MEDIUM": -0.025352,
+          "HIGH": -0.023548
+        }
+      },
+      "scenarioAnalysis": {
+        "clearly_unrelated": {
+          "support": 7,
+          "mean": 0.853971,
+          "orderingFailures": [
+            "expanded-low-001",
+            "expanded-low-007",
+            "expanded-low-013",
+            "expanded-low-019",
+            "expanded-low-025",
+            "expanded-low-031",
+            "expanded-low-037"
+          ]
+        },
+        "misleading_lexical_overlap": {
+          "support": 9,
+          "mean": 0.902009,
+          "orderingFailures": [
+            "expanded-low-002",
+            "expanded-low-008",
+            "expanded-low-014",
+            "expanded-low-018",
+            "expanded-low-020",
+            "expanded-low-026",
+            "expanded-low-032",
+            "expanded-low-036",
+            "expanded-low-038"
+          ]
+        },
+        "same_context_unrelated_focus": {
+          "support": 7,
+          "mean": 0.919128,
+          "orderingFailures": [
+            "expanded-low-003",
+            "expanded-low-009",
+            "expanded-low-015",
+            "expanded-low-021",
+            "expanded-low-027",
+            "expanded-low-033",
+            "expanded-low-039"
+          ]
+        },
+        "broad_disease_different_question": {
+          "support": 7,
+          "mean": 0.915424,
+          "orderingFailures": [
+            "expanded-low-004",
+            "expanded-low-022",
+            "expanded-low-028",
+            "expanded-low-034"
+          ]
+        },
+        "generic_public_health_overlap": {
+          "support": 6,
+          "mean": 0.884943,
+          "orderingFailures": [
+            "expanded-low-005",
+            "expanded-low-011",
+            "expanded-low-017",
+            "expanded-low-023",
+            "expanded-low-029",
+            "expanded-low-035"
+          ]
+        },
+        "shared_terminology": {
+          "support": 4,
+          "mean": 0.911885,
+          "orderingFailures": [
+            "expanded-low-006",
+            "expanded-low-012",
+            "expanded-low-024",
+            "expanded-low-030"
+          ]
+        },
+        "same_disease_different_population": {
+          "support": 7,
+          "mean": 0.938754,
+          "orderingFailures": []
+        },
+        "same_disease_different_location": {
+          "support": 7,
+          "mean": 0.972352,
+          "orderingFailures": []
+        },
+        "similar_intervention_different_context": {
+          "support": 6,
+          "mean": 0.929516,
+          "orderingFailures": [
+            "expanded-medium-015"
+          ]
+        },
+        "related_focus_same_context": {
+          "support": 8,
+          "mean": 0.951967,
+          "orderingFailures": []
+        },
+        "related_outcome": {
+          "support": 6,
+          "mean": 0.948429,
+          "orderingFailures": []
+        },
+        "lexical_context_distinction": {
+          "support": 6,
+          "mean": 0.964476,
+          "orderingFailures": [
+            "expanded-medium-030"
+          ]
+        },
+        "exact_duplicate": {
+          "support": 4,
+          "mean": 1,
+          "orderingFailures": []
+        },
+        "near_duplicate": {
+          "support": 6,
+          "mean": 0.982325,
+          "orderingFailures": []
+        },
+        "paraphrase": {
+          "support": 7,
+          "mean": 0.977209,
+          "orderingFailures": []
+        },
+        "synonym_substitution": {
+          "support": 6,
+          "mean": 0.967184,
+          "orderingFailures": []
+        },
+        "rephrased_wording": {
+          "support": 6,
+          "mean": 0.982775,
+          "orderingFailures": []
+        },
+        "fragmented_title": {
+          "support": 5,
+          "mean": 0.985347,
+          "orderingFailures": []
+        },
+        "documentation_difference": {
+          "support": 6,
+          "mean": 0.976473,
+          "orderingFailures": []
+        }
+      },
+      "embeddingSource": "fresh_execution",
+      "checkpointCreatedAt": null,
+      "checkpointRetryEvents": [],
+      "execution": {
+        "wallClockMilliseconds": 130521
+      },
+      "consumption": {
+        "apiRequests": 11,
+        "embeddingInputs": 229,
+        "successfulRequests": 8,
+        "failures": 3,
+        "retries": 3,
+        "retryEvents": [
+          {
+            "provider": "Google Gemini",
+            "model": "gemini-embedding-2",
+            "batchIndex": 4,
+            "attempt": 1,
+            "errorCategory": "http_429",
+            "status": 429,
+            "retryAfterSupplied": false,
+            "delayMilliseconds": 15137,
+            "outcome": "retrying"
+          },
+          {
+            "provider": "Google Gemini",
+            "model": "gemini-embedding-2",
+            "batchIndex": 4,
+            "attempt": 2,
+            "errorCategory": "http_429",
+            "status": 429,
+            "retryAfterSupplied": false,
+            "delayMilliseconds": 30023,
+            "outcome": "retrying"
+          },
+          {
+            "provider": "Google Gemini",
+            "model": "gemini-embedding-2",
+            "batchIndex": 4,
+            "attempt": 3,
+            "errorCategory": "http_429",
+            "status": 429,
+            "retryAfterSupplied": false,
+            "delayMilliseconds": 60160,
+            "outcome": "retrying"
+          }
+        ],
+        "reportedInputTokens": 7602,
+        "estimatedListPriceUsd": 0.00152,
+        "pricingSnapshot": "August 2026 list-price snapshot"
+      }
+    }
+  },
+  "recommendation": "VOYAGE_LEADS_EXPANDED_BENCHMARK",
+  "pilotComparison": {
+    "source": "backend/evaluation/results/managed-embedding-pilot.json",
+    "previousConclusion": "SBERT_LEADS_PILOT",
+    "separateDatasets": true
+  }
+}
