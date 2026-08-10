@@ -1,0 +1,1720 @@
+{
+  "experiment": {
+    "id": "managed-embedding-pilot",
+    "version": "1.0.0",
+    "generatedAt": "2026-08-10T06:40:08.121Z",
+    "commitHash": "7158df8",
+    "scope": "Evaluation-only pilot screening; no production provider selected."
+  },
+  "dataset": {
+    "path": "backend/evaluation/datasets/pilot-topic-pairs.json",
+    "version": "pilot-v1",
+    "totalCases": 16,
+    "provenance": {
+      "source_classification": "manually_constructed_pilot",
+      "created_for": "Reproducible FYP evaluation evidence",
+      "validation_status": "not_department_expert_validated",
+      "notes": [
+        "Cases are controlled topic-pair examples maintained in the repository.",
+        "Expected classes are manual pilot labels and must not be represented as final departmental or expert ground truth."
+      ]
+    }
+  },
+  "representation": {
+    "canonical": "Title: <title>\\nPopulation: <population>\\nLocation: <location>\\nStudy focus: <study_focus>",
+    "blankFields": "omitted",
+    "excluded": [
+      "keywords",
+      "expected labels/classes",
+      "rationale",
+      "category",
+      "tags",
+      "notes",
+      "source_classification"
+    ]
+  },
+  "sbertBaseline": {
+    "source": "backend/evaluation/results/sbert-input-representation-pilot.json",
+    "verification": "Checkpoint 7158df8 verified current real SentenceTransformer behavior against direct model execution; historical artifact invalidated."
+  },
+  "models": {
+    "sbert": {
+      "provider": {
+        "name": "SBERT",
+        "model": "sentence-transformers/all-MiniLM-L6-v2"
+      },
+      "status": "SUCCESS",
+      "dimension": 384,
+      "storage": {
+        "float32BytesPerEmbedding": 1536,
+        "float32BytesFor5000Embeddings": 7680000,
+        "excludes": [
+          "PostgreSQL row overhead",
+          "vector-index overhead",
+          "metadata",
+          "replication",
+          "database page overhead"
+        ]
+      },
+      "results": [
+        {
+          "id": "case-001",
+          "category": "exact_duplicate",
+          "expected_class": "HIGH",
+          "rationale": "Exact duplicate title and context.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Knowledge of malaria prevention among mothers in Osogbo\nPopulation: Mothers of children under five\nLocation: Osogbo\nStudy focus: Malaria prevention knowledge",
+              "topic_b": "Title: Knowledge of malaria prevention among mothers in Osogbo\nPopulation: Mothers of children under five\nLocation: Osogbo\nStudy focus: Malaria prevention knowledge"
+            }
+          },
+          "scores": {
+            "sbert": 1
+          }
+        },
+        {
+          "id": "case-002",
+          "category": "near_duplicate",
+          "expected_class": "HIGH",
+          "rationale": "Near-duplicate wording with same population, location, and focus.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Factors affecting exclusive breastfeeding among nursing mothers in Ede\nPopulation: Nursing mothers\nLocation: Ede\nStudy focus: Exclusive breastfeeding barriers",
+              "topic_b": "Title: Influencing factors of exclusive breastfeeding practice among nursing mothers in Ede\nPopulation: Nursing mothers\nLocation: Ede\nStudy focus: Exclusive breastfeeding barriers"
+            }
+          },
+          "scores": {
+            "sbert": 0.983
+          }
+        },
+        {
+          "id": "case-003",
+          "category": "paraphrased_duplicate",
+          "expected_class": "HIGH",
+          "rationale": "Low lexical overlap but similar meaning.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Use of mobile reminders for antenatal clinic attendance in Ile-Ife\nPopulation: Pregnant women\nLocation: Ile-Ife\nStudy focus: Clinic attendance support",
+              "topic_b": "Title: SMS prompts to improve prenatal appointment attendance in Ile-Ife\nPopulation: Pregnant women\nLocation: Ile-Ife\nStudy focus: Clinic attendance support"
+            }
+          },
+          "scores": {
+            "sbert": 0.867
+          }
+        },
+        {
+          "id": "case-004",
+          "category": "same_disease_different_population",
+          "expected_class": "MEDIUM",
+          "rationale": "Same disease and focus but different population.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Awareness of hypertension screening among market traders\nPopulation: Market traders\nLocation: Osogbo\nStudy focus: Screening awareness",
+              "topic_b": "Title: Awareness of hypertension screening among secondary school teachers\nPopulation: Secondary school teachers\nLocation: Osogbo\nStudy focus: Screening awareness"
+            }
+          },
+          "scores": {
+            "sbert": 0.671
+          }
+        },
+        {
+          "id": "case-005",
+          "category": "same_disease_different_location",
+          "expected_class": "MEDIUM",
+          "rationale": "Same title pattern but different study location.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Knowledge of malaria prevention among mothers in Osogbo\nPopulation: Mothers of children under five\nLocation: Osogbo\nStudy focus: Malaria prevention knowledge",
+              "topic_b": "Title: Knowledge of malaria prevention among mothers in Ibadan\nPopulation: Mothers of children under five\nLocation: Ibadan\nStudy focus: Malaria prevention knowledge"
+            }
+          },
+          "scores": {
+            "sbert": 0.818
+          }
+        },
+        {
+          "id": "case-006",
+          "category": "same_population_different_focus",
+          "expected_class": "LOW",
+          "rationale": "Same population and location but different topic focus.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Breastfeeding knowledge among nursing mothers in Ede\nPopulation: Nursing mothers\nLocation: Ede\nStudy focus: Breastfeeding knowledge",
+              "topic_b": "Title: Immunization attitude among nursing mothers in Ede\nPopulation: Nursing mothers\nLocation: Ede\nStudy focus: Immunization attitude"
+            }
+          },
+          "scores": {
+            "sbert": 0.635
+          }
+        },
+        {
+          "id": "case-007",
+          "category": "unrelated_public_health",
+          "expected_class": "LOW",
+          "rationale": "Clearly unrelated study areas.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Perception of telemedicine services among rural patients\nPopulation: Rural patients\nLocation: Osun State\nStudy focus: Telemedicine service perception",
+              "topic_b": "Title: Waste management practices among food vendors in urban markets\nPopulation: Food vendors\nLocation: Urban markets\nStudy focus: Waste management practices"
+            }
+          },
+          "scores": {
+            "sbert": 0.2
+          }
+        },
+        {
+          "id": "case-008",
+          "category": "high_lexical_overlap_different_focus",
+          "expected_class": "MEDIUM",
+          "rationale": "High lexical overlap but different study focus.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Knowledge attitude and practice of malaria prevention among mothers\nPopulation: Mothers\nLocation: Osogbo\nStudy focus: Malaria prevention",
+              "topic_b": "Title: Knowledge attitude and practice of family planning among mothers\nPopulation: Mothers\nLocation: Osogbo\nStudy focus: Family planning"
+            }
+          },
+          "scores": {
+            "sbert": 0.575
+          }
+        },
+        {
+          "id": "case-009",
+          "category": "fragmented_title",
+          "expected_class": "HIGH",
+          "rationale": "Fragmented imported/submitted title should still match the full version.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Hypertension screening market traders\nPopulation: Market traders\nLocation: Osogbo\nStudy focus: Screening awareness",
+              "topic_b": "Title: Awareness of hypertension screening among market traders in Osogbo\nPopulation: Market traders\nLocation: Osogbo\nStudy focus: Screening awareness"
+            }
+          },
+          "scores": {
+            "sbert": 0.969
+          }
+        },
+        {
+          "id": "case-010",
+          "category": "synonym_duplicate",
+          "expected_class": "HIGH",
+          "rationale": "Synonym-heavy paraphrase.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Determinants of contraceptive use among married women\nPopulation: Married women\nLocation: Ile-Ife\nStudy focus: Contraceptive use factors",
+              "topic_b": "Title: Factors influencing family planning uptake among married women\nPopulation: Married women\nLocation: Ile-Ife\nStudy focus: Contraceptive use factors"
+            }
+          },
+          "scores": {
+            "sbert": 0.77
+          }
+        },
+        {
+          "id": "case-011",
+          "category": "same_population_location_different_topic",
+          "expected_class": "LOW",
+          "rationale": "Same population and location but different health outcome.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Nutritional status of under-five children in Ede\nPopulation: Under-five children\nLocation: Ede\nStudy focus: Nutritional status",
+              "topic_b": "Title: Immunization uptake among under-five children in Ede\nPopulation: Under-five children\nLocation: Ede\nStudy focus: Immunization uptake"
+            }
+          },
+          "scores": {
+            "sbert": 0.66
+          }
+        },
+        {
+          "id": "case-012",
+          "category": "similar_intervention_different_context",
+          "expected_class": "MEDIUM",
+          "rationale": "Similar intervention but different population and location.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Use of insecticide treated nets among pregnant women in Ife\nPopulation: Pregnant women\nLocation: Ife\nStudy focus: ITN use",
+              "topic_b": "Title: Use of insecticide treated nets among nursing mothers in Osogbo\nPopulation: Nursing mothers\nLocation: Osogbo\nStudy focus: ITN use"
+            }
+          },
+          "scores": {
+            "sbert": 0.718
+          }
+        },
+        {
+          "id": "case-013",
+          "category": "documentation_gap_paraphrase",
+          "expected_class": "HIGH",
+          "rationale": "Potential current-session documentation gap with paraphrased wording.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Mobile app reminders for antenatal care attendance\nPopulation: Pregnant women\nLocation: Ile-Ife\nStudy focus: ANC attendance support",
+              "topic_b": "Title: Digital notification support for antenatal clinic adherence\nPopulation: Pregnant women\nLocation: Ile-Ife\nStudy focus: ANC attendance support"
+            }
+          },
+          "scores": {
+            "sbert": 0.849
+          }
+        },
+        {
+          "id": "case-014",
+          "category": "under_review_paraphrase",
+          "expected_class": "HIGH",
+          "rationale": "Under-review style paraphrase.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Barriers to exclusive breastfeeding among first-time mothers\nPopulation: First-time mothers\nLocation: Osun State\nStudy focus: Exclusive breastfeeding barriers",
+              "topic_b": "Title: Challenges affecting exclusive breastfeeding among primiparous mothers\nPopulation: First-time mothers\nLocation: Osun State\nStudy focus: Exclusive breastfeeding barriers"
+            }
+          },
+          "scores": {
+            "sbert": 0.968
+          }
+        },
+        {
+          "id": "case-015",
+          "category": "high_lexical_overlap_different_object",
+          "expected_class": "MEDIUM",
+          "rationale": "Similar wording but different object of study.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Use of health services among adolescents in secondary schools\nPopulation: Adolescents\nLocation: Secondary schools\nStudy focus: Health service use",
+              "topic_b": "Title: Use of social media among adolescents in secondary schools\nPopulation: Adolescents\nLocation: Secondary schools\nStudy focus: Social media use"
+            }
+          },
+          "scores": {
+            "sbert": 0.666
+          }
+        },
+        {
+          "id": "case-016",
+          "category": "clearly_unrelated",
+          "expected_class": "LOW",
+          "rationale": "Different domain, population, and focus.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Lassa fever awareness among rural residents\nPopulation: Rural residents\nLocation: Osun State\nStudy focus: Lassa fever awareness",
+              "topic_b": "Title: Academic performance among computer science students\nPopulation: Computer science students\nLocation: University campus\nStudy focus: Academic performance"
+            }
+          },
+          "scores": {
+            "sbert": 0.092
+          }
+        }
+      ],
+      "metrics": {
+        "classStatistics": {
+          "LOW": {
+            "support": 4,
+            "mean": 0.39675,
+            "median": 0.4175,
+            "minimum": 0.092,
+            "maximum": 0.66,
+            "standardDeviation": 0.253795
+          },
+          "MEDIUM": {
+            "support": 5,
+            "mean": 0.6896,
+            "median": 0.671,
+            "minimum": 0.575,
+            "maximum": 0.818,
+            "standardDeviation": 0.079157
+          },
+          "HIGH": {
+            "support": 7,
+            "mean": 0.915143,
+            "median": 0.968,
+            "minimum": 0.77,
+            "maximum": 1,
+            "standardDeviation": 0.080409
+          }
+        },
+        "spearman": {
+          "support": 16,
+          "coefficient": 0.887425
+        },
+        "concordance": {
+          "HIGH_gt_MEDIUM": {
+            "comparisons": 35,
+            "correct": 34,
+            "ties": 0,
+            "rate": 0.971429
+          },
+          "HIGH_gt_LOW": {
+            "comparisons": 28,
+            "correct": 28,
+            "ties": 0,
+            "rate": 1
+          },
+          "MEDIUM_gt_LOW": {
+            "comparisons": 20,
+            "correct": 18,
+            "ties": 0,
+            "rate": 0.9
+          },
+          "overall": {
+            "comparisons": 83,
+            "correct": 80,
+            "rate": 0.963855
+          }
+        },
+        "classMargins": {
+          "highMinusMedium": 0.225543,
+          "mediumMinusLow": 0.29285,
+          "highMinusLow": 0.518393
+        }
+      },
+      "latency": {
+        "status": "not_measured_in_this_run"
+      },
+      "consumption": {
+        "apiCalls": 0,
+        "measuredInputTokens": null,
+        "averageTokensPerStructuredTopic": null
+      },
+      "observedErrors": []
+    },
+    "openai": {
+      "provider": {
+        "name": "OpenAI",
+        "model": "text-embedding-3-large",
+        "keyEnv": "OPENAI_API_KEY",
+        "pricePerMillionTokens": 0.13
+      },
+      "status": "SUCCESS",
+      "dimension": 3072,
+      "storage": {
+        "float32BytesPerEmbedding": 12288,
+        "float32BytesFor5000Embeddings": 61440000,
+        "excludes": [
+          "PostgreSQL row overhead",
+          "vector-index overhead",
+          "metadata",
+          "replication",
+          "database page overhead"
+        ]
+      },
+      "results": [
+        {
+          "id": "case-001",
+          "category": "exact_duplicate",
+          "expected_class": "HIGH",
+          "rationale": "Exact duplicate title and context.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Knowledge of malaria prevention among mothers in Osogbo\nPopulation: Mothers of children under five\nLocation: Osogbo\nStudy focus: Malaria prevention knowledge",
+              "topic_b": "Title: Knowledge of malaria prevention among mothers in Osogbo\nPopulation: Mothers of children under five\nLocation: Osogbo\nStudy focus: Malaria prevention knowledge"
+            }
+          },
+          "scores": {
+            "openai": 1
+          }
+        },
+        {
+          "id": "case-002",
+          "category": "near_duplicate",
+          "expected_class": "HIGH",
+          "rationale": "Near-duplicate wording with same population, location, and focus.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Factors affecting exclusive breastfeeding among nursing mothers in Ede\nPopulation: Nursing mothers\nLocation: Ede\nStudy focus: Exclusive breastfeeding barriers",
+              "topic_b": "Title: Influencing factors of exclusive breastfeeding practice among nursing mothers in Ede\nPopulation: Nursing mothers\nLocation: Ede\nStudy focus: Exclusive breastfeeding barriers"
+            }
+          },
+          "scores": {
+            "openai": 0.965379
+          }
+        },
+        {
+          "id": "case-003",
+          "category": "paraphrased_duplicate",
+          "expected_class": "HIGH",
+          "rationale": "Low lexical overlap but similar meaning.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Use of mobile reminders for antenatal clinic attendance in Ile-Ife\nPopulation: Pregnant women\nLocation: Ile-Ife\nStudy focus: Clinic attendance support",
+              "topic_b": "Title: SMS prompts to improve prenatal appointment attendance in Ile-Ife\nPopulation: Pregnant women\nLocation: Ile-Ife\nStudy focus: Clinic attendance support"
+            }
+          },
+          "scores": {
+            "openai": 0.896643
+          }
+        },
+        {
+          "id": "case-004",
+          "category": "same_disease_different_population",
+          "expected_class": "MEDIUM",
+          "rationale": "Same disease and focus but different population.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Awareness of hypertension screening among market traders\nPopulation: Market traders\nLocation: Osogbo\nStudy focus: Screening awareness",
+              "topic_b": "Title: Awareness of hypertension screening among secondary school teachers\nPopulation: Secondary school teachers\nLocation: Osogbo\nStudy focus: Screening awareness"
+            }
+          },
+          "scores": {
+            "openai": 0.846939
+          }
+        },
+        {
+          "id": "case-005",
+          "category": "same_disease_different_location",
+          "expected_class": "MEDIUM",
+          "rationale": "Same title pattern but different study location.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Knowledge of malaria prevention among mothers in Osogbo\nPopulation: Mothers of children under five\nLocation: Osogbo\nStudy focus: Malaria prevention knowledge",
+              "topic_b": "Title: Knowledge of malaria prevention among mothers in Ibadan\nPopulation: Mothers of children under five\nLocation: Ibadan\nStudy focus: Malaria prevention knowledge"
+            }
+          },
+          "scores": {
+            "openai": 0.937413
+          }
+        },
+        {
+          "id": "case-006",
+          "category": "same_population_different_focus",
+          "expected_class": "LOW",
+          "rationale": "Same population and location but different topic focus.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Breastfeeding knowledge among nursing mothers in Ede\nPopulation: Nursing mothers\nLocation: Ede\nStudy focus: Breastfeeding knowledge",
+              "topic_b": "Title: Immunization attitude among nursing mothers in Ede\nPopulation: Nursing mothers\nLocation: Ede\nStudy focus: Immunization attitude"
+            }
+          },
+          "scores": {
+            "openai": 0.807429
+          }
+        },
+        {
+          "id": "case-007",
+          "category": "unrelated_public_health",
+          "expected_class": "LOW",
+          "rationale": "Clearly unrelated study areas.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Perception of telemedicine services among rural patients\nPopulation: Rural patients\nLocation: Osun State\nStudy focus: Telemedicine service perception",
+              "topic_b": "Title: Waste management practices among food vendors in urban markets\nPopulation: Food vendors\nLocation: Urban markets\nStudy focus: Waste management practices"
+            }
+          },
+          "scores": {
+            "openai": 0.386527
+          }
+        },
+        {
+          "id": "case-008",
+          "category": "high_lexical_overlap_different_focus",
+          "expected_class": "MEDIUM",
+          "rationale": "High lexical overlap but different study focus.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Knowledge attitude and practice of malaria prevention among mothers\nPopulation: Mothers\nLocation: Osogbo\nStudy focus: Malaria prevention",
+              "topic_b": "Title: Knowledge attitude and practice of family planning among mothers\nPopulation: Mothers\nLocation: Osogbo\nStudy focus: Family planning"
+            }
+          },
+          "scores": {
+            "openai": 0.850987
+          }
+        },
+        {
+          "id": "case-009",
+          "category": "fragmented_title",
+          "expected_class": "HIGH",
+          "rationale": "Fragmented imported/submitted title should still match the full version.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Hypertension screening market traders\nPopulation: Market traders\nLocation: Osogbo\nStudy focus: Screening awareness",
+              "topic_b": "Title: Awareness of hypertension screening among market traders in Osogbo\nPopulation: Market traders\nLocation: Osogbo\nStudy focus: Screening awareness"
+            }
+          },
+          "scores": {
+            "openai": 0.952356
+          }
+        },
+        {
+          "id": "case-010",
+          "category": "synonym_duplicate",
+          "expected_class": "HIGH",
+          "rationale": "Synonym-heavy paraphrase.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Determinants of contraceptive use among married women\nPopulation: Married women\nLocation: Ile-Ife\nStudy focus: Contraceptive use factors",
+              "topic_b": "Title: Factors influencing family planning uptake among married women\nPopulation: Married women\nLocation: Ile-Ife\nStudy focus: Contraceptive use factors"
+            }
+          },
+          "scores": {
+            "openai": 0.916063
+          }
+        },
+        {
+          "id": "case-011",
+          "category": "same_population_location_different_topic",
+          "expected_class": "LOW",
+          "rationale": "Same population and location but different health outcome.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Nutritional status of under-five children in Ede\nPopulation: Under-five children\nLocation: Ede\nStudy focus: Nutritional status",
+              "topic_b": "Title: Immunization uptake among under-five children in Ede\nPopulation: Under-five children\nLocation: Ede\nStudy focus: Immunization uptake"
+            }
+          },
+          "scores": {
+            "openai": 0.807754
+          }
+        },
+        {
+          "id": "case-012",
+          "category": "similar_intervention_different_context",
+          "expected_class": "MEDIUM",
+          "rationale": "Similar intervention but different population and location.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Use of insecticide treated nets among pregnant women in Ife\nPopulation: Pregnant women\nLocation: Ife\nStudy focus: ITN use",
+              "topic_b": "Title: Use of insecticide treated nets among nursing mothers in Osogbo\nPopulation: Nursing mothers\nLocation: Osogbo\nStudy focus: ITN use"
+            }
+          },
+          "scores": {
+            "openai": 0.86812
+          }
+        },
+        {
+          "id": "case-013",
+          "category": "documentation_gap_paraphrase",
+          "expected_class": "HIGH",
+          "rationale": "Potential current-session documentation gap with paraphrased wording.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Mobile app reminders for antenatal care attendance\nPopulation: Pregnant women\nLocation: Ile-Ife\nStudy focus: ANC attendance support",
+              "topic_b": "Title: Digital notification support for antenatal clinic adherence\nPopulation: Pregnant women\nLocation: Ile-Ife\nStudy focus: ANC attendance support"
+            }
+          },
+          "scores": {
+            "openai": 0.88223
+          }
+        },
+        {
+          "id": "case-014",
+          "category": "under_review_paraphrase",
+          "expected_class": "HIGH",
+          "rationale": "Under-review style paraphrase.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Barriers to exclusive breastfeeding among first-time mothers\nPopulation: First-time mothers\nLocation: Osun State\nStudy focus: Exclusive breastfeeding barriers",
+              "topic_b": "Title: Challenges affecting exclusive breastfeeding among primiparous mothers\nPopulation: First-time mothers\nLocation: Osun State\nStudy focus: Exclusive breastfeeding barriers"
+            }
+          },
+          "scores": {
+            "openai": 0.943343
+          }
+        },
+        {
+          "id": "case-015",
+          "category": "high_lexical_overlap_different_object",
+          "expected_class": "MEDIUM",
+          "rationale": "Similar wording but different object of study.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Use of health services among adolescents in secondary schools\nPopulation: Adolescents\nLocation: Secondary schools\nStudy focus: Health service use",
+              "topic_b": "Title: Use of social media among adolescents in secondary schools\nPopulation: Adolescents\nLocation: Secondary schools\nStudy focus: Social media use"
+            }
+          },
+          "scores": {
+            "openai": 0.783386
+          }
+        },
+        {
+          "id": "case-016",
+          "category": "clearly_unrelated",
+          "expected_class": "LOW",
+          "rationale": "Different domain, population, and focus.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Lassa fever awareness among rural residents\nPopulation: Rural residents\nLocation: Osun State\nStudy focus: Lassa fever awareness",
+              "topic_b": "Title: Academic performance among computer science students\nPopulation: Computer science students\nLocation: University campus\nStudy focus: Academic performance"
+            }
+          },
+          "scores": {
+            "openai": 0.411762
+          }
+        }
+      ],
+      "metrics": {
+        "classStatistics": {
+          "LOW": {
+            "support": 4,
+            "mean": 0.603368,
+            "median": 0.609596,
+            "minimum": 0.386527,
+            "maximum": 0.807754,
+            "standardDeviation": 0.204418
+          },
+          "MEDIUM": {
+            "support": 5,
+            "mean": 0.857369,
+            "median": 0.850987,
+            "minimum": 0.783386,
+            "maximum": 0.937413,
+            "standardDeviation": 0.049286
+          },
+          "HIGH": {
+            "support": 7,
+            "mean": 0.936573,
+            "median": 0.943343,
+            "minimum": 0.88223,
+            "maximum": 1,
+            "standardDeviation": 0.038015
+          }
+        },
+        "spearman": {
+          "support": 16,
+          "coefficient": 0.849662
+        },
+        "concordance": {
+          "HIGH_gt_MEDIUM": {
+            "comparisons": 35,
+            "correct": 32,
+            "ties": 0,
+            "rate": 0.914286
+          },
+          "HIGH_gt_LOW": {
+            "comparisons": 28,
+            "correct": 28,
+            "ties": 0,
+            "rate": 1
+          },
+          "MEDIUM_gt_LOW": {
+            "comparisons": 20,
+            "correct": 18,
+            "ties": 0,
+            "rate": 0.9
+          },
+          "overall": {
+            "comparisons": 83,
+            "correct": 78,
+            "rate": 0.939759
+          }
+        },
+        "classMargins": {
+          "highMinusMedium": 0.079204,
+          "mediumMinusLow": 0.254001,
+          "highMinusLow": 0.333205
+        }
+      },
+      "latency": {
+        "warmupMilliseconds": 370.4265,
+        "requests": 10,
+        "successCount": 10,
+        "failureCount": 0,
+        "retries": 0,
+        "meanMilliseconds": 624.53915,
+        "medianMilliseconds": 511.9914,
+        "p95Milliseconds": 1612.2283,
+        "minimumMilliseconds": 333.1536,
+        "maximumMilliseconds": 1612.2283
+      },
+      "consumption": {
+        "apiCalls": 12,
+        "measuredInputTokens": 964,
+        "averageTokensPerStructuredTopic": 30.125,
+        "providerUsageMetadata": {
+          "prompt_tokens": 964,
+          "total_tokens": 964
+        },
+        "datedPricingSnapshotUsdPerMillionInputTokens": 0.13,
+        "estimatedBulkInputCostUsd": 0.000125
+      },
+      "observedErrors": []
+    },
+    "voyage": {
+      "provider": {
+        "name": "Voyage AI",
+        "model": "voyage-4-large",
+        "keyEnv": "VOYAGE_API_KEY",
+        "pricePerMillionTokens": 0.12
+      },
+      "status": "SUCCESS",
+      "dimension": 1024,
+      "storage": {
+        "float32BytesPerEmbedding": 4096,
+        "float32BytesFor5000Embeddings": 20480000,
+        "excludes": [
+          "PostgreSQL row overhead",
+          "vector-index overhead",
+          "metadata",
+          "replication",
+          "database page overhead"
+        ]
+      },
+      "results": [
+        {
+          "id": "case-001",
+          "category": "exact_duplicate",
+          "expected_class": "HIGH",
+          "rationale": "Exact duplicate title and context.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Knowledge of malaria prevention among mothers in Osogbo\nPopulation: Mothers of children under five\nLocation: Osogbo\nStudy focus: Malaria prevention knowledge",
+              "topic_b": "Title: Knowledge of malaria prevention among mothers in Osogbo\nPopulation: Mothers of children under five\nLocation: Osogbo\nStudy focus: Malaria prevention knowledge"
+            }
+          },
+          "scores": {
+            "voyage": 1
+          }
+        },
+        {
+          "id": "case-002",
+          "category": "near_duplicate",
+          "expected_class": "HIGH",
+          "rationale": "Near-duplicate wording with same population, location, and focus.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Factors affecting exclusive breastfeeding among nursing mothers in Ede\nPopulation: Nursing mothers\nLocation: Ede\nStudy focus: Exclusive breastfeeding barriers",
+              "topic_b": "Title: Influencing factors of exclusive breastfeeding practice among nursing mothers in Ede\nPopulation: Nursing mothers\nLocation: Ede\nStudy focus: Exclusive breastfeeding barriers"
+            }
+          },
+          "scores": {
+            "voyage": 0.991611
+          }
+        },
+        {
+          "id": "case-003",
+          "category": "paraphrased_duplicate",
+          "expected_class": "HIGH",
+          "rationale": "Low lexical overlap but similar meaning.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Use of mobile reminders for antenatal clinic attendance in Ile-Ife\nPopulation: Pregnant women\nLocation: Ile-Ife\nStudy focus: Clinic attendance support",
+              "topic_b": "Title: SMS prompts to improve prenatal appointment attendance in Ile-Ife\nPopulation: Pregnant women\nLocation: Ile-Ife\nStudy focus: Clinic attendance support"
+            }
+          },
+          "scores": {
+            "voyage": 0.965145
+          }
+        },
+        {
+          "id": "case-004",
+          "category": "same_disease_different_population",
+          "expected_class": "MEDIUM",
+          "rationale": "Same disease and focus but different population.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Awareness of hypertension screening among market traders\nPopulation: Market traders\nLocation: Osogbo\nStudy focus: Screening awareness",
+              "topic_b": "Title: Awareness of hypertension screening among secondary school teachers\nPopulation: Secondary school teachers\nLocation: Osogbo\nStudy focus: Screening awareness"
+            }
+          },
+          "scores": {
+            "voyage": 0.889434
+          }
+        },
+        {
+          "id": "case-005",
+          "category": "same_disease_different_location",
+          "expected_class": "MEDIUM",
+          "rationale": "Same title pattern but different study location.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Knowledge of malaria prevention among mothers in Osogbo\nPopulation: Mothers of children under five\nLocation: Osogbo\nStudy focus: Malaria prevention knowledge",
+              "topic_b": "Title: Knowledge of malaria prevention among mothers in Ibadan\nPopulation: Mothers of children under five\nLocation: Ibadan\nStudy focus: Malaria prevention knowledge"
+            }
+          },
+          "scores": {
+            "voyage": 0.969235
+          }
+        },
+        {
+          "id": "case-006",
+          "category": "same_population_different_focus",
+          "expected_class": "LOW",
+          "rationale": "Same population and location but different topic focus.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Breastfeeding knowledge among nursing mothers in Ede\nPopulation: Nursing mothers\nLocation: Ede\nStudy focus: Breastfeeding knowledge",
+              "topic_b": "Title: Immunization attitude among nursing mothers in Ede\nPopulation: Nursing mothers\nLocation: Ede\nStudy focus: Immunization attitude"
+            }
+          },
+          "scores": {
+            "voyage": 0.878918
+          }
+        },
+        {
+          "id": "case-007",
+          "category": "unrelated_public_health",
+          "expected_class": "LOW",
+          "rationale": "Clearly unrelated study areas.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Perception of telemedicine services among rural patients\nPopulation: Rural patients\nLocation: Osun State\nStudy focus: Telemedicine service perception",
+              "topic_b": "Title: Waste management practices among food vendors in urban markets\nPopulation: Food vendors\nLocation: Urban markets\nStudy focus: Waste management practices"
+            }
+          },
+          "scores": {
+            "voyage": 0.520908
+          }
+        },
+        {
+          "id": "case-008",
+          "category": "high_lexical_overlap_different_focus",
+          "expected_class": "MEDIUM",
+          "rationale": "High lexical overlap but different study focus.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Knowledge attitude and practice of malaria prevention among mothers\nPopulation: Mothers\nLocation: Osogbo\nStudy focus: Malaria prevention",
+              "topic_b": "Title: Knowledge attitude and practice of family planning among mothers\nPopulation: Mothers\nLocation: Osogbo\nStudy focus: Family planning"
+            }
+          },
+          "scores": {
+            "voyage": 0.859917
+          }
+        },
+        {
+          "id": "case-009",
+          "category": "fragmented_title",
+          "expected_class": "HIGH",
+          "rationale": "Fragmented imported/submitted title should still match the full version.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Hypertension screening market traders\nPopulation: Market traders\nLocation: Osogbo\nStudy focus: Screening awareness",
+              "topic_b": "Title: Awareness of hypertension screening among market traders in Osogbo\nPopulation: Market traders\nLocation: Osogbo\nStudy focus: Screening awareness"
+            }
+          },
+          "scores": {
+            "voyage": 0.980418
+          }
+        },
+        {
+          "id": "case-010",
+          "category": "synonym_duplicate",
+          "expected_class": "HIGH",
+          "rationale": "Synonym-heavy paraphrase.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Determinants of contraceptive use among married women\nPopulation: Married women\nLocation: Ile-Ife\nStudy focus: Contraceptive use factors",
+              "topic_b": "Title: Factors influencing family planning uptake among married women\nPopulation: Married women\nLocation: Ile-Ife\nStudy focus: Contraceptive use factors"
+            }
+          },
+          "scores": {
+            "voyage": 0.974538
+          }
+        },
+        {
+          "id": "case-011",
+          "category": "same_population_location_different_topic",
+          "expected_class": "LOW",
+          "rationale": "Same population and location but different health outcome.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Nutritional status of under-five children in Ede\nPopulation: Under-five children\nLocation: Ede\nStudy focus: Nutritional status",
+              "topic_b": "Title: Immunization uptake among under-five children in Ede\nPopulation: Under-five children\nLocation: Ede\nStudy focus: Immunization uptake"
+            }
+          },
+          "scores": {
+            "voyage": 0.852909
+          }
+        },
+        {
+          "id": "case-012",
+          "category": "similar_intervention_different_context",
+          "expected_class": "MEDIUM",
+          "rationale": "Similar intervention but different population and location.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Use of insecticide treated nets among pregnant women in Ife\nPopulation: Pregnant women\nLocation: Ife\nStudy focus: ITN use",
+              "topic_b": "Title: Use of insecticide treated nets among nursing mothers in Osogbo\nPopulation: Nursing mothers\nLocation: Osogbo\nStudy focus: ITN use"
+            }
+          },
+          "scores": {
+            "voyage": 0.923658
+          }
+        },
+        {
+          "id": "case-013",
+          "category": "documentation_gap_paraphrase",
+          "expected_class": "HIGH",
+          "rationale": "Potential current-session documentation gap with paraphrased wording.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Mobile app reminders for antenatal care attendance\nPopulation: Pregnant women\nLocation: Ile-Ife\nStudy focus: ANC attendance support",
+              "topic_b": "Title: Digital notification support for antenatal clinic adherence\nPopulation: Pregnant women\nLocation: Ile-Ife\nStudy focus: ANC attendance support"
+            }
+          },
+          "scores": {
+            "voyage": 0.970311
+          }
+        },
+        {
+          "id": "case-014",
+          "category": "under_review_paraphrase",
+          "expected_class": "HIGH",
+          "rationale": "Under-review style paraphrase.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Barriers to exclusive breastfeeding among first-time mothers\nPopulation: First-time mothers\nLocation: Osun State\nStudy focus: Exclusive breastfeeding barriers",
+              "topic_b": "Title: Challenges affecting exclusive breastfeeding among primiparous mothers\nPopulation: First-time mothers\nLocation: Osun State\nStudy focus: Exclusive breastfeeding barriers"
+            }
+          },
+          "scores": {
+            "voyage": 0.980957
+          }
+        },
+        {
+          "id": "case-015",
+          "category": "high_lexical_overlap_different_object",
+          "expected_class": "MEDIUM",
+          "rationale": "Similar wording but different object of study.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Use of health services among adolescents in secondary schools\nPopulation: Adolescents\nLocation: Secondary schools\nStudy focus: Health service use",
+              "topic_b": "Title: Use of social media among adolescents in secondary schools\nPopulation: Adolescents\nLocation: Secondary schools\nStudy focus: Social media use"
+            }
+          },
+          "scores": {
+            "voyage": 0.810341
+          }
+        },
+        {
+          "id": "case-016",
+          "category": "clearly_unrelated",
+          "expected_class": "LOW",
+          "rationale": "Different domain, population, and focus.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Lassa fever awareness among rural residents\nPopulation: Rural residents\nLocation: Osun State\nStudy focus: Lassa fever awareness",
+              "topic_b": "Title: Academic performance among computer science students\nPopulation: Computer science students\nLocation: University campus\nStudy focus: Academic performance"
+            }
+          },
+          "scores": {
+            "voyage": 0.534267
+          }
+        }
+      ],
+      "metrics": {
+        "classStatistics": {
+          "LOW": {
+            "support": 4,
+            "mean": 0.696751,
+            "median": 0.693588,
+            "minimum": 0.520908,
+            "maximum": 0.878918,
+            "standardDeviation": 0.169479
+          },
+          "MEDIUM": {
+            "support": 5,
+            "mean": 0.890517,
+            "median": 0.889434,
+            "minimum": 0.810341,
+            "maximum": 0.969235,
+            "standardDeviation": 0.054149
+          },
+          "HIGH": {
+            "support": 7,
+            "mean": 0.980426,
+            "median": 0.980418,
+            "minimum": 0.965145,
+            "maximum": 1,
+            "standardDeviation": 0.011206
+          }
+        },
+        "spearman": {
+          "support": 16,
+          "coefficient": 0.873263
+        },
+        "concordance": {
+          "HIGH_gt_MEDIUM": {
+            "comparisons": 35,
+            "correct": 34,
+            "ties": 0,
+            "rate": 0.971429
+          },
+          "HIGH_gt_LOW": {
+            "comparisons": 28,
+            "correct": 28,
+            "ties": 0,
+            "rate": 1
+          },
+          "MEDIUM_gt_LOW": {
+            "comparisons": 20,
+            "correct": 17,
+            "ties": 0,
+            "rate": 0.85
+          },
+          "overall": {
+            "comparisons": 83,
+            "correct": 79,
+            "rate": 0.951807
+          }
+        },
+        "classMargins": {
+          "highMinusMedium": 0.089909,
+          "mediumMinusLow": 0.193766,
+          "highMinusLow": 0.283675
+        }
+      },
+      "latency": {
+        "warmupMilliseconds": 968.3262,
+        "requests": 1,
+        "successCount": 1,
+        "failureCount": 1,
+        "retries": 0,
+        "meanMilliseconds": 652.8182,
+        "medianMilliseconds": 652.8182,
+        "p95Milliseconds": 652.8182,
+        "minimumMilliseconds": 652.8182,
+        "maximumMilliseconds": 652.8182
+      },
+      "consumption": {
+        "apiCalls": 3,
+        "measuredInputTokens": 964,
+        "averageTokensPerStructuredTopic": 30.125,
+        "providerUsageMetadata": {
+          "total_tokens": 964
+        },
+        "datedPricingSnapshotUsdPerMillionInputTokens": 0.12,
+        "estimatedBulkInputCostUsd": 0.000116
+      },
+      "observedErrors": [
+        {
+          "type": "http",
+          "status": 429,
+          "message": "HTTP 429"
+        }
+      ]
+    },
+    "gemini": {
+      "provider": {
+        "name": "Google Gemini",
+        "model": "gemini-embedding-2",
+        "keyEnv": "GEMINI_API_KEY",
+        "pricePerMillionTokens": 0.2
+      },
+      "status": "SUCCESS",
+      "dimension": 3072,
+      "storage": {
+        "float32BytesPerEmbedding": 12288,
+        "float32BytesFor5000Embeddings": 61440000,
+        "excludes": [
+          "PostgreSQL row overhead",
+          "vector-index overhead",
+          "metadata",
+          "replication",
+          "database page overhead"
+        ]
+      },
+      "results": [
+        {
+          "id": "case-001",
+          "category": "exact_duplicate",
+          "expected_class": "HIGH",
+          "rationale": "Exact duplicate title and context.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Knowledge of malaria prevention among mothers in Osogbo\nPopulation: Mothers of children under five\nLocation: Osogbo\nStudy focus: Malaria prevention knowledge",
+              "topic_b": "Title: Knowledge of malaria prevention among mothers in Osogbo\nPopulation: Mothers of children under five\nLocation: Osogbo\nStudy focus: Malaria prevention knowledge"
+            }
+          },
+          "scores": {
+            "gemini": 1
+          }
+        },
+        {
+          "id": "case-002",
+          "category": "near_duplicate",
+          "expected_class": "HIGH",
+          "rationale": "Near-duplicate wording with same population, location, and focus.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Factors affecting exclusive breastfeeding among nursing mothers in Ede\nPopulation: Nursing mothers\nLocation: Ede\nStudy focus: Exclusive breastfeeding barriers",
+              "topic_b": "Title: Influencing factors of exclusive breastfeeding practice among nursing mothers in Ede\nPopulation: Nursing mothers\nLocation: Ede\nStudy focus: Exclusive breastfeeding barriers"
+            }
+          },
+          "scores": {
+            "gemini": 0.991884
+          }
+        },
+        {
+          "id": "case-003",
+          "category": "paraphrased_duplicate",
+          "expected_class": "HIGH",
+          "rationale": "Low lexical overlap but similar meaning.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Use of mobile reminders for antenatal clinic attendance in Ile-Ife\nPopulation: Pregnant women\nLocation: Ile-Ife\nStudy focus: Clinic attendance support",
+              "topic_b": "Title: SMS prompts to improve prenatal appointment attendance in Ile-Ife\nPopulation: Pregnant women\nLocation: Ile-Ife\nStudy focus: Clinic attendance support"
+            }
+          },
+          "scores": {
+            "gemini": 0.972557
+          }
+        },
+        {
+          "id": "case-004",
+          "category": "same_disease_different_population",
+          "expected_class": "MEDIUM",
+          "rationale": "Same disease and focus but different population.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Awareness of hypertension screening among market traders\nPopulation: Market traders\nLocation: Osogbo\nStudy focus: Screening awareness",
+              "topic_b": "Title: Awareness of hypertension screening among secondary school teachers\nPopulation: Secondary school teachers\nLocation: Osogbo\nStudy focus: Screening awareness"
+            }
+          },
+          "scores": {
+            "gemini": 0.9359
+          }
+        },
+        {
+          "id": "case-005",
+          "category": "same_disease_different_location",
+          "expected_class": "MEDIUM",
+          "rationale": "Same title pattern but different study location.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Knowledge of malaria prevention among mothers in Osogbo\nPopulation: Mothers of children under five\nLocation: Osogbo\nStudy focus: Malaria prevention knowledge",
+              "topic_b": "Title: Knowledge of malaria prevention among mothers in Ibadan\nPopulation: Mothers of children under five\nLocation: Ibadan\nStudy focus: Malaria prevention knowledge"
+            }
+          },
+          "scores": {
+            "gemini": 0.962658
+          }
+        },
+        {
+          "id": "case-006",
+          "category": "same_population_different_focus",
+          "expected_class": "LOW",
+          "rationale": "Same population and location but different topic focus.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Breastfeeding knowledge among nursing mothers in Ede\nPopulation: Nursing mothers\nLocation: Ede\nStudy focus: Breastfeeding knowledge",
+              "topic_b": "Title: Immunization attitude among nursing mothers in Ede\nPopulation: Nursing mothers\nLocation: Ede\nStudy focus: Immunization attitude"
+            }
+          },
+          "scores": {
+            "gemini": 0.943889
+          }
+        },
+        {
+          "id": "case-007",
+          "category": "unrelated_public_health",
+          "expected_class": "LOW",
+          "rationale": "Clearly unrelated study areas.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Perception of telemedicine services among rural patients\nPopulation: Rural patients\nLocation: Osun State\nStudy focus: Telemedicine service perception",
+              "topic_b": "Title: Waste management practices among food vendors in urban markets\nPopulation: Food vendors\nLocation: Urban markets\nStudy focus: Waste management practices"
+            }
+          },
+          "scores": {
+            "gemini": 0.793297
+          }
+        },
+        {
+          "id": "case-008",
+          "category": "high_lexical_overlap_different_focus",
+          "expected_class": "MEDIUM",
+          "rationale": "High lexical overlap but different study focus.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Knowledge attitude and practice of malaria prevention among mothers\nPopulation: Mothers\nLocation: Osogbo\nStudy focus: Malaria prevention",
+              "topic_b": "Title: Knowledge attitude and practice of family planning among mothers\nPopulation: Mothers\nLocation: Osogbo\nStudy focus: Family planning"
+            }
+          },
+          "scores": {
+            "gemini": 0.940937
+          }
+        },
+        {
+          "id": "case-009",
+          "category": "fragmented_title",
+          "expected_class": "HIGH",
+          "rationale": "Fragmented imported/submitted title should still match the full version.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Hypertension screening market traders\nPopulation: Market traders\nLocation: Osogbo\nStudy focus: Screening awareness",
+              "topic_b": "Title: Awareness of hypertension screening among market traders in Osogbo\nPopulation: Market traders\nLocation: Osogbo\nStudy focus: Screening awareness"
+            }
+          },
+          "scores": {
+            "gemini": 0.991063
+          }
+        },
+        {
+          "id": "case-010",
+          "category": "synonym_duplicate",
+          "expected_class": "HIGH",
+          "rationale": "Synonym-heavy paraphrase.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Determinants of contraceptive use among married women\nPopulation: Married women\nLocation: Ile-Ife\nStudy focus: Contraceptive use factors",
+              "topic_b": "Title: Factors influencing family planning uptake among married women\nPopulation: Married women\nLocation: Ile-Ife\nStudy focus: Contraceptive use factors"
+            }
+          },
+          "scores": {
+            "gemini": 0.969894
+          }
+        },
+        {
+          "id": "case-011",
+          "category": "same_population_location_different_topic",
+          "expected_class": "LOW",
+          "rationale": "Same population and location but different health outcome.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Nutritional status of under-five children in Ede\nPopulation: Under-five children\nLocation: Ede\nStudy focus: Nutritional status",
+              "topic_b": "Title: Immunization uptake among under-five children in Ede\nPopulation: Under-five children\nLocation: Ede\nStudy focus: Immunization uptake"
+            }
+          },
+          "scores": {
+            "gemini": 0.942303
+          }
+        },
+        {
+          "id": "case-012",
+          "category": "similar_intervention_different_context",
+          "expected_class": "MEDIUM",
+          "rationale": "Similar intervention but different population and location.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Use of insecticide treated nets among pregnant women in Ife\nPopulation: Pregnant women\nLocation: Ife\nStudy focus: ITN use",
+              "topic_b": "Title: Use of insecticide treated nets among nursing mothers in Osogbo\nPopulation: Nursing mothers\nLocation: Osogbo\nStudy focus: ITN use"
+            }
+          },
+          "scores": {
+            "gemini": 0.919448
+          }
+        },
+        {
+          "id": "case-013",
+          "category": "documentation_gap_paraphrase",
+          "expected_class": "HIGH",
+          "rationale": "Potential current-session documentation gap with paraphrased wording.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Mobile app reminders for antenatal care attendance\nPopulation: Pregnant women\nLocation: Ile-Ife\nStudy focus: ANC attendance support",
+              "topic_b": "Title: Digital notification support for antenatal clinic adherence\nPopulation: Pregnant women\nLocation: Ile-Ife\nStudy focus: ANC attendance support"
+            }
+          },
+          "scores": {
+            "gemini": 0.970468
+          }
+        },
+        {
+          "id": "case-014",
+          "category": "under_review_paraphrase",
+          "expected_class": "HIGH",
+          "rationale": "Under-review style paraphrase.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Barriers to exclusive breastfeeding among first-time mothers\nPopulation: First-time mothers\nLocation: Osun State\nStudy focus: Exclusive breastfeeding barriers",
+              "topic_b": "Title: Challenges affecting exclusive breastfeeding among primiparous mothers\nPopulation: First-time mothers\nLocation: Osun State\nStudy focus: Exclusive breastfeeding barriers"
+            }
+          },
+          "scores": {
+            "gemini": 0.979771
+          }
+        },
+        {
+          "id": "case-015",
+          "category": "high_lexical_overlap_different_object",
+          "expected_class": "MEDIUM",
+          "rationale": "Similar wording but different object of study.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Use of health services among adolescents in secondary schools\nPopulation: Adolescents\nLocation: Secondary schools\nStudy focus: Health service use",
+              "topic_b": "Title: Use of social media among adolescents in secondary schools\nPopulation: Adolescents\nLocation: Secondary schools\nStudy focus: Social media use"
+            }
+          },
+          "scores": {
+            "gemini": 0.937225
+          }
+        },
+        {
+          "id": "case-016",
+          "category": "clearly_unrelated",
+          "expected_class": "LOW",
+          "rationale": "Different domain, population, and focus.",
+          "representations": {
+            "structured_context": {
+              "topic_a": "Title: Lassa fever awareness among rural residents\nPopulation: Rural residents\nLocation: Osun State\nStudy focus: Lassa fever awareness",
+              "topic_b": "Title: Academic performance among computer science students\nPopulation: Computer science students\nLocation: University campus\nStudy focus: Academic performance"
+            }
+          },
+          "scores": {
+            "gemini": 0.824929
+          }
+        }
+      ],
+      "metrics": {
+        "classStatistics": {
+          "LOW": {
+            "support": 4,
+            "mean": 0.876105,
+            "median": 0.883616,
+            "minimum": 0.793297,
+            "maximum": 0.943889,
+            "standardDeviation": 0.067921
+          },
+          "MEDIUM": {
+            "support": 5,
+            "mean": 0.939234,
+            "median": 0.937225,
+            "minimum": 0.919448,
+            "maximum": 0.962658,
+            "standardDeviation": 0.013844
+          },
+          "HIGH": {
+            "support": 7,
+            "mean": 0.982234,
+            "median": 0.979771,
+            "minimum": 0.969894,
+            "maximum": 1,
+            "standardDeviation": 0.011194
+          }
+        },
+        "spearman": {
+          "support": 16,
+          "coefficient": 0.82134
+        },
+        "concordance": {
+          "HIGH_gt_MEDIUM": {
+            "comparisons": 35,
+            "correct": 35,
+            "ties": 0,
+            "rate": 1
+          },
+          "HIGH_gt_LOW": {
+            "comparisons": 28,
+            "correct": 28,
+            "ties": 0,
+            "rate": 1
+          },
+          "MEDIUM_gt_LOW": {
+            "comparisons": 20,
+            "correct": 12,
+            "ties": 0,
+            "rate": 0.6
+          },
+          "overall": {
+            "comparisons": 83,
+            "correct": 75,
+            "rate": 0.903614
+          }
+        },
+        "classMargins": {
+          "highMinusMedium": 0.043,
+          "mediumMinusLow": 0.063129,
+          "highMinusLow": 0.106129
+        }
+      },
+      "latency": {
+        "warmupMilliseconds": 634.8944,
+        "requests": 10,
+        "successCount": 10,
+        "failureCount": 0,
+        "retries": 0,
+        "meanMilliseconds": 770.89431,
+        "medianMilliseconds": 805.515,
+        "p95Milliseconds": 1014.956,
+        "minimumMilliseconds": 550.9467,
+        "maximumMilliseconds": 1014.956
+      },
+      "consumption": {
+        "apiCalls": 43,
+        "measuredInputTokens": 1149,
+        "averageTokensPerStructuredTopic": 35.90625,
+        "providerUsageMetadata": [
+          {
+            "promptTokenCount": 40,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 40
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 40,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 40
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 34,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 34
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 37,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 37
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 42,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 42
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 40,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 40
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 33,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 33
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 35,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 35
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 40,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 40
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 36,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 36
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 33,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 33
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 33,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 33
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 35,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 35
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 35,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 35
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 34,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 34
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 34,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 34
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 30,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 30
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 37,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 37
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 36,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 36
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 37,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 37
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 35,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 35
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 37,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 37
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 35,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 35
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 39,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 39
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 36,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 36
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 36,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 36
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 37,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 37
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 37,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 37
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 35,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 35
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 35,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 35
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 34,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 34
+              }
+            ]
+          },
+          {
+            "promptTokenCount": 32,
+            "promptTokenDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 32
+              }
+            ]
+          }
+        ],
+        "datedPricingSnapshotUsdPerMillionInputTokens": 0.2,
+        "estimatedBulkInputCostUsd": 0.00023
+      },
+      "observedErrors": []
+    }
+  },
+  "recommendation": "SBERT_LEADS_PILOT",
+  "recommendationRationale": "SBERT leads this 16-case pilot on the predeclared threshold-independent semantic ordering metrics. This is not a production selection.",
+  "limitations": [
+    "Sixteen cases are manually constructed pilot data, not final lecturer-reviewed ground truth.",
+    "The latency sample is 10 measured requests and is only observed pilot latency.",
+    "Provider response dimensions, token metadata, availability, and pricing can vary by account, region, and time.",
+    "No arbitrary shared semantic thresholds, precision, recall, or F1 were used."
+  ]
+}
