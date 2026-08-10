@@ -1,0 +1,3248 @@
+{
+  "schema_version": "expanded-semantic-benchmark-v1",
+  "version": "expanded-v1",
+  "description": "Controlled manually constructed semantic-similarity benchmark for later evaluation; no model scores included.",
+  "provenance": {
+    "source_classification": "manually_constructed_expanded_benchmark",
+    "created_for": "Expanded semantic similarity evaluation design",
+    "validation_status": "not_department_expert_validated",
+    "notes": [
+      "This is technical evaluation data, not lecturer-reviewed or departmental ground truth.",
+      "Cases were constructed before expanded model evaluation to reduce leakage."
+    ]
+  },
+  "class_labels": [
+    "LOW",
+    "MEDIUM",
+    "HIGH"
+  ],
+  "cases": [
+    {
+      "id": "expanded-low-001",
+      "category": "clearly_unrelated",
+      "submitted": {
+        "title": "Lassa fever awareness among rural residents",
+        "population": "Rural residents",
+        "location": "Osun State",
+        "study_focus": "Lassa fever awareness"
+      },
+      "existing": {
+        "title": "Academic performance among computer-science students",
+        "population": "Computer-science students",
+        "location": "University campus",
+        "study_focus": "Academic performance"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Different domain, population, and outcome.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "clearly_unrelated",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-002",
+      "category": "misleading_lexical_overlap",
+      "submitted": {
+        "title": "Knowledge of malaria prevention among mothers",
+        "population": "Mothers",
+        "location": "Osogbo",
+        "study_focus": "Malaria prevention"
+      },
+      "existing": {
+        "title": "Knowledge of family planning among mothers",
+        "population": "Mothers",
+        "location": "Osogbo",
+        "study_focus": "Family planning"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Shared generic wording but unrelated focus.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "misleading_lexical_overlap",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-003",
+      "category": "same_context_unrelated_focus",
+      "submitted": {
+        "title": "Nutrition status of under-five children",
+        "population": "Under-five children",
+        "location": "Ede",
+        "study_focus": "Child nutrition"
+      },
+      "existing": {
+        "title": "Immunization uptake among under-five children",
+        "population": "Under-five children",
+        "location": "Ede",
+        "study_focus": "Child immunization"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Same context, unrelated research question.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_context_unrelated_focus",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-004",
+      "category": "broad_disease_different_question",
+      "submitted": {
+        "title": "Hypertension screening awareness among traders",
+        "population": "Market traders",
+        "location": "Iwo",
+        "study_focus": "Screening awareness"
+      },
+      "existing": {
+        "title": "Medication side effects among hypertensive traders",
+        "population": "Market traders",
+        "location": "Iwo",
+        "study_focus": "Adverse drug effects"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Same disease area, fundamentally different question.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "broad_disease_different_question",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-005",
+      "category": "generic_public_health_overlap",
+      "submitted": {
+        "title": "Public-health knowledge among university students",
+        "population": "University students",
+        "location": "Ibadan",
+        "study_focus": "Health knowledge"
+      },
+      "existing": {
+        "title": "Public-health waste practices in markets",
+        "location": "Ibadan",
+        "study_focus": "Waste management"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Generic public-health terms only.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "generic_public_health_overlap",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-006",
+      "category": "shared_terminology",
+      "submitted": {
+        "title": "Mobile phone use among adolescents",
+        "population": "Secondary-school adolescents",
+        "location": "Oyo",
+        "study_focus": "Phone-use patterns"
+      },
+      "existing": {
+        "title": "Mobile reminders for antenatal attendance",
+        "population": "Pregnant women",
+        "location": "Oyo",
+        "study_focus": "Clinic attendance"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Mobile wording masks unrelated topic.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "shared_terminology",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-007",
+      "category": "clearly_unrelated",
+      "submitted": {
+        "title": "Water safety practices in hostels",
+        "population": "University residents",
+        "location": "Ife",
+        "study_focus": "Water safety"
+      },
+      "existing": {
+        "title": "Road traffic injury experiences among drivers",
+        "population": "Commercial drivers",
+        "location": "Ife",
+        "study_focus": "Road injury experiences"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Unrelated public-health domains.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "clearly_unrelated",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-008",
+      "category": "misleading_lexical_overlap",
+      "submitted": {
+        "title": "Attitudes to blood donation among students",
+        "population": "Undergraduates",
+        "location": "Ede",
+        "study_focus": "Blood donation attitudes"
+      },
+      "existing": {
+        "title": "Attitudes to online learning among students",
+        "population": "Undergraduates",
+        "location": "Ede"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Same attitude/student wording.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "misleading_lexical_overlap",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-009",
+      "category": "same_context_unrelated_focus",
+      "submitted": {
+        "title": "Sleep quality among nursing students",
+        "population": "Nursing students",
+        "location": "Ibadan",
+        "study_focus": "Sleep quality"
+      },
+      "existing": {
+        "title": "Handwashing practice among nursing students",
+        "population": "Nursing students",
+        "location": "Ibadan",
+        "study_focus": "Hand hygiene"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Same students, unrelated focus.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_context_unrelated_focus",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-010",
+      "category": "broad_disease_different_question",
+      "submitted": {
+        "title": "HIV testing intention among youth",
+        "population": "Out-of-school youth",
+        "location": "Osogbo",
+        "study_focus": "HIV testing intention"
+      },
+      "existing": {
+        "title": "Stigma toward people living with HIV among youth",
+        "population": "Out-of-school youth",
+        "location": "Osogbo",
+        "study_focus": "HIV stigma"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Related HIV prevention and social context among the same youth cohort, but distinct research questions.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "broad_disease_different_question",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-011",
+      "category": "generic_public_health_overlap",
+      "submitted": {
+        "title": "Health-service use among adolescents",
+        "population": "Adolescents",
+        "location": "Ilesa",
+        "study_focus": "Health-service utilization"
+      },
+      "existing": {
+        "title": "Health-information use among health workers",
+        "population": "Community health workers",
+        "location": "Ilesa",
+        "study_focus": "Information systems"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Shared health/use tokens only.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "generic_public_health_overlap",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-012",
+      "category": "shared_terminology",
+      "submitted": {
+        "title": "Screening knowledge among women",
+        "population": "Women aged 25–49",
+        "location": "Ogbomoso",
+        "study_focus": "Cervical screening"
+      },
+      "existing": {
+        "title": "Screen time among women",
+        "population": "Women aged 25–49",
+        "location": "Ogbomoso",
+        "study_focus": "Digital-device use"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Screening/screen lexical trap.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "shared_terminology",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-013",
+      "category": "clearly_unrelated",
+      "submitted": {
+        "title": "Tuberculosis transmission knowledge among inmates",
+        "population": "Prison inmates",
+        "location": "Ilesa",
+        "study_focus": "TB knowledge"
+      },
+      "existing": {
+        "title": "Household waste sorting among residents",
+        "population": "Urban households",
+        "location": "Ilesa",
+        "study_focus": "Waste segregation"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Different subject matter.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "clearly_unrelated",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-014",
+      "category": "misleading_lexical_overlap",
+      "submitted": {
+        "title": "Practice of exclusive breastfeeding among mothers",
+        "population": "Nursing mothers",
+        "location": "Iwo",
+        "study_focus": "Breastfeeding practice"
+      },
+      "existing": {
+        "title": "Practice of personal budgeting among mothers",
+        "population": "Nursing mothers",
+        "location": "Iwo",
+        "study_focus": "Household budgeting"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Practice/mothers overlap only.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "misleading_lexical_overlap",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-015",
+      "category": "same_context_unrelated_focus",
+      "submitted": {
+        "title": "Mental-health counselling perception among teachers",
+        "population": "Secondary-school teachers",
+        "location": "Ede",
+        "study_focus": "Counselling perception"
+      },
+      "existing": {
+        "title": "First-aid knowledge among teachers",
+        "population": "Secondary-school teachers",
+        "location": "Ede",
+        "study_focus": "First-aid knowledge"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Same workplace, unrelated study.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_context_unrelated_focus",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-016",
+      "category": "broad_disease_different_question",
+      "submitted": {
+        "title": "Diabetes self-care among adults",
+        "population": "Adults with diabetes",
+        "location": "Osogbo",
+        "study_focus": "Self-care behavior"
+      },
+      "existing": {
+        "title": "Diabetes prevalence in community adults",
+        "population": "General adult residents",
+        "location": "Osogbo",
+        "study_focus": "Disease prevalence"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Different diabetes study designs and populations, yet substantively related disease evidence.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "broad_disease_different_question",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-017",
+      "category": "generic_public_health_overlap",
+      "submitted": {
+        "title": "Community health awareness among residents",
+        "population": "Adult residents",
+        "location": "Ikire",
+        "study_focus": "General health awareness"
+      },
+      "existing": {
+        "title": "Community sanitation practices among vendors",
+        "population": "Food vendors",
+        "study_focus": "Environmental sanitation"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Generic community-health overlap.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "generic_public_health_overlap",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-018",
+      "category": "misleading_lexical_overlap",
+      "submitted": {
+        "title": "Factors associated with uptake of postnatal family planning",
+        "population": "Postnatal mothers",
+        "location": "Ife",
+        "study_focus": "Postnatal family-planning uptake"
+      },
+      "existing": {
+        "title": "Factors associated with uptake of hepatitis B vaccination",
+        "population": "Community health workers",
+        "location": "Ife",
+        "study_focus": "Hepatitis B vaccination uptake"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Realistic shared “factors associated with uptake” wording, but different health behaviours and populations.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "misleading_lexical_overlap",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-019",
+      "category": "clearly_unrelated",
+      "submitted": {
+        "title": "Organ donation willingness among young adults",
+        "population": "Young adults",
+        "location": "Ibadan",
+        "study_focus": "Organ donation"
+      },
+      "existing": {
+        "title": "Use of solar lighting among households",
+        "population": "Household heads",
+        "location": "Ibadan",
+        "study_focus": "Energy use"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Entirely unrelated.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "clearly_unrelated",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-020",
+      "category": "misleading_lexical_overlap",
+      "submitted": {
+        "title": "Knowledge of emergency contraception among women",
+        "population": "Female undergraduates",
+        "location": "Oyo",
+        "study_focus": "Contraception knowledge"
+      },
+      "existing": {
+        "title": "Knowledge of emergency evacuation among women",
+        "population": "Female undergraduates",
+        "location": "Oyo",
+        "study_focus": "Emergency preparedness"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Emergency/knowledge overlap.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "misleading_lexical_overlap",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-021",
+      "category": "same_context_unrelated_focus",
+      "submitted": {
+        "title": "Medication adherence among adults with asthma",
+        "population": "Adults with asthma",
+        "location": "Ede",
+        "study_focus": "Medication adherence"
+      },
+      "existing": {
+        "title": "Physical-activity habits among adults with asthma",
+        "population": "Adults with asthma",
+        "location": "Ede",
+        "study_focus": "Exercise habits"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Same disease group, separate focus.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_context_unrelated_focus",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-022",
+      "category": "broad_disease_different_question",
+      "submitted": {
+        "title": "Malaria prevention knowledge among caregivers",
+        "population": "Caregivers",
+        "location": "Ilesa",
+        "study_focus": "Prevention knowledge"
+      },
+      "existing": {
+        "title": "Malaria parasite microscopy among laboratory staff",
+        "population": "Laboratory scientists",
+        "location": "Ilesa",
+        "study_focus": "Diagnostic microscopy"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Same disease, different technical question.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "broad_disease_different_question",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-023",
+      "category": "generic_public_health_overlap",
+      "submitted": {
+        "title": "Health education exposure among mothers",
+        "population": "Mothers",
+        "location": "Iwo",
+        "study_focus": "Health education"
+      },
+      "existing": {
+        "title": "Health-facility financing among administrators",
+        "population": "Facility managers",
+        "location": "Iwo",
+        "study_focus": "Health financing"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Health wording only.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "generic_public_health_overlap",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-024",
+      "category": "shared_terminology",
+      "submitted": {
+        "title": "Digital record use among clinic staff",
+        "population": "Primary-care staff",
+        "location": "Ogbomoso",
+        "study_focus": "Electronic records"
+      },
+      "existing": {
+        "title": "Digital game use among clinic staff",
+        "location": "Ogbomoso",
+        "study_focus": "Gaming behavior"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Digital/use/staff overlap.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "shared_terminology",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-025",
+      "category": "clearly_unrelated",
+      "submitted": {
+        "title": "Menstrual hygiene practices among boarding girls",
+        "population": "Female boarding students",
+        "location": "Osun State",
+        "study_focus": "Menstrual hygiene"
+      },
+      "existing": {
+        "title": "Food-vending profitability in boarding schools",
+        "population": "Food vendors",
+        "location": "Osun State",
+        "study_focus": "Business profitability"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Unrelated social domains.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "clearly_unrelated",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-026",
+      "category": "misleading_lexical_overlap",
+      "submitted": {
+        "title": "Perception of telemedicine among rural patients",
+        "population": "Rural clinic patients",
+        "location": "Ife",
+        "study_focus": "Telemedicine perception"
+      },
+      "existing": {
+        "title": "Perception of tourism among rural residents",
+        "population": "Rural residents",
+        "location": "Ife",
+        "study_focus": "Tourism perception"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Perception/rural overlap only.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "misleading_lexical_overlap",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-027",
+      "category": "same_context_unrelated_focus",
+      "submitted": {
+        "title": "Burnout among hospital nurses",
+        "population": "Registered nurses",
+        "location": "Ibadan",
+        "study_focus": "Occupational burnout"
+      },
+      "existing": {
+        "title": "Uniform compliance among hospital nurses",
+        "population": "Registered nurses",
+        "location": "Ibadan",
+        "study_focus": "Professional dress compliance"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Same staff, unrelated focus.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_context_unrelated_focus",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-028",
+      "category": "broad_disease_different_question",
+      "submitted": {
+        "title": "Cervical cancer screening uptake among women",
+        "population": "Women aged 25–49",
+        "location": "Ede",
+        "study_focus": "Screening uptake"
+      },
+      "existing": {
+        "title": "Cervical cancer pathology reporting in laboratories",
+        "population": "Laboratory scientists",
+        "location": "Ede",
+        "study_focus": "Pathology reporting"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Disease name but different research object.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "broad_disease_different_question",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-029",
+      "category": "generic_public_health_overlap",
+      "submitted": {
+        "title": "Awareness of healthy diet among students",
+        "population": "University students",
+        "location": "Ogbomoso",
+        "study_focus": "Diet awareness"
+      },
+      "existing": {
+        "title": "Awareness of campus security among students",
+        "population": "University students",
+        "location": "Ogbomoso",
+        "study_focus": "Security awareness"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Awareness/students overlap.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "generic_public_health_overlap",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-030",
+      "category": "shared_terminology",
+      "submitted": {
+        "title": "Vaccine hesitancy among caregivers",
+        "population": "Caregivers of infants",
+        "location": "Ikire",
+        "study_focus": "Vaccination hesitancy"
+      },
+      "existing": {
+        "title": "Hesitancy to use mobile banking among caregivers",
+        "population": "Caregivers of infants",
+        "location": "Ikire",
+        "study_focus": "Mobile-banking adoption"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Hesitancy population overlap.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "shared_terminology",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-031",
+      "category": "clearly_unrelated",
+      "submitted": {
+        "title": "First-aid knowledge among riders",
+        "population": "Commercial motorcycle riders",
+        "location": "Oyo",
+        "study_focus": "First-aid knowledge"
+      },
+      "existing": {
+        "title": "Reading habits among secondary-school students",
+        "population": "Secondary-school students",
+        "location": "Oyo",
+        "study_focus": "Reading habits"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Different populations and purpose.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "clearly_unrelated",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-032",
+      "category": "misleading_lexical_overlap",
+      "submitted": {
+        "title": "Salt intake among hypertensive adults",
+        "population": "Adults with hypertension",
+        "location": "Osogbo",
+        "study_focus": "Dietary sodium"
+      },
+      "existing": {
+        "title": "Salt preservation practices among fish vendors",
+        "population": "Fish vendors",
+        "location": "Osogbo",
+        "study_focus": "Food preservation"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Salt term is misleading.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "misleading_lexical_overlap",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-033",
+      "category": "same_context_unrelated_focus",
+      "submitted": {
+        "title": "Social-media health-information seeking among students",
+        "population": "University students",
+        "location": "Ibadan",
+        "study_focus": "Online health information"
+      },
+      "existing": {
+        "title": "Library use among students",
+        "population": "University students",
+        "location": "Ibadan",
+        "study_focus": "Library utilization"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Same cohort, unrelated service.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_context_unrelated_focus",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-034",
+      "category": "broad_disease_different_question",
+      "submitted": {
+        "title": "Hepatitis B vaccination awareness among students",
+        "population": "Tertiary students",
+        "location": "Iwo",
+        "study_focus": "Vaccination awareness"
+      },
+      "existing": {
+        "title": "Hepatitis B laboratory biosafety among technicians",
+        "population": "Laboratory technicians",
+        "location": "Iwo",
+        "study_focus": "Laboratory biosafety"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Same disease label, different activity.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "broad_disease_different_question",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-035",
+      "category": "generic_public_health_overlap",
+      "submitted": {
+        "title": "Health access barriers among rural residents",
+        "population": "Rural residents",
+        "location": "Ilesa",
+        "study_focus": "Service access"
+      },
+      "existing": {
+        "title": "Health policy awareness among civil servants",
+        "population": "Civil servants",
+        "location": "Ilesa",
+        "study_focus": "Policy awareness"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Health term only.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "generic_public_health_overlap",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-036",
+      "category": "misleading_lexical_overlap",
+      "submitted": {
+        "title": "Practice of household water treatment among mothers",
+        "population": "Mothers of under-five children",
+        "location": "Ife",
+        "study_focus": "Household water treatment"
+      },
+      "existing": {
+        "title": "Practice of safe injection among community health workers",
+        "location": "Ife"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Realistic public-health practices with generic practice/safety overlap but unrelated focus.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "misleading_lexical_overlap",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-037",
+      "category": "clearly_unrelated",
+      "submitted": {
+        "title": "Postpartum depression among new mothers",
+        "population": "Postnatal mothers",
+        "location": "Ogbomoso",
+        "study_focus": "Postpartum depression"
+      },
+      "existing": {
+        "title": "Crop-storage practices among farmers",
+        "population": "Smallholder farmers",
+        "location": "Ogbomoso",
+        "study_focus": "Crop storage"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Unrelated healthcare and agriculture.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "clearly_unrelated",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-038",
+      "category": "misleading_lexical_overlap",
+      "submitted": {
+        "title": "Knowledge of oral rehydration therapy among caregivers",
+        "population": "Caregivers of under-five children",
+        "location": "Ede",
+        "study_focus": "ORT knowledge"
+      },
+      "existing": {
+        "title": "Knowledge of oral-health screening among secondary-school students",
+        "population": "Secondary-school students",
+        "location": "Ede",
+        "study_focus": "Oral-health screening knowledge"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Realistic oral/knowledge lexical overlap with different public-health subject and population.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "misleading_lexical_overlap",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-039",
+      "category": "same_context_unrelated_focus",
+      "submitted": {
+        "title": "Waste segregation among urban households",
+        "population": "Urban households",
+        "location": "Oyo",
+        "study_focus": "Waste segregation"
+      },
+      "existing": {
+        "title": "Internet subscription patterns among urban households",
+        "population": "Urban households",
+        "location": "Oyo",
+        "study_focus": "Internet access"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Same households, unrelated focus.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_context_unrelated_focus",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-low-040",
+      "category": "broad_disease_different_question",
+      "submitted": {
+        "title": "Stroke warning-sign knowledge among drivers",
+        "population": "Commercial drivers",
+        "location": "Ibadan",
+        "study_focus": "Stroke awareness"
+      },
+      "existing": {
+        "title": "Stroke rehabilitation equipment availability in hospitals",
+        "population": "Hospital administrators",
+        "location": "Ibadan",
+        "study_focus": "Rehabilitation resources"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Different stroke questions, but both address stroke care within the same city.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "broad_disease_different_question",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-001",
+      "category": "same_disease_different_population",
+      "submitted": {
+        "title": "Awareness of hypertension screening among market traders",
+        "population": "Market traders",
+        "location": "Osogbo",
+        "study_focus": "Screening awareness"
+      },
+      "existing": {
+        "title": "Awareness of hypertension screening among secondary-school teachers",
+        "population": "Secondary-school teachers",
+        "study_focus": "Screening awareness"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Same disease and focus, different population.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_disease_different_population",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-002",
+      "category": "same_disease_different_location",
+      "submitted": {
+        "title": "Knowledge of malaria prevention among mothers",
+        "population": "Mothers of under-five children",
+        "location": "Osogbo",
+        "study_focus": "Prevention knowledge"
+      },
+      "existing": {
+        "title": "Knowledge of malaria prevention among mothers",
+        "population": "Mothers of under-five children",
+        "location": "Ibadan",
+        "study_focus": "Prevention knowledge"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Same topic, different location.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_disease_different_location",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-003",
+      "category": "similar_intervention_different_context",
+      "submitted": {
+        "title": "Use of insecticide-treated nets among pregnant women",
+        "population": "Pregnant women",
+        "location": "Ife",
+        "study_focus": "ITN utilization"
+      },
+      "existing": {
+        "title": "Use of insecticide-treated nets among nursing mothers",
+        "population": "Nursing mothers",
+        "location": "Ogbomoso",
+        "study_focus": "ITN utilization"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Similar intervention, changed context.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "similar_intervention_different_context",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-004",
+      "category": "related_focus_same_context",
+      "submitted": {
+        "title": "Breastfeeding knowledge among nursing mothers",
+        "population": "Nursing mothers",
+        "location": "Ede",
+        "study_focus": "Breastfeeding knowledge"
+      },
+      "existing": {
+        "title": "Exclusive breastfeeding barriers among nursing mothers",
+        "population": "Nursing mothers",
+        "location": "Ede",
+        "study_focus": "Breastfeeding barriers"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Related domain, distinct focus.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "related_focus_same_context",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-005",
+      "category": "related_outcome",
+      "submitted": {
+        "title": "Depression symptoms among medical students",
+        "population": "Medical students",
+        "location": "Ibadan",
+        "study_focus": "Depression symptoms"
+      },
+      "existing": {
+        "title": "Anxiety symptoms among medical students",
+        "population": "Medical students",
+        "location": "Ibadan",
+        "study_focus": "Academic anxiety"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Related mental-health outcomes.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "related_outcome",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-006",
+      "category": "lexical_context_distinction",
+      "submitted": {
+        "title": "Knowledge and practice of hand hygiene among food vendors",
+        "population": "Food vendors",
+        "location": "Iwo",
+        "study_focus": "Hand hygiene practice"
+      },
+      "existing": {
+        "title": "Knowledge and practice of food safety among food vendors",
+        "population": "Food vendors",
+        "location": "Iwo",
+        "study_focus": "Food safety practice"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Shared wording, distinct behavior.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "lexical_context_distinction",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-007",
+      "category": "same_disease_different_population",
+      "submitted": {
+        "title": "Diabetes self-care knowledge among adults",
+        "population": "Adults with diabetes",
+        "location": "Ilesa",
+        "study_focus": "Self-care knowledge"
+      },
+      "existing": {
+        "title": "Diabetes self-care knowledge among adolescents",
+        "population": "Adolescents with diabetes",
+        "location": "Ilesa",
+        "study_focus": "Self-care knowledge"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Population changes scope.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_disease_different_population",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-008",
+      "category": "same_disease_different_location",
+      "submitted": {
+        "title": "Cervical cancer screening awareness among women",
+        "population": "Women aged 25–49",
+        "location": "Ede",
+        "study_focus": "Screening awareness"
+      },
+      "existing": {
+        "title": "Cervical cancer screening awareness among women",
+        "location": "Oyo",
+        "study_focus": "Screening awareness"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Location may justify separate study.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_disease_different_location",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-009",
+      "category": "similar_intervention_different_context",
+      "submitted": {
+        "title": "Peer education for HIV testing intention",
+        "population": "Out-of-school youth",
+        "location": "Osogbo",
+        "study_focus": "Testing intention"
+      },
+      "existing": {
+        "title": "Peer education for HIV testing intention",
+        "population": "University students",
+        "location": "Ife",
+        "study_focus": "Testing intention"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Intervention is related but setting differs.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "similar_intervention_different_context",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-010",
+      "category": "related_focus_same_context",
+      "submitted": {
+        "title": "Medication adherence among adults with asthma",
+        "population": "Adults with asthma",
+        "location": "Ogbomoso",
+        "study_focus": "Medication adherence"
+      },
+      "existing": {
+        "title": "Inhaler technique among adults with asthma",
+        "population": "Adults with asthma",
+        "location": "Ogbomoso",
+        "study_focus": "Inhaler technique"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Same disease, related but distinct behavior.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "related_focus_same_context",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-011",
+      "category": "related_outcome",
+      "submitted": {
+        "title": "Sleep quality among nursing students",
+        "population": "Nursing students",
+        "location": "Ibadan",
+        "study_focus": "Sleep quality"
+      },
+      "existing": {
+        "title": "Stress levels among nursing students",
+        "population": "Nursing students",
+        "location": "Ibadan",
+        "study_focus": "Academic stress"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Related wellbeing outcome.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "related_outcome",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-012",
+      "category": "lexical_context_distinction",
+      "submitted": {
+        "title": "Attitudes to blood donation among students",
+        "population": "Undergraduates",
+        "location": "Iwo",
+        "study_focus": "Blood donation attitudes"
+      },
+      "existing": {
+        "title": "Practices of blood donation among students",
+        "population": "Undergraduates",
+        "location": "Iwo",
+        "study_focus": "Blood donation behavior"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Attitude and behavior differ.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "lexical_context_distinction",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-013",
+      "category": "same_disease_different_population",
+      "submitted": {
+        "title": "Tuberculosis knowledge among prison inmates",
+        "population": "Prison inmates",
+        "location": "Ilesa",
+        "study_focus": "TB knowledge"
+      },
+      "existing": {
+        "title": "Tuberculosis knowledge among community health workers",
+        "population": "Community health workers",
+        "location": "Ilesa",
+        "study_focus": "TB knowledge"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Population changes audience.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_disease_different_population",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-014",
+      "category": "same_disease_different_location",
+      "submitted": {
+        "title": "Hepatitis B vaccination uptake among students",
+        "population": "Tertiary students",
+        "location": "Osogbo",
+        "study_focus": "Vaccination uptake"
+      },
+      "existing": {
+        "title": "Hepatitis B vaccination uptake among students",
+        "population": "Tertiary students",
+        "location": "Ede",
+        "study_focus": "Vaccination uptake"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Same topic in different campus town.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_disease_different_location",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-015",
+      "category": "similar_intervention_different_context",
+      "submitted": {
+        "title": "Mobile reminders for clinic attendance",
+        "population": "Pregnant women",
+        "location": "Ife",
+        "study_focus": "ANC attendance"
+      },
+      "existing": {
+        "title": "Mobile reminders for medication refills",
+        "population": "Adults with HIV",
+        "study_focus": "Medication refill adherence"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Mobile delivery channel overlaps, but antenatal attendance and HIV refill adherence are separate clinical objectives.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "similar_intervention_different_context",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-016",
+      "category": "related_focus_same_context",
+      "submitted": {
+        "title": "Family planning knowledge among married women",
+        "population": "Married women",
+        "location": "Ikire",
+        "study_focus": "Contraception knowledge"
+      },
+      "existing": {
+        "title": "Family planning service satisfaction among married women",
+        "population": "Married women",
+        "location": "Ikire",
+        "study_focus": "Service satisfaction"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Related service questions.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "related_focus_same_context",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-017",
+      "category": "related_outcome",
+      "submitted": {
+        "title": "Nutritional status of under-five children",
+        "population": "Under-five children",
+        "location": "Ede",
+        "study_focus": "Child nutrition"
+      },
+      "existing": {
+        "title": "Anaemia prevalence among under-five children",
+        "population": "Under-five children",
+        "location": "Ede",
+        "study_focus": "Child anaemia"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Related child-health outcomes.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "related_outcome",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-018",
+      "category": "lexical_context_distinction",
+      "submitted": {
+        "title": "Perception of telemedicine among rural patients",
+        "population": "Rural clinic patients",
+        "location": "Osun State",
+        "study_focus": "Telemedicine acceptance"
+      },
+      "existing": {
+        "title": "Access to telemedicine among rural patients",
+        "population": "Rural clinic patients",
+        "location": "Osun State",
+        "study_focus": "Telemedicine access barriers"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Same technology, different question.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "lexical_context_distinction",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-019",
+      "category": "same_disease_different_population",
+      "submitted": {
+        "title": "Stroke warning-sign knowledge among taxi drivers",
+        "population": "Commercial drivers",
+        "location": "Ibadan",
+        "study_focus": "Stroke-sign knowledge"
+      },
+      "existing": {
+        "title": "Stroke warning-sign knowledge among market women",
+        "population": "Market women",
+        "location": "Ibadan",
+        "study_focus": "Stroke-sign knowledge"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Different target group.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_disease_different_population",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-020",
+      "category": "same_disease_different_location",
+      "submitted": {
+        "title": "Knowledge of oral rehydration therapy among caregivers",
+        "population": "Caregivers of under-five children",
+        "location": "Oyo",
+        "study_focus": "ORT knowledge"
+      },
+      "existing": {
+        "title": "Knowledge of oral rehydration therapy among caregivers",
+        "population": "Caregivers of under-five children",
+        "location": "Iwo",
+        "study_focus": "ORT knowledge"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Different locality.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_disease_different_location",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-021",
+      "category": "similar_intervention_different_context",
+      "submitted": {
+        "title": "Nutrition counselling for mothers",
+        "population": "Mothers of under-five children",
+        "location": "Ilesa",
+        "study_focus": "Child feeding"
+      },
+      "existing": {
+        "title": "Nutrition counselling for pregnant women",
+        "population": "Pregnant women",
+        "location": "Ilesa",
+        "study_focus": "Pregnancy diet"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Similar counselling, different life stage.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "similar_intervention_different_context",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-022",
+      "category": "related_focus_same_context",
+      "submitted": {
+        "title": "Menstrual hygiene practices among boarding students",
+        "population": "Female boarding students",
+        "location": "Ogbomoso",
+        "study_focus": "Menstrual hygiene"
+      },
+      "existing": {
+        "title": "Menstrual pain management among boarding students",
+        "population": "Female boarding students",
+        "location": "Ogbomoso",
+        "study_focus": "Dysmenorrhoea management"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Related reproductive-health focus.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "related_focus_same_context",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-023",
+      "category": "related_outcome",
+      "submitted": {
+        "title": "Burnout among hospital nurses",
+        "population": "Registered nurses",
+        "location": "Ibadan",
+        "study_focus": "Occupational burnout"
+      },
+      "existing": {
+        "title": "Job satisfaction among hospital nurses",
+        "population": "Registered nurses",
+        "location": "Ibadan",
+        "study_focus": "Job satisfaction"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Related occupational outcomes.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "related_outcome",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-024",
+      "category": "lexical_context_distinction",
+      "submitted": {
+        "title": "Water treatment practices in hostels",
+        "population": "University residents",
+        "location": "Ife",
+        "study_focus": "Water safety"
+      },
+      "existing": {
+        "title": "Water availability in hostels",
+        "population": "University residents",
+        "location": "Ife"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Shared water context, distinct inquiry.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "lexical_context_distinction",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-025",
+      "category": "same_disease_different_population",
+      "submitted": {
+        "title": "Sickle-cell screening knowledge among couples",
+        "population": "Engaged couples",
+        "location": "Oyo",
+        "study_focus": "Genotype-screening knowledge"
+      },
+      "existing": {
+        "title": "Sickle-cell screening knowledge among adolescents",
+        "population": "Senior secondary students",
+        "location": "Oyo",
+        "study_focus": "Genotype-screening knowledge"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Different decision population.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_disease_different_population",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-026",
+      "category": "same_disease_different_location",
+      "submitted": {
+        "title": "Mental-health counselling perception among teachers",
+        "population": "Secondary-school teachers",
+        "location": "Ilesa",
+        "study_focus": "Counselling perception"
+      },
+      "existing": {
+        "title": "Mental-health counselling perception among teachers",
+        "population": "Secondary-school teachers",
+        "location": "Ede",
+        "study_focus": "Counselling perception"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Different location.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_disease_different_location",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-027",
+      "category": "similar_intervention_different_context",
+      "submitted": {
+        "title": "Health education and tobacco-use intention",
+        "population": "Secondary-school adolescents",
+        "location": "Osogbo",
+        "study_focus": "Tobacco prevention"
+      },
+      "existing": {
+        "title": "Health education and alcohol-use intention",
+        "population": "Secondary-school adolescents",
+        "location": "Osogbo",
+        "study_focus": "Alcohol prevention"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Same intervention, different risk behavior.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "similar_intervention_different_context",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-028",
+      "category": "related_focus_same_context",
+      "submitted": {
+        "title": "Waste segregation among urban households",
+        "population": "Urban households",
+        "location": "Ogbomoso",
+        "study_focus": "Waste segregation"
+      },
+      "existing": {
+        "title": "Waste-disposal frequency among urban households",
+        "population": "Urban households",
+        "location": "Ogbomoso",
+        "study_focus": "Waste disposal routine"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Related environmental practice.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "related_focus_same_context",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-029",
+      "category": "related_outcome",
+      "submitted": {
+        "title": "Postpartum depression among new mothers",
+        "population": "Postnatal mothers",
+        "location": "Ife",
+        "study_focus": "Postpartum depression"
+      },
+      "existing": {
+        "title": "Postpartum anxiety among new mothers",
+        "population": "Postnatal mothers",
+        "location": "Ife",
+        "study_focus": "Postpartum anxiety"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Related but separate outcome.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "related_outcome",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-030",
+      "category": "lexical_context_distinction",
+      "submitted": {
+        "title": "Social-media health-information seeking",
+        "population": "University students",
+        "location": "Ibadan",
+        "study_focus": "Online health information"
+      },
+      "existing": {
+        "title": "Social-media addiction among university students",
+        "population": "University students",
+        "location": "Ibadan",
+        "study_focus": "Problematic social-media use"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "LOW",
+      "expected_class": "LOW",
+      "rationale": "Social-media health-information seeking and problematic social-media use are materially different study focuses.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "lexical_context_distinction",
+        "low"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-031",
+      "category": "same_disease_different_population",
+      "submitted": {
+        "title": "Malaria prevention practice among caregivers",
+        "population": "Caregivers of under-five children",
+        "location": "Ikire",
+        "study_focus": "Malaria prevention"
+      },
+      "existing": {
+        "title": "Malaria prevention practice among hostel residents",
+        "population": "University residents",
+        "location": "Ikire",
+        "study_focus": "Malaria prevention"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Different population.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_disease_different_population",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-032",
+      "category": "same_disease_different_location",
+      "submitted": {
+        "title": "Hypertension medication adherence among adults",
+        "population": "Adults with hypertension",
+        "location": "Iwo",
+        "study_focus": "Medication adherence"
+      },
+      "existing": {
+        "title": "Hypertension medication adherence among adults",
+        "population": "Adults with hypertension",
+        "location": "Ilesa",
+        "study_focus": "Medication adherence"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Different clinic setting.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_disease_different_location",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-033",
+      "category": "similar_intervention_different_context",
+      "submitted": {
+        "title": "Digital health records among clinic staff",
+        "population": "Primary-care staff",
+        "location": "Ede",
+        "study_focus": "Electronic records"
+      },
+      "existing": {
+        "title": "Digital appointment booking among clinic patients",
+        "population": "Primary-care attendees",
+        "location": "Ede",
+        "study_focus": "Appointment booking"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Same digital-health umbrella, different users.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "similar_intervention_different_context",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-034",
+      "category": "related_focus_same_context",
+      "submitted": {
+        "title": "Emergency contraception awareness among female students",
+        "population": "Female undergraduates",
+        "location": "Osogbo",
+        "study_focus": "Emergency contraception knowledge"
+      },
+      "existing": {
+        "title": "Emergency contraception use among female students",
+        "population": "Female undergraduates",
+        "location": "Osogbo",
+        "study_focus": "Emergency contraception behavior"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Knowledge vs use.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "related_focus_same_context",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-035",
+      "category": "related_outcome",
+      "submitted": {
+        "title": "Exercise habits among adults with obesity",
+        "population": "Adults with obesity",
+        "location": "Iwo",
+        "study_focus": "Physical activity"
+      },
+      "existing": {
+        "title": "Dietary habits among adults with obesity",
+        "population": "Adults with obesity",
+        "location": "Iwo",
+        "study_focus": "Dietary practice"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Related weight-management behaviors.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "related_outcome",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-036",
+      "category": "lexical_context_distinction",
+      "submitted": {
+        "title": "Organ donation willingness among young adults",
+        "population": "Young adults",
+        "location": "Ibadan",
+        "study_focus": "Organ donation"
+      },
+      "existing": {
+        "title": "Organ donation knowledge among young adults",
+        "population": "Young adults",
+        "location": "Ibadan",
+        "study_focus": "Organ-donation knowledge"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Willingness differs from knowledge.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "lexical_context_distinction",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-037",
+      "category": "same_disease_different_population",
+      "submitted": {
+        "title": "First-aid knowledge among motorcycle riders",
+        "population": "Commercial motorcycle riders",
+        "location": "Ogbomoso",
+        "study_focus": "First-aid knowledge"
+      },
+      "existing": {
+        "title": "First-aid knowledge among bus drivers",
+        "population": "Commercial bus drivers",
+        "location": "Ogbomoso",
+        "study_focus": "First-aid knowledge"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Different transport group.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_disease_different_population",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-038",
+      "category": "same_disease_different_location",
+      "submitted": {
+        "title": "Vaccine hesitancy among caregivers",
+        "population": "Caregivers of infants",
+        "location": "Ife",
+        "study_focus": "Childhood vaccine hesitancy"
+      },
+      "existing": {
+        "title": "Vaccine hesitancy among caregivers",
+        "population": "Caregivers of infants",
+        "location": "Ilesa",
+        "study_focus": "Childhood vaccine hesitancy"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Different locality.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "same_disease_different_location",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-039",
+      "category": "related_focus_same_context",
+      "submitted": {
+        "title": "Salt-intake practices among hypertensive adults",
+        "population": "Adults with hypertension",
+        "location": "Osogbo",
+        "study_focus": "Dietary sodium"
+      },
+      "existing": {
+        "title": "Exercise adherence among hypertensive adults",
+        "population": "Adults with hypertension",
+        "location": "Osogbo",
+        "study_focus": "Lifestyle exercise"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Related lifestyle focus.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "related_focus_same_context",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-medium-040",
+      "category": "related_focus_same_context",
+      "submitted": {
+        "title": "Clinic waiting time among primary-care attendees",
+        "population": "Primary-care attendees",
+        "location": "Ede",
+        "study_focus": "Service waiting time"
+      },
+      "existing": {
+        "title": "Clinic attendance barriers among primary-care attendees",
+        "location": "Ede",
+        "study_focus": "Access barriers"
+      },
+      "expected_label": "not_similar",
+      "expected_risk": "MEDIUM",
+      "expected_class": "MEDIUM",
+      "rationale": "Waiting-time measurement and clinic-attendance barriers are distinct research questions, but waiting time is plausibly an attendance barrier and both concern primary-care access for the same attendee context.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "related_focus_same_context",
+        "medium"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-001",
+      "category": "exact_duplicate",
+      "submitted": {
+        "title": "Knowledge of cervical cancer screening among women",
+        "population": "Women aged 25–49",
+        "location": "Iwo",
+        "study_focus": "Screening knowledge"
+      },
+      "existing": {
+        "title": "Knowledge of cervical cancer screening among women",
+        "population": "Women aged 25–49",
+        "location": "Iwo",
+        "study_focus": "Screening knowledge"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Exact study intent and context.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "exact_duplicate",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-002",
+      "category": "near_duplicate",
+      "submitted": {
+        "title": "Determinants of childhood immunization completion in Ogbomoso",
+        "population": "Caregivers of infants",
+        "location": "Ogbomoso",
+        "study_focus": "Completion determinants"
+      },
+      "existing": {
+        "title": "Factors influencing completion of routine childhood vaccines in Ogbomoso",
+        "population": "Caregivers of infants",
+        "location": "Ogbomoso",
+        "study_focus": "Completion determinants"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Near wording with matching study design.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "near_duplicate",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-003",
+      "category": "paraphrase",
+      "submitted": {
+        "title": "Mobile reminders for keeping antenatal appointments",
+        "population": "Pregnant women",
+        "location": "Ilesa",
+        "study_focus": "Appointment adherence"
+      },
+      "existing": {
+        "title": "SMS prompts to support prenatal clinic attendance",
+        "population": "Pregnant women",
+        "study_focus": "Appointment adherence"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Equivalent intervention and outcome.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "paraphrase",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-004",
+      "category": "synonym_substitution",
+      "submitted": {
+        "title": "Barriers to family planning uptake among married women",
+        "population": "Married women",
+        "location": "Ikirun",
+        "study_focus": "Contraceptive uptake barriers"
+      },
+      "existing": {
+        "title": "Challenges affecting contraceptive adoption among married women",
+        "population": "Married women",
+        "location": "Ikirun",
+        "study_focus": "Contraceptive uptake barriers"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Synonymous reproductive-health wording.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "synonym_substitution",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-005",
+      "category": "rephrased_wording",
+      "submitted": {
+        "title": "Assessment of handwashing practice among food handlers",
+        "population": "Food handlers",
+        "location": "Ede",
+        "study_focus": "Hand hygiene practice"
+      },
+      "existing": {
+        "title": "Hand hygiene practices of food vendors: an assessment",
+        "population": "Food handlers",
+        "location": "Ede",
+        "study_focus": "Hand hygiene practice"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Reordered title with identical intent.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "rephrased_wording",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-006",
+      "category": "fragmented_title",
+      "submitted": {
+        "title": "Hypertension screening market traders",
+        "population": "Market traders",
+        "location": "Osogbo",
+        "study_focus": "Screening awareness"
+      },
+      "existing": {
+        "title": "Awareness of hypertension screening among market traders",
+        "population": "Market traders",
+        "location": "Osogbo",
+        "study_focus": "Screening awareness"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Fragmented import title and complete title.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "fragmented_title",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-007",
+      "category": "documentation_difference",
+      "submitted": {
+        "title": "Use of insecticide-treated nets in pregnancy",
+        "population": "Pregnant women",
+        "location": "Ife",
+        "study_focus": "ITN utilization"
+      },
+      "existing": {
+        "title": "Utilization of mosquito nets among expectant mothers",
+        "population": "Pregnant women",
+        "location": "Ife",
+        "study_focus": "ITN utilization"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Documentation variation describes one idea.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "documentation_difference",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-008",
+      "category": "paraphrase",
+      "submitted": {
+        "title": "Experiences of postpartum depression after delivery",
+        "population": "Postnatal mothers",
+        "location": "Ile-Ife",
+        "study_focus": "Postpartum depression experiences"
+      },
+      "existing": {
+        "title": "Lived experiences of depressive symptoms following childbirth",
+        "population": "Postnatal mothers",
+        "location": "Ile-Ife",
+        "study_focus": "Postpartum depression experiences"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Low lexical overlap, equivalent intent.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "paraphrase",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-009",
+      "category": "near_duplicate",
+      "submitted": {
+        "title": "Knowledge of diabetes self-care among adults",
+        "population": "Adults living with diabetes",
+        "location": "Ejigbo",
+        "study_focus": "Self-care knowledge"
+      },
+      "existing": {
+        "title": "Diabetes self-management knowledge among adult patients",
+        "population": "Adults living with diabetes",
+        "location": "Ejigbo",
+        "study_focus": "Self-care knowledge"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Same construct and participants.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "near_duplicate",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-010",
+      "category": "synonym_substitution",
+      "submitted": {
+        "title": "Attitudes toward blood donation among university students",
+        "population": "Undergraduate students",
+        "location": "Oyo",
+        "study_focus": "Blood donation attitudes"
+      },
+      "existing": {
+        "title": "Perceptions of voluntary blood giving among undergraduates",
+        "population": "Undergraduate students",
+        "location": "Oyo"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Donation/giving synonym pair.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "synonym_substitution",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-011",
+      "category": "rephrased_wording",
+      "submitted": {
+        "title": "Prevalence of burnout among hospital nurses",
+        "population": "Registered nurses",
+        "location": "Ibadan",
+        "study_focus": "Occupational burnout"
+      },
+      "existing": {
+        "title": "Occupational burnout prevalence in nurses working in hospitals",
+        "population": "Registered nurses",
+        "location": "Ibadan",
+        "study_focus": "Occupational burnout"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Word order differs only.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "rephrased_wording",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-012",
+      "category": "exact_duplicate",
+      "submitted": {
+        "title": "Awareness of hepatitis B vaccination among students",
+        "population": "Tertiary students",
+        "location": "Ogbomoso",
+        "study_focus": "Vaccination awareness"
+      },
+      "existing": {
+        "title": "Awareness of hepatitis B vaccination among students",
+        "population": "Tertiary students",
+        "location": "Ogbomoso",
+        "study_focus": "Vaccination awareness"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Exact duplicate.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "exact_duplicate",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-013",
+      "category": "paraphrase",
+      "submitted": {
+        "title": "Telemedicine acceptance among rural patients",
+        "population": "Rural clinic patients",
+        "location": "Osun State",
+        "study_focus": "Telemedicine acceptance"
+      },
+      "existing": {
+        "title": "Willingness to use remote medical consultation in rural communities",
+        "population": "Rural clinic patients",
+        "location": "Osun State",
+        "study_focus": "Telemedicine acceptance"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Equivalent service concept.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "paraphrase",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-014",
+      "category": "fragmented_title",
+      "submitted": {
+        "title": "exclusive breastfeeding first time mothers",
+        "population": "First-time mothers",
+        "location": "Iwo",
+        "study_focus": "Exclusive breastfeeding barriers"
+      },
+      "existing": {
+        "title": "Barriers to exclusive breastfeeding among first-time mothers",
+        "population": "First-time mothers",
+        "study_focus": "Exclusive breastfeeding barriers"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Incomplete title preserves the core intent.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "fragmented_title",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-015",
+      "category": "documentation_difference",
+      "submitted": {
+        "title": "Safe water handling in student hostels",
+        "population": "University residents",
+        "location": "Ile-Ife",
+        "study_focus": "Household water safety"
+      },
+      "existing": {
+        "title": "Water storage and treatment practices among hostel students",
+        "population": "University residents",
+        "location": "Ile-Ife",
+        "study_focus": "Household water safety"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Different documentation wording.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "documentation_difference",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-016",
+      "category": "synonym_substitution",
+      "submitted": {
+        "title": "Factors associated with adolescent tobacco use",
+        "population": "Secondary school adolescents",
+        "location": "Osogbo",
+        "study_focus": "Tobacco-use determinants"
+      },
+      "existing": {
+        "title": "Predictors of cigarette smoking among secondary school adolescents",
+        "population": "Secondary school adolescents",
+        "location": "Osogbo",
+        "study_focus": "Tobacco-use determinants"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Tobacco/cigarette substitution.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "synonym_substitution",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-017",
+      "category": "near_duplicate",
+      "submitted": {
+        "title": "Medication adherence among adults with asthma",
+        "population": "Adults with asthma",
+        "location": "Ede",
+        "study_focus": "Medication adherence"
+      },
+      "existing": {
+        "title": "Adherence to asthma medicines among adult patients",
+        "population": "Adults with asthma",
+        "location": "Ede",
+        "study_focus": "Medication adherence"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Same therapy behavior.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "near_duplicate",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-018",
+      "category": "paraphrase",
+      "submitted": {
+        "title": "Effect of peer education on HIV testing intention",
+        "population": "Out-of-school youth",
+        "location": "Oyo",
+        "study_focus": "HIV testing intention"
+      },
+      "existing": {
+        "title": "Peer-led HIV information and willingness to test",
+        "population": "Out-of-school youth",
+        "location": "Oyo",
+        "study_focus": "HIV testing intention"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Equivalent proposed relationship.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "paraphrase",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-019",
+      "category": "rephrased_wording",
+      "submitted": {
+        "title": "Knowledge of stroke warning signs among taxi drivers",
+        "population": "Commercial drivers",
+        "location": "Ibadan",
+        "study_focus": "Stroke-sign knowledge"
+      },
+      "existing": {
+        "title": "Stroke symptom awareness in commercial taxi drivers",
+        "population": "Commercial drivers",
+        "location": "Ibadan",
+        "study_focus": "Stroke-sign knowledge"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Equivalent awareness question.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "rephrased_wording",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-020",
+      "category": "exact_duplicate",
+      "submitted": {
+        "title": "Menstrual hygiene practices among boarding-school girls",
+        "population": "Female boarding students",
+        "location": "Ede",
+        "study_focus": "Menstrual hygiene practice"
+      },
+      "existing": {
+        "title": "Menstrual hygiene practices among boarding-school girls",
+        "population": "Female boarding students",
+        "location": "Ede",
+        "study_focus": "Menstrual hygiene practice"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Exact duplicate.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "exact_duplicate",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-021",
+      "category": "documentation_difference",
+      "submitted": {
+        "title": "Nutrition counselling for mothers of under-five children",
+        "population": "Mothers of under-five children",
+        "location": "Ikire",
+        "study_focus": "Child nutrition counselling"
+      },
+      "existing": {
+        "title": "Maternal exposure to child-feeding counselling",
+        "population": "Mothers of under-five children",
+        "location": "Ikire",
+        "study_focus": "Child nutrition counselling"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Same counselling exposure.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "documentation_difference",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-022",
+      "category": "synonym_substitution",
+      "submitted": {
+        "title": "Anxiety symptoms among final-year students",
+        "population": "Final-year undergraduates",
+        "location": "Ilesa",
+        "study_focus": "Academic anxiety"
+      },
+      "existing": {
+        "title": "Academic worry among graduating university students",
+        "population": "Final-year undergraduates",
+        "location": "Ilesa",
+        "study_focus": "Academic anxiety"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Anxiety/worry equivalent.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "synonym_substitution",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-023",
+      "category": "fragmented_title",
+      "submitted": {
+        "title": "malaria prevention knowledge mothers",
+        "population": "Mothers of under-five children",
+        "location": "Otan-Ayegbaju",
+        "study_focus": "Malaria prevention knowledge"
+      },
+      "existing": {
+        "title": "Knowledge of malaria prevention among mothers of young children",
+        "population": "Mothers of under-five children",
+        "location": "Otan-Ayegbaju",
+        "study_focus": "Malaria prevention knowledge"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Fragmented import representation.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "fragmented_title",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-024",
+      "category": "paraphrase",
+      "submitted": {
+        "title": "Barriers to cervical screening uptake",
+        "population": "Women eligible for screening",
+        "location": "Osogbo",
+        "study_focus": "Screening uptake barriers"
+      },
+      "existing": {
+        "title": "Why eligible women do not attend cervical cancer screening",
+        "population": "Women eligible for screening",
+        "location": "Osogbo",
+        "study_focus": "Screening uptake barriers"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Question form is semantically equivalent.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "paraphrase",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-025",
+      "category": "near_duplicate",
+      "submitted": {
+        "title": "Knowledge of oral rehydration therapy among caregivers",
+        "population": "Caregivers of under-five children",
+        "location": "Iwo",
+        "study_focus": "ORT knowledge"
+      },
+      "existing": {
+        "title": "Caregiver awareness of oral rehydration solution for childhood diarrhoea",
+        "population": "Caregivers of under-five children",
+        "location": "Iwo",
+        "study_focus": "ORT knowledge"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Same health education topic.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "near_duplicate",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-026",
+      "category": "rephrased_wording",
+      "submitted": {
+        "title": "Sleep quality and academic performance in medical students",
+        "population": "Medical students",
+        "location": "Ibadan",
+        "study_focus": "Sleep and academic performance"
+      },
+      "existing": {
+        "title": "Association between sleep quality and grades among medical undergraduates",
+        "population": "Medical students",
+        "location": "Ibadan",
+        "study_focus": "Sleep and academic performance"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Same association and cohort.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "rephrased_wording",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-027",
+      "category": "synonym_substitution",
+      "submitted": {
+        "title": "Perception of mental health counselling among teachers",
+        "population": "Secondary school teachers",
+        "location": "Ilesa",
+        "study_focus": "Counselling perception"
+      },
+      "existing": {
+        "title": "Teachers’ views on psychological counselling services",
+        "location": "Ilesa",
+        "study_focus": "Counselling perception"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Mental/psychological counselling equivalent.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "synonym_substitution",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-028",
+      "category": "documentation_difference",
+      "submitted": {
+        "title": "Household waste segregation practices",
+        "population": "Urban households",
+        "location": "Ogbomoso",
+        "study_focus": "Waste segregation"
+      },
+      "existing": {
+        "title": "Sorting domestic refuse before disposal",
+        "population": "Urban households",
+        "location": "Ogbomoso",
+        "study_focus": "Waste segregation"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Different surface wording.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "documentation_difference",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-029",
+      "category": "exact_duplicate",
+      "submitted": {
+        "title": "Knowledge of sickle-cell trait screening among couples",
+        "population": "Engaged couples",
+        "location": "Ife",
+        "study_focus": "Genotype-screening knowledge"
+      },
+      "existing": {
+        "title": "Knowledge of sickle-cell trait screening among couples",
+        "population": "Engaged couples",
+        "location": "Ife",
+        "study_focus": "Genotype-screening knowledge"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Exact duplicate.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "exact_duplicate",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-030",
+      "category": "paraphrase",
+      "submitted": {
+        "title": "Social support for people living with HIV",
+        "population": "Adults living with HIV",
+        "location": "Osun State",
+        "study_focus": "Social support"
+      },
+      "existing": {
+        "title": "Support networks available to adults with HIV infection",
+        "population": "Adults living with HIV",
+        "location": "Osun State",
+        "study_focus": "Social support"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Equivalent support construct.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "paraphrase",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-031",
+      "category": "fragmented_title",
+      "submitted": {
+        "title": "depression screening primary care",
+        "population": "Primary-care attendees",
+        "location": "Ede",
+        "study_focus": "Depression screening acceptance"
+      },
+      "existing": {
+        "title": "Acceptance of depression screening among primary-care patients",
+        "population": "Primary-care attendees",
+        "location": "Ede",
+        "study_focus": "Depression screening acceptance"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Incomplete title.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "fragmented_title",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-032",
+      "category": "near_duplicate",
+      "submitted": {
+        "title": "Awareness of emergency contraception among female students",
+        "population": "Female undergraduates",
+        "location": "Oyo",
+        "study_focus": "Emergency contraception awareness"
+      },
+      "existing": {
+        "title": "Knowledge of post-coital contraception among university women",
+        "population": "Female undergraduates",
+        "location": "Oyo",
+        "study_focus": "Emergency contraception awareness"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Equivalent named method.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "near_duplicate",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-033",
+      "category": "rephrased_wording",
+      "submitted": {
+        "title": "Use of digital health records by clinic staff",
+        "population": "Primary-care staff",
+        "location": "Iwo",
+        "study_focus": "Digital record use"
+      },
+      "existing": {
+        "title": "Adoption of electronic patient records in primary-care clinics",
+        "population": "Primary-care staff",
+        "location": "Iwo",
+        "study_focus": "Digital record use"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Same implementation construct.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "rephrased_wording",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-034",
+      "category": "synonym_substitution",
+      "submitted": {
+        "title": "Knowledge of tuberculosis transmission among prison inmates",
+        "population": "Prison inmates",
+        "location": "Ilesa",
+        "study_focus": "TB transmission knowledge"
+      },
+      "existing": {
+        "title": "Awareness of how TB spreads among incarcerated adults",
+        "population": "Prison inmates",
+        "location": "Ilesa",
+        "study_focus": "TB transmission knowledge"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Transmission/spread equivalence.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "synonym_substitution",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-035",
+      "category": "documentation_difference",
+      "submitted": {
+        "title": "Exercise habits among adults with obesity",
+        "population": "Adults with obesity",
+        "location": "Osogbo",
+        "study_focus": "Physical activity habits"
+      },
+      "existing": {
+        "title": "Patterns of physical activity in obese adults",
+        "population": "Adults with obesity",
+        "location": "Osogbo",
+        "study_focus": "Physical activity habits"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Same behavior and cohort.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "documentation_difference",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-036",
+      "category": "paraphrase",
+      "submitted": {
+        "title": "Readiness for organ donation among young adults",
+        "population": "Young adults",
+        "location": "Ibadan",
+        "study_focus": "Organ-donation readiness"
+      },
+      "existing": {
+        "title": "Willingness of young adults to donate organs",
+        "population": "Young adults",
+        "location": "Ibadan",
+        "study_focus": "Organ-donation readiness"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Readiness/willingness equivalent.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "paraphrase",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-037",
+      "category": "near_duplicate",
+      "submitted": {
+        "title": "Knowledge of first aid among motorcycle riders",
+        "population": "Commercial motorcycle riders",
+        "location": "Ogbomoso",
+        "study_focus": "First-aid knowledge"
+      },
+      "existing": {
+        "title": "First-aid awareness in commercial motorcyclists",
+        "population": "Commercial motorcycle riders",
+        "location": "Ogbomoso",
+        "study_focus": "First-aid knowledge"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Same road-safety topic.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "near_duplicate",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-038",
+      "category": "fragmented_title",
+      "submitted": {
+        "title": "vaccine hesitancy caregivers",
+        "population": "Caregivers of infants",
+        "location": "Ikire",
+        "study_focus": "Childhood vaccine hesitancy"
+      },
+      "existing": {
+        "title": "Childhood vaccination hesitancy among infant caregivers",
+        "population": "Caregivers of infants",
+        "location": "Ikire",
+        "study_focus": "Childhood vaccine hesitancy"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Fragmented form.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "fragmented_title",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-039",
+      "category": "rephrased_wording",
+      "submitted": {
+        "title": "Dietary salt intake among adults with hypertension",
+        "population": "Adults with hypertension",
+        "location": "Ife",
+        "study_focus": "Dietary sodium practices"
+      },
+      "existing": {
+        "title": "Sodium-consumption practices of hypertensive adults",
+        "population": "Adults with hypertension",
+        "location": "Ife",
+        "study_focus": "Dietary sodium practices"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Equivalent dietary concern.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "rephrased_wording",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    },
+    {
+      "id": "expanded-high-040",
+      "category": "documentation_difference",
+      "submitted": {
+        "title": "Health-information seeking on social media",
+        "population": "University students",
+        "study_focus": "Online health-information seeking"
+      },
+      "existing": {
+        "title": "Use of social networks to find health information",
+        "population": "University students",
+        "study_focus": "Online health-information seeking"
+      },
+      "expected_label": "similar",
+      "expected_risk": "HIGH",
+      "expected_class": "HIGH",
+      "rationale": "Missing location on both sides, same intent.",
+      "source_classification": "manually_constructed_expanded_benchmark",
+      "review_status": "not_department_expert_validated",
+      "tags": [
+        "documentation_difference",
+        "high"
+      ],
+      "notes": "Controlled technical evaluation pair; manually constructed."
+    }
+  ],
+  "revision_history": {
+    "human_policy_revision": "Applied controlled project benchmark decisions; labels remain manually constructed and not department-expert validated.",
+    "missing_context_policy": "Deliberate robustness/stress coverage only; it is not an estimate of departmental missing-data prevalence."
+  }
+}
