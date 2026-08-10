@@ -20,6 +20,11 @@ async function requestJson(url, options, fetchImpl = fetch) {
   if (!response.ok) {
     const error = new Error(`Provider HTTP ${response.status}`);
     error.status = response.status;
+    const retryAfter = response.headers?.get?.('retry-after');
+    if (retryAfter) {
+      const seconds = Number(retryAfter);
+      if (Number.isFinite(seconds) && seconds >= 0) error.retryAfterMilliseconds = seconds * 1000;
+    }
     throw error;
   }
   return body;
@@ -44,13 +49,14 @@ function geminiInstruction(text) { return `task: sentence similarity | query: ${
 
 async function embedGemini(texts, { env = process.env, fetchImpl = fetch } = {}) {
   const key = requireKey('GEMINI_API_KEY', env);
-  const vectors = [];
-  const usages = [];
-  for (const text of texts) {
-    const body = await requestJson('https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:embedContent', { method: 'POST', headers: { 'x-goog-api-key': key, 'Content-Type': 'application/json' }, body: JSON.stringify({ content: { parts: [{ text: geminiInstruction(text) }] } }) }, fetchImpl);
-    vectors.push(finiteVector(body?.embedding?.values, 'Gemini'));
-    usages.push(body?.usageMetadata || null);
-  }
+  const body = await requestJson('https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents', { method: 'POST', headers: { 'x-goog-api-key': key, 'Content-Type': 'application/json' }, body: JSON.stringify({ requests: texts.map(text => ({ model: 'models/gemini-embedding-2', content: { parts: [{ text: geminiInstruction(text) }] }, outputDimensionality: 3072 })) }) }, fetchImpl);
+  if (!Array.isArray(body?.embeddings) || body.embeddings.length !== texts.length) throw new Error('Gemini returned a malformed batch embedding response.');
+  const vectors = body.embeddings.map(item => {
+    const vector = finiteVector(item?.values, 'Gemini');
+    if (vector.length !== 3072) throw new Error('Gemini returned an unexpected embedding dimension.');
+    return vector;
+  });
+  const usages = [body?.usageMetadata || null];
   const knownTokens = usages.reduce((sum, usage) => sum + (Number.isFinite(usage?.promptTokenCount) ? usage.promptTokenCount : 0), 0);
   return { vectors, usage: { inputTokens: usages.every(Boolean) ? knownTokens : null, raw: usages } };
 }
