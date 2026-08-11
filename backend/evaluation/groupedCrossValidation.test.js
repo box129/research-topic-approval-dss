@@ -1,0 +1,12 @@
+const benchmark = require('./datasets/expanded-semantic-benchmark.json');
+const source = require('./results/expanded-semantic-model-evaluation.json');
+const { formatStructuredContext } = require('./sbertInputRepresentation.helpers');
+const { buildComponents, groupedFolds, assertNoTopicLeakage, groupedCrossValidate, componentBootstrap } = require('./groupedCrossValidation.helpers');
+
+describe('group-aware cross validation', () => {
+  const components = buildComponents(benchmark.cases, formatStructuredContext); const folds = groupedFolds(components);
+  test('constructs the frozen connected-component distribution and assigns every case once', () => { expect(components).toHaveLength(113); expect(components.filter(component => component.cases.length === 1)).toHaveLength(106); expect(components.filter(component => component.cases.length === 2)).toHaveLength(7); expect(folds.flatMap(fold => fold.caseIds)).toHaveLength(120); expect(assertNoTopicLeakage(folds)).toBe(true); });
+  test('is deterministic and keeps class support practical', () => { expect(groupedFolds(components)).toEqual(folds); ['LOW', 'MEDIUM', 'HIGH'].forEach(label => { const values = folds.map(fold => fold.support[label]); expect(Math.max(...values) - Math.min(...values)).toBeLessThanOrEqual(4); }); });
+  test('fits only training labels and produces one held-out prediction per case', () => { const result = groupedCrossValidate(source.models.voyage.rawCaseResults, folds, 'voyage'); expect(result.predictions).toHaveLength(120); expect(new Set(result.predictions.map(item => item.id)).size).toBe(120); result.folds.forEach(fold => expect(fold.trainingCases + fold.heldOutCases).toBe(120)); });
+  test('bootstrap is deterministic and shares component samples between paired models', () => { const keys = ['sbert', 'openai', 'voyage', 'gemini']; const results = Object.fromEntries(keys.map(key => [key, groupedCrossValidate(source.models[key].rawCaseResults, folds, key)])); const scores = Object.fromEntries(keys.map(key => [key, source.models[key].rawCaseResults])); const first = componentBootstrap(scores, Object.fromEntries(keys.map(key => [key, results[key].predictions])), components, { replicates: 20 }); const second = componentBootstrap(scores, Object.fromEntries(keys.map(key => [key, results[key].predictions])), components, { replicates: 20 }); expect(first).toEqual(second); expect(first.resamplingUnit).toBe('connected_component'); });
+});

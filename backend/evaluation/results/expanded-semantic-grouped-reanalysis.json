@@ -1,0 +1,3679 @@
+{
+  "experiment": {
+    "id": "expanded-semantic-grouped-reanalysis",
+    "generatedAt": "2026-08-11T04:42:55.201Z",
+    "commitHash": "8ae9ec8",
+    "scope": "Stored-score-only grouped reanalysis; no embeddings, providers, or models executed."
+  },
+  "benchmark": {
+    "path": "backend/evaluation/datasets/expanded-semantic-benchmark.json",
+    "sha256Before": "b8e295e5a08c13f31d139b726105dc0f03a246243d2a7883938c2e425f5ea3c0",
+    "sha256After": "b8e295e5a08c13f31d139b726105dc0f03a246243d2a7883938c2e425f5ea3c0",
+    "immutableSourceArtifact": "backend/evaluation/results/expanded-semantic-model-evaluation.json"
+  },
+  "representation": {
+    "id": "structured-context-v1",
+    "canonicalTopicHash": "sha256(canonical structured topic)"
+  },
+  "grouping": {
+    "assignmentAlgorithmVersion": "connected-component-greedy-v1",
+    "seed": 20260810,
+    "componentCount": 113,
+    "componentSizeDistribution": {
+      "1": 106,
+      "2": 7
+    },
+    "components": [
+      {
+        "id": "component-26ac5786520db5f1",
+        "caseIds": [
+          "expanded-high-001"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "da2deea0067a0664280199004b13d32e5069af11a1255d0d8648850fcd575c8c"
+        ]
+      },
+      {
+        "id": "component-2e82ed55ccdc30e4",
+        "caseIds": [
+          "expanded-high-002"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "48a8421362a350c336a45d00632f68ce15c7889b2f7b2ab44519b903a78c3ced",
+          "90a7c34de5654948844f04dab8dab4958b8f0b23d16800a1d870ee92e5efa286"
+        ]
+      },
+      {
+        "id": "component-12e2ee6851aab01d",
+        "caseIds": [
+          "expanded-high-003"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "a73fdb25099f772f5d3f202e179dcde27f737bde6f103de6c214b59aee7d56b4",
+          "e5e3c2389300bc36a605bdeeca9fca1b6efb06a228ebe0bf33790d9c733e0531"
+        ]
+      },
+      {
+        "id": "component-f5db4812bae7eba1",
+        "caseIds": [
+          "expanded-high-004"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "2eb49221039207fcf330171af07eca61bf5a5d973f2b2bd736fd1284cd7a146b",
+          "7b7a8b9763e82fc23c1ad193ad825d24fe43b60924f240e858d7d185b9493561"
+        ]
+      },
+      {
+        "id": "component-2fee5b2487fd7b7c",
+        "caseIds": [
+          "expanded-high-005"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "89fcc87d73d2a252064e03984da9d8eafa9be95cd9df94404cc1bf71cc6bcccb",
+          "d10a6a2b24ce588f39256cea508dfdfb29a75dd91ced787b216a39c09dba0858"
+        ]
+      },
+      {
+        "id": "component-2a651ad59c2313f3",
+        "caseIds": [
+          "expanded-high-006",
+          "expanded-medium-001"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "f0612b14a522b1af1ad2a2f67d4b58fcd5d1f62588c4bbb6fa712e8c62d96d4b",
+          "2dc4f6a09fca88c46f23b1631e126afcd5c1736a94d4ff55eccadfb94fcb28f4",
+          "6709a1701f411208ee82b9a48469514d6de0c0d0f0f67edd3ad327627e730e20"
+        ]
+      },
+      {
+        "id": "component-f55580a7989c3c63",
+        "caseIds": [
+          "expanded-high-007"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "063e51e30e17e5aadba6c3826485d2b658749606c29e0b07d5c5e0835867c7db",
+          "d048826453ff98b18a4d2ddf0989103971465a85f118bf432eba4975d1a3a903"
+        ]
+      },
+      {
+        "id": "component-af20adac921b119f",
+        "caseIds": [
+          "expanded-high-008"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "2f42cb3bb53ccbfdf159e19722d64817c8cf20c1fe5ce082b22c1775163100ff",
+          "ea2972709a975134cb819a6b15c08f7f745778e93b3f8a8285f9a94a4a7efb90"
+        ]
+      },
+      {
+        "id": "component-bc79691de09eb121",
+        "caseIds": [
+          "expanded-high-009"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "63d2d89a94ab52e15c77810d85b9a77e24c08e77f30c108ea37723c9598312a8",
+          "30bea87c6470372e5347a9bc210d8f58a5c4d6b2d146d891cd61294c1c19e2c9"
+        ]
+      },
+      {
+        "id": "component-f7a9fef74501866a",
+        "caseIds": [
+          "expanded-high-010"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "e0da1f2ef6cf5dfd3eb6bc218698b9428cc41e8e5e681b915b119a8c9e6084e8",
+          "1eacdcd15adf3c5d3c225311cd6c03c6da5ba44f3cfb63af1beb4a8ad6eadf65"
+        ]
+      },
+      {
+        "id": "component-7aeb66448e256642",
+        "caseIds": [
+          "expanded-high-011"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "8a66faa421023c79c75c5ba3ff6423a2648db45cc7023b9f43cd85724e35a5e5",
+          "2d6ff0eac16f0d60cb5c0779dbf4648c4483221bb807675664e03e1898f1034d"
+        ]
+      },
+      {
+        "id": "component-84eb1f72db6e67a6",
+        "caseIds": [
+          "expanded-high-012"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "3a4886121b69fcf5feb3c8b8e6f5a8f706f3e6c67d9f9b0a7342c78c24d07f18"
+        ]
+      },
+      {
+        "id": "component-0cd2b2c7320af743",
+        "caseIds": [
+          "expanded-high-013"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "f7301b733ee3055d1ce9859e27bd3c904d8522ca52f575e84fdb9485611fef5e",
+          "da5b130601f4f31892cf9b47c03d858c07d2b0b93d8bcfe9639eb911bb57c5e0"
+        ]
+      },
+      {
+        "id": "component-d4bad9b512a7761e",
+        "caseIds": [
+          "expanded-high-014"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "f139190ea885dc23b19ebdfdaaf225f3ba2a14156ce2dff6621b8e4bf677eb46",
+          "00cacee36b3b4e3b5d2619f8c3bf261054f9fbad9867eb0f20304c5460bfa862"
+        ]
+      },
+      {
+        "id": "component-382549cd3021cd07",
+        "caseIds": [
+          "expanded-high-015"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "9afb6b1da85d80c28372f9edd448278d77c71a519a6d4c079f6eb10e8b633583",
+          "0506a9e65d2ccfa891016fda86a6a5d120bfae5c8e27db581937c9ac750feff4"
+        ]
+      },
+      {
+        "id": "component-67082cc73e1332a4",
+        "caseIds": [
+          "expanded-high-016"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "953736ece7017788053c925bd244d60fb95326706f695f508e29149a526f8f9b",
+          "b0c945044870e656c6309faf981ad22664ca00077ee5aa1ca50c11995e39103f"
+        ]
+      },
+      {
+        "id": "component-0b61f0e726e93918",
+        "caseIds": [
+          "expanded-high-017",
+          "expanded-low-021"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "48bca0581d0f6ca155c6ba1c94f9eefcbec95f03fb7dbb8904ed99a9c14d394f",
+          "0fd5e0a333bf29b6be41e68a31a894284afb99503605c8d0e7b56bdac781afc6",
+          "68a8bf859a2ccff874a673718676dab2c136e6177ea13e4317c0c7f047c984ea"
+        ]
+      },
+      {
+        "id": "component-6533b768054875b4",
+        "caseIds": [
+          "expanded-high-018"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "356f167983d34f76fae95f8ddb9591790d6555c939f518e83acb0f7cb568d15b",
+          "db5adb2a0a32333729cb26d1479355e3dfe079322404ee0f50ba496ff89df601"
+        ]
+      },
+      {
+        "id": "component-9d170cd9dda89c72",
+        "caseIds": [
+          "expanded-high-019"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "2bd1119b6cb7a21a0900324130ec1e8a075bd1c0959c2731f0a8474eacf4bf3c",
+          "e744f5565438fa989f55916b2c83a12097068e90c12d240369af12b2c958c732"
+        ]
+      },
+      {
+        "id": "component-46a0360627e7fdbb",
+        "caseIds": [
+          "expanded-high-020"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "acbefeb5cb0dcca4e054b13b725a815a05661ed83c48dec7ea9ef9ebc264e150"
+        ]
+      },
+      {
+        "id": "component-c605ed8b199fd15a",
+        "caseIds": [
+          "expanded-high-021"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "8f4b56aa50a3f5fb283a2f0479382bd39b557f27ab74765b2864384e8b5142b2",
+          "acd3f1e1f48b71f62d96148abff7bfeea5b2637b12dec11f7e828e41ec724660"
+        ]
+      },
+      {
+        "id": "component-ab6677b62ebaecf2",
+        "caseIds": [
+          "expanded-high-022"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "842efe14e283f17a9598aa3083b96ad72ed3dbfde2232178a02bae543a15bbaf",
+          "1a4a37cec3651fc4eac5c201368b04ad8fa3523896efdf5c1fe9ebf08359e3b1"
+        ]
+      },
+      {
+        "id": "component-6a5a2edb32db8fbc",
+        "caseIds": [
+          "expanded-high-023"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "c6588da2cb8ab9a4c0284c818fa225dd672b52dadbb45f0889d95811a060d135",
+          "9b30a1976dcf0455bd5577cacd5149caaab5d18d0565c78b56f982c42331927c"
+        ]
+      },
+      {
+        "id": "component-ee254cdca1d642ce",
+        "caseIds": [
+          "expanded-high-024"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "a4c2eb63bacd12d5c7c2f225c792c36ec8a6a8917577991dd670f457a6a025c1",
+          "2d6aa2be8d37f6b830dde1c84ebc1b04fbfa10bb66e231d9261c775e1b50b31e"
+        ]
+      },
+      {
+        "id": "component-6363126bfcf54a22",
+        "caseIds": [
+          "expanded-high-025",
+          "expanded-medium-020"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "3bbc4d5b5fd847b32ffd830854e164e12d1ede5c8b84faed6c6f5c779f07d2a3",
+          "d93a988cf158442fa6d254700e7e3b7417efb18430bd0fb76eb06274494caf32",
+          "6798aa63b58777873b7a1252a1082fe594f2979b18ba75c723cb7782c3fe6d01"
+        ]
+      },
+      {
+        "id": "component-3c84d50d99e593c9",
+        "caseIds": [
+          "expanded-high-026"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "954a870f21d30dc84e1351ad33275260d6bbbfb5e59ee655f32b709e8d57cd42",
+          "a79eb9e110ca67a8b31c118e34891b8391bd5d07c88aafd05e7376a39414de34"
+        ]
+      },
+      {
+        "id": "component-4d191c703d720538",
+        "caseIds": [
+          "expanded-high-027"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "cb35f04914816ffee988ffe123422f3f0401dfd2b0a9ca74f2dbcc043e92b7ce",
+          "e5a421def3733d5a172fefeecb3fbb011fbf8f4e78ec6ee2be26c36f1ca31fe0"
+        ]
+      },
+      {
+        "id": "component-7462ecfec5ce5709",
+        "caseIds": [
+          "expanded-high-028"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "e5780fc06a7d2d67cf612d112271ec80543f15a6cf37aceab6ad214c66c1ffd8",
+          "aa37c4bc91dd93b4fb031e4ba21c242f33906041aed567a73863755372ac1d7d"
+        ]
+      },
+      {
+        "id": "component-2bd5e97709c339a4",
+        "caseIds": [
+          "expanded-high-029"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "b122f38bf839efacce3d90d4e66b00a4b9251abbb10884bece7924ef2014da7a"
+        ]
+      },
+      {
+        "id": "component-69cc12360fd22b29",
+        "caseIds": [
+          "expanded-high-030"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "6b112dc4def2c520b5fe82d578f1b853295b6fa23c92403daec70e1410b910d3",
+          "2b58fb8e0b899c6a232ce6e4c65c2579a6ee4a801a6fa5063aa432e6eb8537df"
+        ]
+      },
+      {
+        "id": "component-0c1ac3c21e6d7379",
+        "caseIds": [
+          "expanded-high-031"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "5db4988e63443554d39f2988af14be4e6ca0c747afc656fe5acced8f8a1bddaf",
+          "08ac69a3429d245356fab3e315f32c9478ed1468ea142102e96c9f2b59d51472"
+        ]
+      },
+      {
+        "id": "component-a3a0135e0b22336f",
+        "caseIds": [
+          "expanded-high-032"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "a35a8ca7c0165f52033fd4f1af2031bb09557a8f1ee0fac95fc356a800409593",
+          "03385b04e1600c8a5403493a242d7a8db31b93c3efc717e5cf22db63f5c56b38"
+        ]
+      },
+      {
+        "id": "component-04db072f5f377795",
+        "caseIds": [
+          "expanded-high-033"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "23ad31632125e7fa21471f5aaaa78fe034f4abf5df661164c3a92f606c92bf4e",
+          "b42aa377bdcb29973e8a5b8466fa7508d1997012f801822911ca6f4b4e247f1c"
+        ]
+      },
+      {
+        "id": "component-5dac936425170f03",
+        "caseIds": [
+          "expanded-high-034"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "29f2617b45b4eb75df46eda9359c713b35ad1145010cc66ae3a163a0f1d59e94",
+          "889c93449935f1ea0817c215964395d0877fc73491b66e80cbc12285288e162a"
+        ]
+      },
+      {
+        "id": "component-98f8f00371d8222f",
+        "caseIds": [
+          "expanded-high-035"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "1fe9aa2c93aff8b41122d76b0bd79c5991ee37b3852f9c75ae1597f972e71f0e",
+          "5ca84284b75b66cb4c3290b13c304bec49293a176b0f02605309afd050e3fedd"
+        ]
+      },
+      {
+        "id": "component-f8e31bfeb8c63182",
+        "caseIds": [
+          "expanded-high-036"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "bd37275edc32f55470e01fc4bb02869e8cf389eae62a19957c28d2e8608a22a4",
+          "220f90f79f8d29b84b14812786a07df6906bdb5784bd0e5895461ae32c7c2446"
+        ]
+      },
+      {
+        "id": "component-0b68ee6bbbb171b5",
+        "caseIds": [
+          "expanded-high-037"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "73e504cfb40da3a14a0d1c475700151026feeac0aa6cf74aacd247b9983f9f67",
+          "08350a614648dd53882f9106cf865a3d8a295d69e525e7a2eb8c5e7cd22a1a42"
+        ]
+      },
+      {
+        "id": "component-5cd407b0d3877ea6",
+        "caseIds": [
+          "expanded-high-038"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "1f9f66c3704fab7fea574914902b6201221a150aecdb07727a5270ba63f596e4",
+          "7eb1e860dd5ec25afeff9c782fdde19f144d99901e78e2538bf03a7d52a2e038"
+        ]
+      },
+      {
+        "id": "component-03fa91bfeea7c11c",
+        "caseIds": [
+          "expanded-high-039"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "7fcc0673773fe02370f53d989c59fbf297cffaed9387625ca22607ae2baeaf01",
+          "b6c4063d76b10ecca0c4e6acf8891c73ecdd78e545718245ff60f2cbc4a4557d"
+        ]
+      },
+      {
+        "id": "component-2dd1340f77d8b8e3",
+        "caseIds": [
+          "expanded-high-040"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 0,
+          "HIGH": 1
+        },
+        "canonicalTopicHashes": [
+          "f64729a5d8d0bc05702b30f4ae0de2f350cb8dc06c805682414a90040c2df7bc",
+          "05036383a553f3ea4f3d6d976f1712513d9598e9c2019d60147439da3902463f"
+        ]
+      },
+      {
+        "id": "component-f7203c079eb150b2",
+        "caseIds": [
+          "expanded-low-001"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "0ccac16e8c7a5645826bb3701cd1206dd467e2af31230b65ceb8743074dc97c3",
+          "ba7f98dbb75861cd0facf912ec860dc3ca455ab5da81ceaec6b030d76c13c53e"
+        ]
+      },
+      {
+        "id": "component-6c0e685541faea53",
+        "caseIds": [
+          "expanded-low-002"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "e093e224eae467177427f7b65ea5773b684955651f3b5511055cb667278f1bf7",
+          "f76055d673693edac3eeb8956632e53342f74ddd3c9ed43531e0a802219c3df7"
+        ]
+      },
+      {
+        "id": "component-922020083549bdce",
+        "caseIds": [
+          "expanded-low-003"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "64cded64d24baa115b24fb49a2229ee7e92daea465f79a63f57d4982882d5e26",
+          "16614b426c3b455eaced65e9aa105c8d5532a69f921c8bd8004f7f6e2907737b"
+        ]
+      },
+      {
+        "id": "component-a1e794d6c305035f",
+        "caseIds": [
+          "expanded-low-004"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "97fa80fe3b0ce64d68f93cc3593cc7a39c4a60f4250a484d6e811fa76c969dcf",
+          "6a4f8bf09fe394b488d2a36f1a6a7732ca46bbf683e7e5e355eb1abd1f253652"
+        ]
+      },
+      {
+        "id": "component-a6cf9aee69b42945",
+        "caseIds": [
+          "expanded-low-005"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "17c4ba767c04ef5069430ae6403887c979c2b62b19b4f9b175bff36fda78cb0f",
+          "d81620c2abc645d2112f6ea13933c7d92b6eb5b4558761f4ccfd6812c160f9ee"
+        ]
+      },
+      {
+        "id": "component-965fa10f1c196dc5",
+        "caseIds": [
+          "expanded-low-006"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "d86b9f4edc1b98dc684f3a53f9308dc884e0a2d3528734b1913c661f0f6dee98",
+          "d1297eb75dd18ae654e3ffb7e9f1a021008342e630c22f715593e4e874fa1895"
+        ]
+      },
+      {
+        "id": "component-87620e42728ae5da",
+        "caseIds": [
+          "expanded-low-007"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "b19b264a03b9f3b1ee869a03768415c752a716c4c408acc412695cd037509be4",
+          "26d575672e0a2279161e3114767459dcfa1f8c8b5b69aa0de3378c71ef1b1b5e"
+        ]
+      },
+      {
+        "id": "component-c691f76eed944977",
+        "caseIds": [
+          "expanded-low-008"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "e41ec44afed7cbc97ed40f8c46be532e5b41193508a5e9b9cd0bd8a600eedc1f",
+          "26b270767991a8c7d4bd02ad538227c0a79bab4103490c5c054a73163aae6638"
+        ]
+      },
+      {
+        "id": "component-456297aad7728a2b",
+        "caseIds": [
+          "expanded-low-009",
+          "expanded-medium-011"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "28ab30104bc7acd8f6b03988e9e255fe6caac4f095e49ac0a8efe55b758a1c3f",
+          "f3c3eef5ed7210f7b7b5c17a1cbb57e720872584d8c5ff825086f1be8013dfe5",
+          "e03c61141adff017b09ccd0c65dedd9ba51b5217a4f50907cf9e5e01d02ded2a"
+        ]
+      },
+      {
+        "id": "component-4e1d9505b35b3975",
+        "caseIds": [
+          "expanded-low-010"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "54fa89030927eb3c0af813d378384baeebae591e8cafc705467d43e1b276097c",
+          "8c43c1de9366834199be680447e02fb26893b24cea40d5af611bc5f11a4ed1d8"
+        ]
+      },
+      {
+        "id": "component-5f1f15c9780e4eb9",
+        "caseIds": [
+          "expanded-low-011"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "abc1b6ac7d8efa7fedfe0f40d5bbbceac4bb4ad2d1886149cec59204fcb0ba4b",
+          "4efe3e3aa4ac9a411c274c4b4015a03ffa9e9b5bc816343860e84be989e252a9"
+        ]
+      },
+      {
+        "id": "component-69035c1c31d42557",
+        "caseIds": [
+          "expanded-low-012"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "aa16ce7665ce200c78097288829aaad2c0c033b03c09bf5f4660f4630841b9e9",
+          "1682dd48947d9c313888a25b815be4e6a940743712738833fa8e74b4b999c54d"
+        ]
+      },
+      {
+        "id": "component-4fdcd824319324f2",
+        "caseIds": [
+          "expanded-low-013"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "ce69b510adc069b287e97fabfa0ced32c59e60dd7bc6d773513f0bf68ae84c02",
+          "cd487c5a7af5224f2c64d0fc6da60fc7245ecc27a71ec04243b45726483fd579"
+        ]
+      },
+      {
+        "id": "component-a5675b1e03dbe922",
+        "caseIds": [
+          "expanded-low-014"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "123f9fa53c09f217aaa94119ea4b66d3f97cf68c640dff84bb39d43d207ba9d8",
+          "a009a95a62b9d3e74605917c71c04354198929dc87ceee4dc7a4b9ce7d30ea24"
+        ]
+      },
+      {
+        "id": "component-55e528866779a22c",
+        "caseIds": [
+          "expanded-low-015",
+          "expanded-medium-026"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "e8b5b1ef7401a5ea40dcf823e6ab6e5629d017692dcd90e8d426c8ab8c550b4d",
+          "212c248117c725dd9a05e1af4fe17dea5390d20730767572c6586490b74e49bb",
+          "f41e95743d56db70357fced06b9e042d96552e75e7409d02054f0e69f6543a20"
+        ]
+      },
+      {
+        "id": "component-576e4a8d99375835",
+        "caseIds": [
+          "expanded-low-016"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "938b3056ae292c46927110985167c276c9efb8252cdeac30cafd5c30705d8a09",
+          "7cc3fd457ddb21a1908ca839d7a65cd210361de2bbe4ba4bffeec9d40fa3a4ce"
+        ]
+      },
+      {
+        "id": "component-cb2b23a0ea8ccd14",
+        "caseIds": [
+          "expanded-low-017"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "059a90b5b65ceb04945674b109ed85ba77ea1c8b6ba0f161284eed7f06fc398e",
+          "4cd4f0c868897dd0521a460eded86de12e71289e63e99f4ccd667942fa7ea864"
+        ]
+      },
+      {
+        "id": "component-58d84c1887fb5958",
+        "caseIds": [
+          "expanded-low-018"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "484f2780bfaea0343a6cc610eca711344692c5dc204653041ebcac36bf0e846c",
+          "efdd6deb4c96e5cb809ae5e47c19dca4ca07ec428bf568271c80f63075a7d557"
+        ]
+      },
+      {
+        "id": "component-f45dbffb7958b3f6",
+        "caseIds": [
+          "expanded-low-019",
+          "expanded-medium-036"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "0d77ac153780fef98883e3630c9785eaa2853bcabf4f9a54e27d19ff88506961",
+          "7febc6109fb0315cd7bf7df9d5692622c387df6810536fb4166d1eac31e3ae88",
+          "e4b56103b91b4c7b814967ebae30200f6307cc3656bd6e65e1f84c661c991ba9"
+        ]
+      },
+      {
+        "id": "component-8b836428891643ce",
+        "caseIds": [
+          "expanded-low-020"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "dd83f4b0d3ecdfdbd842c8bbef9e08e01138480962d8ae02ff83f20997d68e4d",
+          "ee74e4994d3111e208aeab5f694ee158a7f0bd17cb71e2d6a52bac300ac56dc6"
+        ]
+      },
+      {
+        "id": "component-bcf52597e1703837",
+        "caseIds": [
+          "expanded-low-022"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "c23e6f46152ee129f1638f13a6459152ad6dcbe537cbe989280de9ee05366326",
+          "c163915b73a8644fe8742836c42df85888bff0eb0e67b4af06cf61d5d4a511fb"
+        ]
+      },
+      {
+        "id": "component-1697910d1ed3673a",
+        "caseIds": [
+          "expanded-low-023"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "cf09dfbe55da86980f347e56e6edd87aac391a5a6823b889bb09457accf4b017",
+          "f73a5219b7a34f4d1f155cbc7e384916438d9a388db0d2beca614b10bb5dd2df"
+        ]
+      },
+      {
+        "id": "component-38cd79e234347791",
+        "caseIds": [
+          "expanded-low-024"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "3dab32ea65f8d73238b579c9995feb7d117fe26ac0691e11d898c5e109327a62",
+          "f62554cc7c229134d6005a0c6cf020dd5b6df2de20635c02f182fd7a942f2604"
+        ]
+      },
+      {
+        "id": "component-e6ff03153c1aa16f",
+        "caseIds": [
+          "expanded-low-025"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "0be9fc63fdb488d6df18f4f2b4ca8cc223f180c57e3f319a4bedc7b4bcac7295",
+          "75c9d50c8e5c75653cae09c916dbc6a098c48c1f2628623e7b82e200383b223a"
+        ]
+      },
+      {
+        "id": "component-0e2bbd40620678ae",
+        "caseIds": [
+          "expanded-low-026"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "0409692f080df5244a1cd98e89b21fc2fb3bb3b923c8c70a69fb9e950c8ac04a",
+          "61095efc82c8276c4fba64866758725abe86ba10b6e0943780587adef4f1e097"
+        ]
+      },
+      {
+        "id": "component-632982c7923eb090",
+        "caseIds": [
+          "expanded-low-027",
+          "expanded-medium-023"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "3c1f2b9b47638380c43cc2b076d97a0835ec982b276d28715f00f24a153ab05e",
+          "4457f2625969f56e3c00f4735aaa9711cbeeea48e44448ce2ea01b8680cacef5",
+          "c268ff0e2957489ce10932f2fd2b9d9ff405ebe1dfd9ee668e3b7794478f5278"
+        ]
+      },
+      {
+        "id": "component-4c2646fb27ad0216",
+        "caseIds": [
+          "expanded-low-028"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "3cdc7ed589ed113636ede92c6e981411946b647e14bdf4e4a7534b047937ce97",
+          "f706c34eaad7486ff274c7ec405b8147f0e05a216ed8046e0ff4c3e1bbbea00b"
+        ]
+      },
+      {
+        "id": "component-668be1921d2adf20",
+        "caseIds": [
+          "expanded-low-029"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "ff2a5ce6b9b8ddbc5c9671c32d7face2f4290a3b47966750916f605b66c92746",
+          "79d6e5eddb25b5c39cc77b6db82359123f1128306c1c1489010b2bf07749972c"
+        ]
+      },
+      {
+        "id": "component-abc4aea1b4c8ca07",
+        "caseIds": [
+          "expanded-low-030"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "67e0a1e313b40e152f25e66341ed2b42a653869332427198c80a4b32d6982b22",
+          "2ac71c9153f607c0c8827ec382532d753a291591b80df4aa837c6de3ca3a3b6f"
+        ]
+      },
+      {
+        "id": "component-e379dff45aaf78f4",
+        "caseIds": [
+          "expanded-low-031"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "0fddcba47766d88bff237096b8b760841b5f7fa1685d75e0c6e76dde5efddb7b",
+          "f792e4a889dd85c2427b5a1cd1bebe05406e11f22884f17e4bafb1826cfc5eef"
+        ]
+      },
+      {
+        "id": "component-73631e96dbd0113b",
+        "caseIds": [
+          "expanded-low-032"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "e6dac8ac33c920137b954b9c509535881701de0e18e39a26a857674a879cd9e8",
+          "6489ee5c46631f7ccfa434886e9485c5c4efb9b4aaef7b200b610b636d8de208"
+        ]
+      },
+      {
+        "id": "component-d33f84fd0aa230d0",
+        "caseIds": [
+          "expanded-low-033"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "ae88be7254d5d607a6fdb8f35a086a1a0a8c8961f8e62024ecd1bfdfcf2d06f5",
+          "7d528ad7673ee3d3817c4cddf197b3453014e48a25720d4bd22f36f62fc9ad71"
+        ]
+      },
+      {
+        "id": "component-04333334c33f2097",
+        "caseIds": [
+          "expanded-low-034"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "1fb0056a4c932f7abcbe5c2090d82ec383f1267d85b4fb89078902295b1d26b6",
+          "c01e092660975bf4203eb4e9748bdba3d14c302fb48ec0d55ba8dee7ba24c7a2"
+        ]
+      },
+      {
+        "id": "component-2f446de17c3e9535",
+        "caseIds": [
+          "expanded-low-035"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "40fd12521915f47bbb937c8591e870842432f8b4322c804d3122a209787b6fa0",
+          "b361b23ea6bc6d9e636e0bab9b3f7f3734bd817cc5975b3393a3cf772786b75a"
+        ]
+      },
+      {
+        "id": "component-3e5c29d06b936076",
+        "caseIds": [
+          "expanded-low-036"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "be29d444acc6dcaa1dd11269c5c381a87107bbe62f6e9dca8441762746f048f7",
+          "7550be6d0711c5eba137874a2ede562c604e11b742e891f6c43429cbf5cc31e3"
+        ]
+      },
+      {
+        "id": "component-90392ca8b4d9cf7a",
+        "caseIds": [
+          "expanded-low-037"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "8d8bc14a1a6107fede2d898c5d71b35f9c53326e6112112b2ac19d8031e0cd88",
+          "05e7e111e4462eb6fafad0280a30d585e0f3662afd5c67b6076f97a9eac60a11"
+        ]
+      },
+      {
+        "id": "component-2098f3b7d139a619",
+        "caseIds": [
+          "expanded-low-038"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "c9edcc6e79a12efea395e04ef2c747129881a1f4e8ea99846bbc3e66ba53c3dd",
+          "ad63a987c972dd2b91a9bd126aa7671e5976e98bb7542e79977df457ec8919fd"
+        ]
+      },
+      {
+        "id": "component-915ffbfaf0d92222",
+        "caseIds": [
+          "expanded-low-039"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "c8eeb9c2ab04e7cd5a345c8e86d885207598df9ab04d6e04eb900e809ebc2e66",
+          "2e923b665e9d2a4ec0283e1b6a0cd8f34fd6e4aaa297d035a87261383ba90681"
+        ]
+      },
+      {
+        "id": "component-8e1258866ed0f04a",
+        "caseIds": [
+          "expanded-low-040"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "b6eded4c9f67e65844718bf36f4f4734ff66ecaa8b34c6304b803c169a79765c",
+          "12b0345c66d7c13941830550f377005494b22aa2930143982dbf5c3462235df8"
+        ]
+      },
+      {
+        "id": "component-b3d88af3814b6d9d",
+        "caseIds": [
+          "expanded-medium-002"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "73480cdaf56a5d05099c9c3547ee3154d2a27b88fd3560699e3f09fce06637be",
+          "4c5c1bb5c41a404702901d6acdccc627505370b4ebd78b1a79b1537116a85b31"
+        ]
+      },
+      {
+        "id": "component-0f6d90925e07e70b",
+        "caseIds": [
+          "expanded-medium-003"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "d84965e6e7de5dae531f10d4c7df9567d2bda44f3bbf5e960978cb0d9881a1dd",
+          "a2b29cd269b0ea9bd253a467a71cf592cabe03b55f1d8d9728c4be1d7583f638"
+        ]
+      },
+      {
+        "id": "component-8ae0a26d3bcb3c3c",
+        "caseIds": [
+          "expanded-medium-004"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "f2022a848ace9fc4b085f6286d84bfbd58a531d36f2b872462cf210a4fa7eda4",
+          "09930e0d3550d6a2a5fb4976793e5975522479020df7c8cdf124ed5012e9831f"
+        ]
+      },
+      {
+        "id": "component-7bb81ec1023c011f",
+        "caseIds": [
+          "expanded-medium-005"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "c488ef20a0e0c6143b55392d55916cf998c820ab6b6c2eed0cd44f5eef7973d1",
+          "c6d560746a81fac8cfbf8f56e22f48a55fb4413f2e391e75fddc2fb10d3711ed"
+        ]
+      },
+      {
+        "id": "component-a9a7045a0356a28e",
+        "caseIds": [
+          "expanded-medium-006"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "4c3494b277610cc7d37dbf79307f485cd08994d77b2b3d6518cac42c0cb998e9",
+          "7d91a074cf9c0a0e667e7f8ff680be77599093e23272e1a4558e097b8dbc53bc"
+        ]
+      },
+      {
+        "id": "component-db12f5b95f819e7e",
+        "caseIds": [
+          "expanded-medium-007"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "f7ad49ad97884c7cf28f185e573e4383ceb2179357b981a15448ae27eb5e7465",
+          "d1c32587e9da27e9777d0dd6893db119aed2403fa4928914bc14571c5e691150"
+        ]
+      },
+      {
+        "id": "component-1c27624d02f9dee2",
+        "caseIds": [
+          "expanded-medium-008"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "f087d91f844d93347fceb42f8bdb0f75b955dde80d2217386b8f67e686bab092",
+          "b219011a371fd936fb20abffecd6b6bcc2e5d51af2645a05df70b8d548849f49"
+        ]
+      },
+      {
+        "id": "component-c021a27a9c2c537e",
+        "caseIds": [
+          "expanded-medium-009"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "89db6d3a656a7b24965a7b0a9bdaf9559d7517151c5228b6a3193454091409de",
+          "e86faaa05644f6416bb6a7a76c2035ffacdbfd4fc33befaf2f442de875b83b4b"
+        ]
+      },
+      {
+        "id": "component-80afb935576f3e38",
+        "caseIds": [
+          "expanded-medium-010"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "b18af79a5456cd8efbe428240c34b4230ea632c68251f4346c5bcabc21fec565",
+          "33fef0963861cbb0db1e601b47ea7bf49ee212824807017213e4788a2f27c0fa"
+        ]
+      },
+      {
+        "id": "component-842f34c58d1c86c3",
+        "caseIds": [
+          "expanded-medium-012"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "a5d25b910c57b6aaafbb996d2c62505e177a0c36724411c045a5257538d5d40d",
+          "96d74c6b35239cb16e269081f129bee0220e9c869a995189950894a106cd884a"
+        ]
+      },
+      {
+        "id": "component-01b3152230c6e75e",
+        "caseIds": [
+          "expanded-medium-013"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "40fad20e6360ba0b388ca69e437cd219be69578d8b0590fd2da1568883a390ff",
+          "ded84c5817087ddf9731aec0f94c162fdacc601650ad76e68e16c14225454a93"
+        ]
+      },
+      {
+        "id": "component-d4a5045e2a387445",
+        "caseIds": [
+          "expanded-medium-014"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "c6f23b2fbfe152f46db91da818988324ffc202dbbbf8fda41467b497421d4b4e",
+          "410f789598ae0dc9c45e0e4f5cbc02a7a2f6e70e2dbe8b20e690c0fad6783ced"
+        ]
+      },
+      {
+        "id": "component-f77b8ffd9c4c2f62",
+        "caseIds": [
+          "expanded-medium-015"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "742f3ba46ce9239f953b929827b6a84eae28c2a77b1944cde3bf56031048caed",
+          "bd9a1f6c80e8545eadce1b72836adc041f614f07f479d6204ff39e25c49a0efa"
+        ]
+      },
+      {
+        "id": "component-fb2bb314c884e7ad",
+        "caseIds": [
+          "expanded-medium-016"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "fb7d2009a71e19f341fdd4b12f0c6b6374ad90f6c877247bb13fb4d8a6a54cb2",
+          "89f971ec023c465debafc657538f87cb8bc6d7f1812d2686614590ee1cb78b13"
+        ]
+      },
+      {
+        "id": "component-9a85937b069873e9",
+        "caseIds": [
+          "expanded-medium-017"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "19eb50eb81af7e5b85148ccbd651ee6976b781bd36f96c906da1782db5951671",
+          "dab4fae624aac08d2d87141b9c2daa9a872ae262739173f800886c03af79fc7c"
+        ]
+      },
+      {
+        "id": "component-f0ccda665bad7048",
+        "caseIds": [
+          "expanded-medium-018"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "d48df960ba63cbbf2eb19e0978bbabbec6ee1a5d1934ae67d1b79474b55a2e03",
+          "50fd5fb7cbea8cb3b6be5aa9b0b4a90150c8ab6029d5fae00e66b1595c6869cb"
+        ]
+      },
+      {
+        "id": "component-763e9467f4a523c2",
+        "caseIds": [
+          "expanded-medium-019"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "8a038bb4c3e509afd5a7e196c393982fca5f75c5c0959a03fdf7c21677fc990f",
+          "3d26ed0a53d7eee8c5836ec138158aeafcdcaf988a5945da43bca4d963f36a75"
+        ]
+      },
+      {
+        "id": "component-4cbb2590cc69f012",
+        "caseIds": [
+          "expanded-medium-021"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "b622707cea96bd7b982889d502104c971b966f04b519d622c7f0649ee742154e",
+          "3007dcc2e161f0397f59ced80d79f65ad0d85c63724eceedb89dd0e7df80f2ea"
+        ]
+      },
+      {
+        "id": "component-dbbac170cf7d5170",
+        "caseIds": [
+          "expanded-medium-022"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "4cc2f06cb72c30be413203e06fac02aeb5cadbb4f137ce213d34bd7f1a647a8f",
+          "6c263b74a9b8378fc04f7681adb63caa9f896b445a47abd8501b74d996562836"
+        ]
+      },
+      {
+        "id": "component-7201d63b878075cf",
+        "caseIds": [
+          "expanded-medium-024"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "0821c67da9b1e85f9f95f5f9d161568d73ff7b4f56565b04c1d49c64e640da1d",
+          "60944208afc3b4d4a2eb07971fa3f2ab3b9819fce5e300d72a6f28629382147e"
+        ]
+      },
+      {
+        "id": "component-01df545104630585",
+        "caseIds": [
+          "expanded-medium-025"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "87cefa0eaaac524591914fdaa5e95a1507d74e236149710ac1348bff2ef9f525",
+          "49e8289da0433a9db23853e9010154d0b698e759584158545a7d22c029a76cb1"
+        ]
+      },
+      {
+        "id": "component-f386dc6f597ec512",
+        "caseIds": [
+          "expanded-medium-027"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "ea73cc0ac9f4c37e47f80c7eef493b8e31dae4bd6cd0c532c9bd24b6914acca9",
+          "797c52fd5774afbcf5d06f5dc9e128a6a599247f1ac4c5ab71f75f4cb5f26057"
+        ]
+      },
+      {
+        "id": "component-186f3e1ac7a14970",
+        "caseIds": [
+          "expanded-medium-028"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "5798142c75d97f8175a71926e93f1f14c8af4bb3df772f1ae16d8eeefb99908c",
+          "60d191079f57ec4b91b2f103a897ce62b4a5453c7a39e6abd0c29b8e367a66ca"
+        ]
+      },
+      {
+        "id": "component-12efb2e5e4380604",
+        "caseIds": [
+          "expanded-medium-029"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "b1b894d845b40c11fb609d68e595671aedeb78f7199baee7c2a81147f0d1b95c",
+          "7dca938978ee0427999981c00971f316d4c8dbac7ecc4e859cf964cd954987b0"
+        ]
+      },
+      {
+        "id": "component-684d3ca0d7c19253",
+        "caseIds": [
+          "expanded-medium-030"
+        ],
+        "support": {
+          "LOW": 1,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "7f5c83e9ee0ad84be60ead5e38445d0073bf1be90075deb19eceb4d6a931e6d5",
+          "e2ce472ab5f0c1058afbe7c5f74cab930ffe637025b6e27f6700694eac2f9179"
+        ]
+      },
+      {
+        "id": "component-69afb09ab33bf1cd",
+        "caseIds": [
+          "expanded-medium-031"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "69551d0576b7e1ec79ad69cc1e8317f643a43f9b36d07e598e6d83ff19572305",
+          "bd6c0566684fb3a3215b71709750076fc4012fe6c9015fcf5b0faf48fa568ec5"
+        ]
+      },
+      {
+        "id": "component-873de7011aca3ee1",
+        "caseIds": [
+          "expanded-medium-032"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "9b9e9a0008ff4b9e7846a6f7c923e567e087f785146663179388ec53cc186f23",
+          "5e6bd54b4bce95787b5c1b1a23d3cc23511cb93bcc73695b6c2d8a3ba44d66a3"
+        ]
+      },
+      {
+        "id": "component-e968cbd2bd396109",
+        "caseIds": [
+          "expanded-medium-033"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "1b608c51e044829609281ffa202f6b130dbee863c1dc4fd3bc9079bbd4a3c53e",
+          "d29f8fb9abbc6553b20a1e19a01c583e842be464933b812fa5452ec45792afda"
+        ]
+      },
+      {
+        "id": "component-3566ba5e97977fc2",
+        "caseIds": [
+          "expanded-medium-034"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "38f8c00b7df64bfedd4023879583fa074b6df1ce05e6bb410d59a643a1ff2a9b",
+          "eeae293c6ede7a04bee0617910afe5624d0b5c21734380e07baafb9f45321e26"
+        ]
+      },
+      {
+        "id": "component-c3415bb48f4ae18e",
+        "caseIds": [
+          "expanded-medium-035"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "9a5245f8933af751b9e431a40b7f550e1571a627608a93a09156060653e378c2",
+          "e96b9daa8b55e5e6a20d1ad1b9583fdb21fa585d41be3fc830c2b16f60cddc69"
+        ]
+      },
+      {
+        "id": "component-2c55cfaa0271a456",
+        "caseIds": [
+          "expanded-medium-037"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "5f674984b3b44ce8e47b79be6e8e591d0f04e1f3c9580b6e0bd7f3f3cf20e4fe",
+          "280c7eb538239ca54be4c0eb40cc093ab1f0092e75fc856f0887c0ab8dfbc315"
+        ]
+      },
+      {
+        "id": "component-802082ac2f1d1887",
+        "caseIds": [
+          "expanded-medium-038"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "84f731559c0382783c36d05d03f154e7b580c76491854b116e475d9d1e4fc0be",
+          "6f035bd89201479f5979437a65d95f81249309b212193c269c8782d1a2c6e534"
+        ]
+      },
+      {
+        "id": "component-bbc89caf2d1e491c",
+        "caseIds": [
+          "expanded-medium-039"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "b58e4e05b0664c05ea3c9aceabfbe86e44d724e1d8a89260b0ec2997f95abad2",
+          "6ca45c83f6cf13818b528f26ce9c6b62bfdb936b202ebeb1cef94bce6c5905fb"
+        ]
+      },
+      {
+        "id": "component-3d3b4b8b6ddfb32c",
+        "caseIds": [
+          "expanded-medium-040"
+        ],
+        "support": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "canonicalTopicHashes": [
+          "26269657c8a033cc94dee0620d348334c99e39d34b96a8672530cd9e76df1a15",
+          "a13a9e3e69806614438c1a2b241b9e79e05af254d0bb4db6fbfdf7c2897a325c"
+        ]
+      }
+    ],
+    "folds": [
+      {
+        "fold": 1,
+        "caseIds": [
+          "expanded-high-002",
+          "expanded-high-005",
+          "expanded-high-008",
+          "expanded-high-009",
+          "expanded-high-010",
+          "expanded-high-011",
+          "expanded-high-033",
+          "expanded-high-036",
+          "expanded-high-037",
+          "expanded-high-038",
+          "expanded-low-002",
+          "expanded-low-006",
+          "expanded-low-010",
+          "expanded-low-025",
+          "expanded-low-026",
+          "expanded-low-031",
+          "expanded-low-032",
+          "expanded-low-035",
+          "expanded-medium-008",
+          "expanded-medium-009",
+          "expanded-medium-016",
+          "expanded-medium-019",
+          "expanded-medium-024",
+          "expanded-medium-031",
+          "expanded-medium-035"
+        ],
+        "componentIds": [
+          "component-04db072f5f377795",
+          "component-0b68ee6bbbb171b5",
+          "component-0e2bbd40620678ae",
+          "component-1c27624d02f9dee2",
+          "component-2e82ed55ccdc30e4",
+          "component-2f446de17c3e9535",
+          "component-2fee5b2487fd7b7c",
+          "component-4e1d9505b35b3975",
+          "component-5cd407b0d3877ea6",
+          "component-69afb09ab33bf1cd",
+          "component-6c0e685541faea53",
+          "component-7201d63b878075cf",
+          "component-73631e96dbd0113b",
+          "component-763e9467f4a523c2",
+          "component-7aeb66448e256642",
+          "component-965fa10f1c196dc5",
+          "component-af20adac921b119f",
+          "component-bc79691de09eb121",
+          "component-c021a27a9c2c537e",
+          "component-c3415bb48f4ae18e",
+          "component-e379dff45aaf78f4",
+          "component-e6ff03153c1aa16f",
+          "component-f7a9fef74501866a",
+          "component-f8e31bfeb8c63182",
+          "component-fb2bb314c884e7ad"
+        ],
+        "support": {
+          "LOW": 7,
+          "MEDIUM": 8,
+          "HIGH": 10
+        },
+        "canonicalTopicHashes": [
+          "0409692f080df5244a1cd98e89b21fc2fb3bb3b923c8c70a69fb9e950c8ac04a",
+          "0821c67da9b1e85f9f95f5f9d161568d73ff7b4f56565b04c1d49c64e640da1d",
+          "08350a614648dd53882f9106cf865a3d8a295d69e525e7a2eb8c5e7cd22a1a42",
+          "0be9fc63fdb488d6df18f4f2b4ca8cc223f180c57e3f319a4bedc7b4bcac7295",
+          "0fddcba47766d88bff237096b8b760841b5f7fa1685d75e0c6e76dde5efddb7b",
+          "1eacdcd15adf3c5d3c225311cd6c03c6da5ba44f3cfb63af1beb4a8ad6eadf65",
+          "1f9f66c3704fab7fea574914902b6201221a150aecdb07727a5270ba63f596e4",
+          "220f90f79f8d29b84b14812786a07df6906bdb5784bd0e5895461ae32c7c2446",
+          "23ad31632125e7fa21471f5aaaa78fe034f4abf5df661164c3a92f606c92bf4e",
+          "2d6ff0eac16f0d60cb5c0779dbf4648c4483221bb807675664e03e1898f1034d",
+          "2f42cb3bb53ccbfdf159e19722d64817c8cf20c1fe5ce082b22c1775163100ff",
+          "30bea87c6470372e5347a9bc210d8f58a5c4d6b2d146d891cd61294c1c19e2c9",
+          "3d26ed0a53d7eee8c5836ec138158aeafcdcaf988a5945da43bca4d963f36a75",
+          "40fd12521915f47bbb937c8591e870842432f8b4322c804d3122a209787b6fa0",
+          "48a8421362a350c336a45d00632f68ce15c7889b2f7b2ab44519b903a78c3ced",
+          "54fa89030927eb3c0af813d378384baeebae591e8cafc705467d43e1b276097c",
+          "60944208afc3b4d4a2eb07971fa3f2ab3b9819fce5e300d72a6f28629382147e",
+          "61095efc82c8276c4fba64866758725abe86ba10b6e0943780587adef4f1e097",
+          "63d2d89a94ab52e15c77810d85b9a77e24c08e77f30c108ea37723c9598312a8",
+          "6489ee5c46631f7ccfa434886e9485c5c4efb9b4aaef7b200b610b636d8de208",
+          "69551d0576b7e1ec79ad69cc1e8317f643a43f9b36d07e598e6d83ff19572305",
+          "73e504cfb40da3a14a0d1c475700151026feeac0aa6cf74aacd247b9983f9f67",
+          "75c9d50c8e5c75653cae09c916dbc6a098c48c1f2628623e7b82e200383b223a",
+          "7eb1e860dd5ec25afeff9c782fdde19f144d99901e78e2538bf03a7d52a2e038",
+          "89db6d3a656a7b24965a7b0a9bdaf9559d7517151c5228b6a3193454091409de",
+          "89f971ec023c465debafc657538f87cb8bc6d7f1812d2686614590ee1cb78b13",
+          "89fcc87d73d2a252064e03984da9d8eafa9be95cd9df94404cc1bf71cc6bcccb",
+          "8a038bb4c3e509afd5a7e196c393982fca5f75c5c0959a03fdf7c21677fc990f",
+          "8a66faa421023c79c75c5ba3ff6423a2648db45cc7023b9f43cd85724e35a5e5",
+          "8c43c1de9366834199be680447e02fb26893b24cea40d5af611bc5f11a4ed1d8",
+          "90a7c34de5654948844f04dab8dab4958b8f0b23d16800a1d870ee92e5efa286",
+          "9a5245f8933af751b9e431a40b7f550e1571a627608a93a09156060653e378c2",
+          "b219011a371fd936fb20abffecd6b6bcc2e5d51af2645a05df70b8d548849f49",
+          "b361b23ea6bc6d9e636e0bab9b3f7f3734bd817cc5975b3393a3cf772786b75a",
+          "b42aa377bdcb29973e8a5b8466fa7508d1997012f801822911ca6f4b4e247f1c",
+          "bd37275edc32f55470e01fc4bb02869e8cf389eae62a19957c28d2e8608a22a4",
+          "bd6c0566684fb3a3215b71709750076fc4012fe6c9015fcf5b0faf48fa568ec5",
+          "d10a6a2b24ce588f39256cea508dfdfb29a75dd91ced787b216a39c09dba0858",
+          "d1297eb75dd18ae654e3ffb7e9f1a021008342e630c22f715593e4e874fa1895",
+          "d86b9f4edc1b98dc684f3a53f9308dc884e0a2d3528734b1913c661f0f6dee98",
+          "e093e224eae467177427f7b65ea5773b684955651f3b5511055cb667278f1bf7",
+          "e0da1f2ef6cf5dfd3eb6bc218698b9428cc41e8e5e681b915b119a8c9e6084e8",
+          "e6dac8ac33c920137b954b9c509535881701de0e18e39a26a857674a879cd9e8",
+          "e86faaa05644f6416bb6a7a76c2035ffacdbfd4fc33befaf2f442de875b83b4b",
+          "e96b9daa8b55e5e6a20d1ad1b9583fdb21fa585d41be3fc830c2b16f60cddc69",
+          "ea2972709a975134cb819a6b15c08f7f745778e93b3f8a8285f9a94a4a7efb90",
+          "f087d91f844d93347fceb42f8bdb0f75b955dde80d2217386b8f67e686bab092",
+          "f76055d673693edac3eeb8956632e53342f74ddd3c9ed43531e0a802219c3df7",
+          "f792e4a889dd85c2427b5a1cd1bebe05406e11f22884f17e4bafb1826cfc5eef",
+          "fb7d2009a71e19f341fdd4b12f0c6b6374ad90f6c877247bb13fb4d8a6a54cb2"
+        ]
+      },
+      {
+        "fold": 2,
+        "caseIds": [
+          "expanded-high-016",
+          "expanded-high-018",
+          "expanded-high-022",
+          "expanded-high-024",
+          "expanded-high-026",
+          "expanded-high-031",
+          "expanded-high-034",
+          "expanded-high-035",
+          "expanded-low-003",
+          "expanded-low-004",
+          "expanded-low-005",
+          "expanded-low-008",
+          "expanded-low-012",
+          "expanded-low-013",
+          "expanded-low-029",
+          "expanded-low-030",
+          "expanded-medium-006",
+          "expanded-medium-021",
+          "expanded-medium-025",
+          "expanded-medium-027",
+          "expanded-medium-029",
+          "expanded-medium-033",
+          "expanded-medium-037",
+          "expanded-medium-038"
+        ],
+        "componentIds": [
+          "component-01df545104630585",
+          "component-0c1ac3c21e6d7379",
+          "component-12efb2e5e4380604",
+          "component-2c55cfaa0271a456",
+          "component-3c84d50d99e593c9",
+          "component-4cbb2590cc69f012",
+          "component-4fdcd824319324f2",
+          "component-5dac936425170f03",
+          "component-6533b768054875b4",
+          "component-668be1921d2adf20",
+          "component-67082cc73e1332a4",
+          "component-69035c1c31d42557",
+          "component-802082ac2f1d1887",
+          "component-922020083549bdce",
+          "component-98f8f00371d8222f",
+          "component-a1e794d6c305035f",
+          "component-a6cf9aee69b42945",
+          "component-a9a7045a0356a28e",
+          "component-ab6677b62ebaecf2",
+          "component-abc4aea1b4c8ca07",
+          "component-c691f76eed944977",
+          "component-e968cbd2bd396109",
+          "component-ee254cdca1d642ce",
+          "component-f386dc6f597ec512"
+        ],
+        "support": {
+          "LOW": 8,
+          "MEDIUM": 8,
+          "HIGH": 8
+        },
+        "canonicalTopicHashes": [
+          "08ac69a3429d245356fab3e315f32c9478ed1468ea142102e96c9f2b59d51472",
+          "16614b426c3b455eaced65e9aa105c8d5532a69f921c8bd8004f7f6e2907737b",
+          "1682dd48947d9c313888a25b815be4e6a940743712738833fa8e74b4b999c54d",
+          "17c4ba767c04ef5069430ae6403887c979c2b62b19b4f9b175bff36fda78cb0f",
+          "1a4a37cec3651fc4eac5c201368b04ad8fa3523896efdf5c1fe9ebf08359e3b1",
+          "1b608c51e044829609281ffa202f6b130dbee863c1dc4fd3bc9079bbd4a3c53e",
+          "1fe9aa2c93aff8b41122d76b0bd79c5991ee37b3852f9c75ae1597f972e71f0e",
+          "26b270767991a8c7d4bd02ad538227c0a79bab4103490c5c054a73163aae6638",
+          "280c7eb538239ca54be4c0eb40cc093ab1f0092e75fc856f0887c0ab8dfbc315",
+          "29f2617b45b4eb75df46eda9359c713b35ad1145010cc66ae3a163a0f1d59e94",
+          "2ac71c9153f607c0c8827ec382532d753a291591b80df4aa837c6de3ca3a3b6f",
+          "2d6aa2be8d37f6b830dde1c84ebc1b04fbfa10bb66e231d9261c775e1b50b31e",
+          "3007dcc2e161f0397f59ced80d79f65ad0d85c63724eceedb89dd0e7df80f2ea",
+          "356f167983d34f76fae95f8ddb9591790d6555c939f518e83acb0f7cb568d15b",
+          "49e8289da0433a9db23853e9010154d0b698e759584158545a7d22c029a76cb1",
+          "4c3494b277610cc7d37dbf79307f485cd08994d77b2b3d6518cac42c0cb998e9",
+          "5ca84284b75b66cb4c3290b13c304bec49293a176b0f02605309afd050e3fedd",
+          "5db4988e63443554d39f2988af14be4e6ca0c747afc656fe5acced8f8a1bddaf",
+          "5f674984b3b44ce8e47b79be6e8e591d0f04e1f3c9580b6e0bd7f3f3cf20e4fe",
+          "64cded64d24baa115b24fb49a2229ee7e92daea465f79a63f57d4982882d5e26",
+          "67e0a1e313b40e152f25e66341ed2b42a653869332427198c80a4b32d6982b22",
+          "6a4f8bf09fe394b488d2a36f1a6a7732ca46bbf683e7e5e355eb1abd1f253652",
+          "6f035bd89201479f5979437a65d95f81249309b212193c269c8782d1a2c6e534",
+          "797c52fd5774afbcf5d06f5dc9e128a6a599247f1ac4c5ab71f75f4cb5f26057",
+          "79d6e5eddb25b5c39cc77b6db82359123f1128306c1c1489010b2bf07749972c",
+          "7d91a074cf9c0a0e667e7f8ff680be77599093e23272e1a4558e097b8dbc53bc",
+          "7dca938978ee0427999981c00971f316d4c8dbac7ecc4e859cf964cd954987b0",
+          "842efe14e283f17a9598aa3083b96ad72ed3dbfde2232178a02bae543a15bbaf",
+          "84f731559c0382783c36d05d03f154e7b580c76491854b116e475d9d1e4fc0be",
+          "87cefa0eaaac524591914fdaa5e95a1507d74e236149710ac1348bff2ef9f525",
+          "889c93449935f1ea0817c215964395d0877fc73491b66e80cbc12285288e162a",
+          "953736ece7017788053c925bd244d60fb95326706f695f508e29149a526f8f9b",
+          "954a870f21d30dc84e1351ad33275260d6bbbfb5e59ee655f32b709e8d57cd42",
+          "97fa80fe3b0ce64d68f93cc3593cc7a39c4a60f4250a484d6e811fa76c969dcf",
+          "a4c2eb63bacd12d5c7c2f225c792c36ec8a6a8917577991dd670f457a6a025c1",
+          "a79eb9e110ca67a8b31c118e34891b8391bd5d07c88aafd05e7376a39414de34",
+          "aa16ce7665ce200c78097288829aaad2c0c033b03c09bf5f4660f4630841b9e9",
+          "b0c945044870e656c6309faf981ad22664ca00077ee5aa1ca50c11995e39103f",
+          "b1b894d845b40c11fb609d68e595671aedeb78f7199baee7c2a81147f0d1b95c",
+          "b622707cea96bd7b982889d502104c971b966f04b519d622c7f0649ee742154e",
+          "cd487c5a7af5224f2c64d0fc6da60fc7245ecc27a71ec04243b45726483fd579",
+          "ce69b510adc069b287e97fabfa0ced32c59e60dd7bc6d773513f0bf68ae84c02",
+          "d29f8fb9abbc6553b20a1e19a01c583e842be464933b812fa5452ec45792afda",
+          "d81620c2abc645d2112f6ea13933c7d92b6eb5b4558761f4ccfd6812c160f9ee",
+          "db5adb2a0a32333729cb26d1479355e3dfe079322404ee0f50ba496ff89df601",
+          "e41ec44afed7cbc97ed40f8c46be532e5b41193508a5e9b9cd0bd8a600eedc1f",
+          "ea73cc0ac9f4c37e47f80c7eef493b8e31dae4bd6cd0c532c9bd24b6914acca9",
+          "ff2a5ce6b9b8ddbc5c9671c32d7face2f4290a3b47966750916f605b66c92746"
+        ]
+      },
+      {
+        "fold": 3,
+        "caseIds": [
+          "expanded-high-003",
+          "expanded-high-007",
+          "expanded-high-013",
+          "expanded-high-015",
+          "expanded-high-020",
+          "expanded-high-029",
+          "expanded-high-030",
+          "expanded-high-039",
+          "expanded-low-007",
+          "expanded-low-018",
+          "expanded-low-023",
+          "expanded-low-034",
+          "expanded-low-036",
+          "expanded-low-037",
+          "expanded-low-039",
+          "expanded-medium-002",
+          "expanded-medium-003",
+          "expanded-medium-005",
+          "expanded-medium-010",
+          "expanded-medium-015",
+          "expanded-medium-022",
+          "expanded-medium-032",
+          "expanded-medium-034",
+          "expanded-medium-040"
+        ],
+        "componentIds": [
+          "component-03fa91bfeea7c11c",
+          "component-04333334c33f2097",
+          "component-0cd2b2c7320af743",
+          "component-0f6d90925e07e70b",
+          "component-12e2ee6851aab01d",
+          "component-1697910d1ed3673a",
+          "component-2bd5e97709c339a4",
+          "component-3566ba5e97977fc2",
+          "component-382549cd3021cd07",
+          "component-3d3b4b8b6ddfb32c",
+          "component-3e5c29d06b936076",
+          "component-46a0360627e7fdbb",
+          "component-58d84c1887fb5958",
+          "component-69cc12360fd22b29",
+          "component-7bb81ec1023c011f",
+          "component-80afb935576f3e38",
+          "component-873de7011aca3ee1",
+          "component-87620e42728ae5da",
+          "component-90392ca8b4d9cf7a",
+          "component-915ffbfaf0d92222",
+          "component-b3d88af3814b6d9d",
+          "component-dbbac170cf7d5170",
+          "component-f55580a7989c3c63",
+          "component-f77b8ffd9c4c2f62"
+        ],
+        "support": {
+          "LOW": 8,
+          "MEDIUM": 8,
+          "HIGH": 8
+        },
+        "canonicalTopicHashes": [
+          "0506a9e65d2ccfa891016fda86a6a5d120bfae5c8e27db581937c9ac750feff4",
+          "05e7e111e4462eb6fafad0280a30d585e0f3662afd5c67b6076f97a9eac60a11",
+          "063e51e30e17e5aadba6c3826485d2b658749606c29e0b07d5c5e0835867c7db",
+          "1fb0056a4c932f7abcbe5c2090d82ec383f1267d85b4fb89078902295b1d26b6",
+          "26269657c8a033cc94dee0620d348334c99e39d34b96a8672530cd9e76df1a15",
+          "26d575672e0a2279161e3114767459dcfa1f8c8b5b69aa0de3378c71ef1b1b5e",
+          "2b58fb8e0b899c6a232ce6e4c65c2579a6ee4a801a6fa5063aa432e6eb8537df",
+          "2e923b665e9d2a4ec0283e1b6a0cd8f34fd6e4aaa297d035a87261383ba90681",
+          "33fef0963861cbb0db1e601b47ea7bf49ee212824807017213e4788a2f27c0fa",
+          "38f8c00b7df64bfedd4023879583fa074b6df1ce05e6bb410d59a643a1ff2a9b",
+          "484f2780bfaea0343a6cc610eca711344692c5dc204653041ebcac36bf0e846c",
+          "4c5c1bb5c41a404702901d6acdccc627505370b4ebd78b1a79b1537116a85b31",
+          "4cc2f06cb72c30be413203e06fac02aeb5cadbb4f137ce213d34bd7f1a647a8f",
+          "5e6bd54b4bce95787b5c1b1a23d3cc23511cb93bcc73695b6c2d8a3ba44d66a3",
+          "6b112dc4def2c520b5fe82d578f1b853295b6fa23c92403daec70e1410b910d3",
+          "6c263b74a9b8378fc04f7681adb63caa9f896b445a47abd8501b74d996562836",
+          "73480cdaf56a5d05099c9c3547ee3154d2a27b88fd3560699e3f09fce06637be",
+          "742f3ba46ce9239f953b929827b6a84eae28c2a77b1944cde3bf56031048caed",
+          "7550be6d0711c5eba137874a2ede562c604e11b742e891f6c43429cbf5cc31e3",
+          "7fcc0673773fe02370f53d989c59fbf297cffaed9387625ca22607ae2baeaf01",
+          "8d8bc14a1a6107fede2d898c5d71b35f9c53326e6112112b2ac19d8031e0cd88",
+          "9afb6b1da85d80c28372f9edd448278d77c71a519a6d4c079f6eb10e8b633583",
+          "9b9e9a0008ff4b9e7846a6f7c923e567e087f785146663179388ec53cc186f23",
+          "a13a9e3e69806614438c1a2b241b9e79e05af254d0bb4db6fbfdf7c2897a325c",
+          "a2b29cd269b0ea9bd253a467a71cf592cabe03b55f1d8d9728c4be1d7583f638",
+          "a73fdb25099f772f5d3f202e179dcde27f737bde6f103de6c214b59aee7d56b4",
+          "acbefeb5cb0dcca4e054b13b725a815a05661ed83c48dec7ea9ef9ebc264e150",
+          "b122f38bf839efacce3d90d4e66b00a4b9251abbb10884bece7924ef2014da7a",
+          "b18af79a5456cd8efbe428240c34b4230ea632c68251f4346c5bcabc21fec565",
+          "b19b264a03b9f3b1ee869a03768415c752a716c4c408acc412695cd037509be4",
+          "b6c4063d76b10ecca0c4e6acf8891c73ecdd78e545718245ff60f2cbc4a4557d",
+          "bd9a1f6c80e8545eadce1b72836adc041f614f07f479d6204ff39e25c49a0efa",
+          "be29d444acc6dcaa1dd11269c5c381a87107bbe62f6e9dca8441762746f048f7",
+          "c01e092660975bf4203eb4e9748bdba3d14c302fb48ec0d55ba8dee7ba24c7a2",
+          "c488ef20a0e0c6143b55392d55916cf998c820ab6b6c2eed0cd44f5eef7973d1",
+          "c6d560746a81fac8cfbf8f56e22f48a55fb4413f2e391e75fddc2fb10d3711ed",
+          "c8eeb9c2ab04e7cd5a345c8e86d885207598df9ab04d6e04eb900e809ebc2e66",
+          "cf09dfbe55da86980f347e56e6edd87aac391a5a6823b889bb09457accf4b017",
+          "d048826453ff98b18a4d2ddf0989103971465a85f118bf432eba4975d1a3a903",
+          "d84965e6e7de5dae531f10d4c7df9567d2bda44f3bbf5e960978cb0d9881a1dd",
+          "da5b130601f4f31892cf9b47c03d858c07d2b0b93d8bcfe9639eb911bb57c5e0",
+          "e5e3c2389300bc36a605bdeeca9fca1b6efb06a228ebe0bf33790d9c733e0531",
+          "eeae293c6ede7a04bee0617910afe5624d0b5c21734380e07baafb9f45321e26",
+          "efdd6deb4c96e5cb809ae5e47c19dca4ca07ec428bf568271c80f63075a7d557",
+          "f7301b733ee3055d1ce9859e27bd3c904d8522ca52f575e84fdb9485611fef5e",
+          "f73a5219b7a34f4d1f155cbc7e384916438d9a388db0d2beca614b10bb5dd2df"
+        ]
+      },
+      {
+        "fold": 4,
+        "caseIds": [
+          "expanded-high-001",
+          "expanded-high-004",
+          "expanded-high-012",
+          "expanded-high-014",
+          "expanded-high-021",
+          "expanded-high-023",
+          "expanded-high-032",
+          "expanded-high-040",
+          "expanded-low-001",
+          "expanded-low-011",
+          "expanded-low-014",
+          "expanded-low-016",
+          "expanded-low-017",
+          "expanded-low-022",
+          "expanded-low-028",
+          "expanded-low-033",
+          "expanded-low-040",
+          "expanded-medium-007",
+          "expanded-medium-013",
+          "expanded-medium-014",
+          "expanded-medium-017",
+          "expanded-medium-018",
+          "expanded-medium-030",
+          "expanded-medium-039"
+        ],
+        "componentIds": [
+          "component-01b3152230c6e75e",
+          "component-26ac5786520db5f1",
+          "component-2dd1340f77d8b8e3",
+          "component-4c2646fb27ad0216",
+          "component-576e4a8d99375835",
+          "component-5f1f15c9780e4eb9",
+          "component-684d3ca0d7c19253",
+          "component-6a5a2edb32db8fbc",
+          "component-84eb1f72db6e67a6",
+          "component-8e1258866ed0f04a",
+          "component-9a85937b069873e9",
+          "component-a3a0135e0b22336f",
+          "component-a5675b1e03dbe922",
+          "component-bbc89caf2d1e491c",
+          "component-bcf52597e1703837",
+          "component-c605ed8b199fd15a",
+          "component-cb2b23a0ea8ccd14",
+          "component-d33f84fd0aa230d0",
+          "component-d4a5045e2a387445",
+          "component-d4bad9b512a7761e",
+          "component-db12f5b95f819e7e",
+          "component-f0ccda665bad7048",
+          "component-f5db4812bae7eba1",
+          "component-f7203c079eb150b2"
+        ],
+        "support": {
+          "LOW": 8,
+          "MEDIUM": 8,
+          "HIGH": 8
+        },
+        "canonicalTopicHashes": [
+          "00cacee36b3b4e3b5d2619f8c3bf261054f9fbad9867eb0f20304c5460bfa862",
+          "03385b04e1600c8a5403493a242d7a8db31b93c3efc717e5cf22db63f5c56b38",
+          "05036383a553f3ea4f3d6d976f1712513d9598e9c2019d60147439da3902463f",
+          "059a90b5b65ceb04945674b109ed85ba77ea1c8b6ba0f161284eed7f06fc398e",
+          "0ccac16e8c7a5645826bb3701cd1206dd467e2af31230b65ceb8743074dc97c3",
+          "123f9fa53c09f217aaa94119ea4b66d3f97cf68c640dff84bb39d43d207ba9d8",
+          "12b0345c66d7c13941830550f377005494b22aa2930143982dbf5c3462235df8",
+          "19eb50eb81af7e5b85148ccbd651ee6976b781bd36f96c906da1782db5951671",
+          "2eb49221039207fcf330171af07eca61bf5a5d973f2b2bd736fd1284cd7a146b",
+          "3a4886121b69fcf5feb3c8b8e6f5a8f706f3e6c67d9f9b0a7342c78c24d07f18",
+          "3cdc7ed589ed113636ede92c6e981411946b647e14bdf4e4a7534b047937ce97",
+          "40fad20e6360ba0b388ca69e437cd219be69578d8b0590fd2da1568883a390ff",
+          "410f789598ae0dc9c45e0e4f5cbc02a7a2f6e70e2dbe8b20e690c0fad6783ced",
+          "4cd4f0c868897dd0521a460eded86de12e71289e63e99f4ccd667942fa7ea864",
+          "4efe3e3aa4ac9a411c274c4b4015a03ffa9e9b5bc816343860e84be989e252a9",
+          "50fd5fb7cbea8cb3b6be5aa9b0b4a90150c8ab6029d5fae00e66b1595c6869cb",
+          "6ca45c83f6cf13818b528f26ce9c6b62bfdb936b202ebeb1cef94bce6c5905fb",
+          "7b7a8b9763e82fc23c1ad193ad825d24fe43b60924f240e858d7d185b9493561",
+          "7cc3fd457ddb21a1908ca839d7a65cd210361de2bbe4ba4bffeec9d40fa3a4ce",
+          "7d528ad7673ee3d3817c4cddf197b3453014e48a25720d4bd22f36f62fc9ad71",
+          "7f5c83e9ee0ad84be60ead5e38445d0073bf1be90075deb19eceb4d6a931e6d5",
+          "8f4b56aa50a3f5fb283a2f0479382bd39b557f27ab74765b2864384e8b5142b2",
+          "938b3056ae292c46927110985167c276c9efb8252cdeac30cafd5c30705d8a09",
+          "9b30a1976dcf0455bd5577cacd5149caaab5d18d0565c78b56f982c42331927c",
+          "a009a95a62b9d3e74605917c71c04354198929dc87ceee4dc7a4b9ce7d30ea24",
+          "a35a8ca7c0165f52033fd4f1af2031bb09557a8f1ee0fac95fc356a800409593",
+          "abc1b6ac7d8efa7fedfe0f40d5bbbceac4bb4ad2d1886149cec59204fcb0ba4b",
+          "acd3f1e1f48b71f62d96148abff7bfeea5b2637b12dec11f7e828e41ec724660",
+          "ae88be7254d5d607a6fdb8f35a086a1a0a8c8961f8e62024ecd1bfdfcf2d06f5",
+          "b58e4e05b0664c05ea3c9aceabfbe86e44d724e1d8a89260b0ec2997f95abad2",
+          "b6eded4c9f67e65844718bf36f4f4734ff66ecaa8b34c6304b803c169a79765c",
+          "ba7f98dbb75861cd0facf912ec860dc3ca455ab5da81ceaec6b030d76c13c53e",
+          "c163915b73a8644fe8742836c42df85888bff0eb0e67b4af06cf61d5d4a511fb",
+          "c23e6f46152ee129f1638f13a6459152ad6dcbe537cbe989280de9ee05366326",
+          "c6588da2cb8ab9a4c0284c818fa225dd672b52dadbb45f0889d95811a060d135",
+          "c6f23b2fbfe152f46db91da818988324ffc202dbbbf8fda41467b497421d4b4e",
+          "d1c32587e9da27e9777d0dd6893db119aed2403fa4928914bc14571c5e691150",
+          "d48df960ba63cbbf2eb19e0978bbabbec6ee1a5d1934ae67d1b79474b55a2e03",
+          "da2deea0067a0664280199004b13d32e5069af11a1255d0d8648850fcd575c8c",
+          "dab4fae624aac08d2d87141b9c2daa9a872ae262739173f800886c03af79fc7c",
+          "ded84c5817087ddf9731aec0f94c162fdacc601650ad76e68e16c14225454a93",
+          "e2ce472ab5f0c1058afbe7c5f74cab930ffe637025b6e27f6700694eac2f9179",
+          "f139190ea885dc23b19ebdfdaaf225f3ba2a14156ce2dff6621b8e4bf677eb46",
+          "f64729a5d8d0bc05702b30f4ae0de2f350cb8dc06c805682414a90040c2df7bc",
+          "f706c34eaad7486ff274c7ec405b8147f0e05a216ed8046e0ff4c3e1bbbea00b",
+          "f7ad49ad97884c7cf28f185e573e4383ceb2179357b981a15448ae27eb5e7465"
+        ]
+      },
+      {
+        "fold": 5,
+        "caseIds": [
+          "expanded-high-006",
+          "expanded-high-017",
+          "expanded-high-019",
+          "expanded-high-025",
+          "expanded-high-027",
+          "expanded-high-028",
+          "expanded-low-009",
+          "expanded-low-015",
+          "expanded-low-019",
+          "expanded-low-020",
+          "expanded-low-021",
+          "expanded-low-024",
+          "expanded-low-027",
+          "expanded-low-038",
+          "expanded-medium-001",
+          "expanded-medium-004",
+          "expanded-medium-011",
+          "expanded-medium-012",
+          "expanded-medium-020",
+          "expanded-medium-023",
+          "expanded-medium-026",
+          "expanded-medium-028",
+          "expanded-medium-036"
+        ],
+        "componentIds": [
+          "component-0b61f0e726e93918",
+          "component-186f3e1ac7a14970",
+          "component-2098f3b7d139a619",
+          "component-2a651ad59c2313f3",
+          "component-38cd79e234347791",
+          "component-456297aad7728a2b",
+          "component-4d191c703d720538",
+          "component-55e528866779a22c",
+          "component-632982c7923eb090",
+          "component-6363126bfcf54a22",
+          "component-7462ecfec5ce5709",
+          "component-842f34c58d1c86c3",
+          "component-8ae0a26d3bcb3c3c",
+          "component-8b836428891643ce",
+          "component-9d170cd9dda89c72",
+          "component-f45dbffb7958b3f6"
+        ],
+        "support": {
+          "LOW": 8,
+          "MEDIUM": 9,
+          "HIGH": 6
+        },
+        "canonicalTopicHashes": [
+          "09930e0d3550d6a2a5fb4976793e5975522479020df7c8cdf124ed5012e9831f",
+          "0d77ac153780fef98883e3630c9785eaa2853bcabf4f9a54e27d19ff88506961",
+          "0fd5e0a333bf29b6be41e68a31a894284afb99503605c8d0e7b56bdac781afc6",
+          "212c248117c725dd9a05e1af4fe17dea5390d20730767572c6586490b74e49bb",
+          "28ab30104bc7acd8f6b03988e9e255fe6caac4f095e49ac0a8efe55b758a1c3f",
+          "2bd1119b6cb7a21a0900324130ec1e8a075bd1c0959c2731f0a8474eacf4bf3c",
+          "2dc4f6a09fca88c46f23b1631e126afcd5c1736a94d4ff55eccadfb94fcb28f4",
+          "3bbc4d5b5fd847b32ffd830854e164e12d1ede5c8b84faed6c6f5c779f07d2a3",
+          "3c1f2b9b47638380c43cc2b076d97a0835ec982b276d28715f00f24a153ab05e",
+          "3dab32ea65f8d73238b579c9995feb7d117fe26ac0691e11d898c5e109327a62",
+          "4457f2625969f56e3c00f4735aaa9711cbeeea48e44448ce2ea01b8680cacef5",
+          "48bca0581d0f6ca155c6ba1c94f9eefcbec95f03fb7dbb8904ed99a9c14d394f",
+          "5798142c75d97f8175a71926e93f1f14c8af4bb3df772f1ae16d8eeefb99908c",
+          "60d191079f57ec4b91b2f103a897ce62b4a5453c7a39e6abd0c29b8e367a66ca",
+          "6709a1701f411208ee82b9a48469514d6de0c0d0f0f67edd3ad327627e730e20",
+          "6798aa63b58777873b7a1252a1082fe594f2979b18ba75c723cb7782c3fe6d01",
+          "68a8bf859a2ccff874a673718676dab2c136e6177ea13e4317c0c7f047c984ea",
+          "7febc6109fb0315cd7bf7df9d5692622c387df6810536fb4166d1eac31e3ae88",
+          "96d74c6b35239cb16e269081f129bee0220e9c869a995189950894a106cd884a",
+          "a5d25b910c57b6aaafbb996d2c62505e177a0c36724411c045a5257538d5d40d",
+          "aa37c4bc91dd93b4fb031e4ba21c242f33906041aed567a73863755372ac1d7d",
+          "ad63a987c972dd2b91a9bd126aa7671e5976e98bb7542e79977df457ec8919fd",
+          "c268ff0e2957489ce10932f2fd2b9d9ff405ebe1dfd9ee668e3b7794478f5278",
+          "c9edcc6e79a12efea395e04ef2c747129881a1f4e8ea99846bbc3e66ba53c3dd",
+          "cb35f04914816ffee988ffe123422f3f0401dfd2b0a9ca74f2dbcc043e92b7ce",
+          "d93a988cf158442fa6d254700e7e3b7417efb18430bd0fb76eb06274494caf32",
+          "dd83f4b0d3ecdfdbd842c8bbef9e08e01138480962d8ae02ff83f20997d68e4d",
+          "e03c61141adff017b09ccd0c65dedd9ba51b5217a4f50907cf9e5e01d02ded2a",
+          "e4b56103b91b4c7b814967ebae30200f6307cc3656bd6e65e1f84c661c991ba9",
+          "e5780fc06a7d2d67cf612d112271ec80543f15a6cf37aceab6ad214c66c1ffd8",
+          "e5a421def3733d5a172fefeecb3fbb011fbf8f4e78ec6ee2be26c36f1ca31fe0",
+          "e744f5565438fa989f55916b2c83a12097068e90c12d240369af12b2c958c732",
+          "e8b5b1ef7401a5ea40dcf823e6ab6e5629d017692dcd90e8d426c8ab8c550b4d",
+          "ee74e4994d3111e208aeab5f694ee158a7f0bd17cb71e2d6a52bac300ac56dc6",
+          "f0612b14a522b1af1ad2a2f67d4b58fcd5d1f62588c4bbb6fa712e8c62d96d4b",
+          "f2022a848ace9fc4b085f6286d84bfbd58a531d36f2b872462cf210a4fa7eda4",
+          "f3c3eef5ed7210f7b7b5c17a1cbb57e720872584d8c5ff825086f1be8013dfe5",
+          "f41e95743d56db70357fced06b9e042d96552e75e7409d02054f0e69f6543a20",
+          "f62554cc7c229134d6005a0c6cf020dd5b6df2de20635c02f182fd7a942f2604"
+        ]
+      }
+    ],
+    "noTopicLeakageAssertion": "PASS"
+  },
+  "models": {
+    "sbert": {
+      "original": {
+        "seed": 20260810,
+        "folds": [
+          {
+            "fold": 1,
+            "trainingCases": 95,
+            "heldOutCases": 25,
+            "t1": 0.644122,
+            "t2": 0.832411,
+            "trainingMacroF1": 0.814483
+          },
+          {
+            "fold": 2,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.59619,
+            "t2": 0.832411,
+            "trainingMacroF1": 0.833199
+          },
+          {
+            "fold": 3,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.628048,
+            "t2": 0.831849,
+            "trainingMacroF1": 0.810105
+          },
+          {
+            "fold": 4,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.585797,
+            "t2": 0.832411,
+            "trainingMacroF1": 0.790142
+          },
+          {
+            "fold": 5,
+            "trainingCases": 97,
+            "heldOutCases": 23,
+            "t1": 0.587589,
+            "t2": 0.832411,
+            "trainingMacroF1": 0.803481
+          }
+        ],
+        "overall": {
+          "accuracy": 0.783333,
+          "macroPrecision": 0.787087,
+          "macroRecall": 0.785293,
+          "macroF1": 0.779049
+        },
+        "perClass": {
+          "LOW": {
+            "precision": 0.888889,
+            "recall": 0.820513,
+            "f1": 0.853333
+          },
+          "MEDIUM": {
+            "precision": 0.727273,
+            "recall": 0.585366,
+            "f1": 0.648649
+          },
+          "HIGH": {
+            "precision": 0.745098,
+            "recall": 0.95,
+            "f1": 0.835165
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 32,
+            "MEDIUM": 7,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 4,
+            "MEDIUM": 24,
+            "HIGH": 13
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 2,
+            "HIGH": 38
+          }
+        }
+      },
+      "grouped": {
+        "seed": 20260810,
+        "folds": [
+          {
+            "fold": 1,
+            "trainingCases": 95,
+            "heldOutCases": 25,
+            "heldOutSupport": {
+              "LOW": 7,
+              "MEDIUM": 8,
+              "HIGH": 10
+            },
+            "componentIds": [
+              "component-04db072f5f377795",
+              "component-0b68ee6bbbb171b5",
+              "component-0e2bbd40620678ae",
+              "component-1c27624d02f9dee2",
+              "component-2e82ed55ccdc30e4",
+              "component-2f446de17c3e9535",
+              "component-2fee5b2487fd7b7c",
+              "component-4e1d9505b35b3975",
+              "component-5cd407b0d3877ea6",
+              "component-69afb09ab33bf1cd",
+              "component-6c0e685541faea53",
+              "component-7201d63b878075cf",
+              "component-73631e96dbd0113b",
+              "component-763e9467f4a523c2",
+              "component-7aeb66448e256642",
+              "component-965fa10f1c196dc5",
+              "component-af20adac921b119f",
+              "component-bc79691de09eb121",
+              "component-c021a27a9c2c537e",
+              "component-c3415bb48f4ae18e",
+              "component-e379dff45aaf78f4",
+              "component-e6ff03153c1aa16f",
+              "component-f7a9fef74501866a",
+              "component-f8e31bfeb8c63182",
+              "component-fb2bb314c884e7ad"
+            ],
+            "t1": 0.628048,
+            "t2": 0.83273,
+            "trainingMacroF1": 0.785218
+          },
+          {
+            "fold": 2,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 8,
+              "HIGH": 8
+            },
+            "componentIds": [
+              "component-01df545104630585",
+              "component-0c1ac3c21e6d7379",
+              "component-12efb2e5e4380604",
+              "component-2c55cfaa0271a456",
+              "component-3c84d50d99e593c9",
+              "component-4cbb2590cc69f012",
+              "component-4fdcd824319324f2",
+              "component-5dac936425170f03",
+              "component-6533b768054875b4",
+              "component-668be1921d2adf20",
+              "component-67082cc73e1332a4",
+              "component-69035c1c31d42557",
+              "component-802082ac2f1d1887",
+              "component-922020083549bdce",
+              "component-98f8f00371d8222f",
+              "component-a1e794d6c305035f",
+              "component-a6cf9aee69b42945",
+              "component-a9a7045a0356a28e",
+              "component-ab6677b62ebaecf2",
+              "component-abc4aea1b4c8ca07",
+              "component-c691f76eed944977",
+              "component-e968cbd2bd396109",
+              "component-ee254cdca1d642ce",
+              "component-f386dc6f597ec512"
+            ],
+            "t1": 0.587589,
+            "t2": 0.832411,
+            "trainingMacroF1": 0.791343
+          },
+          {
+            "fold": 3,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 8,
+              "HIGH": 8
+            },
+            "componentIds": [
+              "component-03fa91bfeea7c11c",
+              "component-04333334c33f2097",
+              "component-0cd2b2c7320af743",
+              "component-0f6d90925e07e70b",
+              "component-12e2ee6851aab01d",
+              "component-1697910d1ed3673a",
+              "component-2bd5e97709c339a4",
+              "component-3566ba5e97977fc2",
+              "component-382549cd3021cd07",
+              "component-3d3b4b8b6ddfb32c",
+              "component-3e5c29d06b936076",
+              "component-46a0360627e7fdbb",
+              "component-58d84c1887fb5958",
+              "component-69cc12360fd22b29",
+              "component-7bb81ec1023c011f",
+              "component-80afb935576f3e38",
+              "component-873de7011aca3ee1",
+              "component-87620e42728ae5da",
+              "component-90392ca8b4d9cf7a",
+              "component-915ffbfaf0d92222",
+              "component-b3d88af3814b6d9d",
+              "component-dbbac170cf7d5170",
+              "component-f55580a7989c3c63",
+              "component-f77b8ffd9c4c2f62"
+            ],
+            "t1": 0.587589,
+            "t2": 0.83153,
+            "trainingMacroF1": 0.821123
+          },
+          {
+            "fold": 4,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 8,
+              "HIGH": 8
+            },
+            "componentIds": [
+              "component-01b3152230c6e75e",
+              "component-26ac5786520db5f1",
+              "component-2dd1340f77d8b8e3",
+              "component-4c2646fb27ad0216",
+              "component-576e4a8d99375835",
+              "component-5f1f15c9780e4eb9",
+              "component-684d3ca0d7c19253",
+              "component-6a5a2edb32db8fbc",
+              "component-84eb1f72db6e67a6",
+              "component-8e1258866ed0f04a",
+              "component-9a85937b069873e9",
+              "component-a3a0135e0b22336f",
+              "component-a5675b1e03dbe922",
+              "component-bbc89caf2d1e491c",
+              "component-bcf52597e1703837",
+              "component-c605ed8b199fd15a",
+              "component-cb2b23a0ea8ccd14",
+              "component-d33f84fd0aa230d0",
+              "component-d4a5045e2a387445",
+              "component-d4bad9b512a7761e",
+              "component-db12f5b95f819e7e",
+              "component-f0ccda665bad7048",
+              "component-f5db4812bae7eba1",
+              "component-f7203c079eb150b2"
+            ],
+            "t1": 0.587589,
+            "t2": 0.832411,
+            "trainingMacroF1": 0.825258
+          },
+          {
+            "fold": 5,
+            "trainingCases": 97,
+            "heldOutCases": 23,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 9,
+              "HIGH": 6
+            },
+            "componentIds": [
+              "component-0b61f0e726e93918",
+              "component-186f3e1ac7a14970",
+              "component-2098f3b7d139a619",
+              "component-2a651ad59c2313f3",
+              "component-38cd79e234347791",
+              "component-456297aad7728a2b",
+              "component-4d191c703d720538",
+              "component-55e528866779a22c",
+              "component-632982c7923eb090",
+              "component-6363126bfcf54a22",
+              "component-7462ecfec5ce5709",
+              "component-842f34c58d1c86c3",
+              "component-8ae0a26d3bcb3c3c",
+              "component-8b836428891643ce",
+              "component-9d170cd9dda89c72",
+              "component-f45dbffb7958b3f6"
+            ],
+            "t1": 0.625272,
+            "t2": 0.832411,
+            "trainingMacroF1": 0.831835
+          }
+        ],
+        "overall": {
+          "accuracy": 0.791667,
+          "macroPrecision": 0.795663,
+          "macroRecall": 0.79384,
+          "macroF1": 0.78704
+        },
+        "perClass": {
+          "LOW": {
+            "precision": 0.891892,
+            "recall": 0.846154,
+            "f1": 0.868421
+          },
+          "MEDIUM": {
+            "precision": 0.75,
+            "recall": 0.585366,
+            "f1": 0.657534
+          },
+          "HIGH": {
+            "precision": 0.745098,
+            "recall": 0.95,
+            "f1": 0.835165
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 33,
+            "MEDIUM": 6,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 4,
+            "MEDIUM": 24,
+            "HIGH": 13
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 2,
+            "HIGH": 38
+          }
+        }
+      },
+      "macroF1Change": 0.007991
+    },
+    "openai": {
+      "original": {
+        "seed": 20260810,
+        "folds": [
+          {
+            "fold": 1,
+            "trainingCases": 95,
+            "heldOutCases": 25,
+            "t1": 0.791745,
+            "t2": 0.901033,
+            "trainingMacroF1": 0.831559
+          },
+          {
+            "fold": 2,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.797612,
+            "t2": 0.901697,
+            "trainingMacroF1": 0.833685
+          },
+          {
+            "fold": 3,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.791745,
+            "t2": 0.901697,
+            "trainingMacroF1": 0.811709
+          },
+          {
+            "fold": 4,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.791745,
+            "t2": 0.923714,
+            "trainingMacroF1": 0.782199
+          },
+          {
+            "fold": 5,
+            "trainingCases": 97,
+            "heldOutCases": 23,
+            "t1": 0.78228,
+            "t2": 0.923714,
+            "trainingMacroF1": 0.805629
+          }
+        ],
+        "overall": {
+          "accuracy": 0.75,
+          "macroPrecision": 0.753633,
+          "macroRecall": 0.75197,
+          "macroF1": 0.751424
+        },
+        "perClass": {
+          "LOW": {
+            "precision": 0.891892,
+            "recall": 0.846154,
+            "f1": 0.868421
+          },
+          "MEDIUM": {
+            "precision": 0.657895,
+            "recall": 0.609756,
+            "f1": 0.632911
+          },
+          "HIGH": {
+            "precision": 0.711111,
+            "recall": 0.8,
+            "f1": 0.752941
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 33,
+            "MEDIUM": 6,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 3,
+            "MEDIUM": 25,
+            "HIGH": 13
+          },
+          "HIGH": {
+            "LOW": 1,
+            "MEDIUM": 7,
+            "HIGH": 32
+          }
+        }
+      },
+      "grouped": {
+        "seed": 20260810,
+        "folds": [
+          {
+            "fold": 1,
+            "trainingCases": 95,
+            "heldOutCases": 25,
+            "heldOutSupport": {
+              "LOW": 7,
+              "MEDIUM": 8,
+              "HIGH": 10
+            },
+            "componentIds": [
+              "component-04db072f5f377795",
+              "component-0b68ee6bbbb171b5",
+              "component-0e2bbd40620678ae",
+              "component-1c27624d02f9dee2",
+              "component-2e82ed55ccdc30e4",
+              "component-2f446de17c3e9535",
+              "component-2fee5b2487fd7b7c",
+              "component-4e1d9505b35b3975",
+              "component-5cd407b0d3877ea6",
+              "component-69afb09ab33bf1cd",
+              "component-6c0e685541faea53",
+              "component-7201d63b878075cf",
+              "component-73631e96dbd0113b",
+              "component-763e9467f4a523c2",
+              "component-7aeb66448e256642",
+              "component-965fa10f1c196dc5",
+              "component-af20adac921b119f",
+              "component-bc79691de09eb121",
+              "component-c021a27a9c2c537e",
+              "component-c3415bb48f4ae18e",
+              "component-e379dff45aaf78f4",
+              "component-e6ff03153c1aa16f",
+              "component-f7a9fef74501866a",
+              "component-f8e31bfeb8c63182",
+              "component-fb2bb314c884e7ad"
+            ],
+            "t1": 0.791745,
+            "t2": 0.901697,
+            "trainingMacroF1": 0.785175
+          },
+          {
+            "fold": 2,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 8,
+              "HIGH": 8
+            },
+            "componentIds": [
+              "component-01df545104630585",
+              "component-0c1ac3c21e6d7379",
+              "component-12efb2e5e4380604",
+              "component-2c55cfaa0271a456",
+              "component-3c84d50d99e593c9",
+              "component-4cbb2590cc69f012",
+              "component-4fdcd824319324f2",
+              "component-5dac936425170f03",
+              "component-6533b768054875b4",
+              "component-668be1921d2adf20",
+              "component-67082cc73e1332a4",
+              "component-69035c1c31d42557",
+              "component-802082ac2f1d1887",
+              "component-922020083549bdce",
+              "component-98f8f00371d8222f",
+              "component-a1e794d6c305035f",
+              "component-a6cf9aee69b42945",
+              "component-a9a7045a0356a28e",
+              "component-ab6677b62ebaecf2",
+              "component-abc4aea1b4c8ca07",
+              "component-c691f76eed944977",
+              "component-e968cbd2bd396109",
+              "component-ee254cdca1d642ce",
+              "component-f386dc6f597ec512"
+            ],
+            "t1": 0.78228,
+            "t2": 0.901697,
+            "trainingMacroF1": 0.802186
+          },
+          {
+            "fold": 3,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 8,
+              "HIGH": 8
+            },
+            "componentIds": [
+              "component-03fa91bfeea7c11c",
+              "component-04333334c33f2097",
+              "component-0cd2b2c7320af743",
+              "component-0f6d90925e07e70b",
+              "component-12e2ee6851aab01d",
+              "component-1697910d1ed3673a",
+              "component-2bd5e97709c339a4",
+              "component-3566ba5e97977fc2",
+              "component-382549cd3021cd07",
+              "component-3d3b4b8b6ddfb32c",
+              "component-3e5c29d06b936076",
+              "component-46a0360627e7fdbb",
+              "component-58d84c1887fb5958",
+              "component-69cc12360fd22b29",
+              "component-7bb81ec1023c011f",
+              "component-80afb935576f3e38",
+              "component-873de7011aca3ee1",
+              "component-87620e42728ae5da",
+              "component-90392ca8b4d9cf7a",
+              "component-915ffbfaf0d92222",
+              "component-b3d88af3814b6d9d",
+              "component-dbbac170cf7d5170",
+              "component-f55580a7989c3c63",
+              "component-f77b8ffd9c4c2f62"
+            ],
+            "t1": 0.791745,
+            "t2": 0.901033,
+            "trainingMacroF1": 0.801809
+          },
+          {
+            "fold": 4,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 8,
+              "HIGH": 8
+            },
+            "componentIds": [
+              "component-01b3152230c6e75e",
+              "component-26ac5786520db5f1",
+              "component-2dd1340f77d8b8e3",
+              "component-4c2646fb27ad0216",
+              "component-576e4a8d99375835",
+              "component-5f1f15c9780e4eb9",
+              "component-684d3ca0d7c19253",
+              "component-6a5a2edb32db8fbc",
+              "component-84eb1f72db6e67a6",
+              "component-8e1258866ed0f04a",
+              "component-9a85937b069873e9",
+              "component-a3a0135e0b22336f",
+              "component-a5675b1e03dbe922",
+              "component-bbc89caf2d1e491c",
+              "component-bcf52597e1703837",
+              "component-c605ed8b199fd15a",
+              "component-cb2b23a0ea8ccd14",
+              "component-d33f84fd0aa230d0",
+              "component-d4a5045e2a387445",
+              "component-d4bad9b512a7761e",
+              "component-db12f5b95f819e7e",
+              "component-f0ccda665bad7048",
+              "component-f5db4812bae7eba1",
+              "component-f7203c079eb150b2"
+            ],
+            "t1": 0.791745,
+            "t2": 0.923714,
+            "trainingMacroF1": 0.805051
+          },
+          {
+            "fold": 5,
+            "trainingCases": 97,
+            "heldOutCases": 23,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 9,
+              "HIGH": 6
+            },
+            "componentIds": [
+              "component-0b61f0e726e93918",
+              "component-186f3e1ac7a14970",
+              "component-2098f3b7d139a619",
+              "component-2a651ad59c2313f3",
+              "component-38cd79e234347791",
+              "component-456297aad7728a2b",
+              "component-4d191c703d720538",
+              "component-55e528866779a22c",
+              "component-632982c7923eb090",
+              "component-6363126bfcf54a22",
+              "component-7462ecfec5ce5709",
+              "component-842f34c58d1c86c3",
+              "component-8ae0a26d3bcb3c3c",
+              "component-8b836428891643ce",
+              "component-9d170cd9dda89c72",
+              "component-f45dbffb7958b3f6"
+            ],
+            "t1": 0.791745,
+            "t2": 0.903473,
+            "trainingMacroF1": 0.843981
+          }
+        ],
+        "overall": {
+          "accuracy": 0.783333,
+          "macroPrecision": 0.788774,
+          "macroRecall": 0.784897,
+          "macroF1": 0.784747
+        },
+        "perClass": {
+          "LOW": {
+            "precision": 0.916667,
+            "recall": 0.846154,
+            "f1": 0.88
+          },
+          "MEDIUM": {
+            "precision": 0.710526,
+            "recall": 0.658537,
+            "f1": 0.683544
+          },
+          "HIGH": {
+            "precision": 0.73913,
+            "recall": 0.85,
+            "f1": 0.790698
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 33,
+            "MEDIUM": 6,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 2,
+            "MEDIUM": 27,
+            "HIGH": 12
+          },
+          "HIGH": {
+            "LOW": 1,
+            "MEDIUM": 5,
+            "HIGH": 34
+          }
+        }
+      },
+      "macroF1Change": 0.033323
+    },
+    "voyage": {
+      "original": {
+        "seed": 20260810,
+        "folds": [
+          {
+            "fold": 1,
+            "trainingCases": 95,
+            "heldOutCases": 25,
+            "t1": 0.831366,
+            "t2": 0.964452,
+            "trainingMacroF1": 0.840999
+          },
+          {
+            "fold": 2,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.845619,
+            "t2": 0.964452,
+            "trainingMacroF1": 0.874247
+          },
+          {
+            "fold": 3,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.831366,
+            "t2": 0.963607,
+            "trainingMacroF1": 0.865178
+          },
+          {
+            "fold": 4,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.80964,
+            "t2": 0.964452,
+            "trainingMacroF1": 0.844403
+          },
+          {
+            "fold": 5,
+            "trainingCases": 97,
+            "heldOutCases": 23,
+            "t1": 0.831366,
+            "t2": 0.965706,
+            "trainingMacroF1": 0.842954
+          }
+        ],
+        "overall": {
+          "accuracy": 0.808333,
+          "macroPrecision": 0.80753,
+          "macroRecall": 0.809907,
+          "macroF1": 0.80801
+        },
+        "perClass": {
+          "LOW": {
+            "precision": 0.871795,
+            "recall": 0.871795,
+            "f1": 0.871795
+          },
+          "MEDIUM": {
+            "precision": 0.736842,
+            "recall": 0.682927,
+            "f1": 0.708861
+          },
+          "HIGH": {
+            "precision": 0.813953,
+            "recall": 0.875,
+            "f1": 0.843373
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 34,
+            "MEDIUM": 5,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 5,
+            "MEDIUM": 28,
+            "HIGH": 8
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 5,
+            "HIGH": 35
+          }
+        }
+      },
+      "grouped": {
+        "seed": 20260810,
+        "folds": [
+          {
+            "fold": 1,
+            "trainingCases": 95,
+            "heldOutCases": 25,
+            "heldOutSupport": {
+              "LOW": 7,
+              "MEDIUM": 8,
+              "HIGH": 10
+            },
+            "componentIds": [
+              "component-04db072f5f377795",
+              "component-0b68ee6bbbb171b5",
+              "component-0e2bbd40620678ae",
+              "component-1c27624d02f9dee2",
+              "component-2e82ed55ccdc30e4",
+              "component-2f446de17c3e9535",
+              "component-2fee5b2487fd7b7c",
+              "component-4e1d9505b35b3975",
+              "component-5cd407b0d3877ea6",
+              "component-69afb09ab33bf1cd",
+              "component-6c0e685541faea53",
+              "component-7201d63b878075cf",
+              "component-73631e96dbd0113b",
+              "component-763e9467f4a523c2",
+              "component-7aeb66448e256642",
+              "component-965fa10f1c196dc5",
+              "component-af20adac921b119f",
+              "component-bc79691de09eb121",
+              "component-c021a27a9c2c537e",
+              "component-c3415bb48f4ae18e",
+              "component-e379dff45aaf78f4",
+              "component-e6ff03153c1aa16f",
+              "component-f7a9fef74501866a",
+              "component-f8e31bfeb8c63182",
+              "component-fb2bb314c884e7ad"
+            ],
+            "t1": 0.831366,
+            "t2": 0.964452,
+            "trainingMacroF1": 0.828725
+          },
+          {
+            "fold": 2,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 8,
+              "HIGH": 8
+            },
+            "componentIds": [
+              "component-01df545104630585",
+              "component-0c1ac3c21e6d7379",
+              "component-12efb2e5e4380604",
+              "component-2c55cfaa0271a456",
+              "component-3c84d50d99e593c9",
+              "component-4cbb2590cc69f012",
+              "component-4fdcd824319324f2",
+              "component-5dac936425170f03",
+              "component-6533b768054875b4",
+              "component-668be1921d2adf20",
+              "component-67082cc73e1332a4",
+              "component-69035c1c31d42557",
+              "component-802082ac2f1d1887",
+              "component-922020083549bdce",
+              "component-98f8f00371d8222f",
+              "component-a1e794d6c305035f",
+              "component-a6cf9aee69b42945",
+              "component-a9a7045a0356a28e",
+              "component-ab6677b62ebaecf2",
+              "component-abc4aea1b4c8ca07",
+              "component-c691f76eed944977",
+              "component-e968cbd2bd396109",
+              "component-ee254cdca1d642ce",
+              "component-f386dc6f597ec512"
+            ],
+            "t1": 0.831366,
+            "t2": 0.965706,
+            "trainingMacroF1": 0.843675
+          },
+          {
+            "fold": 3,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 8,
+              "HIGH": 8
+            },
+            "componentIds": [
+              "component-03fa91bfeea7c11c",
+              "component-04333334c33f2097",
+              "component-0cd2b2c7320af743",
+              "component-0f6d90925e07e70b",
+              "component-12e2ee6851aab01d",
+              "component-1697910d1ed3673a",
+              "component-2bd5e97709c339a4",
+              "component-3566ba5e97977fc2",
+              "component-382549cd3021cd07",
+              "component-3d3b4b8b6ddfb32c",
+              "component-3e5c29d06b936076",
+              "component-46a0360627e7fdbb",
+              "component-58d84c1887fb5958",
+              "component-69cc12360fd22b29",
+              "component-7bb81ec1023c011f",
+              "component-80afb935576f3e38",
+              "component-873de7011aca3ee1",
+              "component-87620e42728ae5da",
+              "component-90392ca8b4d9cf7a",
+              "component-915ffbfaf0d92222",
+              "component-b3d88af3814b6d9d",
+              "component-dbbac170cf7d5170",
+              "component-f55580a7989c3c63",
+              "component-f77b8ffd9c4c2f62"
+            ],
+            "t1": 0.831366,
+            "t2": 0.964452,
+            "trainingMacroF1": 0.865178
+          },
+          {
+            "fold": 4,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 8,
+              "HIGH": 8
+            },
+            "componentIds": [
+              "component-01b3152230c6e75e",
+              "component-26ac5786520db5f1",
+              "component-2dd1340f77d8b8e3",
+              "component-4c2646fb27ad0216",
+              "component-576e4a8d99375835",
+              "component-5f1f15c9780e4eb9",
+              "component-684d3ca0d7c19253",
+              "component-6a5a2edb32db8fbc",
+              "component-84eb1f72db6e67a6",
+              "component-8e1258866ed0f04a",
+              "component-9a85937b069873e9",
+              "component-a3a0135e0b22336f",
+              "component-a5675b1e03dbe922",
+              "component-bbc89caf2d1e491c",
+              "component-bcf52597e1703837",
+              "component-c605ed8b199fd15a",
+              "component-cb2b23a0ea8ccd14",
+              "component-d33f84fd0aa230d0",
+              "component-d4a5045e2a387445",
+              "component-d4bad9b512a7761e",
+              "component-db12f5b95f819e7e",
+              "component-f0ccda665bad7048",
+              "component-f5db4812bae7eba1",
+              "component-f7203c079eb150b2"
+            ],
+            "t1": 0.831366,
+            "t2": 0.964452,
+            "trainingMacroF1": 0.864936
+          },
+          {
+            "fold": 5,
+            "trainingCases": 97,
+            "heldOutCases": 23,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 9,
+              "HIGH": 6
+            },
+            "componentIds": [
+              "component-0b61f0e726e93918",
+              "component-186f3e1ac7a14970",
+              "component-2098f3b7d139a619",
+              "component-2a651ad59c2313f3",
+              "component-38cd79e234347791",
+              "component-456297aad7728a2b",
+              "component-4d191c703d720538",
+              "component-55e528866779a22c",
+              "component-632982c7923eb090",
+              "component-6363126bfcf54a22",
+              "component-7462ecfec5ce5709",
+              "component-842f34c58d1c86c3",
+              "component-8ae0a26d3bcb3c3c",
+              "component-8b836428891643ce",
+              "component-9d170cd9dda89c72",
+              "component-f45dbffb7958b3f6"
+            ],
+            "t1": 0.803966,
+            "t2": 0.957332,
+            "trainingMacroF1": 0.875298
+          }
+        ],
+        "overall": {
+          "accuracy": 0.8,
+          "macroPrecision": 0.801765,
+          "macroRecall": 0.80136,
+          "macroF1": 0.800585
+        },
+        "perClass": {
+          "LOW": {
+            "precision": 0.891892,
+            "recall": 0.846154,
+            "f1": 0.868421
+          },
+          "MEDIUM": {
+            "precision": 0.717949,
+            "recall": 0.682927,
+            "f1": 0.7
+          },
+          "HIGH": {
+            "precision": 0.795455,
+            "recall": 0.875,
+            "f1": 0.833333
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 33,
+            "MEDIUM": 6,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 4,
+            "MEDIUM": 28,
+            "HIGH": 9
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 5,
+            "HIGH": 35
+          }
+        }
+      },
+      "macroF1Change": -0.007425
+    },
+    "gemini": {
+      "original": {
+        "seed": 20260810,
+        "folds": [
+          {
+            "fold": 1,
+            "trainingCases": 95,
+            "heldOutCases": 25,
+            "t1": 0.924484,
+            "t2": 0.96381,
+            "trainingMacroF1": 0.790062
+          },
+          {
+            "fold": 2,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.924484,
+            "t2": 0.971405,
+            "trainingMacroF1": 0.795378
+          },
+          {
+            "fold": 3,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.924484,
+            "t2": 0.971405,
+            "trainingMacroF1": 0.806083
+          },
+          {
+            "fold": 4,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "t1": 0.924484,
+            "t2": 0.973372,
+            "trainingMacroF1": 0.764205
+          },
+          {
+            "fold": 5,
+            "trainingCases": 97,
+            "heldOutCases": 23,
+            "t1": 0.92438,
+            "t2": 0.970591,
+            "trainingMacroF1": 0.783612
+          }
+        ],
+        "overall": {
+          "accuracy": 0.75,
+          "macroPrecision": 0.759748,
+          "macroRecall": 0.751339,
+          "macroF1": 0.753311
+        },
+        "perClass": {
+          "LOW": {
+            "precision": 0.911765,
+            "recall": 0.794872,
+            "f1": 0.849315
+          },
+          "MEDIUM": {
+            "precision": 0.634146,
+            "recall": 0.634146,
+            "f1": 0.634146
+          },
+          "HIGH": {
+            "precision": 0.733333,
+            "recall": 0.825,
+            "f1": 0.776471
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 31,
+            "MEDIUM": 8,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 3,
+            "MEDIUM": 26,
+            "HIGH": 12
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 7,
+            "HIGH": 33
+          }
+        }
+      },
+      "grouped": {
+        "seed": 20260810,
+        "folds": [
+          {
+            "fold": 1,
+            "trainingCases": 95,
+            "heldOutCases": 25,
+            "heldOutSupport": {
+              "LOW": 7,
+              "MEDIUM": 8,
+              "HIGH": 10
+            },
+            "componentIds": [
+              "component-04db072f5f377795",
+              "component-0b68ee6bbbb171b5",
+              "component-0e2bbd40620678ae",
+              "component-1c27624d02f9dee2",
+              "component-2e82ed55ccdc30e4",
+              "component-2f446de17c3e9535",
+              "component-2fee5b2487fd7b7c",
+              "component-4e1d9505b35b3975",
+              "component-5cd407b0d3877ea6",
+              "component-69afb09ab33bf1cd",
+              "component-6c0e685541faea53",
+              "component-7201d63b878075cf",
+              "component-73631e96dbd0113b",
+              "component-763e9467f4a523c2",
+              "component-7aeb66448e256642",
+              "component-965fa10f1c196dc5",
+              "component-af20adac921b119f",
+              "component-bc79691de09eb121",
+              "component-c021a27a9c2c537e",
+              "component-c3415bb48f4ae18e",
+              "component-e379dff45aaf78f4",
+              "component-e6ff03153c1aa16f",
+              "component-f7a9fef74501866a",
+              "component-f8e31bfeb8c63182",
+              "component-fb2bb314c884e7ad"
+            ],
+            "t1": 0.924484,
+            "t2": 0.971601,
+            "trainingMacroF1": 0.750316
+          },
+          {
+            "fold": 2,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 8,
+              "HIGH": 8
+            },
+            "componentIds": [
+              "component-01df545104630585",
+              "component-0c1ac3c21e6d7379",
+              "component-12efb2e5e4380604",
+              "component-2c55cfaa0271a456",
+              "component-3c84d50d99e593c9",
+              "component-4cbb2590cc69f012",
+              "component-4fdcd824319324f2",
+              "component-5dac936425170f03",
+              "component-6533b768054875b4",
+              "component-668be1921d2adf20",
+              "component-67082cc73e1332a4",
+              "component-69035c1c31d42557",
+              "component-802082ac2f1d1887",
+              "component-922020083549bdce",
+              "component-98f8f00371d8222f",
+              "component-a1e794d6c305035f",
+              "component-a6cf9aee69b42945",
+              "component-a9a7045a0356a28e",
+              "component-ab6677b62ebaecf2",
+              "component-abc4aea1b4c8ca07",
+              "component-c691f76eed944977",
+              "component-e968cbd2bd396109",
+              "component-ee254cdca1d642ce",
+              "component-f386dc6f597ec512"
+            ],
+            "t1": 0.924203,
+            "t2": 0.971405,
+            "trainingMacroF1": 0.792905
+          },
+          {
+            "fold": 3,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 8,
+              "HIGH": 8
+            },
+            "componentIds": [
+              "component-03fa91bfeea7c11c",
+              "component-04333334c33f2097",
+              "component-0cd2b2c7320af743",
+              "component-0f6d90925e07e70b",
+              "component-12e2ee6851aab01d",
+              "component-1697910d1ed3673a",
+              "component-2bd5e97709c339a4",
+              "component-3566ba5e97977fc2",
+              "component-382549cd3021cd07",
+              "component-3d3b4b8b6ddfb32c",
+              "component-3e5c29d06b936076",
+              "component-46a0360627e7fdbb",
+              "component-58d84c1887fb5958",
+              "component-69cc12360fd22b29",
+              "component-7bb81ec1023c011f",
+              "component-80afb935576f3e38",
+              "component-873de7011aca3ee1",
+              "component-87620e42728ae5da",
+              "component-90392ca8b4d9cf7a",
+              "component-915ffbfaf0d92222",
+              "component-b3d88af3814b6d9d",
+              "component-dbbac170cf7d5170",
+              "component-f55580a7989c3c63",
+              "component-f77b8ffd9c4c2f62"
+            ],
+            "t1": 0.924484,
+            "t2": 0.971405,
+            "trainingMacroF1": 0.785474
+          },
+          {
+            "fold": 4,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 8,
+              "HIGH": 8
+            },
+            "componentIds": [
+              "component-01b3152230c6e75e",
+              "component-26ac5786520db5f1",
+              "component-2dd1340f77d8b8e3",
+              "component-4c2646fb27ad0216",
+              "component-576e4a8d99375835",
+              "component-5f1f15c9780e4eb9",
+              "component-684d3ca0d7c19253",
+              "component-6a5a2edb32db8fbc",
+              "component-84eb1f72db6e67a6",
+              "component-8e1258866ed0f04a",
+              "component-9a85937b069873e9",
+              "component-a3a0135e0b22336f",
+              "component-a5675b1e03dbe922",
+              "component-bbc89caf2d1e491c",
+              "component-bcf52597e1703837",
+              "component-c605ed8b199fd15a",
+              "component-cb2b23a0ea8ccd14",
+              "component-d33f84fd0aa230d0",
+              "component-d4a5045e2a387445",
+              "component-d4bad9b512a7761e",
+              "component-db12f5b95f819e7e",
+              "component-f0ccda665bad7048",
+              "component-f5db4812bae7eba1",
+              "component-f7203c079eb150b2"
+            ],
+            "t1": 0.924662,
+            "t2": 0.964627,
+            "trainingMacroF1": 0.782533
+          },
+          {
+            "fold": 5,
+            "trainingCases": 97,
+            "heldOutCases": 23,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 9,
+              "HIGH": 6
+            },
+            "componentIds": [
+              "component-0b61f0e726e93918",
+              "component-186f3e1ac7a14970",
+              "component-2098f3b7d139a619",
+              "component-2a651ad59c2313f3",
+              "component-38cd79e234347791",
+              "component-456297aad7728a2b",
+              "component-4d191c703d720538",
+              "component-55e528866779a22c",
+              "component-632982c7923eb090",
+              "component-6363126bfcf54a22",
+              "component-7462ecfec5ce5709",
+              "component-842f34c58d1c86c3",
+              "component-8ae0a26d3bcb3c3c",
+              "component-8b836428891643ce",
+              "component-9d170cd9dda89c72",
+              "component-f45dbffb7958b3f6"
+            ],
+            "t1": 0.924484,
+            "t2": 0.971405,
+            "trainingMacroF1": 0.825968
+          }
+        ],
+        "overall": {
+          "accuracy": 0.758333,
+          "macroPrecision": 0.769168,
+          "macroRecall": 0.759256,
+          "macroF1": 0.761312
+        },
+        "perClass": {
+          "LOW": {
+            "precision": 0.909091,
+            "recall": 0.769231,
+            "f1": 0.833333
+          },
+          "MEDIUM": {
+            "precision": 0.642857,
+            "recall": 0.658537,
+            "f1": 0.650602
+          },
+          "HIGH": {
+            "precision": 0.755556,
+            "recall": 0.85,
+            "f1": 0.8
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 30,
+            "MEDIUM": 9,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 3,
+            "MEDIUM": 27,
+            "HIGH": 11
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 6,
+            "HIGH": 34
+          }
+        }
+      },
+      "macroF1Change": 0.008001
+    }
+  },
+  "bootstrap": {
+    "seed": 20260810,
+    "replicates": 5000,
+    "resamplingUnit": "connected_component",
+    "perModel": {
+      "sbert": {
+        "spearman": {
+          "lower": 0.777069,
+          "upper": 0.88659
+        },
+        "concordance": {
+          "lower": 0.891714,
+          "upper": 0.961001
+        },
+        "accuracy": {
+          "lower": 0.723565,
+          "upper": 0.859504
+        },
+        "macroF1": {
+          "lower": 0.715103,
+          "upper": 0.8549
+        }
+      },
+      "openai": {
+        "spearman": {
+          "lower": 0.766343,
+          "upper": 0.880695
+        },
+        "concordance": {
+          "lower": 0.88588,
+          "upper": 0.957272
+        },
+        "accuracy": {
+          "lower": 0.711836,
+          "upper": 0.853448
+        },
+        "macroF1": {
+          "lower": 0.711579,
+          "upper": 0.85165
+        }
+      },
+      "voyage": {
+        "spearman": {
+          "lower": 0.83847,
+          "upper": 0.914019
+        },
+        "concordance": {
+          "lower": 0.931805,
+          "upper": 0.98129
+        },
+        "accuracy": {
+          "lower": 0.729508,
+          "upper": 0.866667
+        },
+        "macroF1": {
+          "lower": 0.72968,
+          "upper": 0.865706
+        }
+      },
+      "gemini": {
+        "spearman": {
+          "lower": 0.801742,
+          "upper": 0.885952
+        },
+        "concordance": {
+          "lower": 0.90699,
+          "upper": 0.961177
+        },
+        "accuracy": {
+          "lower": 0.683333,
+          "upper": 0.831933
+        },
+        "macroF1": {
+          "lower": 0.685826,
+          "upper": 0.83048
+        }
+      }
+    },
+    "voyageMinus": {
+      "sbert": {
+        "spearman": {
+          "lower": 0.012129,
+          "upper": 0.079341
+        },
+        "concordance": {
+          "lower": 0.009089,
+          "upper": 0.053255
+        },
+        "macroF1": {
+          "lower": -0.06328,
+          "upper": 0.090215
+        }
+      },
+      "openai": {
+        "spearman": {
+          "lower": 0.018961,
+          "upper": 0.092219
+        },
+        "concordance": {
+          "lower": 0.014197,
+          "upper": 0.060058
+        },
+        "macroF1": {
+          "lower": -0.045108,
+          "upper": 0.077261
+        }
+      },
+      "gemini": {
+        "spearman": {
+          "lower": 0.006811,
+          "upper": 0.062277
+        },
+        "concordance": {
+          "lower": 0.004866,
+          "upper": 0.042486
+        },
+        "macroF1": {
+          "lower": -0.017224,
+          "upper": 0.099331
+        }
+      }
+    }
+  },
+  "conclusion": "VOYAGE_REMAINS_HIGHEST_OBSERVED_UNDER_GROUPED_REANALYSIS"
+}
