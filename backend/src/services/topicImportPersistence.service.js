@@ -113,7 +113,13 @@ function buildBaseData(record, options, report) {
     sourceType: options.sourceType || null,
     sourceFilename: options.sourceFilename || null,
     importBatchId: options.importBatchId || null,
-    embedding: null
+    embedding: null,
+    embeddingProvider: null,
+    embeddingModel: null,
+    embeddingDimension: null,
+    embeddingRepresentation: null,
+    embeddingSourceHash: null,
+    embeddedAt: null
   };
 }
 

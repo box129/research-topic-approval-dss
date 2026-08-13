@@ -6,7 +6,8 @@ import CheckMyTopicPage from '../src/pages/student/CheckMyTopicPage';
 
 vi.mock('axios', () => ({
   default: {
-    post: vi.fn()
+    post: vi.fn(),
+    create: vi.fn(() => ({ post: vi.fn() }))
   }
 }));
 
@@ -18,17 +19,19 @@ function renderCheckMyTopicPage() {
   return render(<CheckMyTopicPage />);
 }
 
-function buildFypResponse({ risk = 'LOW', maxSimilarity = 24, status = 'success', matches = [] } = {}) {
+function buildFypResponse({ risk = 'LOW', maxSimilarity = 0.24, status = 'success', matches = [] } = {}) {
+  if (status === 'semantic_unavailable') return { data: { status, message: 'Semantic analysis is temporarily unavailable.', semanticAvailable: false, semanticProvider: 'voyage', semanticModel: 'voyage-4-large' } };
   return {
     data: {
       status,
+      semanticAvailable: true,
+      semanticProvider: 'voyage',
+      semanticModel: 'voyage-4-large',
       data: {
         overall_risk: risk,
         max_similarity: maxSimilarity,
         recommendation: `${risk} similarity guidance from backend.`,
-        tier1_historical: matches,
-        tier2_current: [],
-        tier3_under_review: []
+        matches: matches.map(match => ({ ...match, semantic_score: match.semantic_score ?? 0.6, similarity_class: risk }))
       }
     }
   };
@@ -110,7 +113,7 @@ describe('CheckMyTopicPage', () => {
     const user = userEvent.setup();
     axios.post.mockResolvedValue(buildFypResponse({
       risk: 'LOW',
-      maxSimilarity: 18,
+      maxSimilarity: 0.18,
       matches: [
         {
           id: 1,
@@ -118,9 +121,7 @@ describe('CheckMyTopicPage', () => {
           supervisor: 'Dr. Similar',
           year: '2025/2026',
           category: 'Epidemiology',
-          jaccard: 18,
-          tfidf: 12,
-          sbert: 16
+          semantic_score: 0.16
         }
       ]
     }));
@@ -130,7 +131,7 @@ describe('CheckMyTopicPage', () => {
 
     expect(await screen.findByTestId('student-results-container')).toBeInTheDocument();
     expect(screen.getByTestId('risk-title')).toHaveTextContent('Low Risk');
-    expect(screen.getByTestId('max-similarity')).toHaveTextContent('18%');
+    expect(screen.getByTestId('max-similarity')).toHaveTextContent('0.180');
     expect(screen.getByText(/machine learning in public health/i)).toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/enter your research topic/i)).not.toBeInTheDocument();
     expect(screen.getByText(/temporary browser state only/i)).toBeInTheDocument();
@@ -148,33 +149,21 @@ describe('CheckMyTopicPage', () => {
     expect(screen.getByTestId('no-matches')).not.toHaveTextContent(/unique|cleared|safe to submit/i);
   });
 
-  it('renders MEDIUM partial_success result through ResultsDisplay', async () => {
+  it('renders an explicit unavailable state without a risk or fallback claim', async () => {
     const user = userEvent.setup();
-    axios.post.mockResolvedValue(buildFypResponse({
-      risk: 'MEDIUM',
-      maxSimilarity: 62,
-      status: 'partial_success',
-      matches: [{
-        id: 9,
-        title: 'Related partial analysis record',
-        supervisor: 'Dr. Partial',
-        year: '2025/2026',
-        jaccard: 62,
-        tfidf: 58,
-        sbert: null
-      }]
-    }));
+    axios.post.mockRejectedValue({
+      response: {
+        status: 503,
+        data: buildFypResponse({ status: 'semantic_unavailable' }).data
+      }
+    });
     renderCheckMyTopicPage();
 
     await submitTopic(user);
 
-    expect(await screen.findByTestId('student-results-container')).toBeInTheDocument();
-    expect(screen.getByTestId('risk-title')).toHaveTextContent('Medium Risk');
-    expect(screen.getByTestId('sbert-warning')).toBeInTheDocument();
-    expect(screen.getByText(/semantic analysis is temporarily unavailable/i)).toBeInTheDocument();
-    await user.click(screen.getByTestId('expand-details-0'));
-    expect(screen.getByTestId('sbert-badge-0')).toHaveTextContent('SBERT: Unavailable for this check');
-    expect(screen.getByTestId('sbert-badge-0')).not.toHaveTextContent('0%');
+    expect(await screen.findByTestId('semantic-unavailable')).toBeInTheDocument();
+    expect(screen.queryByTestId('risk-banner')).not.toBeInTheDocument();
+    expect(screen.queryByText(/exact match|term weighting|sbert/i)).not.toBeInTheDocument();
   });
 
   it('keeps the newest overlapping request active and ignores the older completion', async () => {
@@ -191,13 +180,13 @@ describe('CheckMyTopicPage', () => {
     fireEvent.submit(form);
     await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(2));
 
-    resolveA(buildFypResponse({ risk: 'LOW', maxSimilarity: 11 }));
+    resolveA(buildFypResponse({ risk: 'LOW', maxSimilarity: 0.11 }));
     await waitFor(() => expect(screen.getByRole('button', { name: /checking similarity/i })).toBeDisabled());
     expect(screen.queryByTestId('student-results-container')).not.toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
-    resolveB(buildFypResponse({ risk: 'HIGH', maxSimilarity: 91 }));
-    expect(await screen.findByTestId('max-similarity')).toHaveTextContent('91%');
+    resolveB(buildFypResponse({ risk: 'HIGH', maxSimilarity: 0.91 }));
+    expect(await screen.findByTestId('max-similarity')).toHaveTextContent('0.910');
     expect(screen.getByTestId('risk-title')).toHaveTextContent('High Risk');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
@@ -206,16 +195,14 @@ describe('CheckMyTopicPage', () => {
     const user = userEvent.setup();
     axios.post.mockResolvedValue(buildFypResponse({
       risk: 'HIGH',
-      maxSimilarity: 88,
+      maxSimilarity: 0.88,
       matches: [
         {
           id: 2,
           title: 'Public Health Surveillance Systems',
           supervisor: 'Dr. Similar',
           year: '2024/2025',
-          jaccard: 88,
-          tfidf: 80,
-          sbert: 84
+          semantic_score: 0.84
         }
       ]
     }));
@@ -262,7 +249,7 @@ describe('CheckMyTopicPage', () => {
 
   it('resets result and error with Check Another Topic', async () => {
     const user = userEvent.setup();
-    axios.post.mockResolvedValue(buildFypResponse({ risk: 'LOW', maxSimilarity: 10 }));
+    axios.post.mockResolvedValue(buildFypResponse({ risk: 'LOW', maxSimilarity: 0.10 }));
     renderCheckMyTopicPage();
 
     await submitTopic(user);
@@ -294,7 +281,7 @@ describe('CheckMyTopicPage', () => {
 
   it('does not expose submission decision UI or mutate submissions', async () => {
     const user = userEvent.setup();
-    axios.post.mockResolvedValue(buildFypResponse({ risk: 'HIGH', maxSimilarity: 92 }));
+    axios.post.mockResolvedValue(buildFypResponse({ risk: 'HIGH', maxSimilarity: 0.92 }));
     renderCheckMyTopicPage();
 
     await submitTopic(user);

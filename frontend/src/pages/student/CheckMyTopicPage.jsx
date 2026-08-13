@@ -1,91 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
+import { runSimilarityCheck } from '../../api/similarity';
 import InfoCallout from '../../components/ui/InfoCallout';
 import SecondaryButton from '../../components/ui/SecondaryButton';
 import TopicForm from '../../components/features/TopicInput/TopicForm';
 import ResultsDisplay from '../../components/features/Results/ResultsDisplay';
-
-function mapFypTier1Matches(matches = []) {
-  return matches.map((match) => ({
-    id: match.id,
-    topic_title: match.title || '',
-    supervisor_name: match.supervisor || '',
-    session_year: match.year || '',
-    category: match.category || '',
-    jaccard_score: match.jaccard ?? 0,
-    tfidf_score: match.tfidf ?? 0,
-    sbert_score: match.sbert ?? null
-  }));
-}
-
-function mapFypTier2Matches(matches = []) {
-  return matches.map((match) => ({
-    id: match.id,
-    topic_title: match.title || '',
-    supervisor_name: match.supervisor || '',
-    session_year: match.approved_date || '',
-    jaccard_score: match.jaccard ?? 0,
-    tfidf_score: match.tfidf ?? 0,
-    sbert_score: match.sbert ?? null
-  }));
-}
-
-function mapFypTier3Matches(matches = []) {
-  return matches.map((match) => ({
-    id: match.id,
-    topic_title: match.title || '',
-    supervisor_name: match.reviewing_lecturer || '',
-    session_year: match.review_started_at || '',
-    jaccard_score: match.jaccard ?? 0,
-    tfidf_score: match.tfidf ?? 0,
-    sbert_score: match.sbert ?? null
-  }));
-}
-
-function mapLegacyMatches(matches = []) {
-  return matches.map((match) => ({
-    id: match.id,
-    topic_title: match.title || '',
-    supervisor_name: match.supervisorName || '',
-    session_year: match.sessionYear || '',
-    category: match.category || '',
-    jaccard_score: match.scores?.jaccard || 0,
-    tfidf_score: match.scores?.tfidf || 0,
-    sbert_score: match.scores?.sbert || 0,
-    combined_similarity_score: match.scores?.combined || 0
-  }));
-}
-
-function mapSimilarityResponse(responseData) {
-  const fypData = responseData.data;
-  const isFypResponse = ['success', 'partial_success'].includes(responseData.status) && fypData;
-
-  if (isFypResponse) {
-    return {
-      risk_level: fypData.overall_risk || 'LOW',
-      max_similarity: fypData.max_similarity ?? 0,
-      recommendation: fypData.recommendation,
-      sbert_available: responseData.status !== 'partial_success',
-      tier1_matches: mapFypTier1Matches(fypData.tier1_historical),
-      tier2_matches: mapFypTier2Matches(fypData.tier2_current),
-      tier3_matches: mapFypTier3Matches(fypData.tier3_under_review)
-    };
-  }
-
-  const backendResults = responseData.results || {};
-  const maxScore = backendResults.tier1_historical?.length > 0
-    ? backendResults.tier1_historical[0].scores?.combined
-    : 0;
-
-  return {
-    risk_level: responseData.overallRisk || 'LOW',
-    max_similarity: responseData.overallMaxSimilarity ?? maxScore,
-    sbert_available: responseData.algorithmStatus?.sbert || false,
-    tier1_matches: mapLegacyMatches(backendResults.tier1_historical),
-    tier2_matches: mapLegacyMatches(backendResults.tier2_current_session),
-    tier3_matches: mapLegacyMatches(backendResults.tier3_under_review)
-  };
-}
 
 function getSimilarityErrorMessage(err) {
   if (err.response) {
@@ -102,6 +21,7 @@ function getSimilarityErrorMessage(err) {
 
 function CheckMyTopicPage() {
   const [results, setResults] = useState(null);
+  const [semanticUnavailable, setSemanticUnavailable] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [checkedProposal, setCheckedProposal] = useState(null);
@@ -118,20 +38,14 @@ function CheckMyTopicPage() {
     setIsLoading(true);
     setError('');
     setResults(null);
+    setSemanticUnavailable(null);
     setCheckedProposal(data);
 
     try {
-      const response = await axios.post('/api/similarity/check', data, {
-        signal: requestController.signal
-      });
-
-      if (!response.data || typeof response.data !== 'object') {
-        throw new Error('Invalid response format from server');
-      }
-
+      const response = await runSimilarityCheck(data, { signal: requestController.signal });
       if (abortControllerRef.current !== requestController) return false;
-
-      setResults(mapSimilarityResponse(response.data));
+      if (response.status === 'semantic_unavailable') setSemanticUnavailable(response.message);
+      else setResults(response.results);
       return true;
     } catch (err) {
       if (requestController.signal.aborted || err.name === 'AbortError' || err.name === 'CanceledError' || axios.isCancel?.(err)) return false;
@@ -149,6 +63,7 @@ function CheckMyTopicPage() {
 
   const handleReset = () => {
     setResults(null);
+    setSemanticUnavailable(null);
     setError('');
     setCheckedProposal(null);
     setFocusFreshForm(true);
@@ -203,12 +118,12 @@ function CheckMyTopicPage() {
         </section>
       )}
 
-      {!results && (
+      {!results && !semanticUnavailable && (
         <section className={`${error ? 'block' : 'grid lg:grid-cols-[minmax(0,2fr)_minmax(16rem,1fr)]'} gap-6 border border-gray-200 bg-white p-4 shadow-sm sm:p-6`}>
           <TopicForm appearance="student-checker" onSubmit={handleSubmit} isLoading={isLoading} compact={isLoading || Boolean(error)} topicInputRef={topicInputRef} />
           {!error && <aside aria-labelledby="check-context-title" className="border-t border-gray-200 pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
             <h2 id="check-context-title" className="text-lg font-bold text-brand-green-dark">What this check considers</h2>
-            <dl className="mt-4 space-y-4 text-sm"><div><dt className="font-bold">Exact overlap</dt><dd className="mt-1 text-text-secondary">Shared words and phrases.</dd></div><div><dt className="font-bold">Weighted terms</dt><dd className="mt-1 text-text-secondary">The relative importance of terms.</dd></div><div><dt className="font-bold">Semantic meaning</dt><dd className="mt-1 text-text-secondary">Conceptual similarity when the semantic service is available.</dd></div></dl>
+            <dl className="mt-4 space-y-4 text-sm"><div><dt className="font-bold">Semantic topic representation</dt><dd className="mt-1 text-text-secondary">The title, population, location, and study focus when supplied.</dd></div><div><dt className="font-bold">Stored research-topic records</dt><dd className="mt-1 text-text-secondary">The most similar eligible records are returned for advisory review.</dd></div></dl>
             <p className="mt-5 border-t border-gray-200 pt-4 text-sm text-text-secondary">The result is evidence for review, not an academic decision.</p>
           </aside>}
         </section>
@@ -224,6 +139,13 @@ function CheckMyTopicPage() {
               ? 'Your topic is being compared against existing records.'
               : 'Complete the form to view advisory similarity guidance. Nothing is saved from this pre-check.'}
           </p>
+        </section>
+      )}
+
+      {semanticUnavailable && (
+        <section data-testid="semantic-unavailable" className="space-y-4">
+          <InfoCallout variant="warning" title="Semantic similarity unavailable" message={`${semanticUnavailable} No similarity classification can be provided until semantic analysis is available.`} />
+          <SecondaryButton type="button" onClick={handleReset} data-testid="reset-button">Check Another Topic</SecondaryButton>
         </section>
       )}
 

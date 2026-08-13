@@ -33,27 +33,13 @@ const RISK_CONFIGS = {
   }
 };
 
-// Algorithm badge color mapping
-const ALGORITHM_BADGE_COLORS = {
-  jaccard: 'bg-blue-100 text-blue-800',
-  tfidf: 'bg-purple-100 text-purple-800',
-  sbert: 'bg-indigo-100 text-indigo-800'
-};
-
 // ============ Utility Functions ============
 /**
- * Format similarity score as percentage
+ * Format the raw directional semantic cosine score.
  */
 const formatScore = (score) => {
   if (score === null || score === undefined) return 'N/A';
-  return `${Math.round(score)}%`;
-};
-
-/**
- * Get algorithm badge color
- */
-const getAlgorithmBadgeColor = (algorithm) => {
-  return ALGORITHM_BADGE_COLORS[algorithm.toLowerCase()] || 'bg-gray-100 text-gray-800';
+  return Number(score).toFixed(3);
 };
 
 /**
@@ -70,7 +56,7 @@ const getAlgorithmBadgeColor = (algorithm) => {
  * @param {Array} props.results.tier1_matches - Top 5 similar topics (historical)
  * @param {Array} props.results.tier2_matches - Current session matches (≥60%)
  * @param {Array} props.results.tier3_matches - Under review matches (≥60%)
- * @param {boolean} props.results.sbert_available - Whether SBERT scores are available
+ * @param {boolean} props.results.semantic_available - Whether semantic scores are available
  */
 const ResultsDisplay = ({ results, appearance = 'default' }) => {
   // Track which matches have expanded details
@@ -98,9 +84,9 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
    * Get similarity level descriptor (user-friendly)
    */
   const getSimilarityLevel = (score) => {
-    if (score >= 75) return { label: 'Very High Match', color: 'text-red-600 font-semibold' };
-    if (score >= 60) return { label: 'High Match', color: 'text-orange-600 font-semibold' };
-    if (score >= 45) return { label: 'Moderate Match', color: 'text-yellow-600' };
+    if (score >= 0.8) return { label: 'Very High Match', color: 'text-red-600 font-semibold' };
+    if (score >= 0.7) return { label: 'High Match', color: 'text-orange-600 font-semibold' };
+    if (score >= 0.6) return { label: 'Moderate Match', color: 'text-yellow-600' };
     return { label: 'Low Match', color: 'text-green-600' };
   };
 
@@ -110,11 +96,7 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
   const renderTopicMatch = (match, index, tierKey) => {
     const matchKey = `${tierKey}-${match.id}-${index}`;
     const isExpanded = expandedMatches[matchKey];
-    const availableScores = [match.jaccard_score, match.tfidf_score, match.sbert_score]
-      .filter(value => typeof value === 'number');
-    const score = isStudentChecker
-      ? Math.max(0, ...availableScores)
-      : match.combined_similarity_score || match.jaccard_score || 0;
+    const score = match.semantic_score;
     const similarityLevel = getSimilarityLevel(score);
     const studentMetadata = tierKey === 'tier3'
       ? [
@@ -167,27 +149,7 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
           )}
         </div>
 
-        {isStudentChecker ? (
-          <details className="group text-sm text-blue-700">
-            <summary
-              className="w-fit cursor-pointer rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
-              data-testid={`expand-details-${index}`}
-            >
-              <span className="group-open:hidden">Show Technical Details</span>
-              <span className="hidden group-open:inline">Hide Technical Details</span>
-            </summary>
-            <div className="mt-3 border-t border-gray-200 pt-3" data-testid={`algorithm-details-${index}`}>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Algorithm Scores (Technical)</p>
-              <div className="flex flex-wrap gap-2">
-                <span data-testid={`jaccard-badge-${index}`} className={`rounded-full px-3 py-1 text-xs font-medium ${getAlgorithmBadgeColor('jaccard')}`}>Jaccard: {formatScore(match.jaccard_score)}</span>
-                <span data-testid={`tfidf-badge-${index}`} className={`rounded-full px-3 py-1 text-xs font-medium ${getAlgorithmBadgeColor('tfidf')}`}>TF-IDF/Cosine: {formatScore(match.tfidf_score)}</span>
-                <span data-testid={`sbert-badge-${index}`} className={`rounded-full px-3 py-1 text-xs font-medium ${getAlgorithmBadgeColor('sbert')}`}>
-                  SBERT: {match.sbert_score === null || match.sbert_score === undefined ? 'Unavailable for this check' : formatScore(match.sbert_score)}
-                </span>
-              </div>
-            </div>
-          </details>
-        ) : <button
+        <button
           onClick={() => toggleDetails(matchKey)}
           className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center transition-colors"
           data-testid={`expand-details-${index}`}
@@ -207,40 +169,13 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
               Show Technical Details
             </>
           )}
-        </button>}
+        </button>
 
-        {/* Algorithm Scores (Hidden by Default) */}
-        {!isStudentChecker && isExpanded && (
+        {isExpanded && (
           <div className="mt-3 pt-3 border-t border-gray-200" data-testid={`algorithm-details-${index}`}>
-            <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Algorithm Scores (Technical)</p>
+            <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Semantic similarity</p>
             <div className="flex flex-wrap gap-2">
-              {match.jaccard_score !== undefined && (
-                <span
-                  data-testid={`jaccard-badge-${index}`}
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${getAlgorithmBadgeColor('jaccard')}`}
-                  title="Exact token overlap"
-                >
-                  {isStudentChecker ? 'Jaccard' : 'Exact Match'}: {formatScore(match.jaccard_score)}
-                </span>
-              )}
-              {match.tfidf_score !== undefined && (
-                <span
-                  data-testid={`tfidf-badge-${index}`}
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${getAlgorithmBadgeColor('tfidf')}`}
-                  title="Term importance weighting"
-                >
-                  {isStudentChecker ? 'TF-IDF/Cosine' : 'Term Weight'}: {formatScore(match.tfidf_score)}
-                </span>
-              )}
-              {match.sbert_score !== undefined && match.sbert_score !== null && (
-                <span
-                  data-testid={`sbert-badge-${index}`}
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${getAlgorithmBadgeColor('sbert')}`}
-                  title="Semantic understanding"
-                >
-                  {isStudentChecker ? 'SBERT' : 'Semantic'}: {formatScore(match.sbert_score)}
-                </span>
-              )}
+              <span data-testid={`semantic-badge-${index}`} className="px-3 py-1 rounded-full text-xs font-medium text-blue-700 bg-blue-50">Semantic: {formatScore(match.semantic_score)}</span>
             </div>
           </div>
         )}
@@ -279,21 +214,13 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
   if (isCheckerShell) {
     return (
       <div className="w-full p-4 sm:p-6" data-testid="results-display">
-        {!results.sbert_available && (
-          <div
-            data-testid="sbert-warning"
-            className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800"
-          >
-            <strong>Partial analysis:</strong> Semantic analysis is temporarily unavailable. Results are based on exact match and term weighting analysis.
-          </div>
-        )}
         <div className="grid gap-4 lg:grid-cols-[13rem_minmax(0,1fr)]">
           <div className="rounded-xl border border-emerald-100 bg-[#fbfdf8] p-5 text-center">
             <p className="text-xs font-bold uppercase tracking-[0.12em] text-text-muted">Similarity score</p>
             <p className={`mt-2 text-5xl font-bold ${riskConfig.textColor}`} data-testid="max-similarity">
               {formatScore(results.max_similarity)}
             </p>
-            <p className="mt-2 text-xs leading-5 text-text-secondary">Highest combined similarity returned by the checker.</p>
+            <p className="mt-2 text-xs leading-5 text-text-secondary">Highest semantic similarity returned by the checker.</p>
             <p className="sr-only" data-testid="summary-max-similarity">{formatScore(results.max_similarity)}</p>
           </div>
 
@@ -396,32 +323,11 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
               {recommendation}
             </p>
             <p className={`mt-3 text-sm font-semibold ${riskConfig.textColor}`} data-testid="max-similarity">
-              Maximum Similarity Score: {formatScore(results.max_similarity)}
+              Maximum Semantic Similarity: {formatScore(results.max_similarity)}
             </p>
           </div>
         </div>
       </div>
-
-      {/* SBERT Degradation Notice */}
-      {!results.sbert_available && (
-        <div
-          data-testid="sbert-warning"
-          className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded"
-        >
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zm-11-1a1 1 0 11-2 0 1 1 0 012 0zm3 0a1 1 0 11-2 0 1 1 0 012 0zm3 0a1 1 0 11-2 0 1 1 0 012 0z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-blue-700">
-                <strong>Note:</strong> Semantic analysis is temporarily unavailable. Results are based on exact match and term weighting analysis.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Results Overview Cards */}
       <div className="bg-gray-50 rounded-lg p-6 mb-8">
@@ -496,10 +402,8 @@ const MATCH_SHAPE = PropTypes.shape({
   supervisor_name: PropTypes.string,
   session_year: PropTypes.string,
   status: PropTypes.string,
-  jaccard_score: PropTypes.number,
-  tfidf_score: PropTypes.number,
-  sbert_score: PropTypes.number,
-  combined_similarity_score: PropTypes.number
+  semantic_score: PropTypes.number.isRequired,
+  similarity_class: PropTypes.oneOf(['LOW', 'MEDIUM', 'HIGH'])
 });
 
 ResultsDisplay.propTypes = {
@@ -510,7 +414,7 @@ ResultsDisplay.propTypes = {
     tier1_matches: PropTypes.arrayOf(MATCH_SHAPE),
     tier2_matches: PropTypes.arrayOf(MATCH_SHAPE),
     tier3_matches: PropTypes.arrayOf(MATCH_SHAPE),
-    sbert_available: PropTypes.bool.isRequired
+    semantic_available: PropTypes.bool
   }).isRequired,
   appearance: PropTypes.oneOf(['default', 'student-checker', 'lecturer-checker'])
 };

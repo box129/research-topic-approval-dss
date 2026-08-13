@@ -39,17 +39,26 @@ function renderAppAt(path, authState = buildAuthState()) {
   );
 }
 
-function buildFypResponse({ risk = 'LOW', maxSimilarity = 24, status = 'success', matches = [] } = {}) {
+function buildFypResponse({ risk = 'LOW', maxSimilarity = 0.24, status = 'success', matches = [] } = {}) {
+  if (status === 'semantic_unavailable') {
+    return {
+      status,
+      message: 'Semantic analysis is temporarily unavailable.',
+      semanticAvailable: false,
+      semanticProvider: 'voyage',
+      semanticModel: 'voyage-4-large'
+    };
+  }
   return {
     status,
-    message: status === 'partial_success' ? 'Semantic analysis is temporarily unavailable.' : '',
+    semanticAvailable: true,
+    semanticProvider: 'voyage',
+    semanticModel: 'voyage-4-large',
     data: {
       overall_risk: risk,
       max_similarity: maxSimilarity,
       recommendation: `${risk} similarity guidance from backend.`,
-      tier1_historical: matches,
-      tier2_current: [],
-      tier3_under_review: []
+      matches
     }
   };
 }
@@ -221,7 +230,7 @@ describe('End-to-End User Flow Tests', () => {
   it('renders successful HIGH similarity results through ResultsDisplay', async () => {
     mock.onPost('/api/similarity/check').reply(200, buildFypResponse({
       risk: 'HIGH',
-      maxSimilarity: 88,
+      maxSimilarity: 0.88,
       matches: [
         {
           id: 1,
@@ -229,9 +238,8 @@ describe('End-to-End User Flow Tests', () => {
           supervisor: 'Dr. Similar',
           year: '2024/2025',
           category: 'Epidemiology',
-          jaccard: 88,
-          tfidf: 80,
-          sbert: 84
+          semantic_score: 0.84,
+          similarity_class: 'HIGH'
         }
       ]
     }));
@@ -242,7 +250,7 @@ describe('End-to-End User Flow Tests', () => {
     expect(await screen.findByTestId('student-results-container')).toBeInTheDocument();
     expect(screen.getByTestId('results-display')).toBeInTheDocument();
     expect(screen.getByTestId('risk-title')).toHaveTextContent('High Risk');
-    expect(screen.getByTestId('max-similarity')).toHaveTextContent('88%');
+    expect(screen.getByTestId('max-similarity')).toHaveTextContent('0.880');
     expect(screen.getAllByText(/public health surveillance systems/i)).toHaveLength(2);
     expect(screen.queryByPlaceholderText(/enter your research topic/i)).not.toBeInTheDocument();
     expect(screen.getByText(/temporary browser state only/i)).toBeInTheDocument();
@@ -251,7 +259,7 @@ describe('End-to-End User Flow Tests', () => {
   it('renders successful LOW similarity results through ResultsDisplay', async () => {
     mock.onPost('/api/similarity/check').reply(200, buildFypResponse({
       risk: 'LOW',
-      maxSimilarity: 18,
+      maxSimilarity: 0.18,
       matches: [
         {
           id: 2,
@@ -259,9 +267,8 @@ describe('End-to-End User Flow Tests', () => {
           supervisor: 'Dr. Similar',
           year: '2025/2026',
           category: 'Epidemiology',
-          jaccard: 18,
-          tfidf: 12,
-          sbert: 16
+          semantic_score: 0.16,
+          similarity_class: 'LOW'
         }
       ]
     }));
@@ -271,14 +278,14 @@ describe('End-to-End User Flow Tests', () => {
 
     expect(await screen.findByTestId('student-results-container')).toBeInTheDocument();
     expect(screen.getByTestId('risk-title')).toHaveTextContent('Low Risk');
-    expect(screen.getByTestId('max-similarity')).toHaveTextContent('18%');
+    expect(screen.getByTestId('max-similarity')).toHaveTextContent('0.180');
     expect(screen.getByText(/machine learning in public health/i)).toBeInTheDocument();
   });
 
   it('clears the result when checking another topic', async () => {
     mock.onPost('/api/similarity/check').reply(200, buildFypResponse({
       risk: 'LOW',
-      maxSimilarity: 10
+      maxSimilarity: 0.10
     }));
     renderAppAt('/student/check-my-topic');
 
@@ -307,7 +314,7 @@ describe('End-to-End User Flow Tests', () => {
   it('keeps the routed student checker read-only and decision-free', async () => {
     mock.onPost('/api/similarity/check').reply(200, buildFypResponse({
       risk: 'HIGH',
-      maxSimilarity: 92
+      maxSimilarity: 0.92
     }));
     renderAppAt('/student/check-my-topic');
 

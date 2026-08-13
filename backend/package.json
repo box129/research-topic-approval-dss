@@ -11,6 +11,7 @@
     "import:fixture": "node scripts/generate-import-sample-fixture.js",
     "evaluate:topics": "node scripts/run-topic-evaluation.js",
     "audit:data-quality": "node scripts/run-topic-data-quality-audit.js",
+    "backfill:voyage-embeddings": "node scripts/backfill-topic-embeddings.js",
     "validate:lecturer-benchmark": "node scripts/validate-lecturer-benchmark.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

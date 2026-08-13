@@ -1,86 +1,79 @@
 import axios from 'axios';
 import apiClient from './client';
 
-function mapFypTier1Matches(matches = []) {
-  return matches.map((match) => ({
-    id: match.id,
-    topic_title: match.title || '',
-    supervisor_name: match.supervisor || '',
-    session_year: match.year || '',
-    category: match.category || '',
-    jaccard_score: match.jaccard ?? 0,
-    tfidf_score: match.tfidf ?? 0,
-    sbert_score: match.sbert,
-    combined_similarity_score: match.sbert ?? match.jaccard ?? 0
-  }));
+function isSemanticUnavailablePayload(payload) {
+  return payload?.status === 'semantic_unavailable' && payload.semanticAvailable === false;
 }
 
-function mapFypTier2Matches(matches = []) {
-  return matches.map((match) => ({
-    id: match.id,
-    topic_title: match.title || '',
-    supervisor_name: match.supervisor || '',
-    session_year: match.approved_date || '',
-    jaccard_score: match.jaccard ?? 0,
-    tfidf_score: match.tfidf ?? 0,
-    sbert_score: match.sbert,
-    combined_similarity_score: match.sbert ?? match.jaccard ?? 0
-  }));
-}
-
-function mapFypTier3Matches(matches = []) {
-  return matches.map((match) => ({
-    id: match.id,
-    topic_title: match.title || '',
-    supervisor_name: match.reviewing_lecturer || '',
-    session_year: match.review_started_at || '',
-    jaccard_score: match.jaccard ?? 0,
-    tfidf_score: match.tfidf ?? 0,
-    sbert_score: match.sbert,
-    combined_similarity_score: match.sbert ?? match.jaccard ?? 0
-  }));
+function isSemanticUnavailableError(error) {
+  return error.response?.status === 503 && isSemanticUnavailablePayload(error.response.data);
 }
 
 function mapSimilarityResponse(responsePayload) {
   const data = responsePayload?.data;
 
-  if (!data || !['success', 'partial_success'].includes(responsePayload.status)) {
+  if (isSemanticUnavailablePayload(responsePayload)) {
+    return {
+      semantic_available: false,
+      risk_level: null,
+      max_similarity: null,
+      recommendation: responsePayload.message,
+      tier1_matches: [],
+      tier2_matches: [],
+      tier3_matches: []
+    };
+  }
+  if (!data || responsePayload.status !== 'success') {
     throw new Error('Invalid similarity response format from server.');
   }
 
   return {
-    risk_level: data.overall_risk || 'LOW',
-    max_similarity: data.max_similarity ?? 0,
+    risk_level: data.overall_risk,
+    max_similarity: data.max_similarity,
     recommendation: data.recommendation,
-    sbert_available: responsePayload.status !== 'partial_success',
-    tier1_matches: mapFypTier1Matches(data.tier1_historical),
-    tier2_matches: mapFypTier2Matches(data.tier2_current),
-    tier3_matches: mapFypTier3Matches(data.tier3_under_review)
+    semantic_available: responsePayload.semanticAvailable === true,
+    tier1_matches: (data.matches || []).map(match => ({
+      id: match.id,
+      topic_title: match.title,
+      semantic_score: match.semantic_score,
+      similarity_class: match.similarity_class
+    })),
+    tier2_matches: [], tier3_matches: []
   };
 }
 
-export async function runSimilarityCheck({ topic, keywords }) {
-  const response = await axios.post('/api/similarity/check', {
-    topic,
-    keywords: keywords || ''
-  });
-
+function normalizeSimilarityResponse(responsePayload) {
   return {
-    status: response.data?.status,
-    message: response.data?.message,
-    results: mapSimilarityResponse(response.data)
+    status: responsePayload?.status,
+    message: responsePayload?.message,
+    semanticAvailable: responsePayload?.semanticAvailable,
+    semanticProvider: responsePayload?.semanticProvider,
+    semanticModel: responsePayload?.semanticModel,
+    results: mapSimilarityResponse(responsePayload)
   };
+}
+
+async function normalizeSemanticUnavailable(request) {
+  try {
+    const response = await request();
+    return normalizeSimilarityResponse(response.data);
+  } catch (error) {
+    if (isSemanticUnavailableError(error)) {
+      return normalizeSimilarityResponse(error.response.data);
+    }
+    throw error;
+  }
+}
+
+export async function runSimilarityCheck(payload, { signal } = {}) {
+  return normalizeSemanticUnavailable(() => axios.post('/api/similarity/check', payload, { signal }));
 }
 
 export async function runLecturerSubmissionSimilarityCheck(submissionId) {
-  const response = await apiClient.post(
+  return normalizeSemanticUnavailable(() => apiClient.post(
     `/lecturer/submissions/${submissionId}/similarity-check`,
     {}
-  );
-
-  return {
-    status: response.data?.status,
-    message: response.data?.message,
-    results: mapSimilarityResponse(response.data)
-  };
+  ));
 }
+
+export { isSemanticUnavailablePayload };

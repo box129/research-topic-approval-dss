@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import axios from 'axios';
+import { runSimilarityCheck } from '../../api/similarity';
 import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import InfoCallout from '../../components/ui/InfoCallout';
 import PageHeader from '../../components/ui/PageHeader';
@@ -10,6 +10,7 @@ import LecturerDashboardLayout from '../../layouts/LecturerDashboardLayout';
 
 function CheckSimilarityPage() {
   const [results, setResults] = useState(null);
+  const [semanticUnavailable, setSemanticUnavailable] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const abortControllerRef = useRef(null);
@@ -19,95 +20,30 @@ function CheckSimilarityPage() {
       abortControllerRef.current.abort();
     }
 
-    abortControllerRef.current = new AbortController();
+    const requestController = new AbortController();
+    abortControllerRef.current = requestController;
 
     setIsLoading(true);
     setError(null);
     setResults(null);
+    setSemanticUnavailable(null);
 
     try {
-      const response = await axios.post('/api/similarity/check', data, {
-        signal: abortControllerRef.current.signal
-      });
-
-      if (!response.data || typeof response.data !== 'object') {
-        throw new Error('Invalid response format from server');
-      }
+      const response = await runSimilarityCheck(data, { signal: requestController.signal });
 
       await new Promise(resolve => setTimeout(resolve, 300));
+      if (abortControllerRef.current !== requestController) return;
 
-      const fypData = response.data.data;
-      const isFypResponse = ['success', 'partial_success'].includes(response.data.status) && fypData;
+      if (response.status === 'semantic_unavailable') {
+        setSemanticUnavailable(response.message);
+        return;
+      }
 
-      const mapFypTier1Matches = (matches = []) => matches.map(m => ({
-        id: m.id,
-        topic_title: m.title || '',
-        supervisor_name: m.supervisor || '',
-        session_year: m.year || '',
-        category: m.category || '',
-        jaccard_score: m.jaccard || 0,
-        tfidf_score: m.tfidf || 0,
-        sbert_score: m.sbert || 0,
-        combined_similarity_score: m.sbert || m.jaccard || 0
-      }));
-
-      const mapFypTier2Matches = (matches = []) => matches.map(m => ({
-        id: m.id,
-        topic_title: m.title || '',
-        supervisor_name: m.supervisor || '',
-        session_year: m.approved_date || '',
-        jaccard_score: m.jaccard || 0,
-        tfidf_score: m.tfidf || 0,
-        sbert_score: m.sbert || 0,
-        combined_similarity_score: m.sbert || m.jaccard || 0
-      }));
-
-      const mapFypTier3Matches = (matches = []) => matches.map(m => ({
-        id: m.id,
-        topic_title: m.title || '',
-        supervisor_name: m.reviewing_lecturer || '',
-        session_year: m.review_started_at || '',
-        jaccard_score: m.jaccard || 0,
-        tfidf_score: m.tfidf || 0,
-        sbert_score: m.sbert || 0,
-        combined_similarity_score: m.sbert || m.jaccard || 0
-      }));
-
-      const mapLegacyMatches = (matches = []) => matches.map(m => ({
-        id: m.id,
-        topic_title: m.title || '',
-        supervisor_name: m.supervisorName || '',
-        session_year: m.sessionYear || '',
-        category: m.category || '',
-        jaccard_score: m.scores?.jaccard || 0,
-        tfidf_score: m.scores?.tfidf || 0,
-        sbert_score: m.scores?.sbert || 0,
-        combined_similarity_score: m.scores?.combined || 0
-      }));
-
-      const backendResults = response.data.results || {};
-      const maxScore = backendResults.tier1_historical?.length > 0
-        ? backendResults.tier1_historical[0].scores?.combined
-        : 0;
-
-      const mappedResults = isFypResponse ? {
-        risk_level: fypData.overall_risk || 'LOW',
-        max_similarity: fypData.max_similarity ?? 0,
-        recommendation: fypData.recommendation,
-        sbert_available: response.data.status !== 'partial_success',
-        tier1_matches: mapFypTier1Matches(fypData.tier1_historical),
-        tier2_matches: mapFypTier2Matches(fypData.tier2_current),
-        tier3_matches: mapFypTier3Matches(fypData.tier3_under_review)
-      } : {
-        risk_level: response.data.overallRisk || 'LOW',
-        max_similarity: response.data.overallMaxSimilarity ?? maxScore,
-        sbert_available: response.data.algorithmStatus?.sbert || false,
-        tier1_matches: mapLegacyMatches(backendResults.tier1_historical),
-        tier2_matches: mapLegacyMatches(backendResults.tier2_current_session),
-        tier3_matches: mapLegacyMatches(backendResults.tier3_under_review)
-      };
-
-      setResults(mappedResults);
+      if (response.status === 'success' && response.semanticAvailable === true) {
+        setResults(response.results);
+        return;
+      }
+      throw new Error('Invalid semantic similarity response format from server');
     } catch (err) {
       if (err.name === 'AbortError') {
         console.info('Similarity check was cancelled');
@@ -139,6 +75,7 @@ function CheckSimilarityPage() {
 
   const handleReset = () => {
     setResults(null);
+    setSemanticUnavailable(null);
     setError(null);
   };
 
@@ -190,7 +127,14 @@ function CheckSimilarityPage() {
               </div>
             )}
 
-            {!results && !error && (
+            {semanticUnavailable && (
+              <div data-testid="semantic-unavailable" className="space-y-4">
+                <InfoCallout variant="warning" title="Semantic similarity unavailable" message={`${semanticUnavailable} No similarity classification can be provided until semantic analysis is available.`} />
+                <SecondaryButton type="button" onClick={handleReset} data-testid="reset-button">Check Another Topic</SecondaryButton>
+              </div>
+            )}
+
+            {!results && !semanticUnavailable && !error && (
               <EmptyStatePanel
                 title={isLoading ? 'Checking similarity' : 'Awaiting manual check'}
                 message={isLoading

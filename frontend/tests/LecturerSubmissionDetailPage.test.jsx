@@ -62,24 +62,36 @@ const snapshot = {
 };
 
 function buildSimilarityResponse({ risk = 'LOW', status = 'success' } = {}) {
+  if (status === 'semantic_unavailable') {
+    return {
+      status,
+      message: 'Semantic analysis is temporarily unavailable.',
+      results: {
+        semantic_available: false,
+        risk_level: null,
+        max_similarity: null,
+        tier1_matches: [],
+        tier2_matches: [],
+        tier3_matches: []
+      }
+    };
+  }
   return {
     status,
-    message: status === 'partial_success' ? 'Semantic analysis is temporarily unavailable.' : '',
+    message: '',
     results: {
       risk_level: risk,
-      max_similarity: risk === 'HIGH' ? 88 : 18,
+      max_similarity: risk === 'HIGH' ? 0.88 : 0.18,
       recommendation: `${risk} recommendation from service.`,
-      sbert_available: status !== 'partial_success',
+      semantic_available: true,
       tier1_matches: [
         {
           id: 1,
           topic_title: 'Similar historical topic',
           supervisor_name: 'Dr. Prior',
           session_year: '2024/2025',
-          jaccard_score: 18,
-          tfidf_score: 14,
-          sbert_score: 16,
-          combined_similarity_score: risk === 'HIGH' ? 88 : 18
+          semantic_score: risk === 'HIGH' ? 0.88 : 0.18,
+          similarity_class: risk
         }
       ],
       tier2_matches: [],
@@ -246,26 +258,6 @@ describe('Lecturer SubmissionDetailPage', () => {
 
     await user.click(screen.getByRole('button', { name: /run similarity check/i }));
     expect(await screen.findByText(/similarity service failed/i)).toBeInTheDocument();
-  });
-
-  it('displays partial-success notice and ResultsDisplay behavior', async () => {
-    const user = userEvent.setup();
-    getLecturerSubmission.mockResolvedValue(pendingSubmission);
-    listLecturerSubmissionSimilaritySnapshots.mockResolvedValue([]);
-    runLecturerSubmissionSimilarityCheck.mockResolvedValue(buildSimilarityResponse({
-      risk: 'MEDIUM',
-      status: 'partial_success'
-    }));
-    renderDetailPage();
-
-    expect(await screen.findByText(/assessment of malaria prevention awareness/i)).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: /run similarity check/i }));
-
-    expect(await screen.findByText(/partial analysis/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/semantic analysis is temporarily unavailable/i).length).toBeGreaterThan(0);
-    expect(screen.getByTestId('results-display')).toBeInTheDocument();
-    expect(screen.getByTestId('sbert-warning')).toBeInTheDocument();
   });
 
   it('validates rejection rationale before update', async () => {

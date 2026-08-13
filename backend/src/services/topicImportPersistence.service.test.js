@@ -1,3 +1,4 @@
+jest.mock('../config/database', () => ({}));
 const { persistNormalizedTopicImport } = require('./topicImportPersistence.service');
 
 function createMockPrismaClient() {

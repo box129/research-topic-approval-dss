@@ -177,7 +177,7 @@ function SubmissionDetailPage() {
 
       setSimilarityStatus(response.status);
       setSimilarityNotice(response.message || '');
-      setSimilarityResults(response.results);
+      setSimilarityResults(response.results?.semantic_available === false ? null : response.results);
       await loadSnapshotHistory();
     } catch (err) {
       setSimilarityError(err.response?.data?.message || err.message || 'Unable to run similarity check.');
@@ -388,12 +388,12 @@ function SubmissionDetailPage() {
                   />
                 )}
 
-                {similarityStatus === 'partial_success' && similarityNotice && (
+                {similarityStatus === 'semantic_unavailable' && similarityNotice && (
                   <InfoCallout
                     className="mb-5"
-                    title="Partial analysis"
-                    message={similarityNotice}
-                    variant="info"
+                    title="Semantic similarity unavailable"
+                    message={`${similarityNotice} No similarity classification can be provided until semantic analysis is available.`}
+                    variant="warning"
                   />
                 )}
 

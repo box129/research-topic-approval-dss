@@ -1,5 +1,4 @@
 const prisma = require('../config/database');
-const sbertService = require('./sbert.service');
 
 const DATABASE_READINESS_TIMEOUT_MS = 2000;
 
@@ -35,27 +34,10 @@ async function checkDatabase() {
   }
 }
 
-async function checkSbert() {
-  const isHealthy = await sbertService.checkHealth();
-
-  if (isHealthy) {
-    return {
-      status: 'available',
-      message: 'SBERT health check succeeded.'
-    };
-  }
-
-  return {
-    status: 'unavailable',
-    message: 'SBERT health check failed; similarity requests may use degraded lexical fallback.'
-  };
-}
+function checkVoyageConfiguration() { return process.env.VOYAGE_API_KEY ? { status:'configured', message:'Voyage credential is configured; reachability is not probed by readiness.' } : { status:'unavailable', message:'VOYAGE_API_KEY is not configured.' }; }
 
 async function getReadiness() {
-  const [database, sbert] = await Promise.all([
-    checkDatabase(),
-    checkSbert()
-  ]);
+  const database = await checkDatabase(); const voyage = checkVoyageConfiguration();
 
   let status = 'ready';
   let httpStatus = 200;
@@ -63,7 +45,7 @@ async function getReadiness() {
   if (database.status !== 'available') {
     status = 'not_ready';
     httpStatus = 503;
-  } else if (sbert.status !== 'available') {
+  } else if (voyage.status !== 'configured') {
     status = 'degraded';
     httpStatus = 503;
   }
@@ -75,7 +57,7 @@ async function getReadiness() {
       checks: {
         api: 'available',
         database: database.status,
-        sbert: sbert.status
+        semanticProvider: voyage.status
       },
       details: {
         api: {
@@ -83,11 +65,11 @@ async function getReadiness() {
           message: 'API process responded.'
         },
         database,
-        sbert
+        semanticProvider: { provider:'voyage', model:'voyage-4-large', mode:'semantic-only', ...voyage }
       },
       meta: {
         generatedAt: new Date().toISOString(),
-        readinessPolicy: 'Database and SBERT must both be available for full readiness. SBERT failure is reported as degraded, not full semantic readiness.'
+        readinessPolicy: 'Database and Voyage credential configuration are required. No provider request is made by readiness.'
       }
     }
   };
@@ -96,6 +78,6 @@ async function getReadiness() {
 module.exports = {
   getReadiness,
   checkDatabase,
-  checkSbert,
+  checkVoyageConfiguration,
   DATABASE_READINESS_TIMEOUT_MS
 };

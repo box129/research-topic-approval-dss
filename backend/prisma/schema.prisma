@@ -216,6 +216,12 @@ model HistoricalTopic {
   sourceFilename String?  @map("source_filename") @db.Text
   importBatchId  String?  @map("import_batch_id")
   embedding      Json?
+  embeddingProvider String? @map("embedding_provider")
+  embeddingModel String? @map("embedding_model")
+  embeddingDimension Int? @map("embedding_dimension")
+  embeddingRepresentation String? @map("embedding_representation")
+  embeddingSourceHash String? @map("embedding_source_hash")
+  embeddedAt DateTime? @map("embedded_at")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
@@ -242,6 +248,12 @@ model CurrentSessionTopic {
   sourceFilename String?   @map("source_filename") @db.Text
   importBatchId  String?   @map("import_batch_id")
   embedding      Json?
+  embeddingProvider String? @map("embedding_provider")
+  embeddingModel String? @map("embedding_model")
+  embeddingDimension Int? @map("embedding_dimension")
+  embeddingRepresentation String? @map("embedding_representation")
+  embeddingSourceHash String? @map("embedding_source_hash")
+  embeddedAt DateTime? @map("embedded_at")
   approvedDate   DateTime? @map("approved_date")
   studentId      String?   @map("student_id")
   createdAt      DateTime  @default(now()) @map("created_at")
@@ -270,6 +282,12 @@ model UnderReviewTopic {
   sourceFilename    String?   @map("source_filename") @db.Text
   importBatchId     String?   @map("import_batch_id")
   embedding         Json?
+  embeddingProvider String? @map("embedding_provider")
+  embeddingModel String? @map("embedding_model")
+  embeddingDimension Int? @map("embedding_dimension")
+  embeddingRepresentation String? @map("embedding_representation")
+  embeddingSourceHash String? @map("embedding_source_hash")
+  embeddedAt DateTime? @map("embedded_at")
   reviewStartedAt   DateTime? @map("review_started_at")
   reviewingLecturer String?   @map("reviewing_lecturer")
   createdAt         DateTime  @default(now()) @map("created_at")

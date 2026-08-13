@@ -7,8 +7,8 @@ describe('ResultsDisplay Component - Redesigned', () => {
   // Mock data
   const mockLowRiskData = {
     risk_level: 'LOW',
-    max_similarity: 45,
-    sbert_available: true,
+    max_similarity: 0.45,
+    semantic_available: true,
     tier1_matches: [
       {
         id: 1,
@@ -16,9 +16,7 @@ describe('ResultsDisplay Component - Redesigned', () => {
         supervisor_name: 'Dr. Smith',
         session_year: '2023/2024',
         status: 'Approved',
-        jaccard_score: 45,
-        tfidf_score: 42,
-        sbert_score: 40
+        semantic_score: 0.40
       }
     ],
     tier2_matches: [],
@@ -27,8 +25,8 @@ describe('ResultsDisplay Component - Redesigned', () => {
 
   const mockHighRiskData = {
     risk_level: 'HIGH',
-    max_similarity: 85,
-    sbert_available: true,
+    max_similarity: 0.85,
+    semantic_available: true,
     tier1_matches: [
       {
         id: 1,
@@ -36,9 +34,7 @@ describe('ResultsDisplay Component - Redesigned', () => {
         supervisor_name: 'Dr. Johnson',
         session_year: '2023/2024',
         status: 'In Progress',
-        jaccard_score: 85,
-        tfidf_score: 82,
-        sbert_score: 88
+        semantic_score: 0.88
       },
       {
         id: 2,
@@ -46,9 +42,7 @@ describe('ResultsDisplay Component - Redesigned', () => {
         supervisor_name: 'Dr. Williams',
         session_year: '2023/2024',
         status: 'Approved',
-        jaccard_score: 78,
-        tfidf_score: 75,
-        sbert_score: 80
+        semantic_score: 0.80
       }
     ],
     tier2_matches: [
@@ -58,9 +52,7 @@ describe('ResultsDisplay Component - Redesigned', () => {
         supervisor_name: 'Dr. Brown',
         session_year: '2023/2024',
         status: 'Under Review',
-        jaccard_score: 72,
-        tfidf_score: 70,
-        sbert_score: 75
+        semantic_score: 0.75
       }
     ],
     tier3_matches: []
@@ -102,7 +94,7 @@ describe('ResultsDisplay Component - Redesigned', () => {
     it('shows maximum similarity score in banner', () => {
       render(<ResultsDisplay results={mockLowRiskData} />);
       
-      expect(screen.getByTestId('max-similarity')).toHaveTextContent('45%');
+      expect(screen.getByTestId('max-similarity')).toHaveTextContent('0.450');
     });
   });
 
@@ -181,7 +173,7 @@ describe('ResultsDisplay Component - Redesigned', () => {
       
       // Algorithm details should now be visible
       expect(screen.getByTestId('algorithm-details-0')).toBeInTheDocument();
-      expect(screen.getByTestId('jaccard-badge-0')).toBeInTheDocument();
+      expect(screen.getByTestId('semantic-badge-0')).toBeInTheDocument();
     });
 
     it('toggles between Show and Hide text', async () => {
@@ -198,15 +190,14 @@ describe('ResultsDisplay Component - Redesigned', () => {
       expect(expandBtn).toHaveTextContent('Show Technical Details');
     });
 
-    it('displays algorithm badges with human-friendly labels', async () => {
+    it('displays the semantic score without legacy algorithm badges', async () => {
       const user = userEvent.setup();
       render(<ResultsDisplay results={mockLowRiskData} />);
       
       await user.click(screen.getByTestId('expand-details-0'));
       
-      expect(screen.getByTestId('jaccard-badge-0')).toHaveTextContent('Exact Match:');
-      expect(screen.getByTestId('tfidf-badge-0')).toHaveTextContent('Term Weight:');
-      expect(screen.getByTestId('sbert-badge-0')).toHaveTextContent('Semantic:');
+      expect(screen.getByTestId('semantic-badge-0')).toHaveTextContent('Semantic:');
+      expect(screen.queryByText(/jaccard|tf-idf|sbert/i)).not.toBeInTheDocument();
     });
   });
 
@@ -220,7 +211,7 @@ describe('ResultsDisplay Component - Redesigned', () => {
     it('displays max similarity in summary', () => {
       render(<ResultsDisplay results={mockLowRiskData} />);
       
-      expect(screen.getByTestId('summary-max-similarity')).toHaveTextContent('45%');
+      expect(screen.getByTestId('summary-max-similarity')).toHaveTextContent('0.450');
     });
 
     it('displays total matches count', () => {
@@ -231,19 +222,11 @@ describe('ResultsDisplay Component - Redesigned', () => {
     });
   });
 
-  describe('SBERT Degradation Notice', () => {
-    it('shows notice when SBERT unavailable', () => {
-      const dataWithoutSBERT = { ...mockLowRiskData, sbert_available: false };
-      render(<ResultsDisplay results={dataWithoutSBERT} />);
-      
-      expect(screen.getByTestId('sbert-warning')).toBeInTheDocument();
-      expect(screen.getByText(/Semantic analysis is temporarily unavailable/i)).toBeInTheDocument();
-    });
-
-    it('does not show notice when SBERT available', () => {
-      render(<ResultsDisplay results={mockLowRiskData} />);
-      
-      expect(screen.queryByTestId('sbert-warning')).not.toBeInTheDocument();
+  describe('Semantic score terminology', () => {
+    it('labels checker summary as semantic similarity, not combined similarity', () => {
+      render(<ResultsDisplay appearance="student-checker" results={{ ...mockLowRiskData, semantic_available: true }} />);
+      expect(screen.getByText(/highest semantic similarity/i)).toBeInTheDocument();
+      expect(screen.queryByText(/combined similarity/i)).not.toBeInTheDocument();
     });
   });
 
@@ -252,7 +235,7 @@ describe('ResultsDisplay Component - Redesigned', () => {
       const noMatchesData = {
         risk_level: 'LOW',
         max_similarity: 0,
-        sbert_available: true,
+        semantic_available: true,
         tier1_matches: [],
         tier2_matches: [],
         tier3_matches: []
@@ -275,9 +258,7 @@ describe('ResultsDisplay Component - Redesigned', () => {
           topic_title: 'Under-review public health topic',
           supervisor_name: 'Dr. Reviewing Lecturer',
           session_year: '2026-08-05',
-          jaccard_score: 61,
-          tfidf_score: 64,
-          sbert_score: null
+          semantic_score: 0.64
         }]
       }} />);
 
