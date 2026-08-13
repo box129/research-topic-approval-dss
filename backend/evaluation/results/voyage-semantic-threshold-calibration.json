@@ -1,0 +1,3900 @@
+{
+  "experiment": {
+    "id": "voyage-semantic-threshold-calibration-c1.4",
+    "scope": "Local calibration from completed C1.2 Voyage production pair-mean scores only."
+  },
+  "benchmark": {
+    "sha256Before": "b8e295e5a08c13f31d139b726105dc0f03a246243d2a7883938c2e425f5ea3c0",
+    "sha256After": "b8e295e5a08c13f31d139b726105dc0f03a246243d2a7883938c2e425f5ea3c0",
+    "support": {
+      "LOW": 39,
+      "MEDIUM": 41,
+      "HIGH": 40
+    },
+    "pairs": 120,
+    "connectedComponents": 113
+  },
+  "source": {
+    "artifact": "backend/evaluation/results/production-semantic-retrieval-validation-completed.json",
+    "provider": {
+      "provider": "voyage",
+      "model": "voyage-4-large",
+      "query": {
+        "input_type": "query"
+      },
+      "document": {
+        "input_type": "document"
+      },
+      "dimension": 1024,
+      "dtype": "float",
+      "representation": "structured-context-v1"
+    }
+  },
+  "groupedHeldOut": {
+    "seed": 20260810,
+    "folds": [
+      {
+        "fold": 1,
+        "trainingCases": 95,
+        "heldOutCases": 25,
+        "heldOutSupport": {
+          "LOW": 7,
+          "MEDIUM": 8,
+          "HIGH": 10
+        },
+        "componentIds": [
+          "component-04db072f5f377795",
+          "component-0b68ee6bbbb171b5",
+          "component-0e2bbd40620678ae",
+          "component-1c27624d02f9dee2",
+          "component-2e82ed55ccdc30e4",
+          "component-2f446de17c3e9535",
+          "component-2fee5b2487fd7b7c",
+          "component-4e1d9505b35b3975",
+          "component-5cd407b0d3877ea6",
+          "component-69afb09ab33bf1cd",
+          "component-6c0e685541faea53",
+          "component-7201d63b878075cf",
+          "component-73631e96dbd0113b",
+          "component-763e9467f4a523c2",
+          "component-7aeb66448e256642",
+          "component-965fa10f1c196dc5",
+          "component-af20adac921b119f",
+          "component-bc79691de09eb121",
+          "component-c021a27a9c2c537e",
+          "component-c3415bb48f4ae18e",
+          "component-e379dff45aaf78f4",
+          "component-e6ff03153c1aa16f",
+          "component-f7a9fef74501866a",
+          "component-f8e31bfeb8c63182",
+          "component-fb2bb314c884e7ad"
+        ],
+        "t1": 0.550343,
+        "t2": 0.635004,
+        "trainingMacroF1": 0.88062
+      },
+      {
+        "fold": 2,
+        "trainingCases": 96,
+        "heldOutCases": 24,
+        "heldOutSupport": {
+          "LOW": 8,
+          "MEDIUM": 8,
+          "HIGH": 8
+        },
+        "componentIds": [
+          "component-01df545104630585",
+          "component-0c1ac3c21e6d7379",
+          "component-12efb2e5e4380604",
+          "component-2c55cfaa0271a456",
+          "component-3c84d50d99e593c9",
+          "component-4cbb2590cc69f012",
+          "component-4fdcd824319324f2",
+          "component-5dac936425170f03",
+          "component-6533b768054875b4",
+          "component-668be1921d2adf20",
+          "component-67082cc73e1332a4",
+          "component-69035c1c31d42557",
+          "component-802082ac2f1d1887",
+          "component-922020083549bdce",
+          "component-98f8f00371d8222f",
+          "component-a1e794d6c305035f",
+          "component-a6cf9aee69b42945",
+          "component-a9a7045a0356a28e",
+          "component-ab6677b62ebaecf2",
+          "component-abc4aea1b4c8ca07",
+          "component-c691f76eed944977",
+          "component-e968cbd2bd396109",
+          "component-ee254cdca1d642ce",
+          "component-f386dc6f597ec512"
+        ],
+        "t1": 0.535793,
+        "t2": 0.634929,
+        "trainingMacroF1": 0.874203
+      },
+      {
+        "fold": 3,
+        "trainingCases": 96,
+        "heldOutCases": 24,
+        "heldOutSupport": {
+          "LOW": 8,
+          "MEDIUM": 8,
+          "HIGH": 8
+        },
+        "componentIds": [
+          "component-03fa91bfeea7c11c",
+          "component-04333334c33f2097",
+          "component-0cd2b2c7320af743",
+          "component-0f6d90925e07e70b",
+          "component-12e2ee6851aab01d",
+          "component-1697910d1ed3673a",
+          "component-2bd5e97709c339a4",
+          "component-3566ba5e97977fc2",
+          "component-382549cd3021cd07",
+          "component-3d3b4b8b6ddfb32c",
+          "component-3e5c29d06b936076",
+          "component-46a0360627e7fdbb",
+          "component-58d84c1887fb5958",
+          "component-69cc12360fd22b29",
+          "component-7bb81ec1023c011f",
+          "component-80afb935576f3e38",
+          "component-873de7011aca3ee1",
+          "component-87620e42728ae5da",
+          "component-90392ca8b4d9cf7a",
+          "component-915ffbfaf0d92222",
+          "component-b3d88af3814b6d9d",
+          "component-dbbac170cf7d5170",
+          "component-f55580a7989c3c63",
+          "component-f77b8ffd9c4c2f62"
+        ],
+        "t1": 0.550343,
+        "t2": 0.635004,
+        "trainingMacroF1": 0.883947
+      },
+      {
+        "fold": 4,
+        "trainingCases": 96,
+        "heldOutCases": 24,
+        "heldOutSupport": {
+          "LOW": 8,
+          "MEDIUM": 8,
+          "HIGH": 8
+        },
+        "componentIds": [
+          "component-01b3152230c6e75e",
+          "component-26ac5786520db5f1",
+          "component-2dd1340f77d8b8e3",
+          "component-4c2646fb27ad0216",
+          "component-576e4a8d99375835",
+          "component-5f1f15c9780e4eb9",
+          "component-684d3ca0d7c19253",
+          "component-6a5a2edb32db8fbc",
+          "component-84eb1f72db6e67a6",
+          "component-8e1258866ed0f04a",
+          "component-9a85937b069873e9",
+          "component-a3a0135e0b22336f",
+          "component-a5675b1e03dbe922",
+          "component-bbc89caf2d1e491c",
+          "component-bcf52597e1703837",
+          "component-c605ed8b199fd15a",
+          "component-cb2b23a0ea8ccd14",
+          "component-d33f84fd0aa230d0",
+          "component-d4a5045e2a387445",
+          "component-d4bad9b512a7761e",
+          "component-db12f5b95f819e7e",
+          "component-f0ccda665bad7048",
+          "component-f5db4812bae7eba1",
+          "component-f7203c079eb150b2"
+        ],
+        "t1": 0.550343,
+        "t2": 0.635175,
+        "trainingMacroF1": 0.905132
+      },
+      {
+        "fold": 5,
+        "trainingCases": 97,
+        "heldOutCases": 23,
+        "heldOutSupport": {
+          "LOW": 8,
+          "MEDIUM": 9,
+          "HIGH": 6
+        },
+        "componentIds": [
+          "component-0b61f0e726e93918",
+          "component-186f3e1ac7a14970",
+          "component-2098f3b7d139a619",
+          "component-2a651ad59c2313f3",
+          "component-38cd79e234347791",
+          "component-456297aad7728a2b",
+          "component-4d191c703d720538",
+          "component-55e528866779a22c",
+          "component-632982c7923eb090",
+          "component-6363126bfcf54a22",
+          "component-7462ecfec5ce5709",
+          "component-842f34c58d1c86c3",
+          "component-8ae0a26d3bcb3c3c",
+          "component-8b836428891643ce",
+          "component-9d170cd9dda89c72",
+          "component-f45dbffb7958b3f6"
+        ],
+        "t1": 0.550839,
+        "t2": 0.646062,
+        "trainingMacroF1": 0.864105
+      }
+    ],
+    "predictions": [
+      {
+        "id": "expanded-high-001",
+        "componentId": "component-26ac5786520db5f1",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-002",
+        "componentId": "component-2e82ed55ccdc30e4",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-003",
+        "componentId": "component-12e2ee6851aab01d",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-004",
+        "componentId": "component-f5db4812bae7eba1",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-005",
+        "componentId": "component-2fee5b2487fd7b7c",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-006",
+        "componentId": "component-2a651ad59c2313f3",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-007",
+        "componentId": "component-f55580a7989c3c63",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-008",
+        "componentId": "component-af20adac921b119f",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-009",
+        "componentId": "component-bc79691de09eb121",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-010",
+        "componentId": "component-f7a9fef74501866a",
+        "actual": "HIGH",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-high-011",
+        "componentId": "component-7aeb66448e256642",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-012",
+        "componentId": "component-84eb1f72db6e67a6",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-013",
+        "componentId": "component-0cd2b2c7320af743",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-014",
+        "componentId": "component-d4bad9b512a7761e",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-015",
+        "componentId": "component-382549cd3021cd07",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-016",
+        "componentId": "component-67082cc73e1332a4",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-017",
+        "componentId": "component-0b61f0e726e93918",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-018",
+        "componentId": "component-6533b768054875b4",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-019",
+        "componentId": "component-9d170cd9dda89c72",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-020",
+        "componentId": "component-46a0360627e7fdbb",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-021",
+        "componentId": "component-c605ed8b199fd15a",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-022",
+        "componentId": "component-ab6677b62ebaecf2",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-023",
+        "componentId": "component-6a5a2edb32db8fbc",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-024",
+        "componentId": "component-ee254cdca1d642ce",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-025",
+        "componentId": "component-6363126bfcf54a22",
+        "actual": "HIGH",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-high-026",
+        "componentId": "component-3c84d50d99e593c9",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-027",
+        "componentId": "component-4d191c703d720538",
+        "actual": "HIGH",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-high-028",
+        "componentId": "component-7462ecfec5ce5709",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-029",
+        "componentId": "component-2bd5e97709c339a4",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-030",
+        "componentId": "component-69cc12360fd22b29",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-031",
+        "componentId": "component-0c1ac3c21e6d7379",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-032",
+        "componentId": "component-a3a0135e0b22336f",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-033",
+        "componentId": "component-04db072f5f377795",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-034",
+        "componentId": "component-5dac936425170f03",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-035",
+        "componentId": "component-98f8f00371d8222f",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-036",
+        "componentId": "component-f8e31bfeb8c63182",
+        "actual": "HIGH",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-high-037",
+        "componentId": "component-0b68ee6bbbb171b5",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-038",
+        "componentId": "component-5cd407b0d3877ea6",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-039",
+        "componentId": "component-03fa91bfeea7c11c",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-040",
+        "componentId": "component-2dd1340f77d8b8e3",
+        "actual": "HIGH",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-low-001",
+        "componentId": "component-f7203c079eb150b2",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-002",
+        "componentId": "component-6c0e685541faea53",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-003",
+        "componentId": "component-922020083549bdce",
+        "actual": "LOW",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-low-004",
+        "componentId": "component-a1e794d6c305035f",
+        "actual": "LOW",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-low-005",
+        "componentId": "component-a6cf9aee69b42945",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-006",
+        "componentId": "component-965fa10f1c196dc5",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-007",
+        "componentId": "component-87620e42728ae5da",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-008",
+        "componentId": "component-c691f76eed944977",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-009",
+        "componentId": "component-456297aad7728a2b",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-010",
+        "componentId": "component-4e1d9505b35b3975",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-low-011",
+        "componentId": "component-5f1f15c9780e4eb9",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-012",
+        "componentId": "component-69035c1c31d42557",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-013",
+        "componentId": "component-4fdcd824319324f2",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-014",
+        "componentId": "component-a5675b1e03dbe922",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-015",
+        "componentId": "component-55e528866779a22c",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-016",
+        "componentId": "component-576e4a8d99375835",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-low-017",
+        "componentId": "component-cb2b23a0ea8ccd14",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-018",
+        "componentId": "component-58d84c1887fb5958",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-019",
+        "componentId": "component-f45dbffb7958b3f6",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-020",
+        "componentId": "component-8b836428891643ce",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-021",
+        "componentId": "component-0b61f0e726e93918",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-022",
+        "componentId": "component-bcf52597e1703837",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-023",
+        "componentId": "component-1697910d1ed3673a",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-024",
+        "componentId": "component-38cd79e234347791",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-025",
+        "componentId": "component-e6ff03153c1aa16f",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-026",
+        "componentId": "component-0e2bbd40620678ae",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-027",
+        "componentId": "component-632982c7923eb090",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-028",
+        "componentId": "component-4c2646fb27ad0216",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-029",
+        "componentId": "component-668be1921d2adf20",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-030",
+        "componentId": "component-abc4aea1b4c8ca07",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-031",
+        "componentId": "component-e379dff45aaf78f4",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-032",
+        "componentId": "component-73631e96dbd0113b",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-033",
+        "componentId": "component-d33f84fd0aa230d0",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-034",
+        "componentId": "component-04333334c33f2097",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-035",
+        "componentId": "component-2f446de17c3e9535",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-036",
+        "componentId": "component-3e5c29d06b936076",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-037",
+        "componentId": "component-90392ca8b4d9cf7a",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-038",
+        "componentId": "component-2098f3b7d139a619",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-039",
+        "componentId": "component-915ffbfaf0d92222",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-040",
+        "componentId": "component-8e1258866ed0f04a",
+        "actual": "MEDIUM",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-medium-001",
+        "componentId": "component-2a651ad59c2313f3",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-002",
+        "componentId": "component-b3d88af3814b6d9d",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-003",
+        "componentId": "component-0f6d90925e07e70b",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-004",
+        "componentId": "component-8ae0a26d3bcb3c3c",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-005",
+        "componentId": "component-7bb81ec1023c011f",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-006",
+        "componentId": "component-a9a7045a0356a28e",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-007",
+        "componentId": "component-db12f5b95f819e7e",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-008",
+        "componentId": "component-1c27624d02f9dee2",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-009",
+        "componentId": "component-c021a27a9c2c537e",
+        "actual": "MEDIUM",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-medium-010",
+        "componentId": "component-80afb935576f3e38",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-011",
+        "componentId": "component-456297aad7728a2b",
+        "actual": "MEDIUM",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-medium-012",
+        "componentId": "component-842f34c58d1c86c3",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-013",
+        "componentId": "component-01b3152230c6e75e",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-014",
+        "componentId": "component-d4a5045e2a387445",
+        "actual": "MEDIUM",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-medium-015",
+        "componentId": "component-f77b8ffd9c4c2f62",
+        "actual": "LOW",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-medium-016",
+        "componentId": "component-fb2bb314c884e7ad",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-017",
+        "componentId": "component-9a85937b069873e9",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-018",
+        "componentId": "component-f0ccda665bad7048",
+        "actual": "MEDIUM",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-medium-019",
+        "componentId": "component-763e9467f4a523c2",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-020",
+        "componentId": "component-6363126bfcf54a22",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-021",
+        "componentId": "component-4cbb2590cc69f012",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-022",
+        "componentId": "component-dbbac170cf7d5170",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-023",
+        "componentId": "component-632982c7923eb090",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-024",
+        "componentId": "component-7201d63b878075cf",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-025",
+        "componentId": "component-01df545104630585",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-026",
+        "componentId": "component-55e528866779a22c",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-027",
+        "componentId": "component-f386dc6f597ec512",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-028",
+        "componentId": "component-186f3e1ac7a14970",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-029",
+        "componentId": "component-12efb2e5e4380604",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-030",
+        "componentId": "component-684d3ca0d7c19253",
+        "actual": "LOW",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-031",
+        "componentId": "component-69afb09ab33bf1cd",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-032",
+        "componentId": "component-873de7011aca3ee1",
+        "actual": "MEDIUM",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-medium-033",
+        "componentId": "component-e968cbd2bd396109",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-034",
+        "componentId": "component-3566ba5e97977fc2",
+        "actual": "MEDIUM",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-medium-035",
+        "componentId": "component-c3415bb48f4ae18e",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-036",
+        "componentId": "component-f45dbffb7958b3f6",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-037",
+        "componentId": "component-2c55cfaa0271a456",
+        "actual": "MEDIUM",
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-038",
+        "componentId": "component-802082ac2f1d1887",
+        "actual": "MEDIUM",
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-medium-039",
+        "componentId": "component-bbc89caf2d1e491c",
+        "actual": "MEDIUM",
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-medium-040",
+        "componentId": "component-3d3b4b8b6ddfb32c",
+        "actual": "MEDIUM",
+        "predicted": "LOW"
+      }
+    ],
+    "overall": {
+      "accuracy": 0.858333,
+      "macroPrecision": 0.857644,
+      "macroRecall": 0.859725,
+      "macroF1": 0.858084
+    },
+    "perClass": {
+      "LOW": {
+        "precision": 0.9,
+        "recall": 0.923077,
+        "f1": 0.911392
+      },
+      "MEDIUM": {
+        "precision": 0.815789,
+        "recall": 0.756098,
+        "f1": 0.78481
+      },
+      "HIGH": {
+        "precision": 0.857143,
+        "recall": 0.9,
+        "f1": 0.878049
+      }
+    },
+    "confusionMatrix": {
+      "LOW": {
+        "LOW": 36,
+        "MEDIUM": 3,
+        "HIGH": 0
+      },
+      "MEDIUM": {
+        "LOW": 4,
+        "MEDIUM": 31,
+        "HIGH": 6
+      },
+      "HIGH": {
+        "LOW": 0,
+        "MEDIUM": 4,
+        "HIGH": 36
+      }
+    }
+  },
+  "deploymentCalibration": {
+    "objective": "macroF1",
+    "tieBreak": [
+      "higher macroF1",
+      "lower t1",
+      "lower t2"
+    ],
+    "thresholds": {
+      "t1": 0.5503426097449364,
+      "t2": 0.6350044680721263
+    },
+    "metrics": {
+      "accuracy": 0.883333,
+      "macroF1": 0.880801,
+      "perClass": {
+        "LOW": {
+          "precision": 0.883721,
+          "recall": 0.974359,
+          "f1": 0.926829
+        },
+        "MEDIUM": {
+          "precision": 0.909091,
+          "recall": 0.731707,
+          "f1": 0.810811
+        },
+        "HIGH": {
+          "precision": 0.863636,
+          "recall": 0.95,
+          "f1": 0.904762
+        }
+      },
+      "confusionMatrix": {
+        "LOW": {
+          "LOW": 38,
+          "MEDIUM": 1,
+          "HIGH": 0
+        },
+        "MEDIUM": {
+          "LOW": 5,
+          "MEDIUM": 30,
+          "HIGH": 6
+        },
+        "HIGH": {
+          "LOW": 0,
+          "MEDIUM": 2,
+          "HIGH": 38
+        }
+      },
+      "predictions": [
+        {
+          "id": "expanded-low-001",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-002",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-003",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-004",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-005",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-006",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-007",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-008",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-009",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-010",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-low-011",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-012",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-013",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-014",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-015",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-016",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-low-017",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-018",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-019",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-020",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-021",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-022",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-023",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-024",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-025",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-026",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-027",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-028",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-029",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-030",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-031",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-032",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-033",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-034",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-035",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-036",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-037",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-038",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-039",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-040",
+          "actual": "MEDIUM",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-medium-001",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-002",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-003",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-004",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-005",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-006",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-007",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-008",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-009",
+          "actual": "MEDIUM",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-medium-010",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-011",
+          "actual": "MEDIUM",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-medium-012",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-013",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-014",
+          "actual": "MEDIUM",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-medium-015",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-medium-016",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-017",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-018",
+          "actual": "MEDIUM",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-medium-019",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-020",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-021",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-022",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-023",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-024",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-025",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-026",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-027",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-028",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-029",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-030",
+          "actual": "LOW",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-031",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-032",
+          "actual": "MEDIUM",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-medium-033",
+          "actual": "MEDIUM",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-medium-034",
+          "actual": "MEDIUM",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-medium-035",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-036",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-037",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-038",
+          "actual": "MEDIUM",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-medium-039",
+          "actual": "MEDIUM",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-medium-040",
+          "actual": "MEDIUM",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-high-001",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-002",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-003",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-004",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-005",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-006",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-007",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-008",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-009",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-010",
+          "actual": "HIGH",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-high-011",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-012",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-013",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-014",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-015",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-016",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-017",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-018",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-019",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-020",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-021",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-022",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-023",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-024",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-025",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-026",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-027",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-028",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-029",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-030",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-031",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-032",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-033",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-034",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-035",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-036",
+          "actual": "HIGH",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-high-037",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-038",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-039",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-040",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        }
+      ]
+    },
+    "errors": {
+      "LOW": {
+        "LOW_to_MEDIUM": [
+          "expanded-medium-030"
+        ],
+        "LOW_to_HIGH": []
+      },
+      "MEDIUM": {
+        "MEDIUM_to_LOW": [
+          "expanded-low-040",
+          "expanded-medium-011",
+          "expanded-medium-033",
+          "expanded-medium-039",
+          "expanded-medium-040"
+        ],
+        "MEDIUM_to_HIGH": [
+          "expanded-medium-009",
+          "expanded-medium-014",
+          "expanded-medium-018",
+          "expanded-medium-032",
+          "expanded-medium-034",
+          "expanded-medium-038"
+        ]
+      },
+      "HIGH": {
+        "HIGH_to_LOW": [],
+        "HIGH_to_MEDIUM": [
+          "expanded-high-010",
+          "expanded-high-036"
+        ]
+      }
+    }
+  },
+  "stability": {
+    "bootstrap": {
+      "seed": 20260810,
+      "replicates": 5000,
+      "resamplingUnit": "connected_component",
+      "t1": {
+        "median": 0.542891,
+        "p025": 0.490693,
+        "p25": 0.535793,
+        "p75": 0.550343,
+        "p975": 0.564344,
+        "minimum": 0.474717,
+        "maximum": 0.56964
+      },
+      "t2": {
+        "median": 0.635004,
+        "p025": 0.620609,
+        "p25": 0.634929,
+        "p75": 0.636023,
+        "p975": 0.647242,
+        "minimum": 0.615066,
+        "maximum": 0.67701
+      }
+    },
+    "exactFrequency": {
+      "t1": 1104,
+      "t2": 1527
+    },
+    "neighborhoods": {
+      "t1": [
+        {
+          "radius": 0.01,
+          "total": 7,
+          "byClass": {
+            "LOW": 3,
+            "MEDIUM": 4,
+            "HIGH": 0
+          }
+        },
+        {
+          "radius": 0.02,
+          "total": 12,
+          "byClass": {
+            "LOW": 6,
+            "MEDIUM": 6,
+            "HIGH": 0
+          }
+        },
+        {
+          "radius": 0.05,
+          "total": 30,
+          "byClass": {
+            "LOW": 10,
+            "MEDIUM": 20,
+            "HIGH": 0
+          }
+        }
+      ],
+      "t2": [
+        {
+          "radius": 0.01,
+          "total": 12,
+          "byClass": {
+            "LOW": 0,
+            "MEDIUM": 7,
+            "HIGH": 5
+          }
+        },
+        {
+          "radius": 0.02,
+          "total": 18,
+          "byClass": {
+            "LOW": 0,
+            "MEDIUM": 9,
+            "HIGH": 9
+          }
+        },
+        {
+          "radius": 0.05,
+          "total": 50,
+          "byClass": {
+            "LOW": 0,
+            "MEDIUM": 25,
+            "HIGH": 25
+          }
+        }
+      ]
+    },
+    "sensitivity": [
+      {
+        "t1": 0.5003426097449364,
+        "t2": 0.5850044680721262,
+        "accuracy": 0.691667,
+        "macroF1": 0.675355,
+        "perClass": {
+          "LOW": {
+            "precision": 0.966667,
+            "recall": 0.74359,
+            "f1": 0.84058
+          },
+          "MEDIUM": {
+            "precision": 0.583333,
+            "recall": 0.341463,
+            "f1": 0.430769
+          },
+          "HIGH": {
+            "precision": 0.606061,
+            "recall": 1,
+            "f1": 0.754717
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 29,
+            "MEDIUM": 10,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 1,
+            "MEDIUM": 14,
+            "HIGH": 26
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 0,
+            "HIGH": 40
+          }
+        }
+      },
+      {
+        "t1": 0.5003426097449364,
+        "t2": 0.6150044680721263,
+        "accuracy": 0.8,
+        "macroF1": 0.797701,
+        "perClass": {
+          "LOW": {
+            "precision": 0.966667,
+            "recall": 0.74359,
+            "f1": 0.84058
+          },
+          "MEDIUM": {
+            "precision": 0.72973,
+            "recall": 0.658537,
+            "f1": 0.692308
+          },
+          "HIGH": {
+            "precision": 0.754717,
+            "recall": 1,
+            "f1": 0.860215
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 29,
+            "MEDIUM": 10,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 1,
+            "MEDIUM": 27,
+            "HIGH": 13
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 0,
+            "HIGH": 40
+          }
+        }
+      },
+      {
+        "t1": 0.5003426097449364,
+        "t2": 0.6250044680721263,
+        "accuracy": 0.808333,
+        "macroF1": 0.807765,
+        "perClass": {
+          "LOW": {
+            "precision": 0.966667,
+            "recall": 0.74359,
+            "f1": 0.84058
+          },
+          "MEDIUM": {
+            "precision": 0.725,
+            "recall": 0.707317,
+            "f1": 0.716049
+          },
+          "HIGH": {
+            "precision": 0.78,
+            "recall": 0.975,
+            "f1": 0.866667
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 29,
+            "MEDIUM": 10,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 1,
+            "MEDIUM": 29,
+            "HIGH": 11
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 1,
+            "HIGH": 39
+          }
+        }
+      },
+      {
+        "t1": 0.5003426097449364,
+        "t2": 0.6350044680721263,
+        "accuracy": 0.841667,
+        "macroF1": 0.842317,
+        "perClass": {
+          "LOW": {
+            "precision": 0.966667,
+            "recall": 0.74359,
+            "f1": 0.84058
+          },
+          "MEDIUM": {
+            "precision": 0.73913,
+            "recall": 0.829268,
+            "f1": 0.781609
+          },
+          "HIGH": {
+            "precision": 0.863636,
+            "recall": 0.95,
+            "f1": 0.904762
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 29,
+            "MEDIUM": 10,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 1,
+            "MEDIUM": 34,
+            "HIGH": 6
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 2,
+            "HIGH": 38
+          }
+        }
+      },
+      {
+        "t1": 0.5003426097449364,
+        "t2": 0.6450044680721263,
+        "accuracy": 0.825,
+        "macroF1": 0.828856,
+        "perClass": {
+          "LOW": {
+            "precision": 0.966667,
+            "recall": 0.74359,
+            "f1": 0.84058
+          },
+          "MEDIUM": {
+            "precision": 0.692308,
+            "recall": 0.878049,
+            "f1": 0.774194
+          },
+          "HIGH": {
+            "precision": 0.894737,
+            "recall": 0.85,
+            "f1": 0.871795
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 29,
+            "MEDIUM": 10,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 1,
+            "MEDIUM": 36,
+            "HIGH": 4
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 6,
+            "HIGH": 34
+          }
+        }
+      },
+      {
+        "t1": 0.5003426097449364,
+        "t2": 0.6550044680721263,
+        "accuracy": 0.8,
+        "macroF1": 0.805749,
+        "perClass": {
+          "LOW": {
+            "precision": 0.966667,
+            "recall": 0.74359,
+            "f1": 0.84058
+          },
+          "MEDIUM": {
+            "precision": 0.654545,
+            "recall": 0.878049,
+            "f1": 0.75
+          },
+          "HIGH": {
+            "precision": 0.885714,
+            "recall": 0.775,
+            "f1": 0.826667
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 29,
+            "MEDIUM": 10,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 1,
+            "MEDIUM": 36,
+            "HIGH": 4
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 9,
+            "HIGH": 31
+          }
+        }
+      },
+      {
+        "t1": 0.5003426097449364,
+        "t2": 0.6850044680721263,
+        "accuracy": 0.691667,
+        "macroF1": 0.684852,
+        "perClass": {
+          "LOW": {
+            "precision": 0.966667,
+            "recall": 0.74359,
+            "f1": 0.84058
+          },
+          "MEDIUM": {
+            "precision": 0.527027,
+            "recall": 0.95122,
+            "f1": 0.678261
+          },
+          "HIGH": {
+            "precision": 0.9375,
+            "recall": 0.375,
+            "f1": 0.535714
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 29,
+            "MEDIUM": 10,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 1,
+            "MEDIUM": 39,
+            "HIGH": 1
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 25,
+            "HIGH": 15
+          }
+        }
+      },
+      {
+        "t1": 0.5303426097449364,
+        "t2": 0.5850044680721262,
+        "accuracy": 0.708333,
+        "macroF1": 0.680499,
+        "perClass": {
+          "LOW": {
+            "precision": 0.916667,
+            "recall": 0.846154,
+            "f1": 0.88
+          },
+          "MEDIUM": {
+            "precision": 0.666667,
+            "recall": 0.292683,
+            "f1": 0.40678
+          },
+          "HIGH": {
+            "precision": 0.606061,
+            "recall": 1,
+            "f1": 0.754717
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 33,
+            "MEDIUM": 6,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 3,
+            "MEDIUM": 12,
+            "HIGH": 26
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 0,
+            "HIGH": 40
+          }
+        }
+      },
+      {
+        "t1": 0.5303426097449364,
+        "t2": 0.6150044680721263,
+        "accuracy": 0.816667,
+        "macroF1": 0.811553,
+        "perClass": {
+          "LOW": {
+            "precision": 0.916667,
+            "recall": 0.846154,
+            "f1": 0.88
+          },
+          "MEDIUM": {
+            "precision": 0.806452,
+            "recall": 0.609756,
+            "f1": 0.694444
+          },
+          "HIGH": {
+            "precision": 0.754717,
+            "recall": 1,
+            "f1": 0.860215
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 33,
+            "MEDIUM": 6,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 3,
+            "MEDIUM": 25,
+            "HIGH": 13
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 0,
+            "HIGH": 40
+          }
+        }
+      },
+      {
+        "t1": 0.5303426097449364,
+        "t2": 0.6250044680721263,
+        "accuracy": 0.825,
+        "macroF1": 0.822222,
+        "perClass": {
+          "LOW": {
+            "precision": 0.916667,
+            "recall": 0.846154,
+            "f1": 0.88
+          },
+          "MEDIUM": {
+            "precision": 0.794118,
+            "recall": 0.658537,
+            "f1": 0.72
+          },
+          "HIGH": {
+            "precision": 0.78,
+            "recall": 0.975,
+            "f1": 0.866667
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 33,
+            "MEDIUM": 6,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 3,
+            "MEDIUM": 27,
+            "HIGH": 11
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 1,
+            "HIGH": 39
+          }
+        }
+      },
+      {
+        "t1": 0.5303426097449364,
+        "t2": 0.6350044680721263,
+        "accuracy": 0.858333,
+        "macroF1": 0.858295,
+        "perClass": {
+          "LOW": {
+            "precision": 0.916667,
+            "recall": 0.846154,
+            "f1": 0.88
+          },
+          "MEDIUM": {
+            "precision": 0.8,
+            "recall": 0.780488,
+            "f1": 0.790123
+          },
+          "HIGH": {
+            "precision": 0.863636,
+            "recall": 0.95,
+            "f1": 0.904762
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 33,
+            "MEDIUM": 6,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 3,
+            "MEDIUM": 32,
+            "HIGH": 6
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 2,
+            "HIGH": 38
+          }
+        }
+      },
+      {
+        "t1": 0.5303426097449364,
+        "t2": 0.6450044680721263,
+        "accuracy": 0.841667,
+        "macroF1": 0.844468,
+        "perClass": {
+          "LOW": {
+            "precision": 0.916667,
+            "recall": 0.846154,
+            "f1": 0.88
+          },
+          "MEDIUM": {
+            "precision": 0.73913,
+            "recall": 0.829268,
+            "f1": 0.781609
+          },
+          "HIGH": {
+            "precision": 0.894737,
+            "recall": 0.85,
+            "f1": 0.871795
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 33,
+            "MEDIUM": 6,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 3,
+            "MEDIUM": 34,
+            "HIGH": 4
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 6,
+            "HIGH": 34
+          }
+        }
+      },
+      {
+        "t1": 0.5303426097449364,
+        "t2": 0.6550044680721263,
+        "accuracy": 0.816667,
+        "macroF1": 0.820741,
+        "perClass": {
+          "LOW": {
+            "precision": 0.916667,
+            "recall": 0.846154,
+            "f1": 0.88
+          },
+          "MEDIUM": {
+            "precision": 0.693878,
+            "recall": 0.829268,
+            "f1": 0.755556
+          },
+          "HIGH": {
+            "precision": 0.885714,
+            "recall": 0.775,
+            "f1": 0.826667
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 33,
+            "MEDIUM": 6,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 3,
+            "MEDIUM": 34,
+            "HIGH": 4
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 9,
+            "HIGH": 31
+          }
+        }
+      },
+      {
+        "t1": 0.5303426097449364,
+        "t2": 0.6850044680721263,
+        "accuracy": 0.708333,
+        "macroF1": 0.698204,
+        "perClass": {
+          "LOW": {
+            "precision": 0.916667,
+            "recall": 0.846154,
+            "f1": 0.88
+          },
+          "MEDIUM": {
+            "precision": 0.544118,
+            "recall": 0.902439,
+            "f1": 0.678899
+          },
+          "HIGH": {
+            "precision": 0.9375,
+            "recall": 0.375,
+            "f1": 0.535714
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 33,
+            "MEDIUM": 6,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 3,
+            "MEDIUM": 37,
+            "HIGH": 1
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 25,
+            "HIGH": 15
+          }
+        }
+      },
+      {
+        "t1": 0.5403426097449364,
+        "t2": 0.5850044680721262,
+        "accuracy": 0.716667,
+        "macroF1": 0.68167,
+        "perClass": {
+          "LOW": {
+            "precision": 0.897436,
+            "recall": 0.897436,
+            "f1": 0.897436
+          },
+          "MEDIUM": {
+            "precision": 0.733333,
+            "recall": 0.268293,
+            "f1": 0.392857
+          },
+          "HIGH": {
+            "precision": 0.606061,
+            "recall": 1,
+            "f1": 0.754717
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 35,
+            "MEDIUM": 4,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 4,
+            "MEDIUM": 11,
+            "HIGH": 26
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 0,
+            "HIGH": 40
+          }
+        }
+      },
+      {
+        "t1": 0.5403426097449364,
+        "t2": 0.6150044680721263,
+        "accuracy": 0.825,
+        "macroF1": 0.817768,
+        "perClass": {
+          "LOW": {
+            "precision": 0.897436,
+            "recall": 0.897436,
+            "f1": 0.897436
+          },
+          "MEDIUM": {
+            "precision": 0.857143,
+            "recall": 0.585366,
+            "f1": 0.695652
+          },
+          "HIGH": {
+            "precision": 0.754717,
+            "recall": 1,
+            "f1": 0.860215
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 35,
+            "MEDIUM": 4,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 4,
+            "MEDIUM": 24,
+            "HIGH": 13
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 0,
+            "HIGH": 40
+          }
+        }
+      },
+      {
+        "t1": 0.5403426097449364,
+        "t2": 0.6250044680721263,
+        "accuracy": 0.833333,
+        "macroF1": 0.828775,
+        "perClass": {
+          "LOW": {
+            "precision": 0.897436,
+            "recall": 0.897436,
+            "f1": 0.897436
+          },
+          "MEDIUM": {
+            "precision": 0.83871,
+            "recall": 0.634146,
+            "f1": 0.722222
+          },
+          "HIGH": {
+            "precision": 0.78,
+            "recall": 0.975,
+            "f1": 0.866667
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 35,
+            "MEDIUM": 4,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 4,
+            "MEDIUM": 26,
+            "HIGH": 11
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 1,
+            "HIGH": 39
+          }
+        }
+      },
+      {
+        "t1": 0.5403426097449364,
+        "t2": 0.6350044680721263,
+        "accuracy": 0.866667,
+        "macroF1": 0.86569,
+        "perClass": {
+          "LOW": {
+            "precision": 0.897436,
+            "recall": 0.897436,
+            "f1": 0.897436
+          },
+          "MEDIUM": {
+            "precision": 0.837838,
+            "recall": 0.756098,
+            "f1": 0.794872
+          },
+          "HIGH": {
+            "precision": 0.863636,
+            "recall": 0.95,
+            "f1": 0.904762
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 35,
+            "MEDIUM": 4,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 4,
+            "MEDIUM": 31,
+            "HIGH": 6
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 2,
+            "HIGH": 38
+          }
+        }
+      },
+      {
+        "t1": 0.5403426097449364,
+        "t2": 0.6450044680721263,
+        "accuracy": 0.85,
+        "macroF1": 0.851648,
+        "perClass": {
+          "LOW": {
+            "precision": 0.897436,
+            "recall": 0.897436,
+            "f1": 0.897436
+          },
+          "MEDIUM": {
+            "precision": 0.767442,
+            "recall": 0.804878,
+            "f1": 0.785714
+          },
+          "HIGH": {
+            "precision": 0.894737,
+            "recall": 0.85,
+            "f1": 0.871795
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 35,
+            "MEDIUM": 4,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 4,
+            "MEDIUM": 33,
+            "HIGH": 4
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 6,
+            "HIGH": 34
+          }
+        }
+      },
+      {
+        "t1": 0.5403426097449364,
+        "t2": 0.6550044680721263,
+        "accuracy": 0.825,
+        "macroF1": 0.827575,
+        "perClass": {
+          "LOW": {
+            "precision": 0.897436,
+            "recall": 0.897436,
+            "f1": 0.897436
+          },
+          "MEDIUM": {
+            "precision": 0.717391,
+            "recall": 0.804878,
+            "f1": 0.758621
+          },
+          "HIGH": {
+            "precision": 0.885714,
+            "recall": 0.775,
+            "f1": 0.826667
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 35,
+            "MEDIUM": 4,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 4,
+            "MEDIUM": 33,
+            "HIGH": 4
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 9,
+            "HIGH": 31
+          }
+        }
+      },
+      {
+        "t1": 0.5403426097449364,
+        "t2": 0.6850044680721263,
+        "accuracy": 0.716667,
+        "macroF1": 0.704132,
+        "perClass": {
+          "LOW": {
+            "precision": 0.897436,
+            "recall": 0.897436,
+            "f1": 0.897436
+          },
+          "MEDIUM": {
+            "precision": 0.553846,
+            "recall": 0.878049,
+            "f1": 0.679245
+          },
+          "HIGH": {
+            "precision": 0.9375,
+            "recall": 0.375,
+            "f1": 0.535714
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 35,
+            "MEDIUM": 4,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 4,
+            "MEDIUM": 36,
+            "HIGH": 1
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 25,
+            "HIGH": 15
+          }
+        }
+      },
+      {
+        "t1": 0.5503426097449364,
+        "t2": 0.5850044680721262,
+        "accuracy": 0.733333,
+        "macroF1": 0.68872,
+        "perClass": {
+          "LOW": {
+            "precision": 0.883721,
+            "recall": 0.974359,
+            "f1": 0.926829
+          },
+          "MEDIUM": {
+            "precision": 0.909091,
+            "recall": 0.243902,
+            "f1": 0.384615
+          },
+          "HIGH": {
+            "precision": 0.606061,
+            "recall": 1,
+            "f1": 0.754717
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 38,
+            "MEDIUM": 1,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 5,
+            "MEDIUM": 10,
+            "HIGH": 26
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 0,
+            "HIGH": 40
+          }
+        }
+      },
+      {
+        "t1": 0.5503426097449364,
+        "t2": 0.6150044680721263,
+        "accuracy": 0.841667,
+        "macroF1": 0.831579,
+        "perClass": {
+          "LOW": {
+            "precision": 0.883721,
+            "recall": 0.974359,
+            "f1": 0.926829
+          },
+          "MEDIUM": {
+            "precision": 0.958333,
+            "recall": 0.560976,
+            "f1": 0.707692
+          },
+          "HIGH": {
+            "precision": 0.754717,
+            "recall": 1,
+            "f1": 0.860215
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 38,
+            "MEDIUM": 1,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 5,
+            "MEDIUM": 23,
+            "HIGH": 13
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 0,
+            "HIGH": 40
+          }
+        }
+      },
+      {
+        "t1": 0.5503426097449364,
+        "t2": 0.6250044680721263,
+        "accuracy": 0.85,
+        "macroF1": 0.84293,
+        "perClass": {
+          "LOW": {
+            "precision": 0.883721,
+            "recall": 0.974359,
+            "f1": 0.926829
+          },
+          "MEDIUM": {
+            "precision": 0.925926,
+            "recall": 0.609756,
+            "f1": 0.735294
+          },
+          "HIGH": {
+            "precision": 0.78,
+            "recall": 0.975,
+            "f1": 0.866667
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 38,
+            "MEDIUM": 1,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 5,
+            "MEDIUM": 25,
+            "HIGH": 11
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 1,
+            "HIGH": 39
+          }
+        }
+      },
+      {
+        "t1": 0.5503426097449364,
+        "t2": 0.6350044680721263,
+        "accuracy": 0.883333,
+        "macroF1": 0.880801,
+        "perClass": {
+          "LOW": {
+            "precision": 0.883721,
+            "recall": 0.974359,
+            "f1": 0.926829
+          },
+          "MEDIUM": {
+            "precision": 0.909091,
+            "recall": 0.731707,
+            "f1": 0.810811
+          },
+          "HIGH": {
+            "precision": 0.863636,
+            "recall": 0.95,
+            "f1": 0.904762
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 38,
+            "MEDIUM": 1,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 5,
+            "MEDIUM": 30,
+            "HIGH": 6
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 2,
+            "HIGH": 38
+          }
+        }
+      },
+      {
+        "t1": 0.5503426097449364,
+        "t2": 0.6450044680721263,
+        "accuracy": 0.866667,
+        "macroF1": 0.866208,
+        "perClass": {
+          "LOW": {
+            "precision": 0.883721,
+            "recall": 0.974359,
+            "f1": 0.926829
+          },
+          "MEDIUM": {
+            "precision": 0.820513,
+            "recall": 0.780488,
+            "f1": 0.8
+          },
+          "HIGH": {
+            "precision": 0.894737,
+            "recall": 0.85,
+            "f1": 0.871795
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 38,
+            "MEDIUM": 1,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 5,
+            "MEDIUM": 32,
+            "HIGH": 4
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 6,
+            "HIGH": 34
+          }
+        }
+      },
+      {
+        "t1": 0.5503426097449364,
+        "t2": 0.6550044680721263,
+        "accuracy": 0.841667,
+        "macroF1": 0.841527,
+        "perClass": {
+          "LOW": {
+            "precision": 0.883721,
+            "recall": 0.974359,
+            "f1": 0.926829
+          },
+          "MEDIUM": {
+            "precision": 0.761905,
+            "recall": 0.780488,
+            "f1": 0.771084
+          },
+          "HIGH": {
+            "precision": 0.885714,
+            "recall": 0.775,
+            "f1": 0.826667
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 38,
+            "MEDIUM": 1,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 5,
+            "MEDIUM": 32,
+            "HIGH": 4
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 9,
+            "HIGH": 31
+          }
+        }
+      },
+      {
+        "t1": 0.5503426097449364,
+        "t2": 0.6850044680721263,
+        "accuracy": 0.733333,
+        "macroF1": 0.716273,
+        "perClass": {
+          "LOW": {
+            "precision": 0.883721,
+            "recall": 0.974359,
+            "f1": 0.926829
+          },
+          "MEDIUM": {
+            "precision": 0.57377,
+            "recall": 0.853659,
+            "f1": 0.686275
+          },
+          "HIGH": {
+            "precision": 0.9375,
+            "recall": 0.375,
+            "f1": 0.535714
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 38,
+            "MEDIUM": 1,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 5,
+            "MEDIUM": 35,
+            "HIGH": 1
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 25,
+            "HIGH": 15
+          }
+        }
+      },
+      {
+        "t1": 0.5603426097449364,
+        "t2": 0.5850044680721262,
+        "accuracy": 0.708333,
+        "macroF1": 0.64485,
+        "perClass": {
+          "LOW": {
+            "precision": 0.826087,
+            "recall": 0.974359,
+            "f1": 0.894118
+          },
+          "MEDIUM": {
+            "precision": 0.875,
+            "recall": 0.170732,
+            "f1": 0.285714
+          },
+          "HIGH": {
+            "precision": 0.606061,
+            "recall": 1,
+            "f1": 0.754717
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 38,
+            "MEDIUM": 1,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 8,
+            "MEDIUM": 7,
+            "HIGH": 26
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 0,
+            "HIGH": 40
+          }
+        }
+      },
+      {
+        "t1": 0.5603426097449364,
+        "t2": 0.6150044680721263,
+        "accuracy": 0.816667,
+        "macroF1": 0.799831,
+        "perClass": {
+          "LOW": {
+            "precision": 0.826087,
+            "recall": 0.974359,
+            "f1": 0.894118
+          },
+          "MEDIUM": {
+            "precision": 0.952381,
+            "recall": 0.487805,
+            "f1": 0.645161
+          },
+          "HIGH": {
+            "precision": 0.754717,
+            "recall": 1,
+            "f1": 0.860215
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 38,
+            "MEDIUM": 1,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 8,
+            "MEDIUM": 20,
+            "HIGH": 13
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 0,
+            "HIGH": 40
+          }
+        }
+      },
+      {
+        "t1": 0.5603426097449364,
+        "t2": 0.6250044680721263,
+        "accuracy": 0.825,
+        "macroF1": 0.812569,
+        "perClass": {
+          "LOW": {
+            "precision": 0.826087,
+            "recall": 0.974359,
+            "f1": 0.894118
+          },
+          "MEDIUM": {
+            "precision": 0.916667,
+            "recall": 0.536585,
+            "f1": 0.676923
+          },
+          "HIGH": {
+            "precision": 0.78,
+            "recall": 0.975,
+            "f1": 0.866667
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 38,
+            "MEDIUM": 1,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 8,
+            "MEDIUM": 22,
+            "HIGH": 11
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 1,
+            "HIGH": 39
+          }
+        }
+      },
+      {
+        "t1": 0.5603426097449364,
+        "t2": 0.6350044680721263,
+        "accuracy": 0.858333,
+        "macroF1": 0.853148,
+        "perClass": {
+          "LOW": {
+            "precision": 0.826087,
+            "recall": 0.974359,
+            "f1": 0.894118
+          },
+          "MEDIUM": {
+            "precision": 0.9,
+            "recall": 0.658537,
+            "f1": 0.760563
+          },
+          "HIGH": {
+            "precision": 0.863636,
+            "recall": 0.95,
+            "f1": 0.904762
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 38,
+            "MEDIUM": 1,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 8,
+            "MEDIUM": 27,
+            "HIGH": 6
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 2,
+            "HIGH": 38
+          }
+        }
+      },
+      {
+        "t1": 0.5603426097449364,
+        "t2": 0.6450044680721263,
+        "accuracy": 0.841667,
+        "macroF1": 0.83972,
+        "perClass": {
+          "LOW": {
+            "precision": 0.826087,
+            "recall": 0.974359,
+            "f1": 0.894118
+          },
+          "MEDIUM": {
+            "precision": 0.805556,
+            "recall": 0.707317,
+            "f1": 0.753247
+          },
+          "HIGH": {
+            "precision": 0.894737,
+            "recall": 0.85,
+            "f1": 0.871795
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 38,
+            "MEDIUM": 1,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 8,
+            "MEDIUM": 29,
+            "HIGH": 4
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 6,
+            "HIGH": 34
+          }
+        }
+      },
+      {
+        "t1": 0.5603426097449364,
+        "t2": 0.6550044680721263,
+        "accuracy": 0.816667,
+        "macroF1": 0.815262,
+        "perClass": {
+          "LOW": {
+            "precision": 0.826087,
+            "recall": 0.974359,
+            "f1": 0.894118
+          },
+          "MEDIUM": {
+            "precision": 0.74359,
+            "recall": 0.707317,
+            "f1": 0.725
+          },
+          "HIGH": {
+            "precision": 0.885714,
+            "recall": 0.775,
+            "f1": 0.826667
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 38,
+            "MEDIUM": 1,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 8,
+            "MEDIUM": 29,
+            "HIGH": 4
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 9,
+            "HIGH": 31
+          }
+        }
+      },
+      {
+        "t1": 0.5603426097449364,
+        "t2": 0.6850044680721263,
+        "accuracy": 0.708333,
+        "macroF1": 0.692099,
+        "perClass": {
+          "LOW": {
+            "precision": 0.826087,
+            "recall": 0.974359,
+            "f1": 0.894118
+          },
+          "MEDIUM": {
+            "precision": 0.551724,
+            "recall": 0.780488,
+            "f1": 0.646465
+          },
+          "HIGH": {
+            "precision": 0.9375,
+            "recall": 0.375,
+            "f1": 0.535714
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 38,
+            "MEDIUM": 1,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 8,
+            "MEDIUM": 32,
+            "HIGH": 1
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 25,
+            "HIGH": 15
+          }
+        }
+      },
+      {
+        "t1": 0.5703426097449364,
+        "t2": 0.5850044680721262,
+        "accuracy": 0.708333,
+        "macroF1": 0.635529,
+        "perClass": {
+          "LOW": {
+            "precision": 0.8125,
+            "recall": 1,
+            "f1": 0.896552
+          },
+          "MEDIUM": {
+            "precision": 1,
+            "recall": 0.146341,
+            "f1": 0.255319
+          },
+          "HIGH": {
+            "precision": 0.606061,
+            "recall": 1,
+            "f1": 0.754717
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 39,
+            "MEDIUM": 0,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 9,
+            "MEDIUM": 6,
+            "HIGH": 26
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 0,
+            "HIGH": 40
+          }
+        }
+      },
+      {
+        "t1": 0.5703426097449364,
+        "t2": 0.6150044680721263,
+        "accuracy": 0.816667,
+        "macroF1": 0.7967,
+        "perClass": {
+          "LOW": {
+            "precision": 0.8125,
+            "recall": 1,
+            "f1": 0.896552
+          },
+          "MEDIUM": {
+            "precision": 1,
+            "recall": 0.463415,
+            "f1": 0.633333
+          },
+          "HIGH": {
+            "precision": 0.754717,
+            "recall": 1,
+            "f1": 0.860215
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 39,
+            "MEDIUM": 0,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 9,
+            "MEDIUM": 19,
+            "HIGH": 13
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 0,
+            "HIGH": 40
+          }
+        }
+      },
+      {
+        "t1": 0.5703426097449364,
+        "t2": 0.6250044680721263,
+        "accuracy": 0.825,
+        "macroF1": 0.809962,
+        "perClass": {
+          "LOW": {
+            "precision": 0.8125,
+            "recall": 1,
+            "f1": 0.896552
+          },
+          "MEDIUM": {
+            "precision": 0.954545,
+            "recall": 0.512195,
+            "f1": 0.666667
+          },
+          "HIGH": {
+            "precision": 0.78,
+            "recall": 0.975,
+            "f1": 0.866667
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 39,
+            "MEDIUM": 0,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 9,
+            "MEDIUM": 21,
+            "HIGH": 11
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 1,
+            "HIGH": 39
+          }
+        }
+      },
+      {
+        "t1": 0.5703426097449364,
+        "t2": 0.6350044680721263,
+        "accuracy": 0.858333,
+        "macroF1": 0.851646,
+        "perClass": {
+          "LOW": {
+            "precision": 0.8125,
+            "recall": 1,
+            "f1": 0.896552
+          },
+          "MEDIUM": {
+            "precision": 0.928571,
+            "recall": 0.634146,
+            "f1": 0.753623
+          },
+          "HIGH": {
+            "precision": 0.863636,
+            "recall": 0.95,
+            "f1": 0.904762
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 39,
+            "MEDIUM": 0,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 9,
+            "MEDIUM": 26,
+            "HIGH": 6
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 2,
+            "HIGH": 38
+          }
+        }
+      },
+      {
+        "t1": 0.5703426097449364,
+        "t2": 0.6450044680721263,
+        "accuracy": 0.841667,
+        "macroF1": 0.838338,
+        "perClass": {
+          "LOW": {
+            "precision": 0.8125,
+            "recall": 1,
+            "f1": 0.896552
+          },
+          "MEDIUM": {
+            "precision": 0.823529,
+            "recall": 0.682927,
+            "f1": 0.746667
+          },
+          "HIGH": {
+            "precision": 0.894737,
+            "recall": 0.85,
+            "f1": 0.871795
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 39,
+            "MEDIUM": 0,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 9,
+            "MEDIUM": 28,
+            "HIGH": 4
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 6,
+            "HIGH": 34
+          }
+        }
+      },
+      {
+        "t1": 0.5703426097449364,
+        "t2": 0.6550044680721263,
+        "accuracy": 0.816667,
+        "macroF1": 0.813723,
+        "perClass": {
+          "LOW": {
+            "precision": 0.8125,
+            "recall": 1,
+            "f1": 0.896552
+          },
+          "MEDIUM": {
+            "precision": 0.756757,
+            "recall": 0.682927,
+            "f1": 0.717949
+          },
+          "HIGH": {
+            "precision": 0.885714,
+            "recall": 0.775,
+            "f1": 0.826667
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 39,
+            "MEDIUM": 0,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 9,
+            "MEDIUM": 28,
+            "HIGH": 4
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 9,
+            "HIGH": 31
+          }
+        }
+      },
+      {
+        "t1": 0.5703426097449364,
+        "t2": 0.6850044680721263,
+        "accuracy": 0.708333,
+        "macroF1": 0.69048,
+        "perClass": {
+          "LOW": {
+            "precision": 0.8125,
+            "recall": 1,
+            "f1": 0.896552
+          },
+          "MEDIUM": {
+            "precision": 0.553571,
+            "recall": 0.756098,
+            "f1": 0.639175
+          },
+          "HIGH": {
+            "precision": 0.9375,
+            "recall": 0.375,
+            "f1": 0.535714
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 39,
+            "MEDIUM": 0,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 9,
+            "MEDIUM": 31,
+            "HIGH": 1
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 25,
+            "HIGH": 15
+          }
+        }
+      },
+      {
+        "t1": 0.6003426097449365,
+        "t2": 0.6150044680721263,
+        "accuracy": 0.716667,
+        "macroF1": 0.646587,
+        "perClass": {
+          "LOW": {
+            "precision": 0.65,
+            "recall": 1,
+            "f1": 0.787879
+          },
+          "MEDIUM": {
+            "precision": 1,
+            "recall": 0.170732,
+            "f1": 0.291667
+          },
+          "HIGH": {
+            "precision": 0.754717,
+            "recall": 1,
+            "f1": 0.860215
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 39,
+            "MEDIUM": 0,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 21,
+            "MEDIUM": 7,
+            "HIGH": 13
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 0,
+            "HIGH": 40
+          }
+        }
+      },
+      {
+        "t1": 0.6003426097449365,
+        "t2": 0.6250044680721263,
+        "accuracy": 0.725,
+        "macroF1": 0.669162,
+        "perClass": {
+          "LOW": {
+            "precision": 0.65,
+            "recall": 1,
+            "f1": 0.787879
+          },
+          "MEDIUM": {
+            "precision": 0.9,
+            "recall": 0.219512,
+            "f1": 0.352941
+          },
+          "HIGH": {
+            "precision": 0.78,
+            "recall": 0.975,
+            "f1": 0.866667
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 39,
+            "MEDIUM": 0,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 21,
+            "MEDIUM": 9,
+            "HIGH": 11
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 1,
+            "HIGH": 39
+          }
+        }
+      },
+      {
+        "t1": 0.6003426097449365,
+        "t2": 0.6350044680721263,
+        "accuracy": 0.758333,
+        "macroF1": 0.727956,
+        "perClass": {
+          "LOW": {
+            "precision": 0.65,
+            "recall": 1,
+            "f1": 0.787879
+          },
+          "MEDIUM": {
+            "precision": 0.875,
+            "recall": 0.341463,
+            "f1": 0.491228
+          },
+          "HIGH": {
+            "precision": 0.863636,
+            "recall": 0.95,
+            "f1": 0.904762
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 39,
+            "MEDIUM": 0,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 21,
+            "MEDIUM": 14,
+            "HIGH": 6
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 2,
+            "HIGH": 38
+          }
+        }
+      },
+      {
+        "t1": 0.6003426097449365,
+        "t2": 0.6450044680721263,
+        "accuracy": 0.741667,
+        "macroF1": 0.722537,
+        "perClass": {
+          "LOW": {
+            "precision": 0.65,
+            "recall": 1,
+            "f1": 0.787879
+          },
+          "MEDIUM": {
+            "precision": 0.727273,
+            "recall": 0.390244,
+            "f1": 0.507937
+          },
+          "HIGH": {
+            "precision": 0.894737,
+            "recall": 0.85,
+            "f1": 0.871795
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 39,
+            "MEDIUM": 0,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 21,
+            "MEDIUM": 16,
+            "HIGH": 4
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 6,
+            "HIGH": 34
+          }
+        }
+      },
+      {
+        "t1": 0.6003426097449365,
+        "t2": 0.6550044680721263,
+        "accuracy": 0.716667,
+        "macroF1": 0.699798,
+        "perClass": {
+          "LOW": {
+            "precision": 0.65,
+            "recall": 1,
+            "f1": 0.787879
+          },
+          "MEDIUM": {
+            "precision": 0.64,
+            "recall": 0.390244,
+            "f1": 0.484848
+          },
+          "HIGH": {
+            "precision": 0.885714,
+            "recall": 0.775,
+            "f1": 0.826667
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 39,
+            "MEDIUM": 0,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 21,
+            "MEDIUM": 16,
+            "HIGH": 4
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 9,
+            "HIGH": 31
+          }
+        }
+      },
+      {
+        "t1": 0.6003426097449365,
+        "t2": 0.6850044680721263,
+        "accuracy": 0.608333,
+        "macroF1": 0.590217,
+        "perClass": {
+          "LOW": {
+            "precision": 0.65,
+            "recall": 1,
+            "f1": 0.787879
+          },
+          "MEDIUM": {
+            "precision": 0.431818,
+            "recall": 0.463415,
+            "f1": 0.447059
+          },
+          "HIGH": {
+            "precision": 0.9375,
+            "recall": 0.375,
+            "f1": 0.535714
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 39,
+            "MEDIUM": 0,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 21,
+            "MEDIUM": 19,
+            "HIGH": 1
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 25,
+            "HIGH": 15
+          }
+        }
+      }
+    ]
+  },
+  "incompleteContext": {
+    "n": 15,
+    "metrics": {
+      "accuracy": 0.866667,
+      "macroF1": 0.853989,
+      "perClass": {
+        "LOW": {
+          "precision": 0.857143,
+          "recall": 1,
+          "f1": 0.923077
+        },
+        "MEDIUM": {
+          "precision": 0.75,
+          "recall": 0.75,
+          "f1": 0.75
+        },
+        "HIGH": {
+          "precision": 1,
+          "recall": 0.8,
+          "f1": 0.888889
+        }
+      },
+      "confusionMatrix": {
+        "LOW": {
+          "LOW": 6,
+          "MEDIUM": 0,
+          "HIGH": 0
+        },
+        "MEDIUM": {
+          "LOW": 1,
+          "MEDIUM": 3,
+          "HIGH": 0
+        },
+        "HIGH": {
+          "LOW": 0,
+          "MEDIUM": 1,
+          "HIGH": 4
+        }
+      },
+      "predictions": [
+        {
+          "id": "expanded-low-005",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-008",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-017",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-024",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-low-036",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-medium-001",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-008",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-015",
+          "actual": "LOW",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-medium-024",
+          "actual": "MEDIUM",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-medium-040",
+          "actual": "MEDIUM",
+          "predicted": "LOW"
+        },
+        {
+          "id": "expanded-high-003",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-010",
+          "actual": "HIGH",
+          "predicted": "MEDIUM"
+        },
+        {
+          "id": "expanded-high-014",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-027",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        },
+        {
+          "id": "expanded-high-040",
+          "actual": "HIGH",
+          "predicted": "HIGH"
+        }
+      ]
+    },
+    "rows": [
+      {
+        "id": "expanded-low-005",
+        "expected_class": "LOW",
+        "score": 0.4033801921183663,
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-008",
+        "expected_class": "LOW",
+        "score": 0.4125081985576789,
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-017",
+        "expected_class": "LOW",
+        "score": 0.31531450761044266,
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-024",
+        "expected_class": "LOW",
+        "score": 0.4712326109699665,
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-low-036",
+        "expected_class": "LOW",
+        "score": 0.4053664551651127,
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-medium-001",
+        "expected_class": "MEDIUM",
+        "score": 0.5510265752436232,
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-008",
+        "expected_class": "MEDIUM",
+        "score": 0.5902187264725873,
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-015",
+        "expected_class": "LOW",
+        "score": 0.4661178271512296,
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-medium-024",
+        "expected_class": "MEDIUM",
+        "score": 0.6256895303159073,
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-medium-040",
+        "expected_class": "MEDIUM",
+        "score": 0.5294555602902106,
+        "predicted": "LOW"
+      },
+      {
+        "id": "expanded-high-003",
+        "expected_class": "HIGH",
+        "score": 0.6619754390468684,
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-010",
+        "expected_class": "HIGH",
+        "score": 0.6209488472709876,
+        "predicted": "MEDIUM"
+      },
+      {
+        "id": "expanded-high-014",
+        "expected_class": "HIGH",
+        "score": 0.6598010962886169,
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-027",
+        "expected_class": "HIGH",
+        "score": 0.6433639431575127,
+        "predicted": "HIGH"
+      },
+      {
+        "id": "expanded-high-040",
+        "expected_class": "HIGH",
+        "score": 0.6810525956302103,
+        "predicted": "HIGH"
+      }
+    ]
+  },
+  "decision": "SEMANTIC_THRESHOLDS_FROZEN",
+  "contract": {
+    "LOW": "score < 0.5503426097449364",
+    "MEDIUM": "0.5503426097449364 <= score < 0.6350044680721263",
+    "HIGH": "score >= 0.6350044680721263",
+    "status": "benchmark-calibrated technical thresholds"
+  }
+}
