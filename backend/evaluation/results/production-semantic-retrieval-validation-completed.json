@@ -1,0 +1,3626 @@
+{
+  "experiment": {
+    "id": "production-semantic-retrieval-validation-c1.2",
+    "generatedAt": "2026-08-13T07:23:47.859Z",
+    "scope": "Controlled live Voyage and Gemini retrieval validation."
+  },
+  "benchmark": {
+    "sha256Before": "b8e295e5a08c13f31d139b726105dc0f03a246243d2a7883938c2e425f5ea3c0",
+    "support": {
+      "LOW": 39,
+      "MEDIUM": 41,
+      "HIGH": 40
+    },
+    "sha256After": "b8e295e5a08c13f31d139b726105dc0f03a246243d2a7883938c2e425f5ea3c0"
+  },
+  "representation": "structured-context-v1",
+  "uniqueCanonicalTopicCount": 229,
+  "grouping": {
+    "componentCount": 113,
+    "folds": [
+      {
+        "fold": 1,
+        "caseIds": [
+          "expanded-high-002",
+          "expanded-high-005",
+          "expanded-high-008",
+          "expanded-high-009",
+          "expanded-high-010",
+          "expanded-high-011",
+          "expanded-high-033",
+          "expanded-high-036",
+          "expanded-high-037",
+          "expanded-high-038",
+          "expanded-low-002",
+          "expanded-low-006",
+          "expanded-low-010",
+          "expanded-low-025",
+          "expanded-low-026",
+          "expanded-low-031",
+          "expanded-low-032",
+          "expanded-low-035",
+          "expanded-medium-008",
+          "expanded-medium-009",
+          "expanded-medium-016",
+          "expanded-medium-019",
+          "expanded-medium-024",
+          "expanded-medium-031",
+          "expanded-medium-035"
+        ],
+        "componentIds": [
+          "component-04db072f5f377795",
+          "component-0b68ee6bbbb171b5",
+          "component-0e2bbd40620678ae",
+          "component-1c27624d02f9dee2",
+          "component-2e82ed55ccdc30e4",
+          "component-2f446de17c3e9535",
+          "component-2fee5b2487fd7b7c",
+          "component-4e1d9505b35b3975",
+          "component-5cd407b0d3877ea6",
+          "component-69afb09ab33bf1cd",
+          "component-6c0e685541faea53",
+          "component-7201d63b878075cf",
+          "component-73631e96dbd0113b",
+          "component-763e9467f4a523c2",
+          "component-7aeb66448e256642",
+          "component-965fa10f1c196dc5",
+          "component-af20adac921b119f",
+          "component-bc79691de09eb121",
+          "component-c021a27a9c2c537e",
+          "component-c3415bb48f4ae18e",
+          "component-e379dff45aaf78f4",
+          "component-e6ff03153c1aa16f",
+          "component-f7a9fef74501866a",
+          "component-f8e31bfeb8c63182",
+          "component-fb2bb314c884e7ad"
+        ]
+      },
+      {
+        "fold": 2,
+        "caseIds": [
+          "expanded-high-016",
+          "expanded-high-018",
+          "expanded-high-022",
+          "expanded-high-024",
+          "expanded-high-026",
+          "expanded-high-031",
+          "expanded-high-034",
+          "expanded-high-035",
+          "expanded-low-003",
+          "expanded-low-004",
+          "expanded-low-005",
+          "expanded-low-008",
+          "expanded-low-012",
+          "expanded-low-013",
+          "expanded-low-029",
+          "expanded-low-030",
+          "expanded-medium-006",
+          "expanded-medium-021",
+          "expanded-medium-025",
+          "expanded-medium-027",
+          "expanded-medium-029",
+          "expanded-medium-033",
+          "expanded-medium-037",
+          "expanded-medium-038"
+        ],
+        "componentIds": [
+          "component-01df545104630585",
+          "component-0c1ac3c21e6d7379",
+          "component-12efb2e5e4380604",
+          "component-2c55cfaa0271a456",
+          "component-3c84d50d99e593c9",
+          "component-4cbb2590cc69f012",
+          "component-4fdcd824319324f2",
+          "component-5dac936425170f03",
+          "component-6533b768054875b4",
+          "component-668be1921d2adf20",
+          "component-67082cc73e1332a4",
+          "component-69035c1c31d42557",
+          "component-802082ac2f1d1887",
+          "component-922020083549bdce",
+          "component-98f8f00371d8222f",
+          "component-a1e794d6c305035f",
+          "component-a6cf9aee69b42945",
+          "component-a9a7045a0356a28e",
+          "component-ab6677b62ebaecf2",
+          "component-abc4aea1b4c8ca07",
+          "component-c691f76eed944977",
+          "component-e968cbd2bd396109",
+          "component-ee254cdca1d642ce",
+          "component-f386dc6f597ec512"
+        ]
+      },
+      {
+        "fold": 3,
+        "caseIds": [
+          "expanded-high-003",
+          "expanded-high-007",
+          "expanded-high-013",
+          "expanded-high-015",
+          "expanded-high-020",
+          "expanded-high-029",
+          "expanded-high-030",
+          "expanded-high-039",
+          "expanded-low-007",
+          "expanded-low-018",
+          "expanded-low-023",
+          "expanded-low-034",
+          "expanded-low-036",
+          "expanded-low-037",
+          "expanded-low-039",
+          "expanded-medium-002",
+          "expanded-medium-003",
+          "expanded-medium-005",
+          "expanded-medium-010",
+          "expanded-medium-015",
+          "expanded-medium-022",
+          "expanded-medium-032",
+          "expanded-medium-034",
+          "expanded-medium-040"
+        ],
+        "componentIds": [
+          "component-03fa91bfeea7c11c",
+          "component-04333334c33f2097",
+          "component-0cd2b2c7320af743",
+          "component-0f6d90925e07e70b",
+          "component-12e2ee6851aab01d",
+          "component-1697910d1ed3673a",
+          "component-2bd5e97709c339a4",
+          "component-3566ba5e97977fc2",
+          "component-382549cd3021cd07",
+          "component-3d3b4b8b6ddfb32c",
+          "component-3e5c29d06b936076",
+          "component-46a0360627e7fdbb",
+          "component-58d84c1887fb5958",
+          "component-69cc12360fd22b29",
+          "component-7bb81ec1023c011f",
+          "component-80afb935576f3e38",
+          "component-873de7011aca3ee1",
+          "component-87620e42728ae5da",
+          "component-90392ca8b4d9cf7a",
+          "component-915ffbfaf0d92222",
+          "component-b3d88af3814b6d9d",
+          "component-dbbac170cf7d5170",
+          "component-f55580a7989c3c63",
+          "component-f77b8ffd9c4c2f62"
+        ]
+      },
+      {
+        "fold": 4,
+        "caseIds": [
+          "expanded-high-001",
+          "expanded-high-004",
+          "expanded-high-012",
+          "expanded-high-014",
+          "expanded-high-021",
+          "expanded-high-023",
+          "expanded-high-032",
+          "expanded-high-040",
+          "expanded-low-001",
+          "expanded-low-011",
+          "expanded-low-014",
+          "expanded-low-016",
+          "expanded-low-017",
+          "expanded-low-022",
+          "expanded-low-028",
+          "expanded-low-033",
+          "expanded-low-040",
+          "expanded-medium-007",
+          "expanded-medium-013",
+          "expanded-medium-014",
+          "expanded-medium-017",
+          "expanded-medium-018",
+          "expanded-medium-030",
+          "expanded-medium-039"
+        ],
+        "componentIds": [
+          "component-01b3152230c6e75e",
+          "component-26ac5786520db5f1",
+          "component-2dd1340f77d8b8e3",
+          "component-4c2646fb27ad0216",
+          "component-576e4a8d99375835",
+          "component-5f1f15c9780e4eb9",
+          "component-684d3ca0d7c19253",
+          "component-6a5a2edb32db8fbc",
+          "component-84eb1f72db6e67a6",
+          "component-8e1258866ed0f04a",
+          "component-9a85937b069873e9",
+          "component-a3a0135e0b22336f",
+          "component-a5675b1e03dbe922",
+          "component-bbc89caf2d1e491c",
+          "component-bcf52597e1703837",
+          "component-c605ed8b199fd15a",
+          "component-cb2b23a0ea8ccd14",
+          "component-d33f84fd0aa230d0",
+          "component-d4a5045e2a387445",
+          "component-d4bad9b512a7761e",
+          "component-db12f5b95f819e7e",
+          "component-f0ccda665bad7048",
+          "component-f5db4812bae7eba1",
+          "component-f7203c079eb150b2"
+        ]
+      },
+      {
+        "fold": 5,
+        "caseIds": [
+          "expanded-high-006",
+          "expanded-high-017",
+          "expanded-high-019",
+          "expanded-high-025",
+          "expanded-high-027",
+          "expanded-high-028",
+          "expanded-low-009",
+          "expanded-low-015",
+          "expanded-low-019",
+          "expanded-low-020",
+          "expanded-low-021",
+          "expanded-low-024",
+          "expanded-low-027",
+          "expanded-low-038",
+          "expanded-medium-001",
+          "expanded-medium-004",
+          "expanded-medium-011",
+          "expanded-medium-012",
+          "expanded-medium-020",
+          "expanded-medium-023",
+          "expanded-medium-026",
+          "expanded-medium-028",
+          "expanded-medium-036"
+        ],
+        "componentIds": [
+          "component-0b61f0e726e93918",
+          "component-186f3e1ac7a14970",
+          "component-2098f3b7d139a619",
+          "component-2a651ad59c2313f3",
+          "component-38cd79e234347791",
+          "component-456297aad7728a2b",
+          "component-4d191c703d720538",
+          "component-55e528866779a22c",
+          "component-632982c7923eb090",
+          "component-6363126bfcf54a22",
+          "component-7462ecfec5ce5709",
+          "component-842f34c58d1c86c3",
+          "component-8ae0a26d3bcb3c3c",
+          "component-8b836428891643ce",
+          "component-9d170cd9dda89c72",
+          "component-f45dbffb7958b3f6"
+        ]
+      }
+    ],
+    "leakage": "PASS"
+  },
+  "providers": {
+    "voyage": {
+      "status": "COMPLETE",
+      "configuration": {
+        "provider": "voyage",
+        "model": "voyage-4-large",
+        "query": {
+          "input_type": "query"
+        },
+        "document": {
+          "input_type": "document"
+        },
+        "dimension": 1024,
+        "dtype": "float",
+        "representation": "structured-context-v1"
+      },
+      "rows": [
+        {
+          "id": "expanded-low-001",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.1812996863475811
+          },
+          "score_ab": 0.18990663096656307,
+          "score_ba": 0.17269274172859908,
+          "directionDifference": 0.017213889237963992
+        },
+        {
+          "id": "expanded-low-002",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.5308242105952167
+          },
+          "score_ab": 0.5001197390544788,
+          "score_ba": 0.5615286821359545,
+          "directionDifference": 0.06140894308147571
+        },
+        {
+          "id": "expanded-low-003",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.5496586442462497
+          },
+          "score_ab": 0.554339551906472,
+          "score_ba": 0.5449777365860272,
+          "directionDifference": 0.009361815320444777
+        },
+        {
+          "id": "expanded-low-004",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.5451122700638582
+          },
+          "score_ab": 0.5458160948661946,
+          "score_ba": 0.5444084452615218,
+          "directionDifference": 0.0014076496046728781
+        },
+        {
+          "id": "expanded-low-005",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.4033801921183663
+          },
+          "score_ab": 0.44023050645338585,
+          "score_ba": 0.3665298777833467,
+          "directionDifference": 0.07370062867003913
+        },
+        {
+          "id": "expanded-low-006",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.4029833215542983
+          },
+          "score_ab": 0.364745336148443,
+          "score_ba": 0.4412213069601535,
+          "directionDifference": 0.07647597081171048
+        },
+        {
+          "id": "expanded-low-007",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.24567975613138848
+          },
+          "score_ab": 0.24620677239359498,
+          "score_ba": 0.245152739869182,
+          "directionDifference": 0.0010540325244129678
+        },
+        {
+          "id": "expanded-low-008",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.4125081985576789
+          },
+          "score_ab": 0.3882528716451002,
+          "score_ba": 0.4367635254702576,
+          "directionDifference": 0.0485106538251574
+        },
+        {
+          "id": "expanded-low-009",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.4444005123537309
+          },
+          "score_ab": 0.45491396301665826,
+          "score_ba": 0.4338870616908035,
+          "directionDifference": 0.021026901325854774
+        },
+        {
+          "id": "expanded-low-010",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.5841489207959782
+          },
+          "score_ab": 0.5782684239313822,
+          "score_ba": 0.5900294176605744,
+          "directionDifference": 0.011760993729192148
+        },
+        {
+          "id": "expanded-low-011",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.43040558258364436
+          },
+          "score_ab": 0.4321088201621315,
+          "score_ba": 0.4287023450051572,
+          "directionDifference": 0.003406475156974287
+        },
+        {
+          "id": "expanded-low-012",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.4512548806436291
+          },
+          "score_ab": 0.4385882959745365,
+          "score_ba": 0.4639214653127217,
+          "directionDifference": 0.02533316933818519
+        },
+        {
+          "id": "expanded-low-013",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.258133064903478
+          },
+          "score_ab": 0.24774817128460097,
+          "score_ba": 0.26851795852235494,
+          "directionDifference": 0.020769787237753967
+        },
+        {
+          "id": "expanded-low-014",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.5122382854451297
+          },
+          "score_ab": 0.5083004432069405,
+          "score_ba": 0.5161761276833191,
+          "directionDifference": 0.007875684476378653
+        },
+        {
+          "id": "expanded-low-015",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.42563111902873974
+          },
+          "score_ab": 0.43826556507747566,
+          "score_ba": 0.4129966729800038,
+          "directionDifference": 0.02526889209747185
+        },
+        {
+          "id": "expanded-low-016",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.6046555584506796
+          },
+          "score_ab": 0.5606900202225529,
+          "score_ba": 0.6486210966788064,
+          "directionDifference": 0.08793107645625353
+        },
+        {
+          "id": "expanded-low-017",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.31531450761044266
+          },
+          "score_ab": 0.3504684251524087,
+          "score_ba": 0.28016059006847654,
+          "directionDifference": 0.07030783508393218
+        },
+        {
+          "id": "expanded-low-018",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.4276838896146865
+          },
+          "score_ab": 0.45437351915737606,
+          "score_ba": 0.4009942600719969,
+          "directionDifference": 0.05337925908537916
+        },
+        {
+          "id": "expanded-low-019",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.2829204082528535
+          },
+          "score_ab": 0.27338755878338233,
+          "score_ba": 0.2924532577223246,
+          "directionDifference": 0.019065698938942277
+        },
+        {
+          "id": "expanded-low-020",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.5415591020806088
+          },
+          "score_ab": 0.5419772926066222,
+          "score_ba": 0.5411409115545952,
+          "directionDifference": 0.000836381052026991
+        },
+        {
+          "id": "expanded-low-021",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.5328542801707163
+          },
+          "score_ab": 0.5358817609254725,
+          "score_ba": 0.5298267994159603,
+          "directionDifference": 0.0060549615095121245
+        },
+        {
+          "id": "expanded-low-022",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.41528620265527866
+          },
+          "score_ab": 0.4161702225883802,
+          "score_ba": 0.4144021827221771,
+          "directionDifference": 0.0017680398662031083
+        },
+        {
+          "id": "expanded-low-023",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.3774674609934484
+          },
+          "score_ab": 0.39113333084144325,
+          "score_ba": 0.3638015911454535,
+          "directionDifference": 0.027331739695989732
+        },
+        {
+          "id": "expanded-low-024",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.4712326109699665
+          },
+          "score_ab": 0.47931854161601983,
+          "score_ba": 0.46314668032391315,
+          "directionDifference": 0.016171861292106682
+        },
+        {
+          "id": "expanded-low-025",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.38610108464821086
+          },
+          "score_ab": 0.3903617504343846,
+          "score_ba": 0.3818404188620371,
+          "directionDifference": 0.008521331572347468
+        },
+        {
+          "id": "expanded-low-026",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.4449092106516078
+          },
+          "score_ab": 0.45733924423476063,
+          "score_ba": 0.43247917706845496,
+          "directionDifference": 0.024860067166305677
+        },
+        {
+          "id": "expanded-low-027",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.518500886796396
+          },
+          "score_ab": 0.528501818383761,
+          "score_ba": 0.5084999552090312,
+          "directionDifference": 0.02000186317472974
+        },
+        {
+          "id": "expanded-low-028",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.516276852391919
+          },
+          "score_ab": 0.5286428632206824,
+          "score_ba": 0.5039108415631557,
+          "directionDifference": 0.024732021657526748
+        },
+        {
+          "id": "expanded-low-029",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.44972495919893984
+          },
+          "score_ab": 0.473519307830391,
+          "score_ba": 0.4259306105674887,
+          "directionDifference": 0.04758869726290227
+        },
+        {
+          "id": "expanded-low-030",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.47686216843692314
+          },
+          "score_ab": 0.46413870819207775,
+          "score_ba": 0.4895856286817685,
+          "directionDifference": 0.025446920489690772
+        },
+        {
+          "id": "expanded-low-031",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.2741448230856768
+          },
+          "score_ab": 0.2574404246335845,
+          "score_ba": 0.2908492215377691,
+          "directionDifference": 0.03340879690418458
+        },
+        {
+          "id": "expanded-low-032",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.43187638110060345
+          },
+          "score_ab": 0.46113651248010495,
+          "score_ba": 0.40261624972110194,
+          "directionDifference": 0.05852026275900302
+        },
+        {
+          "id": "expanded-low-033",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.4526365247168004
+          },
+          "score_ab": 0.4661290062671736,
+          "score_ba": 0.43914404316642724,
+          "directionDifference": 0.02698496310074633
+        },
+        {
+          "id": "expanded-low-034",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.5086589753572498
+          },
+          "score_ab": 0.5464032268930598,
+          "score_ba": 0.47091472382143984,
+          "directionDifference": 0.07548850307161992
+        },
+        {
+          "id": "expanded-low-035",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.40547573659746683
+          },
+          "score_ab": 0.41060446575436765,
+          "score_ba": 0.400347007440566,
+          "directionDifference": 0.010257458313801648
+        },
+        {
+          "id": "expanded-low-036",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.4053664551651127
+          },
+          "score_ab": 0.4195963449118995,
+          "score_ba": 0.391136565418326,
+          "directionDifference": 0.028459779493573534
+        },
+        {
+          "id": "expanded-low-037",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.3138502579217364
+          },
+          "score_ab": 0.34903476139645634,
+          "score_ba": 0.2786657544470164,
+          "directionDifference": 0.07036900694943993
+        },
+        {
+          "id": "expanded-low-038",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.3664826598454939
+          },
+          "score_ab": 0.34257517262687565,
+          "score_ba": 0.3903901470641122,
+          "directionDifference": 0.047814974437236535
+        },
+        {
+          "id": "expanded-low-039",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.41377870637920233
+          },
+          "score_ab": 0.40205329183394134,
+          "score_ba": 0.4255041209244634,
+          "directionDifference": 0.02345082909052204
+        },
+        {
+          "id": "expanded-low-040",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.41382033912215177
+          },
+          "score_ab": 0.43085052571862087,
+          "score_ba": 0.3967901525256826,
+          "directionDifference": 0.034060373192938254
+        },
+        {
+          "id": "expanded-medium-001",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.5510265752436232
+          },
+          "score_ab": 0.5708963096520638,
+          "score_ba": 0.5311568408351827,
+          "directionDifference": 0.039739468816881174
+        },
+        {
+          "id": "expanded-medium-002",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.6330088767727771
+          },
+          "score_ab": 0.6279540777581332,
+          "score_ba": 0.638063675787421,
+          "directionDifference": 0.010109598029287792
+        },
+        {
+          "id": "expanded-medium-003",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.6084489882605667
+          },
+          "score_ab": 0.6048303093944208,
+          "score_ba": 0.6120676671267126,
+          "directionDifference": 0.007237357732291727
+        },
+        {
+          "id": "expanded-medium-004",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.629802656554525
+          },
+          "score_ab": 0.6439336797347947,
+          "score_ba": 0.6156716333742555,
+          "directionDifference": 0.028262046360539195
+        },
+        {
+          "id": "expanded-medium-005",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.5783008476105311
+          },
+          "score_ab": 0.5823109828812858,
+          "score_ba": 0.5742907123397764,
+          "directionDifference": 0.008020270541509444
+        },
+        {
+          "id": "expanded-medium-006",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.5884871326232493
+          },
+          "score_ab": 0.5673979616819262,
+          "score_ba": 0.6095763035645724,
+          "directionDifference": 0.04217834188264613
+        },
+        {
+          "id": "expanded-medium-007",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.6091840832089441
+          },
+          "score_ab": 0.6156842529216076,
+          "score_ba": 0.6026839134962807,
+          "directionDifference": 0.013000339425326857
+        },
+        {
+          "id": "expanded-medium-008",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.5902187264725873
+          },
+          "score_ab": 0.5749459292753625,
+          "score_ba": 0.6054915236698123,
+          "directionDifference": 0.030545594394449815
+        },
+        {
+          "id": "expanded-medium-009",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.6748608572766017
+          },
+          "score_ab": 0.6712129188181947,
+          "score_ba": 0.6785087957350087,
+          "directionDifference": 0.0072958769168139925
+        },
+        {
+          "id": "expanded-medium-010",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.5955212989235309
+          },
+          "score_ab": 0.622225463643007,
+          "score_ba": 0.5688171342040548,
+          "directionDifference": 0.05340832943895224
+        },
+        {
+          "id": "expanded-medium-011",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.5387314815738676
+          },
+          "score_ab": 0.5297157036816773,
+          "score_ba": 0.547747259466058,
+          "directionDifference": 0.01803155578438065
+        },
+        {
+          "id": "expanded-medium-012",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.6202685382885466
+          },
+          "score_ab": 0.6070929774844285,
+          "score_ba": 0.6334440990926646,
+          "directionDifference": 0.02635112160823616
+        },
+        {
+          "id": "expanded-medium-013",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.5679867105994136
+          },
+          "score_ab": 0.5599664264529994,
+          "score_ba": 0.5760069947458277,
+          "directionDifference": 0.016040568292828294
+        },
+        {
+          "id": "expanded-medium-014",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.6436786359566884
+          },
+          "score_ab": 0.6447963271402453,
+          "score_ba": 0.6425609447731315,
+          "directionDifference": 0.0022353823671137363
+        },
+        {
+          "id": "expanded-medium-015",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.4661178271512296
+          },
+          "score_ab": 0.4755827808970087,
+          "score_ba": 0.4566528734054506,
+          "directionDifference": 0.018929907491558096
+        },
+        {
+          "id": "expanded-medium-016",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.6007662140477521
+          },
+          "score_ab": 0.6018197347345875,
+          "score_ba": 0.5997126933609167,
+          "directionDifference": 0.0021070413736707927
+        },
+        {
+          "id": "expanded-medium-017",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.59229230707818
+          },
+          "score_ab": 0.617024212729277,
+          "score_ba": 0.5675604014270831,
+          "directionDifference": 0.049463811302193905
+        },
+        {
+          "id": "expanded-medium-018",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.6704608720632947
+          },
+          "score_ab": 0.6674050751664858,
+          "score_ba": 0.6735166689601036,
+          "directionDifference": 0.006111593793617809
+        },
+        {
+          "id": "expanded-medium-019",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.556338818787681
+          },
+          "score_ab": 0.5337767440630172,
+          "score_ba": 0.5789008935123447,
+          "directionDifference": 0.04512414944932752
+        },
+        {
+          "id": "expanded-medium-020",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.6138887536762662
+          },
+          "score_ab": 0.6220584734283249,
+          "score_ba": 0.6057190339242075,
+          "directionDifference": 0.016339439504117426
+        },
+        {
+          "id": "expanded-medium-021",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.573975794195392
+          },
+          "score_ab": 0.5458660602608995,
+          "score_ba": 0.6020855281298847,
+          "directionDifference": 0.05621946786898524
+        },
+        {
+          "id": "expanded-medium-022",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.5748757306885104
+          },
+          "score_ab": 0.5999208988964319,
+          "score_ba": 0.549830562480589,
+          "directionDifference": 0.05009033641584282
+        },
+        {
+          "id": "expanded-medium-023",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.5924250443838424
+          },
+          "score_ab": 0.5873888154135324,
+          "score_ba": 0.5974612733541524,
+          "directionDifference": 0.010072457940620061
+        },
+        {
+          "id": "expanded-medium-024",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.6256895303159073
+          },
+          "score_ab": 0.6091334388909811,
+          "score_ba": 0.6422456217408337,
+          "directionDifference": 0.03311218284985251
+        },
+        {
+          "id": "expanded-medium-025",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.5785794473619558
+          },
+          "score_ab": 0.5810049773413042,
+          "score_ba": 0.5761539173826074,
+          "directionDifference": 0.004851059958696835
+        },
+        {
+          "id": "expanded-medium-026",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.626599100449807
+          },
+          "score_ab": 0.627550276403656,
+          "score_ba": 0.6256479244959582,
+          "directionDifference": 0.0019023519076978301
+        },
+        {
+          "id": "expanded-medium-027",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.6102150654745189
+          },
+          "score_ab": 0.6154845799997684,
+          "score_ba": 0.6049455509492694,
+          "directionDifference": 0.010539029050498971
+        },
+        {
+          "id": "expanded-medium-028",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.6194579724242897
+          },
+          "score_ab": 0.6267587894083313,
+          "score_ba": 0.612157155440248,
+          "directionDifference": 0.014601633968083338
+        },
+        {
+          "id": "expanded-medium-029",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.6331590636912761
+          },
+          "score_ab": 0.6428448931999753,
+          "score_ba": 0.6234732341825769,
+          "directionDifference": 0.019371659017398346
+        },
+        {
+          "id": "expanded-medium-030",
+          "expected_class": "LOW",
+          "scores": {
+            "value": 0.5607013759854909
+          },
+          "score_ab": 0.5531773038727855,
+          "score_ba": 0.5682254480981963,
+          "directionDifference": 0.015048144225410787
+        },
+        {
+          "id": "expanded-medium-031",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.552020078250979
+          },
+          "score_ab": 0.5327791487912648,
+          "score_ba": 0.5712610077106933,
+          "directionDifference": 0.03848185891942857
+        },
+        {
+          "id": "expanded-medium-032",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.6617251462846826
+          },
+          "score_ab": 0.6666762117235916,
+          "score_ba": 0.6567740808457736,
+          "directionDifference": 0.009902130877817994
+        },
+        {
+          "id": "expanded-medium-033",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.5442221043907809
+          },
+          "score_ab": 0.5239517370898319,
+          "score_ba": 0.5644924716917298,
+          "directionDifference": 0.04054073460189789
+        },
+        {
+          "id": "expanded-medium-034",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.6434241491697927
+          },
+          "score_ab": 0.6538581717497653,
+          "score_ba": 0.6329901265898201,
+          "directionDifference": 0.020868045159945225
+        },
+        {
+          "id": "expanded-medium-035",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.5889357904143098
+          },
+          "score_ab": 0.6071898654683333,
+          "score_ba": 0.5706817153602861,
+          "directionDifference": 0.0365081501080472
+        },
+        {
+          "id": "expanded-medium-036",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.6109304017709397
+          },
+          "score_ab": 0.607370473980787,
+          "score_ba": 0.6144903295610924,
+          "directionDifference": 0.007119855580305368
+        },
+        {
+          "id": "expanded-medium-037",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.5777057214986285
+          },
+          "score_ab": 0.5921834587506164,
+          "score_ba": 0.5632279842466408,
+          "directionDifference": 0.02895547450397562
+        },
+        {
+          "id": "expanded-medium-038",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.6924064252663116
+          },
+          "score_ab": 0.7105579285323356,
+          "score_ba": 0.6742549220002877,
+          "directionDifference": 0.03630300653204788
+        },
+        {
+          "id": "expanded-medium-039",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.5045248054075824
+          },
+          "score_ab": 0.44787625376091805,
+          "score_ba": 0.5611733570542466,
+          "directionDifference": 0.1132971032933286
+        },
+        {
+          "id": "expanded-medium-040",
+          "expected_class": "MEDIUM",
+          "scores": {
+            "value": 0.5294555602902106
+          },
+          "score_ab": 0.531810372094676,
+          "score_ba": 0.5271007484857452,
+          "directionDifference": 0.004709623608930791
+        },
+        {
+          "id": "expanded-high-001",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6783606524726589
+          },
+          "score_ab": 0.6783606524726589,
+          "score_ba": 0.6783606524726589,
+          "directionDifference": 0
+        },
+        {
+          "id": "expanded-high-002",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6949417687333491
+          },
+          "score_ab": 0.6973917023300323,
+          "score_ba": 0.6924918351366659,
+          "directionDifference": 0.004899867193366436
+        },
+        {
+          "id": "expanded-high-003",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6619754390468684
+          },
+          "score_ab": 0.6687342860497192,
+          "score_ba": 0.6552165920440176,
+          "directionDifference": 0.013517694005701575
+        },
+        {
+          "id": "expanded-high-004",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6594480581511661
+          },
+          "score_ab": 0.6516602036116272,
+          "score_ba": 0.667235912690705,
+          "directionDifference": 0.015575709079077793
+        },
+        {
+          "id": "expanded-high-005",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6508058233142927
+          },
+          "score_ab": 0.6589084277953521,
+          "score_ba": 0.6427032188332333,
+          "directionDifference": 0.016205208962118745
+        },
+        {
+          "id": "expanded-high-006",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.7154642717695157
+          },
+          "score_ab": 0.7233440617484291,
+          "score_ba": 0.7075844817906022,
+          "directionDifference": 0.015759579957826952
+        },
+        {
+          "id": "expanded-high-007",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6906966038425615
+          },
+          "score_ab": 0.6699846509374604,
+          "score_ba": 0.7114085567476626,
+          "directionDifference": 0.041423905810202166
+        },
+        {
+          "id": "expanded-high-008",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6791583706075972
+          },
+          "score_ab": 0.6905676053761267,
+          "score_ba": 0.6677491358390678,
+          "directionDifference": 0.022818469537058905
+        },
+        {
+          "id": "expanded-high-009",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6614656434491818
+          },
+          "score_ab": 0.6628470965069102,
+          "score_ba": 0.6600841903914534,
+          "directionDifference": 0.00276290611545682
+        },
+        {
+          "id": "expanded-high-010",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6209488472709876
+          },
+          "score_ab": 0.6161987144428807,
+          "score_ba": 0.6256989800990945,
+          "directionDifference": 0.009500265656213869
+        },
+        {
+          "id": "expanded-high-011",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6960857182234156
+          },
+          "score_ab": 0.6920285818661611,
+          "score_ba": 0.70014285458067,
+          "directionDifference": 0.00811427271450893
+        },
+        {
+          "id": "expanded-high-012",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6814336554548724
+          },
+          "score_ab": 0.6814336554548724,
+          "score_ba": 0.6814336554548724,
+          "directionDifference": 0
+        },
+        {
+          "id": "expanded-high-013",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.7005026887545895
+          },
+          "score_ab": 0.7199170602829824,
+          "score_ba": 0.6810883172261968,
+          "directionDifference": 0.03882874305678563
+        },
+        {
+          "id": "expanded-high-014",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6598010962886169
+          },
+          "score_ab": 0.6576857317091895,
+          "score_ba": 0.6619164608680445,
+          "directionDifference": 0.004230729158854918
+        },
+        {
+          "id": "expanded-high-015",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6947248365714964
+          },
+          "score_ab": 0.714024974945413,
+          "score_ba": 0.6754246981975798,
+          "directionDifference": 0.03860027674783317
+        },
+        {
+          "id": "expanded-high-016",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6744460778390695
+          },
+          "score_ab": 0.6699843295043189,
+          "score_ba": 0.6789078261738203,
+          "directionDifference": 0.00892349666950143
+        },
+        {
+          "id": "expanded-high-017",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.7137329317073264
+          },
+          "score_ab": 0.7087193627287042,
+          "score_ba": 0.7187465006859486,
+          "directionDifference": 0.010027137957244414
+        },
+        {
+          "id": "expanded-high-018",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.708377698748865
+          },
+          "score_ab": 0.7247901110297873,
+          "score_ba": 0.6919652864679426,
+          "directionDifference": 0.03282482456184466
+        },
+        {
+          "id": "expanded-high-019",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6474381196451656
+          },
+          "score_ab": 0.6417281921868105,
+          "score_ba": 0.6531480471035207,
+          "directionDifference": 0.01141985491671016
+        },
+        {
+          "id": "expanded-high-020",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6720317464246339
+          },
+          "score_ab": 0.6720317464246339,
+          "score_ba": 0.6720317464246339,
+          "directionDifference": 0
+        },
+        {
+          "id": "expanded-high-021",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6881132162802263
+          },
+          "score_ab": 0.713943917326932,
+          "score_ba": 0.6622825152335206,
+          "directionDifference": 0.05166140209341141
+        },
+        {
+          "id": "expanded-high-022",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.67483348641309
+          },
+          "score_ab": 0.6664496756965993,
+          "score_ba": 0.6832172971295808,
+          "directionDifference": 0.016767621432981494
+        },
+        {
+          "id": "expanded-high-023",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6561978423180554
+          },
+          "score_ab": 0.6520391062796272,
+          "score_ba": 0.6603565783564836,
+          "directionDifference": 0.008317472076856403
+        },
+        {
+          "id": "expanded-high-024",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6829887826331669
+          },
+          "score_ab": 0.6748267860496207,
+          "score_ba": 0.6911507792167131,
+          "directionDifference": 0.016323993167092432
+        },
+        {
+          "id": "expanded-high-025",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6371902641763312
+          },
+          "score_ab": 0.6531231204338772,
+          "score_ba": 0.6212574079187853,
+          "directionDifference": 0.03186571251509196
+        },
+        {
+          "id": "expanded-high-026",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6707920396901514
+          },
+          "score_ab": 0.6852313812963448,
+          "score_ba": 0.6563526980839582,
+          "directionDifference": 0.028878683212386513
+        },
+        {
+          "id": "expanded-high-027",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6433639431575127
+          },
+          "score_ab": 0.6780077486352163,
+          "score_ba": 0.6087201376798091,
+          "directionDifference": 0.06928761095540714
+        },
+        {
+          "id": "expanded-high-028",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6954154787522111
+          },
+          "score_ab": 0.6937557674247372,
+          "score_ba": 0.697075190079685,
+          "directionDifference": 0.003319422654947779
+        },
+        {
+          "id": "expanded-high-029",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6802056147272942
+          },
+          "score_ab": 0.6802056147272942,
+          "score_ba": 0.6802056147272942,
+          "directionDifference": 0
+        },
+        {
+          "id": "expanded-high-030",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6943201216668846
+          },
+          "score_ab": 0.7055123195297238,
+          "score_ba": 0.6831279238040453,
+          "directionDifference": 0.02238439572567852
+        },
+        {
+          "id": "expanded-high-031",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.7220248564998408
+          },
+          "score_ab": 0.7413678840266075,
+          "score_ba": 0.7026818289730742,
+          "directionDifference": 0.038686055053533286
+        },
+        {
+          "id": "expanded-high-032",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6368498724529765
+          },
+          "score_ab": 0.6385733829301372,
+          "score_ba": 0.635126361975816,
+          "directionDifference": 0.003447020954321256
+        },
+        {
+          "id": "expanded-high-033",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.7067281801587104
+          },
+          "score_ab": 0.6870500948272976,
+          "score_ba": 0.7264062654901231,
+          "directionDifference": 0.039356170662825485
+        },
+        {
+          "id": "expanded-high-034",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6559357501816764
+          },
+          "score_ab": 0.658599688080896,
+          "score_ba": 0.6532718122824568,
+          "directionDifference": 0.005327875798439186
+        },
+        {
+          "id": "expanded-high-035",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.7286524245811479
+          },
+          "score_ab": 0.7331082817674607,
+          "score_ba": 0.7241965673948351,
+          "directionDifference": 0.008911714372625612
+        },
+        {
+          "id": "expanded-high-036",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6317467843437997
+          },
+          "score_ab": 0.6336480114068487,
+          "score_ba": 0.6298455572807508,
+          "directionDifference": 0.0038024541260979206
+        },
+        {
+          "id": "expanded-high-037",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6484455123190813
+          },
+          "score_ab": 0.6466040422262781,
+          "score_ba": 0.6502869824118845,
+          "directionDifference": 0.0036829401856064425
+        },
+        {
+          "id": "expanded-high-038",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.7083243590953151
+          },
+          "score_ab": 0.7031638972658053,
+          "score_ba": 0.7134848209248249,
+          "directionDifference": 0.010320923659019599
+        },
+        {
+          "id": "expanded-high-039",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.638886700546623
+          },
+          "score_ab": 0.6452241672359839,
+          "score_ba": 0.632549233857262,
+          "directionDifference": 0.012674933378721831
+        },
+        {
+          "id": "expanded-high-040",
+          "expected_class": "HIGH",
+          "scores": {
+            "value": 0.6810525956302103
+          },
+          "score_ab": 0.6997868073925325,
+          "score_ba": 0.6623183838678881,
+          "directionDifference": 0.03746842352464441
+        }
+      ],
+      "metrics": {
+        "classStatistics": {
+          "LOW": {
+            "support": 39,
+            "mean": 0.424341,
+            "median": 0.430406,
+            "minimum": 0.1813,
+            "maximum": 0.560701,
+            "standardDeviation": 0.090853
+          },
+          "MEDIUM": {
+            "support": 41,
+            "mean": 0.595274,
+            "median": 0.595521,
+            "minimum": 0.41382,
+            "maximum": 0.692406,
+            "standardDeviation": 0.048977
+          },
+          "HIGH": {
+            "support": 40,
+            "mean": 0.676098,
+            "median": 0.67876,
+            "minimum": 0.620949,
+            "maximum": 0.728652,
+            "standardDeviation": 0.026599
+          }
+        },
+        "spearman": {
+          "support": 120,
+          "coefficient": 0.900285
+        },
+        "concordance": {
+          "HIGH_gt_MEDIUM": {
+            "comparisons": 1640,
+            "correct": 1546,
+            "ties": 0,
+            "rate": 0.942683
+          },
+          "HIGH_gt_LOW": {
+            "comparisons": 1560,
+            "correct": 1560,
+            "ties": 0,
+            "rate": 1
+          },
+          "MEDIUM_gt_LOW": {
+            "comparisons": 1599,
+            "correct": 1550,
+            "ties": 0,
+            "rate": 0.969356
+          },
+          "overall": {
+            "comparisons": 4799,
+            "correct": 4656,
+            "rate": 0.970202
+          }
+        },
+        "classMargins": {
+          "highMinusMedium": 0.080824,
+          "mediumMinusLow": 0.170933,
+          "highMinusLow": 0.251757
+        }
+      },
+      "directionSensitivity": {
+        "all": {
+          "mean": 0.02456943380499295,
+          "median": 0.01803155578438065,
+          "p90": 0.05337925908537916,
+          "p95": 0.07030783508393218,
+          "maximum": 0.1132971032933286
+        },
+        "byClass": {
+          "LOW": {
+            "mean": 0.029425994779312497,
+            "median": 0.024732021657526748,
+            "p90": 0.07030783508393218,
+            "p95": 0.07370062867003913,
+            "maximum": 0.07647597081171048
+          },
+          "MEDIUM": {
+            "mean": 0.026653670550145604,
+            "median": 0.019371659017398346,
+            "p90": 0.05009033641584282,
+            "p95": 0.05621946786898524,
+            "maximum": 0.1132971032933286
+          },
+          "HIGH": {
+            "mean": 0.01769794419124988,
+            "median": 0.01141985491671016,
+            "p90": 0.03882874305678563,
+            "p95": 0.041423905810202166,
+            "maximum": 0.06928761095540714
+          }
+        }
+      },
+      "grouped": {
+        "seed": 20260810,
+        "folds": [
+          {
+            "fold": 1,
+            "trainingCases": 95,
+            "heldOutCases": 25,
+            "heldOutSupport": {
+              "LOW": 7,
+              "MEDIUM": 8,
+              "HIGH": 10
+            },
+            "componentIds": [
+              "component-04db072f5f377795",
+              "component-0b68ee6bbbb171b5",
+              "component-0e2bbd40620678ae",
+              "component-1c27624d02f9dee2",
+              "component-2e82ed55ccdc30e4",
+              "component-2f446de17c3e9535",
+              "component-2fee5b2487fd7b7c",
+              "component-4e1d9505b35b3975",
+              "component-5cd407b0d3877ea6",
+              "component-69afb09ab33bf1cd",
+              "component-6c0e685541faea53",
+              "component-7201d63b878075cf",
+              "component-73631e96dbd0113b",
+              "component-763e9467f4a523c2",
+              "component-7aeb66448e256642",
+              "component-965fa10f1c196dc5",
+              "component-af20adac921b119f",
+              "component-bc79691de09eb121",
+              "component-c021a27a9c2c537e",
+              "component-c3415bb48f4ae18e",
+              "component-e379dff45aaf78f4",
+              "component-e6ff03153c1aa16f",
+              "component-f7a9fef74501866a",
+              "component-f8e31bfeb8c63182",
+              "component-fb2bb314c884e7ad"
+            ],
+            "t1": 0.550343,
+            "t2": 0.635004,
+            "trainingMacroF1": 0.88062
+          },
+          {
+            "fold": 2,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 8,
+              "HIGH": 8
+            },
+            "componentIds": [
+              "component-01df545104630585",
+              "component-0c1ac3c21e6d7379",
+              "component-12efb2e5e4380604",
+              "component-2c55cfaa0271a456",
+              "component-3c84d50d99e593c9",
+              "component-4cbb2590cc69f012",
+              "component-4fdcd824319324f2",
+              "component-5dac936425170f03",
+              "component-6533b768054875b4",
+              "component-668be1921d2adf20",
+              "component-67082cc73e1332a4",
+              "component-69035c1c31d42557",
+              "component-802082ac2f1d1887",
+              "component-922020083549bdce",
+              "component-98f8f00371d8222f",
+              "component-a1e794d6c305035f",
+              "component-a6cf9aee69b42945",
+              "component-a9a7045a0356a28e",
+              "component-ab6677b62ebaecf2",
+              "component-abc4aea1b4c8ca07",
+              "component-c691f76eed944977",
+              "component-e968cbd2bd396109",
+              "component-ee254cdca1d642ce",
+              "component-f386dc6f597ec512"
+            ],
+            "t1": 0.535793,
+            "t2": 0.634929,
+            "trainingMacroF1": 0.874203
+          },
+          {
+            "fold": 3,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 8,
+              "HIGH": 8
+            },
+            "componentIds": [
+              "component-03fa91bfeea7c11c",
+              "component-04333334c33f2097",
+              "component-0cd2b2c7320af743",
+              "component-0f6d90925e07e70b",
+              "component-12e2ee6851aab01d",
+              "component-1697910d1ed3673a",
+              "component-2bd5e97709c339a4",
+              "component-3566ba5e97977fc2",
+              "component-382549cd3021cd07",
+              "component-3d3b4b8b6ddfb32c",
+              "component-3e5c29d06b936076",
+              "component-46a0360627e7fdbb",
+              "component-58d84c1887fb5958",
+              "component-69cc12360fd22b29",
+              "component-7bb81ec1023c011f",
+              "component-80afb935576f3e38",
+              "component-873de7011aca3ee1",
+              "component-87620e42728ae5da",
+              "component-90392ca8b4d9cf7a",
+              "component-915ffbfaf0d92222",
+              "component-b3d88af3814b6d9d",
+              "component-dbbac170cf7d5170",
+              "component-f55580a7989c3c63",
+              "component-f77b8ffd9c4c2f62"
+            ],
+            "t1": 0.550343,
+            "t2": 0.635004,
+            "trainingMacroF1": 0.883947
+          },
+          {
+            "fold": 4,
+            "trainingCases": 96,
+            "heldOutCases": 24,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 8,
+              "HIGH": 8
+            },
+            "componentIds": [
+              "component-01b3152230c6e75e",
+              "component-26ac5786520db5f1",
+              "component-2dd1340f77d8b8e3",
+              "component-4c2646fb27ad0216",
+              "component-576e4a8d99375835",
+              "component-5f1f15c9780e4eb9",
+              "component-684d3ca0d7c19253",
+              "component-6a5a2edb32db8fbc",
+              "component-84eb1f72db6e67a6",
+              "component-8e1258866ed0f04a",
+              "component-9a85937b069873e9",
+              "component-a3a0135e0b22336f",
+              "component-a5675b1e03dbe922",
+              "component-bbc89caf2d1e491c",
+              "component-bcf52597e1703837",
+              "component-c605ed8b199fd15a",
+              "component-cb2b23a0ea8ccd14",
+              "component-d33f84fd0aa230d0",
+              "component-d4a5045e2a387445",
+              "component-d4bad9b512a7761e",
+              "component-db12f5b95f819e7e",
+              "component-f0ccda665bad7048",
+              "component-f5db4812bae7eba1",
+              "component-f7203c079eb150b2"
+            ],
+            "t1": 0.550343,
+            "t2": 0.635175,
+            "trainingMacroF1": 0.905132
+          },
+          {
+            "fold": 5,
+            "trainingCases": 97,
+            "heldOutCases": 23,
+            "heldOutSupport": {
+              "LOW": 8,
+              "MEDIUM": 9,
+              "HIGH": 6
+            },
+            "componentIds": [
+              "component-0b61f0e726e93918",
+              "component-186f3e1ac7a14970",
+              "component-2098f3b7d139a619",
+              "component-2a651ad59c2313f3",
+              "component-38cd79e234347791",
+              "component-456297aad7728a2b",
+              "component-4d191c703d720538",
+              "component-55e528866779a22c",
+              "component-632982c7923eb090",
+              "component-6363126bfcf54a22",
+              "component-7462ecfec5ce5709",
+              "component-842f34c58d1c86c3",
+              "component-8ae0a26d3bcb3c3c",
+              "component-8b836428891643ce",
+              "component-9d170cd9dda89c72",
+              "component-f45dbffb7958b3f6"
+            ],
+            "t1": 0.550839,
+            "t2": 0.646062,
+            "trainingMacroF1": 0.864105
+          }
+        ],
+        "predictions": [
+          {
+            "id": "expanded-high-001",
+            "componentId": "component-26ac5786520db5f1",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-002",
+            "componentId": "component-2e82ed55ccdc30e4",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-003",
+            "componentId": "component-12e2ee6851aab01d",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-004",
+            "componentId": "component-f5db4812bae7eba1",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-005",
+            "componentId": "component-2fee5b2487fd7b7c",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-006",
+            "componentId": "component-2a651ad59c2313f3",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-007",
+            "componentId": "component-f55580a7989c3c63",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-008",
+            "componentId": "component-af20adac921b119f",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-009",
+            "componentId": "component-bc79691de09eb121",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-010",
+            "componentId": "component-f7a9fef74501866a",
+            "actual": "HIGH",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-high-011",
+            "componentId": "component-7aeb66448e256642",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-012",
+            "componentId": "component-84eb1f72db6e67a6",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-013",
+            "componentId": "component-0cd2b2c7320af743",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-014",
+            "componentId": "component-d4bad9b512a7761e",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-015",
+            "componentId": "component-382549cd3021cd07",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-016",
+            "componentId": "component-67082cc73e1332a4",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-017",
+            "componentId": "component-0b61f0e726e93918",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-018",
+            "componentId": "component-6533b768054875b4",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-019",
+            "componentId": "component-9d170cd9dda89c72",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-020",
+            "componentId": "component-46a0360627e7fdbb",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-021",
+            "componentId": "component-c605ed8b199fd15a",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-022",
+            "componentId": "component-ab6677b62ebaecf2",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-023",
+            "componentId": "component-6a5a2edb32db8fbc",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-024",
+            "componentId": "component-ee254cdca1d642ce",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-025",
+            "componentId": "component-6363126bfcf54a22",
+            "actual": "HIGH",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-high-026",
+            "componentId": "component-3c84d50d99e593c9",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-027",
+            "componentId": "component-4d191c703d720538",
+            "actual": "HIGH",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-high-028",
+            "componentId": "component-7462ecfec5ce5709",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-029",
+            "componentId": "component-2bd5e97709c339a4",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-030",
+            "componentId": "component-69cc12360fd22b29",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-031",
+            "componentId": "component-0c1ac3c21e6d7379",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-032",
+            "componentId": "component-a3a0135e0b22336f",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-033",
+            "componentId": "component-04db072f5f377795",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-034",
+            "componentId": "component-5dac936425170f03",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-035",
+            "componentId": "component-98f8f00371d8222f",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-036",
+            "componentId": "component-f8e31bfeb8c63182",
+            "actual": "HIGH",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-high-037",
+            "componentId": "component-0b68ee6bbbb171b5",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-038",
+            "componentId": "component-5cd407b0d3877ea6",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-039",
+            "componentId": "component-03fa91bfeea7c11c",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-high-040",
+            "componentId": "component-2dd1340f77d8b8e3",
+            "actual": "HIGH",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-low-001",
+            "componentId": "component-f7203c079eb150b2",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-002",
+            "componentId": "component-6c0e685541faea53",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-003",
+            "componentId": "component-922020083549bdce",
+            "actual": "LOW",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-low-004",
+            "componentId": "component-a1e794d6c305035f",
+            "actual": "LOW",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-low-005",
+            "componentId": "component-a6cf9aee69b42945",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-006",
+            "componentId": "component-965fa10f1c196dc5",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-007",
+            "componentId": "component-87620e42728ae5da",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-008",
+            "componentId": "component-c691f76eed944977",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-009",
+            "componentId": "component-456297aad7728a2b",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-010",
+            "componentId": "component-4e1d9505b35b3975",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-low-011",
+            "componentId": "component-5f1f15c9780e4eb9",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-012",
+            "componentId": "component-69035c1c31d42557",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-013",
+            "componentId": "component-4fdcd824319324f2",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-014",
+            "componentId": "component-a5675b1e03dbe922",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-015",
+            "componentId": "component-55e528866779a22c",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-016",
+            "componentId": "component-576e4a8d99375835",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-low-017",
+            "componentId": "component-cb2b23a0ea8ccd14",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-018",
+            "componentId": "component-58d84c1887fb5958",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-019",
+            "componentId": "component-f45dbffb7958b3f6",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-020",
+            "componentId": "component-8b836428891643ce",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-021",
+            "componentId": "component-0b61f0e726e93918",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-022",
+            "componentId": "component-bcf52597e1703837",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-023",
+            "componentId": "component-1697910d1ed3673a",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-024",
+            "componentId": "component-38cd79e234347791",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-025",
+            "componentId": "component-e6ff03153c1aa16f",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-026",
+            "componentId": "component-0e2bbd40620678ae",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-027",
+            "componentId": "component-632982c7923eb090",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-028",
+            "componentId": "component-4c2646fb27ad0216",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-029",
+            "componentId": "component-668be1921d2adf20",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-030",
+            "componentId": "component-abc4aea1b4c8ca07",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-031",
+            "componentId": "component-e379dff45aaf78f4",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-032",
+            "componentId": "component-73631e96dbd0113b",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-033",
+            "componentId": "component-d33f84fd0aa230d0",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-034",
+            "componentId": "component-04333334c33f2097",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-035",
+            "componentId": "component-2f446de17c3e9535",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-036",
+            "componentId": "component-3e5c29d06b936076",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-037",
+            "componentId": "component-90392ca8b4d9cf7a",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-038",
+            "componentId": "component-2098f3b7d139a619",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-039",
+            "componentId": "component-915ffbfaf0d92222",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-low-040",
+            "componentId": "component-8e1258866ed0f04a",
+            "actual": "MEDIUM",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-medium-001",
+            "componentId": "component-2a651ad59c2313f3",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-002",
+            "componentId": "component-b3d88af3814b6d9d",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-003",
+            "componentId": "component-0f6d90925e07e70b",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-004",
+            "componentId": "component-8ae0a26d3bcb3c3c",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-005",
+            "componentId": "component-7bb81ec1023c011f",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-006",
+            "componentId": "component-a9a7045a0356a28e",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-007",
+            "componentId": "component-db12f5b95f819e7e",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-008",
+            "componentId": "component-1c27624d02f9dee2",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-009",
+            "componentId": "component-c021a27a9c2c537e",
+            "actual": "MEDIUM",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-medium-010",
+            "componentId": "component-80afb935576f3e38",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-011",
+            "componentId": "component-456297aad7728a2b",
+            "actual": "MEDIUM",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-medium-012",
+            "componentId": "component-842f34c58d1c86c3",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-013",
+            "componentId": "component-01b3152230c6e75e",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-014",
+            "componentId": "component-d4a5045e2a387445",
+            "actual": "MEDIUM",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-medium-015",
+            "componentId": "component-f77b8ffd9c4c2f62",
+            "actual": "LOW",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-medium-016",
+            "componentId": "component-fb2bb314c884e7ad",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-017",
+            "componentId": "component-9a85937b069873e9",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-018",
+            "componentId": "component-f0ccda665bad7048",
+            "actual": "MEDIUM",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-medium-019",
+            "componentId": "component-763e9467f4a523c2",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-020",
+            "componentId": "component-6363126bfcf54a22",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-021",
+            "componentId": "component-4cbb2590cc69f012",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-022",
+            "componentId": "component-dbbac170cf7d5170",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-023",
+            "componentId": "component-632982c7923eb090",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-024",
+            "componentId": "component-7201d63b878075cf",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-025",
+            "componentId": "component-01df545104630585",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-026",
+            "componentId": "component-55e528866779a22c",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-027",
+            "componentId": "component-f386dc6f597ec512",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-028",
+            "componentId": "component-186f3e1ac7a14970",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-029",
+            "componentId": "component-12efb2e5e4380604",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-030",
+            "componentId": "component-684d3ca0d7c19253",
+            "actual": "LOW",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-031",
+            "componentId": "component-69afb09ab33bf1cd",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-032",
+            "componentId": "component-873de7011aca3ee1",
+            "actual": "MEDIUM",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-medium-033",
+            "componentId": "component-e968cbd2bd396109",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-034",
+            "componentId": "component-3566ba5e97977fc2",
+            "actual": "MEDIUM",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-medium-035",
+            "componentId": "component-c3415bb48f4ae18e",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-036",
+            "componentId": "component-f45dbffb7958b3f6",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-037",
+            "componentId": "component-2c55cfaa0271a456",
+            "actual": "MEDIUM",
+            "predicted": "MEDIUM"
+          },
+          {
+            "id": "expanded-medium-038",
+            "componentId": "component-802082ac2f1d1887",
+            "actual": "MEDIUM",
+            "predicted": "HIGH"
+          },
+          {
+            "id": "expanded-medium-039",
+            "componentId": "component-bbc89caf2d1e491c",
+            "actual": "MEDIUM",
+            "predicted": "LOW"
+          },
+          {
+            "id": "expanded-medium-040",
+            "componentId": "component-3d3b4b8b6ddfb32c",
+            "actual": "MEDIUM",
+            "predicted": "LOW"
+          }
+        ],
+        "overall": {
+          "accuracy": 0.858333,
+          "macroPrecision": 0.857644,
+          "macroRecall": 0.859725,
+          "macroF1": 0.858084
+        },
+        "perClass": {
+          "LOW": {
+            "precision": 0.9,
+            "recall": 0.923077,
+            "f1": 0.911392
+          },
+          "MEDIUM": {
+            "precision": 0.815789,
+            "recall": 0.756098,
+            "f1": 0.78481
+          },
+          "HIGH": {
+            "precision": 0.857143,
+            "recall": 0.9,
+            "f1": 0.878049
+          }
+        },
+        "confusionMatrix": {
+          "LOW": {
+            "LOW": 36,
+            "MEDIUM": 3,
+            "HIGH": 0
+          },
+          "MEDIUM": {
+            "LOW": 4,
+            "MEDIUM": 31,
+            "HIGH": 6
+          },
+          "HIGH": {
+            "LOW": 0,
+            "MEDIUM": 4,
+            "HIGH": 36
+          }
+        }
+      },
+      "operational": {
+        "requests": 4,
+        "successfulRequests": 4,
+        "rateLimits": 0,
+        "retries": 0,
+        "failures": 0,
+        "inputTokens": 11954,
+        "providerProcessingMs": 37992,
+        "pacingMs": 61000,
+        "queryEmbeddings": 229,
+        "documentEmbeddings": 229
+      },
+      "oldVsNew": {
+        "oldMetrics": {
+          "classStatistics": {
+            "LOW": {
+              "support": 39,
+              "mean": 0.721968,
+              "median": 0.719139,
+              "minimum": 0.506436,
+              "maximum": 0.865482,
+              "standardDeviation": 0.083277
+            },
+            "MEDIUM": {
+              "support": 41,
+              "mean": 0.903379,
+              "median": 0.906207,
+              "minimum": 0.706429,
+              "maximum": 0.986083,
+              "standardDeviation": 0.058435
+            },
+            "HIGH": {
+              "support": 40,
+              "mean": 0.977903,
+              "median": 0.979891,
+              "minimum": 0.9168,
+              "maximum": 1,
+              "standardDeviation": 0.015427
+            }
+          },
+          "spearman": {
+            "support": 120,
+            "coefficient": 0.883903
+          },
+          "concordance": {
+            "HIGH_gt_MEDIUM": {
+              "comparisons": 1640,
+              "correct": 1494,
+              "ties": 0,
+              "rate": 0.910976
+            },
+            "HIGH_gt_LOW": {
+              "comparisons": 1560,
+              "correct": 1560,
+              "ties": 0,
+              "rate": 1
+            },
+            "MEDIUM_gt_LOW": {
+              "comparisons": 1599,
+              "correct": 1547,
+              "ties": 0,
+              "rate": 0.96748
+            },
+            "overall": {
+              "comparisons": 4799,
+              "correct": 4601,
+              "rate": 0.958741
+            }
+          },
+          "classMargins": {
+            "highMinusMedium": 0.074524,
+            "mediumMinusLow": 0.181411,
+            "highMinusLow": 0.255935
+          }
+        },
+        "oldGrouped": {
+          "seed": 20260810,
+          "folds": [
+            {
+              "fold": 1,
+              "trainingCases": 95,
+              "heldOutCases": 25,
+              "heldOutSupport": {
+                "LOW": 7,
+                "MEDIUM": 8,
+                "HIGH": 10
+              },
+              "componentIds": [
+                "component-04db072f5f377795",
+                "component-0b68ee6bbbb171b5",
+                "component-0e2bbd40620678ae",
+                "component-1c27624d02f9dee2",
+                "component-2e82ed55ccdc30e4",
+                "component-2f446de17c3e9535",
+                "component-2fee5b2487fd7b7c",
+                "component-4e1d9505b35b3975",
+                "component-5cd407b0d3877ea6",
+                "component-69afb09ab33bf1cd",
+                "component-6c0e685541faea53",
+                "component-7201d63b878075cf",
+                "component-73631e96dbd0113b",
+                "component-763e9467f4a523c2",
+                "component-7aeb66448e256642",
+                "component-965fa10f1c196dc5",
+                "component-af20adac921b119f",
+                "component-bc79691de09eb121",
+                "component-c021a27a9c2c537e",
+                "component-c3415bb48f4ae18e",
+                "component-e379dff45aaf78f4",
+                "component-e6ff03153c1aa16f",
+                "component-f7a9fef74501866a",
+                "component-f8e31bfeb8c63182",
+                "component-fb2bb314c884e7ad"
+              ],
+              "t1": 0.831366,
+              "t2": 0.964452,
+              "trainingMacroF1": 0.828725
+            },
+            {
+              "fold": 2,
+              "trainingCases": 96,
+              "heldOutCases": 24,
+              "heldOutSupport": {
+                "LOW": 8,
+                "MEDIUM": 8,
+                "HIGH": 8
+              },
+              "componentIds": [
+                "component-01df545104630585",
+                "component-0c1ac3c21e6d7379",
+                "component-12efb2e5e4380604",
+                "component-2c55cfaa0271a456",
+                "component-3c84d50d99e593c9",
+                "component-4cbb2590cc69f012",
+                "component-4fdcd824319324f2",
+                "component-5dac936425170f03",
+                "component-6533b768054875b4",
+                "component-668be1921d2adf20",
+                "component-67082cc73e1332a4",
+                "component-69035c1c31d42557",
+                "component-802082ac2f1d1887",
+                "component-922020083549bdce",
+                "component-98f8f00371d8222f",
+                "component-a1e794d6c305035f",
+                "component-a6cf9aee69b42945",
+                "component-a9a7045a0356a28e",
+                "component-ab6677b62ebaecf2",
+                "component-abc4aea1b4c8ca07",
+                "component-c691f76eed944977",
+                "component-e968cbd2bd396109",
+                "component-ee254cdca1d642ce",
+                "component-f386dc6f597ec512"
+              ],
+              "t1": 0.831366,
+              "t2": 0.965706,
+              "trainingMacroF1": 0.843675
+            },
+            {
+              "fold": 3,
+              "trainingCases": 96,
+              "heldOutCases": 24,
+              "heldOutSupport": {
+                "LOW": 8,
+                "MEDIUM": 8,
+                "HIGH": 8
+              },
+              "componentIds": [
+                "component-03fa91bfeea7c11c",
+                "component-04333334c33f2097",
+                "component-0cd2b2c7320af743",
+                "component-0f6d90925e07e70b",
+                "component-12e2ee6851aab01d",
+                "component-1697910d1ed3673a",
+                "component-2bd5e97709c339a4",
+                "component-3566ba5e97977fc2",
+                "component-382549cd3021cd07",
+                "component-3d3b4b8b6ddfb32c",
+                "component-3e5c29d06b936076",
+                "component-46a0360627e7fdbb",
+                "component-58d84c1887fb5958",
+                "component-69cc12360fd22b29",
+                "component-7bb81ec1023c011f",
+                "component-80afb935576f3e38",
+                "component-873de7011aca3ee1",
+                "component-87620e42728ae5da",
+                "component-90392ca8b4d9cf7a",
+                "component-915ffbfaf0d92222",
+                "component-b3d88af3814b6d9d",
+                "component-dbbac170cf7d5170",
+                "component-f55580a7989c3c63",
+                "component-f77b8ffd9c4c2f62"
+              ],
+              "t1": 0.831366,
+              "t2": 0.964452,
+              "trainingMacroF1": 0.865178
+            },
+            {
+              "fold": 4,
+              "trainingCases": 96,
+              "heldOutCases": 24,
+              "heldOutSupport": {
+                "LOW": 8,
+                "MEDIUM": 8,
+                "HIGH": 8
+              },
+              "componentIds": [
+                "component-01b3152230c6e75e",
+                "component-26ac5786520db5f1",
+                "component-2dd1340f77d8b8e3",
+                "component-4c2646fb27ad0216",
+                "component-576e4a8d99375835",
+                "component-5f1f15c9780e4eb9",
+                "component-684d3ca0d7c19253",
+                "component-6a5a2edb32db8fbc",
+                "component-84eb1f72db6e67a6",
+                "component-8e1258866ed0f04a",
+                "component-9a85937b069873e9",
+                "component-a3a0135e0b22336f",
+                "component-a5675b1e03dbe922",
+                "component-bbc89caf2d1e491c",
+                "component-bcf52597e1703837",
+                "component-c605ed8b199fd15a",
+                "component-cb2b23a0ea8ccd14",
+                "component-d33f84fd0aa230d0",
+                "component-d4a5045e2a387445",
+                "component-d4bad9b512a7761e",
+                "component-db12f5b95f819e7e",
+                "component-f0ccda665bad7048",
+                "component-f5db4812bae7eba1",
+                "component-f7203c079eb150b2"
+              ],
+              "t1": 0.831366,
+              "t2": 0.964452,
+              "trainingMacroF1": 0.864936
+            },
+            {
+              "fold": 5,
+              "trainingCases": 97,
+              "heldOutCases": 23,
+              "heldOutSupport": {
+                "LOW": 8,
+                "MEDIUM": 9,
+                "HIGH": 6
+              },
+              "componentIds": [
+                "component-0b61f0e726e93918",
+                "component-186f3e1ac7a14970",
+                "component-2098f3b7d139a619",
+                "component-2a651ad59c2313f3",
+                "component-38cd79e234347791",
+                "component-456297aad7728a2b",
+                "component-4d191c703d720538",
+                "component-55e528866779a22c",
+                "component-632982c7923eb090",
+                "component-6363126bfcf54a22",
+                "component-7462ecfec5ce5709",
+                "component-842f34c58d1c86c3",
+                "component-8ae0a26d3bcb3c3c",
+                "component-8b836428891643ce",
+                "component-9d170cd9dda89c72",
+                "component-f45dbffb7958b3f6"
+              ],
+              "t1": 0.803966,
+              "t2": 0.957332,
+              "trainingMacroF1": 0.875298
+            }
+          ],
+          "predictions": [
+            {
+              "id": "expanded-high-001",
+              "componentId": "component-26ac5786520db5f1",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-002",
+              "componentId": "component-2e82ed55ccdc30e4",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-003",
+              "componentId": "component-12e2ee6851aab01d",
+              "actual": "HIGH",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-high-004",
+              "componentId": "component-f5db4812bae7eba1",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-005",
+              "componentId": "component-2fee5b2487fd7b7c",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-006",
+              "componentId": "component-2a651ad59c2313f3",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-007",
+              "componentId": "component-f55580a7989c3c63",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-008",
+              "componentId": "component-af20adac921b119f",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-009",
+              "componentId": "component-bc79691de09eb121",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-010",
+              "componentId": "component-f7a9fef74501866a",
+              "actual": "HIGH",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-high-011",
+              "componentId": "component-7aeb66448e256642",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-012",
+              "componentId": "component-84eb1f72db6e67a6",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-013",
+              "componentId": "component-0cd2b2c7320af743",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-014",
+              "componentId": "component-d4bad9b512a7761e",
+              "actual": "HIGH",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-high-015",
+              "componentId": "component-382549cd3021cd07",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-016",
+              "componentId": "component-67082cc73e1332a4",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-017",
+              "componentId": "component-0b61f0e726e93918",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-018",
+              "componentId": "component-6533b768054875b4",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-019",
+              "componentId": "component-9d170cd9dda89c72",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-020",
+              "componentId": "component-46a0360627e7fdbb",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-021",
+              "componentId": "component-c605ed8b199fd15a",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-022",
+              "componentId": "component-ab6677b62ebaecf2",
+              "actual": "HIGH",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-high-023",
+              "componentId": "component-6a5a2edb32db8fbc",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-024",
+              "componentId": "component-ee254cdca1d642ce",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-025",
+              "componentId": "component-6363126bfcf54a22",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-026",
+              "componentId": "component-3c84d50d99e593c9",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-027",
+              "componentId": "component-4d191c703d720538",
+              "actual": "HIGH",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-high-028",
+              "componentId": "component-7462ecfec5ce5709",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-029",
+              "componentId": "component-2bd5e97709c339a4",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-030",
+              "componentId": "component-69cc12360fd22b29",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-031",
+              "componentId": "component-0c1ac3c21e6d7379",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-032",
+              "componentId": "component-a3a0135e0b22336f",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-033",
+              "componentId": "component-04db072f5f377795",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-034",
+              "componentId": "component-5dac936425170f03",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-035",
+              "componentId": "component-98f8f00371d8222f",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-036",
+              "componentId": "component-f8e31bfeb8c63182",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-037",
+              "componentId": "component-0b68ee6bbbb171b5",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-038",
+              "componentId": "component-5cd407b0d3877ea6",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-039",
+              "componentId": "component-03fa91bfeea7c11c",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-high-040",
+              "componentId": "component-2dd1340f77d8b8e3",
+              "actual": "HIGH",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-low-001",
+              "componentId": "component-f7203c079eb150b2",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-002",
+              "componentId": "component-6c0e685541faea53",
+              "actual": "LOW",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-low-003",
+              "componentId": "component-922020083549bdce",
+              "actual": "LOW",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-low-004",
+              "componentId": "component-a1e794d6c305035f",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-005",
+              "componentId": "component-a6cf9aee69b42945",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-006",
+              "componentId": "component-965fa10f1c196dc5",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-007",
+              "componentId": "component-87620e42728ae5da",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-008",
+              "componentId": "component-c691f76eed944977",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-009",
+              "componentId": "component-456297aad7728a2b",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-010",
+              "componentId": "component-4e1d9505b35b3975",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-low-011",
+              "componentId": "component-5f1f15c9780e4eb9",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-012",
+              "componentId": "component-69035c1c31d42557",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-013",
+              "componentId": "component-4fdcd824319324f2",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-014",
+              "componentId": "component-a5675b1e03dbe922",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-015",
+              "componentId": "component-55e528866779a22c",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-016",
+              "componentId": "component-576e4a8d99375835",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-low-017",
+              "componentId": "component-cb2b23a0ea8ccd14",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-018",
+              "componentId": "component-58d84c1887fb5958",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-019",
+              "componentId": "component-f45dbffb7958b3f6",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-020",
+              "componentId": "component-8b836428891643ce",
+              "actual": "LOW",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-low-021",
+              "componentId": "component-0b61f0e726e93918",
+              "actual": "LOW",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-low-022",
+              "componentId": "component-bcf52597e1703837",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-023",
+              "componentId": "component-1697910d1ed3673a",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-024",
+              "componentId": "component-38cd79e234347791",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-025",
+              "componentId": "component-e6ff03153c1aa16f",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-026",
+              "componentId": "component-0e2bbd40620678ae",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-027",
+              "componentId": "component-632982c7923eb090",
+              "actual": "LOW",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-low-028",
+              "componentId": "component-4c2646fb27ad0216",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-029",
+              "componentId": "component-668be1921d2adf20",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-030",
+              "componentId": "component-abc4aea1b4c8ca07",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-031",
+              "componentId": "component-e379dff45aaf78f4",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-032",
+              "componentId": "component-73631e96dbd0113b",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-033",
+              "componentId": "component-d33f84fd0aa230d0",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-034",
+              "componentId": "component-04333334c33f2097",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-035",
+              "componentId": "component-2f446de17c3e9535",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-036",
+              "componentId": "component-3e5c29d06b936076",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-037",
+              "componentId": "component-90392ca8b4d9cf7a",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-038",
+              "componentId": "component-2098f3b7d139a619",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-039",
+              "componentId": "component-915ffbfaf0d92222",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-low-040",
+              "componentId": "component-8e1258866ed0f04a",
+              "actual": "MEDIUM",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-medium-001",
+              "componentId": "component-2a651ad59c2313f3",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-002",
+              "componentId": "component-b3d88af3814b6d9d",
+              "actual": "MEDIUM",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-medium-003",
+              "componentId": "component-0f6d90925e07e70b",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-004",
+              "componentId": "component-8ae0a26d3bcb3c3c",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-005",
+              "componentId": "component-7bb81ec1023c011f",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-006",
+              "componentId": "component-a9a7045a0356a28e",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-007",
+              "componentId": "component-db12f5b95f819e7e",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-008",
+              "componentId": "component-1c27624d02f9dee2",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-009",
+              "componentId": "component-c021a27a9c2c537e",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-010",
+              "componentId": "component-80afb935576f3e38",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-011",
+              "componentId": "component-456297aad7728a2b",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-012",
+              "componentId": "component-842f34c58d1c86c3",
+              "actual": "MEDIUM",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-medium-013",
+              "componentId": "component-01b3152230c6e75e",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-014",
+              "componentId": "component-d4a5045e2a387445",
+              "actual": "MEDIUM",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-medium-015",
+              "componentId": "component-f77b8ffd9c4c2f62",
+              "actual": "LOW",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-medium-016",
+              "componentId": "component-fb2bb314c884e7ad",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-017",
+              "componentId": "component-9a85937b069873e9",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-018",
+              "componentId": "component-f0ccda665bad7048",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-019",
+              "componentId": "component-763e9467f4a523c2",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-020",
+              "componentId": "component-6363126bfcf54a22",
+              "actual": "MEDIUM",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-medium-021",
+              "componentId": "component-4cbb2590cc69f012",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-022",
+              "componentId": "component-dbbac170cf7d5170",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-023",
+              "componentId": "component-632982c7923eb090",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-024",
+              "componentId": "component-7201d63b878075cf",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-025",
+              "componentId": "component-01df545104630585",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-026",
+              "componentId": "component-55e528866779a22c",
+              "actual": "MEDIUM",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-medium-027",
+              "componentId": "component-f386dc6f597ec512",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-028",
+              "componentId": "component-186f3e1ac7a14970",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-029",
+              "componentId": "component-12efb2e5e4380604",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-030",
+              "componentId": "component-684d3ca0d7c19253",
+              "actual": "LOW",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-031",
+              "componentId": "component-69afb09ab33bf1cd",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-032",
+              "componentId": "component-873de7011aca3ee1",
+              "actual": "MEDIUM",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-medium-033",
+              "componentId": "component-e968cbd2bd396109",
+              "actual": "MEDIUM",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-medium-034",
+              "componentId": "component-3566ba5e97977fc2",
+              "actual": "MEDIUM",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-medium-035",
+              "componentId": "component-c3415bb48f4ae18e",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-036",
+              "componentId": "component-f45dbffb7958b3f6",
+              "actual": "MEDIUM",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-medium-037",
+              "componentId": "component-2c55cfaa0271a456",
+              "actual": "MEDIUM",
+              "predicted": "MEDIUM"
+            },
+            {
+              "id": "expanded-medium-038",
+              "componentId": "component-802082ac2f1d1887",
+              "actual": "MEDIUM",
+              "predicted": "HIGH"
+            },
+            {
+              "id": "expanded-medium-039",
+              "componentId": "component-bbc89caf2d1e491c",
+              "actual": "MEDIUM",
+              "predicted": "LOW"
+            },
+            {
+              "id": "expanded-medium-040",
+              "componentId": "component-3d3b4b8b6ddfb32c",
+              "actual": "MEDIUM",
+              "predicted": "LOW"
+            }
+          ],
+          "overall": {
+            "accuracy": 0.8,
+            "macroPrecision": 0.801765,
+            "macroRecall": 0.80136,
+            "macroF1": 0.800585
+          },
+          "perClass": {
+            "LOW": {
+              "precision": 0.891892,
+              "recall": 0.846154,
+              "f1": 0.868421
+            },
+            "MEDIUM": {
+              "precision": 0.717949,
+              "recall": 0.682927,
+              "f1": 0.7
+            },
+            "HIGH": {
+              "precision": 0.795455,
+              "recall": 0.875,
+              "f1": 0.833333
+            }
+          },
+          "confusionMatrix": {
+            "LOW": {
+              "LOW": 33,
+              "MEDIUM": 6,
+              "HIGH": 0
+            },
+            "MEDIUM": {
+              "LOW": 4,
+              "MEDIUM": 28,
+              "HIGH": 9
+            },
+            "HIGH": {
+              "LOW": 0,
+              "MEDIUM": 5,
+              "HIGH": 35
+            }
+          }
+        },
+        "paired95Interval": {
+          "spearman": {
+            "lower": 0,
+            "upper": 0
+          },
+          "concordance": {
+            "lower": 0,
+            "upper": 0
+          },
+          "macroF1": {
+            "lower": -0.007951,
+            "upper": 0.125351
+          }
+        }
+      }
+    },
+    "gemini": {
+      "status": "VALIDATION_INCOMPLETE",
+      "operational": {
+        "requests": 3,
+        "successfulRequests": 0,
+        "rateLimits": 3,
+        "retries": 2,
+        "failures": 1,
+        "inputTokens": 0,
+        "providerProcessingMs": 0,
+        "pacingMs": 19577,
+        "queryEmbeddings": 0,
+        "documentEmbeddings": 0
+      },
+      "error": {
+        "status": 429,
+        "code": null,
+        "message": "Provider HTTP 429: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/embed_content_free_tier_requests, limit: 100, model: gemini-embedding-2\nPlease retry in 9.788687883s."
+      }
+    }
+  }
+}
