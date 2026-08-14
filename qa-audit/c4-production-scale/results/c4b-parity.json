@@ -1,0 +1,241 @@
+{
+  "timestamp": "2026-08-14T15:27:28.724Z",
+  "nodeVersion": "v22.20.0",
+  "platform": "win32 10.0.26200",
+  "cpu": "Intel(R) Core(TM) i5-10310U CPU @ 1.70GHz",
+  "cpuCount": 8,
+  "totalMemoryBytes": 16885047296,
+  "gitCommit": "db7ac4914f849a0808c6d8ec83eede2c4aa1193d",
+  "fixtureProvenance": "cloned valid Voyage-embedded demo records; technical scale fixture only, not a departmental distribution",
+  "status": "parity_passed",
+  "queryCount": 4,
+  "queriesPassed": 4,
+  "identityOrderParity": true,
+  "classParity": true,
+  "overallRiskParity": true,
+  "maxAbsoluteScoreDifference": 0,
+  "tolerance": 1e-12,
+  "failures": [],
+  "results": [
+    {
+      "queryIndex": 0,
+      "passed": true,
+      "differences": [],
+      "topKMatchCount": 5,
+      "baselineOrder": [
+        [
+          "HISTORICAL",
+          4615
+        ],
+        [
+          "HISTORICAL",
+          4621
+        ],
+        [
+          "HISTORICAL",
+          4627
+        ],
+        [
+          "HISTORICAL",
+          4633
+        ],
+        [
+          "HISTORICAL",
+          4639
+        ]
+      ],
+      "candidateOrder": [
+        [
+          "HISTORICAL",
+          4615
+        ],
+        [
+          "HISTORICAL",
+          4621
+        ],
+        [
+          "HISTORICAL",
+          4627
+        ],
+        [
+          "HISTORICAL",
+          4633
+        ],
+        [
+          "HISTORICAL",
+          4639
+        ]
+      ],
+      "identityOrderParity": true,
+      "classParity": true,
+      "overallRiskParity": true,
+      "maxAbsoluteScoreDifference": 0,
+      "tolerance": 1e-12
+    },
+    {
+      "queryIndex": 1,
+      "passed": true,
+      "differences": [],
+      "topKMatchCount": 5,
+      "baselineOrder": [
+        [
+          "HISTORICAL",
+          4620
+        ],
+        [
+          "HISTORICAL",
+          4626
+        ],
+        [
+          "HISTORICAL",
+          4632
+        ],
+        [
+          "HISTORICAL",
+          4638
+        ],
+        [
+          "HISTORICAL",
+          4644
+        ]
+      ],
+      "candidateOrder": [
+        [
+          "HISTORICAL",
+          4620
+        ],
+        [
+          "HISTORICAL",
+          4626
+        ],
+        [
+          "HISTORICAL",
+          4632
+        ],
+        [
+          "HISTORICAL",
+          4638
+        ],
+        [
+          "HISTORICAL",
+          4644
+        ]
+      ],
+      "identityOrderParity": true,
+      "classParity": true,
+      "overallRiskParity": true,
+      "maxAbsoluteScoreDifference": 0,
+      "tolerance": 1e-12
+    },
+    {
+      "queryIndex": 2,
+      "passed": true,
+      "differences": [],
+      "topKMatchCount": 5,
+      "baselineOrder": [
+        [
+          "HISTORICAL",
+          4618
+        ],
+        [
+          "HISTORICAL",
+          4624
+        ],
+        [
+          "HISTORICAL",
+          4630
+        ],
+        [
+          "HISTORICAL",
+          4636
+        ],
+        [
+          "HISTORICAL",
+          4642
+        ]
+      ],
+      "candidateOrder": [
+        [
+          "HISTORICAL",
+          4618
+        ],
+        [
+          "HISTORICAL",
+          4624
+        ],
+        [
+          "HISTORICAL",
+          4630
+        ],
+        [
+          "HISTORICAL",
+          4636
+        ],
+        [
+          "HISTORICAL",
+          4642
+        ]
+      ],
+      "identityOrderParity": true,
+      "classParity": true,
+      "overallRiskParity": true,
+      "maxAbsoluteScoreDifference": 0,
+      "tolerance": 1e-12
+    },
+    {
+      "queryIndex": 3,
+      "passed": true,
+      "differences": [],
+      "topKMatchCount": 5,
+      "baselineOrder": [
+        [
+          "HISTORICAL",
+          4618
+        ],
+        [
+          "HISTORICAL",
+          4624
+        ],
+        [
+          "HISTORICAL",
+          4630
+        ],
+        [
+          "HISTORICAL",
+          4636
+        ],
+        [
+          "HISTORICAL",
+          4642
+        ]
+      ],
+      "candidateOrder": [
+        [
+          "HISTORICAL",
+          4618
+        ],
+        [
+          "HISTORICAL",
+          4624
+        ],
+        [
+          "HISTORICAL",
+          4630
+        ],
+        [
+          "HISTORICAL",
+          4636
+        ],
+        [
+          "HISTORICAL",
+          4642
+        ]
+      ],
+      "identityOrderParity": true,
+      "classParity": true,
+      "overallRiskParity": true,
+      "maxAbsoluteScoreDifference": 0,
+      "tolerance": 1e-12
+    }
+  ]
+}
