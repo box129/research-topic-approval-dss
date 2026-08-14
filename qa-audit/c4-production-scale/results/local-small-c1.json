@@ -1,0 +1,558 @@
+{
+  "timestamp": "2026-08-14T12:38:56.041Z",
+  "nodeVersion": "v22.20.0",
+  "platform": "win32 10.0.26200",
+  "cpu": "Intel(R) Core(TM) i5-10310U CPU @ 1.70GHz",
+  "cpuCount": 8,
+  "totalMemoryBytes": 16885047296,
+  "gitCommit": "c61d00a6abc72eb930475e8db55e4a23443e7b68",
+  "fixtureProvenance": "cloned valid Voyage-embedded demo records; technical scale fixture only, not a departmental distribution",
+  "benchmark": "warm/repeated local persisted-vector retrieval only; no provider latency",
+  "scale": "small",
+  "corpusSize": 7,
+  "warmups": 3,
+  "iterations": 30,
+  "concurrency": 1,
+  "metrics": {
+    "databaseRetrievalMs": {
+      "min": 7.5132,
+      "p50": 17.7806,
+      "p95": 39.0969,
+      "max": 51.4949,
+      "mean": 18.147316666666665,
+      "standardDeviation": 9.775407028084416
+    },
+    "lifecycleAssemblyMs": {
+      "min": 0.022,
+      "p50": 0.0476,
+      "p95": 0.1035,
+      "max": 0.2868,
+      "mean": 0.057196666666666666,
+      "standardDeviation": 0.047190468552687874
+    },
+    "similarityRankingMs": {
+      "min": 0.2918,
+      "p50": 0.6577,
+      "p95": 1.5493,
+      "max": 4.09,
+      "mean": 0.7863933333333333,
+      "standardDeviation": 0.6797997925533337
+    },
+    "classificationMs": {
+      "min": 0.0024,
+      "p50": 0.0037,
+      "p95": 0.0062,
+      "max": 0.0087,
+      "mean": 0.004086666666666666,
+      "standardDeviation": 0.0012729842453419796
+    },
+    "totalLocalProcessingMs": {
+      "min": 7.859,
+      "p50": 18.4838,
+      "p95": 43.3039,
+      "max": 52.3673,
+      "mean": 19.01452333333333,
+      "standardDeviation": 10.19074731190614
+    },
+    "processMemoryRssBytes": {
+      "beforeMeasuredPhase": 55476224,
+      "afterMeasuredPhase": 56696832,
+      "maximumAtBatchBoundaries": 56696832
+    },
+    "throughputChecksPerSecond": {
+      "min": 19.084115145917146,
+      "p50": 53.515714889677355,
+      "p95": 121.99138740804898,
+      "max": 126.99218998031621,
+      "mean": 66.31870410395142,
+      "standardDeviation": 30.55380556473401
+    }
+  },
+  "searchableRecords": 7,
+  "validVectors": 7,
+  "failureCount": 0,
+  "rawMeasurements": [
+    {
+      "databaseRetrievalMs": 16.9455,
+      "lifecycleAssemblyMs": 0.0365,
+      "similarityRankingMs": 1.1439,
+      "classificationMs": 0.006,
+      "totalLocalProcessingMs": 18.1878,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 10.7232,
+      "lifecycleAssemblyMs": 0.0262,
+      "similarityRankingMs": 0.2918,
+      "classificationMs": 0.0028,
+      "totalLocalProcessingMs": 11.0907,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 11.2894,
+      "lifecycleAssemblyMs": 0.0363,
+      "similarityRankingMs": 0.4343,
+      "classificationMs": 0.0039,
+      "totalLocalProcessingMs": 11.8162,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 11.0655,
+      "lifecycleAssemblyMs": 0.0267,
+      "similarityRankingMs": 0.2951,
+      "classificationMs": 0.0026,
+      "totalLocalProcessingMs": 11.4185,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 9.1864,
+      "lifecycleAssemblyMs": 0.0388,
+      "similarityRankingMs": 0.3119,
+      "classificationMs": 0.0024,
+      "totalLocalProcessingMs": 9.5691,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 9.793,
+      "lifecycleAssemblyMs": 0.0335,
+      "similarityRankingMs": 0.4304,
+      "classificationMs": 0.0031,
+      "totalLocalProcessingMs": 10.2915,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 9.0262,
+      "lifecycleAssemblyMs": 0.0288,
+      "similarityRankingMs": 0.3754,
+      "classificationMs": 0.0087,
+      "totalLocalProcessingMs": 9.4791,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 7.5132,
+      "lifecycleAssemblyMs": 0.022,
+      "similarityRankingMs": 0.2946,
+      "classificationMs": 0.0029,
+      "totalLocalProcessingMs": 7.859,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 8.5647,
+      "lifecycleAssemblyMs": 0.0296,
+      "similarityRankingMs": 0.3685,
+      "classificationMs": 0.003,
+      "totalLocalProcessingMs": 8.9757,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 7.8396,
+      "lifecycleAssemblyMs": 0.0224,
+      "similarityRankingMs": 0.3064,
+      "classificationMs": 0.0033,
+      "totalLocalProcessingMs": 8.1798,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 8.1083,
+      "lifecycleAssemblyMs": 0.0344,
+      "similarityRankingMs": 0.4279,
+      "classificationMs": 0.0048,
+      "totalLocalProcessingMs": 8.5856,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 10.0057,
+      "lifecycleAssemblyMs": 0.0525,
+      "similarityRankingMs": 0.7892,
+      "classificationMs": 0.0039,
+      "totalLocalProcessingMs": 10.8624,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 16.6052,
+      "lifecycleAssemblyMs": 0.051,
+      "similarityRankingMs": 0.6577,
+      "classificationMs": 0.0036,
+      "totalLocalProcessingMs": 17.3289,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 18.0691,
+      "lifecycleAssemblyMs": 0.0429,
+      "similarityRankingMs": 1.0674,
+      "classificationMs": 0.0046,
+      "totalLocalProcessingMs": 19.1984,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 20.2885,
+      "lifecycleAssemblyMs": 0.2868,
+      "similarityRankingMs": 0.6804,
+      "classificationMs": 0.0037,
+      "totalLocalProcessingMs": 21.2731,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 19.1148,
+      "lifecycleAssemblyMs": 0.1035,
+      "similarityRankingMs": 0.6459,
+      "classificationMs": 0.0044,
+      "totalLocalProcessingMs": 19.8812,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 17.7388,
+      "lifecycleAssemblyMs": 0.0708,
+      "similarityRankingMs": 0.6556,
+      "classificationMs": 0.0036,
+      "totalLocalProcessingMs": 18.48,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 17.971,
+      "lifecycleAssemblyMs": 0.0476,
+      "similarityRankingMs": 0.6135,
+      "classificationMs": 0.0036,
+      "totalLocalProcessingMs": 18.6456,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 17.7806,
+      "lifecycleAssemblyMs": 0.0467,
+      "similarityRankingMs": 0.6435,
+      "classificationMs": 0.0033,
+      "totalLocalProcessingMs": 18.4838,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 19.9812,
+      "lifecycleAssemblyMs": 0.0637,
+      "similarityRankingMs": 1.0386,
+      "classificationMs": 0.0044,
+      "totalLocalProcessingMs": 21.1013,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 19.847,
+      "lifecycleAssemblyMs": 0.0576,
+      "similarityRankingMs": 0.7117,
+      "classificationMs": 0.0038,
+      "totalLocalProcessingMs": 20.632,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 19.4038,
+      "lifecycleAssemblyMs": 0.0577,
+      "similarityRankingMs": 0.7643,
+      "classificationMs": 0.004,
+      "totalLocalProcessingMs": 20.2414,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 20.8606,
+      "lifecycleAssemblyMs": 0.053,
+      "similarityRankingMs": 0.8106,
+      "classificationMs": 0.0055,
+      "totalLocalProcessingMs": 21.7437,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 22.7694,
+      "lifecycleAssemblyMs": 0.057,
+      "similarityRankingMs": 0.7762,
+      "classificationMs": 0.0041,
+      "totalLocalProcessingMs": 23.6203,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 20.5914,
+      "lifecycleAssemblyMs": 0.0542,
+      "similarityRankingMs": 0.899,
+      "classificationMs": 0.0034,
+      "totalLocalProcessingMs": 21.56,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 21.9286,
+      "lifecycleAssemblyMs": 0.0975,
+      "similarityRankingMs": 1.5493,
+      "classificationMs": 0.0062,
+      "totalLocalProcessingMs": 23.603,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 23.8965,
+      "lifecycleAssemblyMs": 0.0572,
+      "similarityRankingMs": 0.6981,
+      "classificationMs": 0.0037,
+      "totalLocalProcessingMs": 24.6667,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 39.0969,
+      "lifecycleAssemblyMs": 0.0905,
+      "similarityRankingMs": 4.09,
+      "classificationMs": 0.0057,
+      "totalLocalProcessingMs": 43.3039,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 51.4949,
+      "lifecycleAssemblyMs": 0.0427,
+      "similarityRankingMs": 0.814,
+      "classificationMs": 0.0042,
+      "totalLocalProcessingMs": 52.3673,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 36.9205,
+      "lifecycleAssemblyMs": 0.0478,
+      "similarityRankingMs": 1.0066,
+      "classificationMs": 0.0034,
+      "totalLocalProcessingMs": 37.9897,
+      "searchableRecords": 7,
+      "validVectors": 7,
+      "failures": 0
+    }
+  ],
+  "rawBatches": [
+    {
+      "requestCount": 1,
+      "wallClockMs": 18.4734,
+      "checksPerSecond": 54.13188692931458,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 11.114,
+      "checksPerSecond": 89.97660608241857,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 11.8348,
+      "checksPerSecond": 84.49656943928076,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 11.4393,
+      "checksPerSecond": 87.41793641219306,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 9.5915,
+      "checksPerSecond": 104.25897930459261,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 10.3119,
+      "checksPerSecond": 96.97533917124876,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 9.5084,
+      "checksPerSecond": 105.17016532749989,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 7.8745,
+      "checksPerSecond": 126.99218998031621,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 8.9918,
+      "checksPerSecond": 111.21243799906583,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 8.1973,
+      "checksPerSecond": 121.99138740804898,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 8.6027,
+      "checksPerSecond": 116.2425750055215,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 10.8987,
+      "checksPerSecond": 91.75406241111327,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 17.3734,
+      "checksPerSecond": 57.55925725534438,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 19.2411,
+      "checksPerSecond": 51.97208059830259,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 21.3363,
+      "checksPerSecond": 46.86848235167297,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 19.9232,
+      "checksPerSecond": 50.19274012206874,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 18.5361,
+      "checksPerSecond": 53.94878102729269,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 18.6861,
+      "checksPerSecond": 53.515714889677355,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 18.5197,
+      "checksPerSecond": 53.99655501978974,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 21.1325,
+      "checksPerSecond": 47.32047793682716,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 20.6554,
+      "checksPerSecond": 48.41348993483544,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 20.2648,
+      "checksPerSecond": 49.346650349374286,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 21.7727,
+      "checksPerSecond": 45.92907632034613,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 23.6525,
+      "checksPerSecond": 42.27882887644012,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 21.5837,
+      "checksPerSecond": 46.33125923729481,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 23.6349,
+      "checksPerSecond": 42.310312292415034,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 24.6958,
+      "checksPerSecond": 40.49271536050665,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 43.3366,
+      "checksPerSecond": 23.075183563085247,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 52.3996,
+      "checksPerSecond": 19.084115145917146,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 1,
+      "wallClockMs": 38.0152,
+      "checksPerSecond": 26.305267366737517,
+      "failureCount": 0
+    }
+  ]
+}

@@ -1,0 +1,396 @@
+{
+  "timestamp": "2026-08-14T12:53:43.885Z",
+  "nodeVersion": "v22.20.0",
+  "platform": "win32 10.0.26200",
+  "cpu": "Intel(R) Core(TM) i5-10310U CPU @ 1.70GHz",
+  "cpuCount": 8,
+  "totalMemoryBytes": 16885047296,
+  "gitCommit": "c61d00a6abc72eb930475e8db55e4a23443e7b68",
+  "fixtureProvenance": "cloned valid Voyage-embedded demo records; technical scale fixture only, not a departmental distribution",
+  "benchmark": "warm/repeated local persisted-vector retrieval only; no provider latency",
+  "scale": "1000",
+  "corpusSize": 1000,
+  "warmups": 3,
+  "iterations": 30,
+  "concurrency": 10,
+  "metrics": {
+    "databaseRetrievalMs": {
+      "min": 1534.8447,
+      "p50": 3775.0619,
+      "p95": 6075.9119,
+      "max": 6350.3775,
+      "mean": 3817.7260100000003,
+      "standardDeviation": 1257.4773807551728
+    },
+    "lifecycleAssemblyMs": {
+      "min": 1.1524,
+      "p50": 2.2838,
+      "p95": 4.8682,
+      "max": 5.5327,
+      "mean": 2.557733333333333,
+      "standardDeviation": 1.1492560527962814
+    },
+    "similarityRankingMs": {
+      "min": 9.2146,
+      "p50": 15.3219,
+      "p95": 37.8407,
+      "max": 84.7697,
+      "mean": 19.04524333333334,
+      "standardDeviation": 13.672499155572188
+    },
+    "classificationMs": {
+      "min": 0.0032,
+      "p50": 0.0049,
+      "p95": 0.0135,
+      "max": 0.0176,
+      "mean": 0.006266666666666667,
+      "standardDeviation": 0.003416658536575693
+    },
+    "totalLocalProcessingMs": {
+      "min": 1553.0101,
+      "p50": 3809.5451,
+      "p95": 6089.9556,
+      "max": 6369.1182,
+      "mean": 3839.390606666667,
+      "standardDeviation": 1259.7284895917792
+    },
+    "processMemoryRssBytes": {
+      "beforeMeasuredPhase": 214777856,
+      "afterMeasuredPhase": 306888704,
+      "maximumAtBatchBoundaries": 306888704
+    },
+    "throughputChecksPerSecond": {
+      "min": 1.5698985146954667,
+      "p50": 1.9427772824990892,
+      "p95": 2.3776120624438914,
+      "max": 2.3776120624438914,
+      "mean": 1.9634292865461491,
+      "standardDeviation": 0.33007087396240276
+    }
+  },
+  "searchableRecords": 1000,
+  "validVectors": 1000,
+  "failureCount": 0,
+  "rawMeasurements": [
+    {
+      "databaseRetrievalMs": 2360.879,
+      "lifecycleAssemblyMs": 2.2838,
+      "similarityRankingMs": 17.3716,
+      "classificationMs": 0.0086,
+      "totalLocalProcessingMs": 2380.6364,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 2028.379,
+      "lifecycleAssemblyMs": 3.1321,
+      "similarityRankingMs": 25.439,
+      "classificationMs": 0.0071,
+      "totalLocalProcessingMs": 2057.1186,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 2897.5876,
+      "lifecycleAssemblyMs": 1.5699,
+      "similarityRankingMs": 9.2146,
+      "classificationMs": 0.0044,
+      "totalLocalProcessingMs": 2908.4317,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 3184.4947,
+      "lifecycleAssemblyMs": 1.6008,
+      "similarityRankingMs": 14.8308,
+      "classificationMs": 0.0071,
+      "totalLocalProcessingMs": 3201.0046,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 4428.2739,
+      "lifecycleAssemblyMs": 4.5338,
+      "similarityRankingMs": 37.8407,
+      "classificationMs": 0.0129,
+      "totalLocalProcessingMs": 4470.698,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 2652.6592,
+      "lifecycleAssemblyMs": 2.214,
+      "similarityRankingMs": 15.3219,
+      "classificationMs": 0.0046,
+      "totalLocalProcessingMs": 2670.2627,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 5059.668,
+      "lifecycleAssemblyMs": 2.2248,
+      "similarityRankingMs": 84.7697,
+      "classificationMs": 0.0052,
+      "totalLocalProcessingMs": 5146.7148,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 3831.3415,
+      "lifecycleAssemblyMs": 2.5,
+      "similarityRankingMs": 9.6294,
+      "classificationMs": 0.0124,
+      "totalLocalProcessingMs": 3843.5583,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 4100.539,
+      "lifecycleAssemblyMs": 5.5327,
+      "similarityRankingMs": 15.0274,
+      "classificationMs": 0.0034,
+      "totalLocalProcessingMs": 4121.1656,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 3470.2858,
+      "lifecycleAssemblyMs": 2.0529,
+      "similarityRankingMs": 19.9133,
+      "classificationMs": 0.0135,
+      "totalLocalProcessingMs": 3492.8926,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 4641.7981,
+      "lifecycleAssemblyMs": 2.183,
+      "similarityRankingMs": 21.5651,
+      "classificationMs": 0.0049,
+      "totalLocalProcessingMs": 4665.5748,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 5321.3393,
+      "lifecycleAssemblyMs": 1.5791,
+      "similarityRankingMs": 17.0792,
+      "classificationMs": 0.0038,
+      "totalLocalProcessingMs": 5340.0145,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 5576.3554,
+      "lifecycleAssemblyMs": 2.6918,
+      "similarityRankingMs": 15.5552,
+      "classificationMs": 0.0063,
+      "totalLocalProcessingMs": 5594.6287,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 5077.6345,
+      "lifecycleAssemblyMs": 1.7391,
+      "similarityRankingMs": 9.6211,
+      "classificationMs": 0.0176,
+      "totalLocalProcessingMs": 5089.0262,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 4128.3413,
+      "lifecycleAssemblyMs": 2.4936,
+      "similarityRankingMs": 15.2617,
+      "classificationMs": 0.0054,
+      "totalLocalProcessingMs": 4146.122,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 3775.0619,
+      "lifecycleAssemblyMs": 4.0626,
+      "similarityRankingMs": 30.3935,
+      "classificationMs": 0.0049,
+      "totalLocalProcessingMs": 3809.5451,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 4206.5326,
+      "lifecycleAssemblyMs": 2.547,
+      "similarityRankingMs": 19.5671,
+      "classificationMs": 0.0058,
+      "totalLocalProcessingMs": 4228.6787,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 5851.6847,
+      "lifecycleAssemblyMs": 2.573,
+      "similarityRankingMs": 10.6348,
+      "classificationMs": 0.0034,
+      "totalLocalProcessingMs": 5864.912,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 6075.9119,
+      "lifecycleAssemblyMs": 1.1524,
+      "similarityRankingMs": 12.874,
+      "classificationMs": 0.0045,
+      "totalLocalProcessingMs": 6089.9556,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 6350.3775,
+      "lifecycleAssemblyMs": 3.7594,
+      "similarityRankingMs": 14.9621,
+      "classificationMs": 0.0034,
+      "totalLocalProcessingMs": 6369.1182,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 2700.4238,
+      "lifecycleAssemblyMs": 1.2633,
+      "similarityRankingMs": 18.2622,
+      "classificationMs": 0.0048,
+      "totalLocalProcessingMs": 2719.9836,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 1534.8447,
+      "lifecycleAssemblyMs": 2.4016,
+      "similarityRankingMs": 15.7385,
+      "classificationMs": 0.0079,
+      "totalLocalProcessingMs": 1553.0101,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 2755.8512,
+      "lifecycleAssemblyMs": 1.2988,
+      "similarityRankingMs": 11.6619,
+      "classificationMs": 0.0045,
+      "totalLocalProcessingMs": 2768.8303,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 4178.3711,
+      "lifecycleAssemblyMs": 4.8277,
+      "similarityRankingMs": 22.3386,
+      "classificationMs": 0.0056,
+      "totalLocalProcessingMs": 4205.5693,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 3601.8311,
+      "lifecycleAssemblyMs": 1.6667,
+      "similarityRankingMs": 16.3722,
+      "classificationMs": 0.0049,
+      "totalLocalProcessingMs": 3619.8918,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 3889.46,
+      "lifecycleAssemblyMs": 4.8682,
+      "similarityRankingMs": 12.3791,
+      "classificationMs": 0.0035,
+      "totalLocalProcessingMs": 3906.7271,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 2652.0878,
+      "lifecycleAssemblyMs": 1.4519,
+      "similarityRankingMs": 10.7363,
+      "classificationMs": 0.0032,
+      "totalLocalProcessingMs": 2664.2913,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 1852.0937,
+      "lifecycleAssemblyMs": 2.383,
+      "similarityRankingMs": 13.8987,
+      "classificationMs": 0.0042,
+      "totalLocalProcessingMs": 1868.3955,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 3333.5568,
+      "lifecycleAssemblyMs": 1.6748,
+      "similarityRankingMs": 12.0162,
+      "classificationMs": 0.0045,
+      "totalLocalProcessingMs": 3347.2671,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    },
+    {
+      "databaseRetrievalMs": 3014.1152,
+      "lifecycleAssemblyMs": 2.4702,
+      "similarityRankingMs": 21.0814,
+      "classificationMs": 0.0057,
+      "totalLocalProcessingMs": 3037.693,
+      "searchableRecords": 1000,
+      "validVectors": 1000,
+      "failures": 0
+    }
+  ],
+  "rawBatches": [
+    {
+      "requestCount": 10,
+      "wallClockMs": 5147.2704,
+      "checksPerSecond": 1.9427772824990892,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 10,
+      "wallClockMs": 6369.8385,
+      "checksPerSecond": 1.5698985146954667,
+      "failureCount": 0
+    },
+    {
+      "requestCount": 10,
+      "wallClockMs": 4205.9006,
+      "checksPerSecond": 2.3776120624438914,
+      "failureCount": 0
+    }
+  ]
+}
