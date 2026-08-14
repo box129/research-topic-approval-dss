@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-08-14T17:51:00.081Z",
+  "nodeVersion": "v22.20.0",
+  "platform": "win32 10.0.26200",
+  "cpu": "Intel(R) Core(TM) i5-10310U CPU @ 1.70GHz",
+  "cpuCount": 8,
+  "totalMemoryBytes": 16885047296,
+  "gitCommit": "81a9711ffe9699110a87f693e8ccb180ae422fbf",
+  "fixtureProvenance": "cloned valid Voyage-embedded demo records; technical scale fixture only, not a departmental distribution",
+  "benchmark": "Voyage query embedding latency only; no database writes or document re-embedding",
+  "provider": "voyage",
+  "model": "voyage-4-large",
+  "inputType": "query",
+  "runs": 10,
+  "delayMs": 21000,
+  "successCount": 10,
+  "failureCount": 0,
+  "rawSuccessfulLatencyMs": [
+    1854.5033,
+    797.1802,
+    1103.8078,
+    898.8827,
+    950.1419,
+    901.7124,
+    1226.8595,
+    942.0516,
+    869.0382,
+    995.9039
+  ],
+  "failures": [],
+  "http429Count": 0,
+  "http5xxCount": 0,
+  "providerOrTransportFailureCount": 0,
+  "unexpectedFailureCount": 0,
+  "latencyMs": {
+    "min": 797.1802,
+    "p50": 942.0516,
+    "p95": 1854.5033,
+    "max": 1854.5033,
+    "mean": 1054.00815,
+    "standardDeviation": 291.0809216292722
+  }
+}
