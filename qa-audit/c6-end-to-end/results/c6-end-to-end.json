@@ -1,0 +1,222 @@
+{
+  "timestamp": "2026-08-14T18:27:21.130Z",
+  "nodeVersion": "v22.20.0",
+  "platform": "win32 10.0.26200",
+  "cpu": "Intel(R) Core(TM) i5-10310U CPU @ 1.70GHz",
+  "cpuCount": 8,
+  "totalMemoryBytes": 16885047296,
+  "gitCommit": "816f7c2c5c36d315cb4b9e8af194a64255477e59",
+  "fixtureProvenance": "cloned valid Voyage-embedded demo records; technical scale fixture only, not a departmental distribution",
+  "benchmark": "direct C6 Voyage query embedding plus resident exact corpus; concurrency 1",
+  "provider": "voyage",
+  "model": "voyage-4-large",
+  "inputType": "query",
+  "representation": "structured-context-v1",
+  "dimension": 1024,
+  "scale": 5000,
+  "fixtureIntegrity": {
+    "expectedRecords": 5000,
+    "loadedRecords": 5000,
+    "admittedRecords": 5000,
+    "rejectedRecords": 0,
+    "searchableRecordsAtStart": 5000
+  },
+  "corpusBuild": {
+    "databaseLoadMs": 9283.1003,
+    "validationMs": 452.7929,
+    "totalBuildMs": 9736.2278,
+    "memory": {
+      "beforeDatabaseLoad": {
+        "rss": 51376128,
+        "heapUsed": 7164816,
+        "heapTotal": 11587584
+      },
+      "immediatePostBuild": {
+        "rss": 261873664,
+        "heapUsed": 188594416,
+        "heapTotal": 214331392
+      },
+      "delta": {
+        "rss": 210497536,
+        "heapUsed": 181429600,
+        "heapTotal": 202743808
+      }
+    },
+    "representation": "ordinary JavaScript numeric arrays from persisted JSON embeddings"
+  },
+  "localWarmups": 3,
+  "runs": 10,
+  "delayMs": 21000,
+  "successCount": 10,
+  "failureCount": 0,
+  "http429Count": 0,
+  "http5xxCount": 0,
+  "providerOrTransportFailureCount": 0,
+  "unexpectedFailureCount": 0,
+  "providerLatencyMs": {
+    "min": 780.3346,
+    "p50": 1002.5374,
+    "p95": 1515.1621,
+    "max": 1515.1621,
+    "mean": 1115.7486599999997,
+    "standardDeviation": 228.83475528308284
+  },
+  "localProcessingMs": {
+    "min": 78.1763,
+    "p50": 132.5002,
+    "p95": 211.3693,
+    "max": 211.3693,
+    "mean": 144.80029000000002,
+    "standardDeviation": 44.239552487077674
+  },
+  "endToEndLatencyMs": {
+    "min": 947.9766,
+    "p50": 1193.0964,
+    "p95": 1680.9298,
+    "max": 1680.9298,
+    "mean": 1260.56156,
+    "standardDeviation": 242.96531006717893
+  },
+  "rawMeasurements": [
+    {
+      "status": "success",
+      "providerLatencyMs": 1515.1621,
+      "localProcessingMs": 165.7553,
+      "endToEndLatencyMs": 1680.9298,
+      "searchableRecords": 5000,
+      "overallRisk": "LOW",
+      "topMatch": {
+        "collection": "HISTORICAL",
+        "id": 4618,
+        "rawScore": 0.3049902466189998,
+        "similarityClass": "LOW"
+      }
+    },
+    {
+      "status": "success",
+      "providerLatencyMs": 780.3346,
+      "localProcessingMs": 167.632,
+      "endToEndLatencyMs": 947.9766,
+      "searchableRecords": 5000,
+      "overallRisk": "LOW",
+      "topMatch": {
+        "collection": "HISTORICAL",
+        "id": 4618,
+        "rawScore": 0.29965910784375743,
+        "similarityClass": "LOW"
+      }
+    },
+    {
+      "status": "success",
+      "providerLatencyMs": 1332.122,
+      "localProcessingMs": 118.3382,
+      "endToEndLatencyMs": 1450.4717,
+      "searchableRecords": 5000,
+      "overallRisk": "LOW",
+      "topMatch": {
+        "collection": "HISTORICAL",
+        "id": 4618,
+        "rawScore": 0.3049902460132899,
+        "similarityClass": "LOW"
+      }
+    },
+    {
+      "status": "success",
+      "providerLatencyMs": 1220.2686,
+      "localProcessingMs": 113.3008,
+      "endToEndLatencyMs": 1333.5815,
+      "searchableRecords": 5000,
+      "overallRisk": "LOW",
+      "topMatch": {
+        "collection": "HISTORICAL",
+        "id": 4618,
+        "rawScore": 0.29965910784375743,
+        "similarityClass": "LOW"
+      }
+    },
+    {
+      "status": "success",
+      "providerLatencyMs": 1002.5374,
+      "localProcessingMs": 78.1763,
+      "endToEndLatencyMs": 1080.7308,
+      "searchableRecords": 5000,
+      "overallRisk": "LOW",
+      "topMatch": {
+        "collection": "HISTORICAL",
+        "id": 4618,
+        "rawScore": 0.3049902471887157,
+        "similarityClass": "LOW"
+      }
+    },
+    {
+      "status": "success",
+      "providerLatencyMs": 1110.6934,
+      "localProcessingMs": 183.5579,
+      "endToEndLatencyMs": 1294.2646,
+      "searchableRecords": 5000,
+      "overallRisk": "LOW",
+      "topMatch": {
+        "collection": "HISTORICAL",
+        "id": 4618,
+        "rawScore": 0.29965910784375743,
+        "similarityClass": "LOW"
+      }
+    },
+    {
+      "status": "success",
+      "providerLatencyMs": 845.0061,
+      "localProcessingMs": 132.5002,
+      "endToEndLatencyMs": 977.518,
+      "searchableRecords": 5000,
+      "overallRisk": "LOW",
+      "topMatch": {
+        "collection": "HISTORICAL",
+        "id": 4618,
+        "rawScore": 0.29965910784375743,
+        "similarityClass": "LOW"
+      }
+    },
+    {
+      "status": "success",
+      "providerLatencyMs": 968.6127,
+      "localProcessingMs": 82.472,
+      "endToEndLatencyMs": 1051.093,
+      "searchableRecords": 5000,
+      "overallRisk": "LOW",
+      "topMatch": {
+        "collection": "HISTORICAL",
+        "id": 4618,
+        "rawScore": 0.29965910784375743,
+        "similarityClass": "LOW"
+      }
+    },
+    {
+      "status": "success",
+      "providerLatencyMs": 1384.567,
+      "localProcessingMs": 211.3693,
+      "endToEndLatencyMs": 1595.9532,
+      "searchableRecords": 5000,
+      "overallRisk": "LOW",
+      "topMatch": {
+        "collection": "HISTORICAL",
+        "id": 4618,
+        "rawScore": 0.29965910784375743,
+        "similarityClass": "LOW"
+      }
+    },
+    {
+      "status": "success",
+      "providerLatencyMs": 998.1827,
+      "localProcessingMs": 194.9009,
+      "endToEndLatencyMs": 1193.0964,
+      "searchableRecords": 5000,
+      "overallRisk": "LOW",
+      "topMatch": {
+        "collection": "HISTORICAL",
+        "id": 4618,
+        "rawScore": 0.29965910784375743,
+        "similarityClass": "LOW"
+      }
+    }
+  ]
+}
