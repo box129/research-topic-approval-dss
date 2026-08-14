@@ -16,6 +16,7 @@ describe('ResultsDisplay Component - Redesigned', () => {
         supervisor_name: 'Dr. Smith',
         session_year: '2023/2024',
         status: 'Approved',
+        collection: 'HISTORICAL',
         semantic_score: 0.40
       }
     ],
@@ -34,6 +35,7 @@ describe('ResultsDisplay Component - Redesigned', () => {
         supervisor_name: 'Dr. Johnson',
         session_year: '2023/2024',
         status: 'In Progress',
+        collection: 'HISTORICAL',
         semantic_score: 0.88
       },
       {
@@ -42,6 +44,7 @@ describe('ResultsDisplay Component - Redesigned', () => {
         supervisor_name: 'Dr. Williams',
         session_year: '2023/2024',
         status: 'Approved',
+        collection: 'HISTORICAL',
         semantic_score: 0.80
       }
     ],
@@ -52,6 +55,7 @@ describe('ResultsDisplay Component - Redesigned', () => {
         supervisor_name: 'Dr. Brown',
         session_year: '2023/2024',
         status: 'Under Review',
+        collection: 'CURRENT_SESSION',
         semantic_score: 0.75
       }
     ],
@@ -249,6 +253,18 @@ describe('ResultsDisplay Component - Redesigned', () => {
   });
 
   describe('Multiple Matches in Different Tiers', () => {
+    it('renders a same-id current-session match only in the current-session section', () => {
+      render(<ResultsDisplay appearance="student-checker" results={{
+        ...mockLowRiskData,
+        tier1_matches: [{ ...mockLowRiskData.tier1_matches[0], id: 1, topic_title: 'Historical id 1' }],
+        tier2_matches: [{ ...mockLowRiskData.tier1_matches[0], id: 1, collection: 'CURRENT_SESSION', topic_title: 'Current-session id 1' }]
+      }} />);
+
+      expect(screen.getByTestId('tier-section-tier1')).toHaveTextContent('Historical id 1');
+      expect(screen.getByTestId('tier-section-tier1')).not.toHaveTextContent('Current-session id 1');
+      expect(screen.getByTestId('tier-section-tier2')).toHaveTextContent('Current-session id 1');
+    });
+
     it('uses truthful under-review metadata labels for the student checker', () => {
       render(<ResultsDisplay appearance="student-checker" results={{
         ...mockLowRiskData,

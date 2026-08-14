@@ -94,7 +94,7 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
    * Render a single topic match with expandable algorithm scores
    */
   const renderTopicMatch = (match, index, tierKey) => {
-    const matchKey = `${tierKey}-${match.id}-${index}`;
+    const matchKey = `${match.collection}-${match.id}-${index}`;
     const isExpanded = expandedMatches[matchKey];
     const score = match.semantic_score;
     const similarityLevel = getSimilarityLevel(score);
@@ -402,6 +402,7 @@ const MATCH_SHAPE = PropTypes.shape({
   supervisor_name: PropTypes.string,
   session_year: PropTypes.string,
   status: PropTypes.string,
+  collection: PropTypes.oneOf(['HISTORICAL', 'CURRENT_SESSION', 'UNDER_REVIEW']).isRequired,
   semantic_score: PropTypes.number.isRequired,
   similarity_class: PropTypes.oneOf(['LOW', 'MEDIUM', 'HIGH'])
 });

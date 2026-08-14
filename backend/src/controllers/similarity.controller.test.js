@@ -24,6 +24,10 @@ describe('Voyage production similarity controller', () => {
   test('uses one new-topic query embedding and no reverse/document embedding calls', async () => {
     const queryVector = Array(1024).fill(0);
     embedQuery.mockResolvedValue(queryVector);
+    retrieve.mockReturnValueOnce([
+      { topic: { id: 1, title: 'Historical topic', collection: 'HISTORICAL' }, score: 0.7 },
+      { topic: { id: 1, title: 'Current-session topic', collection: 'CURRENT_SESSION' }, score: 0.6 }
+    ]);
     const res = { json: jest.fn() };
     await checkSimilarity({ body: { topic: 'New topic', population: 'Students' } }, res, jest.fn());
     expect(embedQuery).toHaveBeenCalledTimes(1);
@@ -31,6 +35,10 @@ describe('Voyage production similarity controller', () => {
     expect(embedDocument).not.toHaveBeenCalled();
     expect(retrieve).toHaveBeenCalledWith(queryVector, [], 5);
     expect(res.json.mock.calls[0][0]).toMatchObject({ status: 'success', semanticAvailable: true, semanticProvider: 'voyage' });
+    expect(res.json.mock.calls[0][0].data.matches).toEqual([
+      { id: 1, title: 'Historical topic', category: null, collection: 'HISTORICAL', semantic_score: 0.7, similarity_class: 'LOW' },
+      { id: 1, title: 'Current-session topic', category: null, collection: 'CURRENT_SESSION', semantic_score: 0.6, similarity_class: 'LOW' }
+    ]);
   });
   test('returns semantic_unavailable for a Voyage transport failure', async () => {
     embedQuery.mockRejectedValue(new (require('../services/voyageEmbedding.service').VoyageProviderError)('transport failed'));

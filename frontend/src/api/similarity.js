@@ -32,13 +32,27 @@ function mapSimilarityResponse(responsePayload) {
     max_similarity: data.max_similarity,
     recommendation: data.recommendation,
     semantic_available: responsePayload.semanticAvailable === true,
-    tier1_matches: (data.matches || []).map(match => ({
+    tier1_matches: (data.matches || []).filter(match => match.collection === 'HISTORICAL').map(match => ({
       id: match.id,
       topic_title: match.title,
+      collection: match.collection,
       semantic_score: match.semantic_score,
       similarity_class: match.similarity_class
     })),
-    tier2_matches: [], tier3_matches: []
+    tier2_matches: (data.matches || []).filter(match => match.collection === 'CURRENT_SESSION').map(match => ({
+      id: match.id,
+      topic_title: match.title,
+      collection: match.collection,
+      semantic_score: match.semantic_score,
+      similarity_class: match.similarity_class
+    })),
+    tier3_matches: (data.matches || []).filter(match => match.collection === 'UNDER_REVIEW').map(match => ({
+      id: match.id,
+      topic_title: match.title,
+      collection: match.collection,
+      semantic_score: match.semantic_score,
+      similarity_class: match.similarity_class
+    }))
   };
 }
 

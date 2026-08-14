@@ -30,7 +30,7 @@ const successful = {
   data: {
     overall_risk: 'MEDIUM',
     max_similarity: 0.6,
-    matches: [{ id: 1, title: 'Stored topic', semantic_score: 0.6, similarity_class: 'MEDIUM' }]
+    matches: [{ id: 1, title: 'Stored topic', collection: 'HISTORICAL', semantic_score: 0.6, similarity_class: 'MEDIUM' }]
   }
 };
 
@@ -87,6 +87,27 @@ describe('similarity API adapter', () => {
       status: 'semantic_unavailable',
       semanticAvailable: false,
       results: { semantic_available: false, risk_level: null, tier1_matches: [] }
+    });
+  });
+
+  it('keeps same-id lifecycle records distinct and assigns each to its matching section', async () => {
+    mocks.apiPost.mockResolvedValue({ data: {
+      ...successful,
+      data: {
+        ...successful.data,
+        matches: [
+          { id: 1, title: 'Historical topic', collection: 'HISTORICAL', semantic_score: 0.71, similarity_class: 'HIGH' },
+          { id: 1, title: 'Current-session topic', collection: 'CURRENT_SESSION', semantic_score: 0.62, similarity_class: 'MEDIUM' }
+        ]
+      }
+    } });
+
+    await expect(runSimilarityCheck({ topic: 'New topic' })).resolves.toMatchObject({
+      results: {
+        tier1_matches: [{ id: 1, topic_title: 'Historical topic', collection: 'HISTORICAL', semantic_score: 0.71, similarity_class: 'HIGH' }],
+        tier2_matches: [{ id: 1, topic_title: 'Current-session topic', collection: 'CURRENT_SESSION', semantic_score: 0.62, similarity_class: 'MEDIUM' }],
+        tier3_matches: []
+      }
     });
   });
 });

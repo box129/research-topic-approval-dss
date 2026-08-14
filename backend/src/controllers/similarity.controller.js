@@ -4,8 +4,8 @@ const { retrieve, classify } = require('../services/voyageSemanticSimilarity.ser
 const logger = require('../config/logger');
 let prisma;
 function db() { if (!prisma) prisma = new PrismaClient(); return prisma; }
-function topic(row, source) { return { ...row, source, studyFocus: row.studyFocus ?? row.study_focus }; }
-function responseMatch(item) { return { id:item.topic.id, title:item.topic.title, category:item.topic.category || null, semantic_score:item.score, similarity_class:classify(item.score) }; }
+function topic(row, collection) { return { ...row, collection, studyFocus: row.studyFocus ?? row.study_focus }; }
+function responseMatch(item) { return { id:item.topic.id, title:item.topic.title, category:item.topic.category || null, collection:item.topic.collection, semantic_score:item.score, similarity_class:classify(item.score) }; }
 async function checkSimilarity(req, res, next) {
   try {
     const { topic: title, population, location, studyFocus } = req.body || {};
@@ -19,7 +19,7 @@ async function checkSimilarity(req, res, next) {
       client.currentSessionTopic.findMany(),
       client.underReviewTopic.findMany({ where: { reviewStartedAt: { gt: new Date(Date.now() - 48 * 3600000) } } })
     ]);
-    const matches=retrieve(query,[...historical.map(x=>topic(x,'historical')),...current.map(x=>topic(x,'current_session')),...review.map(x=>topic(x,'under_review'))],5);
+    const matches=retrieve(query,[...historical.map(x=>topic(x,'HISTORICAL')),...current.map(x=>topic(x,'CURRENT_SESSION')),...review.map(x=>topic(x,'UNDER_REVIEW'))],5);
     const top=matches[0]?.score ?? 0;
     return res.json({ status:'success', semanticAvailable:true, semanticProvider:'voyage', semanticModel:'voyage-4-large', data:{ input_topic:title, overall_risk:classify(top), max_similarity:top, matches:matches.map(responseMatch), recommendation:'Similarity classification is advisory; final academic judgement remains human.' } });
   } catch (error) { logger.error(`Voyage semantic check failed: ${error.message}`); return next(error); }

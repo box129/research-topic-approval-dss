@@ -58,7 +58,7 @@ function buildFypResponse({ risk = 'LOW', maxSimilarity = 0.24, status = 'succes
       overall_risk: risk,
       max_similarity: maxSimilarity,
       recommendation: `${risk} similarity guidance from backend.`,
-      matches
+      matches: matches.map(match => ({ ...match, collection: match.collection ?? 'HISTORICAL' }))
     }
   };
 }

@@ -31,7 +31,7 @@ function buildFypResponse({ risk = 'LOW', maxSimilarity = 0.24, status = 'succes
         overall_risk: risk,
         max_similarity: maxSimilarity,
         recommendation: `${risk} similarity guidance from backend.`,
-        matches: matches.map(match => ({ ...match, semantic_score: match.semantic_score ?? 0.6, similarity_class: risk }))
+        matches: matches.map(match => ({ ...match, collection: match.collection ?? 'HISTORICAL', semantic_score: match.semantic_score ?? 0.6, similarity_class: risk }))
       }
     }
   };
