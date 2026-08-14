@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+const fs = require('fs'); const path = require('path'); const { PrismaClient } = require('@prisma/client');
+const { argument, flag, positiveInteger, assertPerformanceDatabase, performanceClient, fixedQueryVector, environmentMetadata } = require('../production-scale/lib');
+const { embedQuery } = require('../../src/services/voyageEmbedding.service'); const { loadCorpus, inMemoryCheck } = require('../production-scale/in-memory/corpus-loader'); const { expectedRecords, assertFixtureIntegrity } = require('../production-scale/in-memory/integrity'); const { assertConnectedC4bPerformanceDatabase } = require('../production-scale/in-memory/safety'); const { TECHNICAL_TOPIC, executionOptions, prepareResidentCorpus, localWarmups, measuredAttempts, evidence } = require('./harness');
+async function main() {
+  const options = executionOptions({ execute: flag('--execute'), runs: positiveInteger(argument('--runs'), '--runs'), delayMs: Number(argument('--delay-ms')) }); const client = performanceClient(PrismaClient, assertPerformanceDatabase());
+  try { const { corpus, fixtureIntegrity } = await prepareResidentCorpus({ client, assertConnectedDatabase: assertConnectedC4bPerformanceDatabase, loadCorpus, assertFixtureIntegrity, expectedRecords: expectedRecords('5000') }); const warmups = 3; await localWarmups(corpus, fixedQueryVector(), warmups, inMemoryCheck); const measurements = await measuredAttempts({ corpus, topic: TECHNICAL_TOPIC, runs: options.runs, delayMs: options.delayMs, embedQuery, inMemoryCheck }); const output = evidence({ metadata: environmentMetadata(), fixtureIntegrity, corpus, localWarmups: warmups, runs: options.runs, delayMs: options.delayMs, measurements }); const destination = argument('--output'); if (destination) { fs.mkdirSync(path.dirname(path.resolve(destination)), { recursive: true }); fs.writeFileSync(destination, JSON.stringify(output, null, 2)); } process.stdout.write(JSON.stringify(output, null, 2) + '\n'); }
+  finally { await client.$disconnect(); }
+}
+main().catch(error => { process.stderr.write(`C6 end-to-end harness failed: ${error.message}\n`); process.exitCode = 1; });
