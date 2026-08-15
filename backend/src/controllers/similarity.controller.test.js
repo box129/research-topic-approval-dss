@@ -18,10 +18,11 @@ jest.mock('../config/logger', () => ({ error: jest.fn(), info: jest.fn(), warn: 
 
 const { embedQuery, embedDocument } = require('../services/voyageEmbedding.service');
 const { retrieve } = require('../services/voyageSemanticSimilarity.service');
-const { checkSimilarity } = require('./similarity.controller');
 
 describe('Voyage production similarity controller', () => {
   test('uses one new-topic query embedding and no reverse/document embedding calls', async () => {
+    let checkSimilarity; let isolatedRetrieve;
+    jest.isolateModules(() => { ({ checkSimilarity } = require('./similarity.controller')); ({ retrieve: isolatedRetrieve } = require('../services/voyageSemanticSimilarity.service')); });
     const queryVector = Array(1024).fill(0);
     embedQuery.mockResolvedValue(queryVector);
     retrieve.mockReturnValueOnce([
@@ -33,7 +34,7 @@ describe('Voyage production similarity controller', () => {
     expect(embedQuery).toHaveBeenCalledTimes(1);
     expect(embedQuery).toHaveBeenCalledWith({ title: 'New topic', population: 'Students', location: undefined, studyFocus: undefined });
     expect(embedDocument).not.toHaveBeenCalled();
-    expect(retrieve).toHaveBeenCalledWith(queryVector, [], 5);
+    expect(isolatedRetrieve).toHaveBeenCalledWith(queryVector, [], 5);
     expect(res.json.mock.calls[0][0]).toMatchObject({ status: 'success', semanticAvailable: true, semanticProvider: 'voyage' });
     expect(res.json.mock.calls[0][0].data.matches).toEqual([
       { id: 1, title: 'Historical topic', category: null, collection: 'HISTORICAL', semantic_score: 0.7, similarity_class: 'LOW' },
@@ -41,6 +42,8 @@ describe('Voyage production similarity controller', () => {
     ]);
   });
   test('returns semantic_unavailable for a Voyage transport failure', async () => {
+    let checkSimilarity;
+    jest.isolateModules(() => { ({ checkSimilarity } = require('./similarity.controller')); });
     embedQuery.mockRejectedValue(new (require('../services/voyageEmbedding.service').VoyageProviderError)('transport failed'));
     const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
     await checkSimilarity({ body: { topic: 'New topic' } }, res, jest.fn());

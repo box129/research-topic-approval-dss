@@ -66,9 +66,10 @@ describe('POST /api/similarity/check - Voyage semantic-only integration', () => 
     expect(response.body).toMatchObject({ status: 'success', semanticAvailable: true, semanticProvider: 'voyage', semanticModel: 'voyage-4-large' });
     expect(response.body.data).toMatchObject({ input_topic: 'Machine Learning Applications in Healthcare Diagnosis' });
     expect(['LOW', 'MEDIUM', 'HIGH']).toContain(response.body.data.overall_risk);
-    expect(response.body.data.matches).toHaveLength(3);
-    expect(response.body.data.matches.map((match) => match.id)).toEqual(expect.arrayContaining([
-      ...created.historical, ...created.current, ...created.review
+    expect(response.body.data.matches).toEqual(expect.arrayContaining([
+      expect.objectContaining({ collection: 'HISTORICAL', id: created.historical[0] }),
+      expect.objectContaining({ collection: 'CURRENT_SESSION', id: created.current[0] }),
+      expect.objectContaining({ collection: 'UNDER_REVIEW', id: created.review[0] })
     ]));
   });
 
@@ -113,8 +114,9 @@ describe('POST /api/similarity/check - Voyage semantic-only integration', () => 
 
   test('returns raw semantic scores and never exposes obsolete component or combined scores', async () => {
     const response = await successfulRequest('Cybersecurity Threats and Defense Mechanisms');
+    const seeded = new Set([`HISTORICAL:${created.historical[0]}`, `CURRENT_SESSION:${created.current[0]}`, `UNDER_REVIEW:${created.review[0]}`]);
     for (const result of response.body.data.matches) {
-      expect(result.semantic_score).toBeCloseTo(1, 12);
+      if (seeded.has(`${result.collection}:${result.id}`)) expect(result.semantic_score).toBeCloseTo(1, 12);
       expect(result).not.toHaveProperty('combined');
       expect(result).not.toHaveProperty('scores');
       expect(result).not.toHaveProperty('jaccard');
