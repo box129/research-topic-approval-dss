@@ -135,6 +135,32 @@ establish universal provider determinism.
 
 ## 10. Final regression and cost evidence
 
+## Resident Corpus Coherence
+
+Production now owns a single-process resident exact-vector snapshot in
+`backend/src/services/residentCorpus.service.js` (commit pending). It loads all
+three lifecycle tables once on first semantic check, admits only the frozen
+`validStoredEmbedding` contract, builds a complete immutable next snapshot, and
+only then atomically replaces the active snapshot. Import persistence triggers
+an immediate refresh after an actual insert; otherwise a controlled five-second
+refresh interval detects ordinary persisted updates/backfill regeneration without
+a database read on every check. Failed refresh preserves the prior snapshot and
+records the failure; an initial failure leaves similarity unavailable rather
+than enabling lexical/fake fallback.
+
+Under-review records can remain in the snapshot, but `isEligible()` applies the
+48-hour boundary at each request, so expiry does not require a rebuild. 48-hour
+UNDER_REVIEW eligibility is a researcher/system-design rule unless a separate
+stakeholder artifact explicitly establishes it as departmental policy. This is
+single-process coherence; multiple Node instances maintain independent snapshots
+and obtain bounded refresh convergence rather than distributed push coherence.
+
+Focused proof: `backend/src/services/residentCorpus.service.test.js`; controller
+use: `backend/src/controllers/similarity.controller.js`; import trigger:
+`backend/src/services/topicImportPersistence.service.js`. The final local
+semantic-retrieval architecture demonstrated practical exact retrieval over a
+5,000-topic technical corpus.
+
 On the disposable `topic_similarity_test` database, full backend verification
 passed 54/54 suites and 617/617 tests: 85.91% statements, 70.90% branches,
 94.19% functions, 85.85% lines. Repair commit: `514a82b`.
