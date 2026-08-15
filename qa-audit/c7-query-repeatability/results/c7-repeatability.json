@@ -1,0 +1,1221 @@
+{
+  "timestamp": "2026-08-14T20:54:37.716Z",
+  "nodeVersion": "v22.20.0",
+  "platform": "win32 10.0.26200",
+  "cpu": "Intel(R) Core(TM) i5-10310U CPU @ 1.70GHz",
+  "cpuCount": 8,
+  "totalMemoryBytes": 16885047296,
+  "gitCommit": "a46306d90701cc0fdc771501fac7659b6e7b6995",
+  "fixtureProvenance": "cloned valid Voyage-embedded demo records; technical scale fixture only, not a departmental distribution",
+  "benchmark": "C7 repeated identical Voyage query embedding and resident-corpus decision stability",
+  "provider": "voyage",
+  "model": "voyage-4-large",
+  "inputType": "query",
+  "representation": "structured-context-v1",
+  "dimension": 1024,
+  "serializedQuerySha256": "11db6e22b208c4e1f77de11bb14ab949dd0f2730b9183113ed60a44531dc5efb",
+  "scale": 5000,
+  "fixtureIntegrity": {
+    "expectedRecords": 5000,
+    "loadedRecords": 5000,
+    "admittedRecords": 5000,
+    "rejectedRecords": 0,
+    "searchableRecordsAtStart": 5000
+  },
+  "corpusBuild": {
+    "databaseLoadMs": 8317.8375,
+    "validationMs": 316.4639,
+    "totalBuildMs": 8634.5305,
+    "memory": {
+      "beforeDatabaseLoad": {
+        "rss": 53018624,
+        "heapUsed": 7166072,
+        "heapTotal": 11587584
+      },
+      "immediatePostBuild": {
+        "rss": 264683520,
+        "heapUsed": 189374768,
+        "heapTotal": 214593536
+      },
+      "delta": {
+        "rss": 211664896,
+        "heapUsed": 182208696,
+        "heapTotal": 203005952
+      }
+    }
+  },
+  "runs": 10,
+  "delayMs": 21000,
+  "successCount": 10,
+  "failureCount": 0,
+  "http429Count": 0,
+  "http5xxCount": 0,
+  "providerOrTransportFailureCount": 0,
+  "unexpectedFailureCount": 0,
+  "embeddingRepeatability": {
+    "uniqueVectorFingerprintCount": 1,
+    "allFingerprintsIdentical": true,
+    "minimumCosineToReference": 1,
+    "maximumComponentDifference": 0,
+    "meanObservedNumericalDeviation": {
+      "min": 0,
+      "p50": 0,
+      "p95": 0,
+      "max": 0,
+      "mean": 0,
+      "standardDeviation": 0
+    }
+  },
+  "corpusDecisionStability": {
+    "top1IdentityStable": true,
+    "top5OrderStable": true,
+    "overallRiskStable": true,
+    "anySimilarityClassChanges": false,
+    "perRank": [
+      {
+        "rank": 1,
+        "minimumObservedScore": 0.23963455049968166,
+        "maximumObservedScore": 0.23963455049968166,
+        "scoreRange": 0,
+        "observedClasses": [
+          "LOW"
+        ],
+        "classificationStable": true
+      },
+      {
+        "rank": 2,
+        "minimumObservedScore": 0.23963455049968166,
+        "maximumObservedScore": 0.23963455049968166,
+        "scoreRange": 0,
+        "observedClasses": [
+          "LOW"
+        ],
+        "classificationStable": true
+      },
+      {
+        "rank": 3,
+        "minimumObservedScore": 0.23963455049968166,
+        "maximumObservedScore": 0.23963455049968166,
+        "scoreRange": 0,
+        "observedClasses": [
+          "LOW"
+        ],
+        "classificationStable": true
+      },
+      {
+        "rank": 4,
+        "minimumObservedScore": 0.23963455049968166,
+        "maximumObservedScore": 0.23963455049968166,
+        "scoreRange": 0,
+        "observedClasses": [
+          "LOW"
+        ],
+        "classificationStable": true
+      },
+      {
+        "rank": 5,
+        "minimumObservedScore": 0.23963455049968166,
+        "maximumObservedScore": 0.23963455049968166,
+        "scoreRange": 0,
+        "observedClasses": [
+          "LOW"
+        ],
+        "classificationStable": true
+      }
+    ]
+  },
+  "thresholdProbeStability": [
+    {
+      "targetScore": 0.5521529891797358,
+      "referenceScore": 0.5521529891797353,
+      "referenceClassification": "LOW",
+      "minimumObservedScore": 0.5521529891797352,
+      "maximumObservedScore": 0.5521529891797352,
+      "scoreRange": 0,
+      "observedClasses": [
+        "LOW"
+      ],
+      "classificationStable": true,
+      "numberOfClassChangesFromReference": 0
+    },
+    {
+      "targetScore": 0.5561529891797358,
+      "referenceScore": 0.5561529891797365,
+      "referenceClassification": "LOW",
+      "minimumObservedScore": 0.5561529891797363,
+      "maximumObservedScore": 0.5561529891797363,
+      "scoreRange": 0,
+      "observedClasses": [
+        "LOW"
+      ],
+      "classificationStable": true,
+      "numberOfClassChangesFromReference": 0
+    },
+    {
+      "targetScore": 0.5571529891797358,
+      "referenceScore": 0.5571529891797349,
+      "referenceClassification": "LOW",
+      "minimumObservedScore": 0.5571529891797345,
+      "maximumObservedScore": 0.5571529891797345,
+      "scoreRange": 0,
+      "observedClasses": [
+        "LOW"
+      ],
+      "classificationStable": true,
+      "numberOfClassChangesFromReference": 0
+    },
+    {
+      "targetScore": 0.5581529891797358,
+      "referenceScore": 0.5581529891797354,
+      "referenceClassification": "MEDIUM",
+      "minimumObservedScore": 0.5581529891797348,
+      "maximumObservedScore": 0.5581529891797348,
+      "scoreRange": 0,
+      "observedClasses": [
+        "MEDIUM"
+      ],
+      "classificationStable": true,
+      "numberOfClassChangesFromReference": 0
+    },
+    {
+      "targetScore": 0.5621529891797358,
+      "referenceScore": 0.5621529891797363,
+      "referenceClassification": "MEDIUM",
+      "minimumObservedScore": 0.5621529891797359,
+      "maximumObservedScore": 0.5621529891797359,
+      "scoreRange": 0,
+      "observedClasses": [
+        "MEDIUM"
+      ],
+      "classificationStable": true,
+      "numberOfClassChangesFromReference": 0
+    },
+    {
+      "targetScore": 0.6400102471881145,
+      "referenceScore": 0.6400102471881145,
+      "referenceClassification": "MEDIUM",
+      "minimumObservedScore": 0.6400102471881133,
+      "maximumObservedScore": 0.6400102471881133,
+      "scoreRange": 0,
+      "observedClasses": [
+        "MEDIUM"
+      ],
+      "classificationStable": true,
+      "numberOfClassChangesFromReference": 0
+    },
+    {
+      "targetScore": 0.6440102471881145,
+      "referenceScore": 0.6440102471881145,
+      "referenceClassification": "MEDIUM",
+      "minimumObservedScore": 0.6440102471881143,
+      "maximumObservedScore": 0.6440102471881143,
+      "scoreRange": 0,
+      "observedClasses": [
+        "MEDIUM"
+      ],
+      "classificationStable": true,
+      "numberOfClassChangesFromReference": 0
+    },
+    {
+      "targetScore": 0.6450102471881145,
+      "referenceScore": 0.6450102471881142,
+      "referenceClassification": "MEDIUM",
+      "minimumObservedScore": 0.6450102471881135,
+      "maximumObservedScore": 0.6450102471881135,
+      "scoreRange": 0,
+      "observedClasses": [
+        "MEDIUM"
+      ],
+      "classificationStable": true,
+      "numberOfClassChangesFromReference": 0
+    },
+    {
+      "targetScore": 0.6460102471881145,
+      "referenceScore": 0.6460102471881147,
+      "referenceClassification": "HIGH",
+      "minimumObservedScore": 0.6460102471881132,
+      "maximumObservedScore": 0.6460102471881132,
+      "scoreRange": 0,
+      "observedClasses": [
+        "HIGH"
+      ],
+      "classificationStable": true,
+      "numberOfClassChangesFromReference": 0
+    },
+    {
+      "targetScore": 0.6500102471881145,
+      "referenceScore": 0.6500102471881144,
+      "referenceClassification": "HIGH",
+      "minimumObservedScore": 0.6500102471881144,
+      "maximumObservedScore": 0.6500102471881144,
+      "scoreRange": 0,
+      "observedClasses": [
+        "HIGH"
+      ],
+      "classificationStable": true,
+      "numberOfClassChangesFromReference": 0
+    }
+  ],
+  "rawMeasurements": [
+    {
+      "runIndex": 1,
+      "status": "success",
+      "vectorFingerprint": "a090553fa974628f8292e645570f5d1e057598e6ade3081a2468549253aebd67",
+      "vectorNorm": 1.000000025143721,
+      "cosineToReference": 1,
+      "maxAbsoluteComponentDifference": 0,
+      "meanAbsoluteComponentDifference": 0,
+      "decision": {
+        "overallRisk": "LOW",
+        "top5": [
+          {
+            "collection": "HISTORICAL",
+            "id": 4618,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4624,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4630,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4636,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4642,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          }
+        ]
+      },
+      "probes": [
+        {
+          "targetScore": 0.5521529891797358,
+          "score": 0.5521529891797352,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5561529891797358,
+          "score": 0.5561529891797363,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5571529891797358,
+          "score": 0.5571529891797345,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5581529891797358,
+          "score": 0.5581529891797348,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.5621529891797358,
+          "score": 0.5621529891797359,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6400102471881145,
+          "score": 0.6400102471881133,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6440102471881145,
+          "score": 0.6440102471881143,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6450102471881145,
+          "score": 0.6450102471881135,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6460102471881145,
+          "score": 0.6460102471881132,
+          "similarityClass": "HIGH"
+        },
+        {
+          "targetScore": 0.6500102471881145,
+          "score": 0.6500102471881144,
+          "similarityClass": "HIGH"
+        }
+      ]
+    },
+    {
+      "runIndex": 2,
+      "status": "success",
+      "vectorFingerprint": "a090553fa974628f8292e645570f5d1e057598e6ade3081a2468549253aebd67",
+      "vectorNorm": 1.000000025143721,
+      "cosineToReference": 1,
+      "maxAbsoluteComponentDifference": 0,
+      "meanAbsoluteComponentDifference": 0,
+      "decision": {
+        "overallRisk": "LOW",
+        "top5": [
+          {
+            "collection": "HISTORICAL",
+            "id": 4618,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4624,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4630,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4636,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4642,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          }
+        ]
+      },
+      "probes": [
+        {
+          "targetScore": 0.5521529891797358,
+          "score": 0.5521529891797352,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5561529891797358,
+          "score": 0.5561529891797363,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5571529891797358,
+          "score": 0.5571529891797345,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5581529891797358,
+          "score": 0.5581529891797348,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.5621529891797358,
+          "score": 0.5621529891797359,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6400102471881145,
+          "score": 0.6400102471881133,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6440102471881145,
+          "score": 0.6440102471881143,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6450102471881145,
+          "score": 0.6450102471881135,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6460102471881145,
+          "score": 0.6460102471881132,
+          "similarityClass": "HIGH"
+        },
+        {
+          "targetScore": 0.6500102471881145,
+          "score": 0.6500102471881144,
+          "similarityClass": "HIGH"
+        }
+      ]
+    },
+    {
+      "runIndex": 3,
+      "status": "success",
+      "vectorFingerprint": "a090553fa974628f8292e645570f5d1e057598e6ade3081a2468549253aebd67",
+      "vectorNorm": 1.000000025143721,
+      "cosineToReference": 1,
+      "maxAbsoluteComponentDifference": 0,
+      "meanAbsoluteComponentDifference": 0,
+      "decision": {
+        "overallRisk": "LOW",
+        "top5": [
+          {
+            "collection": "HISTORICAL",
+            "id": 4618,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4624,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4630,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4636,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4642,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          }
+        ]
+      },
+      "probes": [
+        {
+          "targetScore": 0.5521529891797358,
+          "score": 0.5521529891797352,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5561529891797358,
+          "score": 0.5561529891797363,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5571529891797358,
+          "score": 0.5571529891797345,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5581529891797358,
+          "score": 0.5581529891797348,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.5621529891797358,
+          "score": 0.5621529891797359,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6400102471881145,
+          "score": 0.6400102471881133,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6440102471881145,
+          "score": 0.6440102471881143,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6450102471881145,
+          "score": 0.6450102471881135,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6460102471881145,
+          "score": 0.6460102471881132,
+          "similarityClass": "HIGH"
+        },
+        {
+          "targetScore": 0.6500102471881145,
+          "score": 0.6500102471881144,
+          "similarityClass": "HIGH"
+        }
+      ]
+    },
+    {
+      "runIndex": 4,
+      "status": "success",
+      "vectorFingerprint": "a090553fa974628f8292e645570f5d1e057598e6ade3081a2468549253aebd67",
+      "vectorNorm": 1.000000025143721,
+      "cosineToReference": 1,
+      "maxAbsoluteComponentDifference": 0,
+      "meanAbsoluteComponentDifference": 0,
+      "decision": {
+        "overallRisk": "LOW",
+        "top5": [
+          {
+            "collection": "HISTORICAL",
+            "id": 4618,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4624,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4630,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4636,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4642,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          }
+        ]
+      },
+      "probes": [
+        {
+          "targetScore": 0.5521529891797358,
+          "score": 0.5521529891797352,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5561529891797358,
+          "score": 0.5561529891797363,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5571529891797358,
+          "score": 0.5571529891797345,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5581529891797358,
+          "score": 0.5581529891797348,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.5621529891797358,
+          "score": 0.5621529891797359,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6400102471881145,
+          "score": 0.6400102471881133,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6440102471881145,
+          "score": 0.6440102471881143,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6450102471881145,
+          "score": 0.6450102471881135,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6460102471881145,
+          "score": 0.6460102471881132,
+          "similarityClass": "HIGH"
+        },
+        {
+          "targetScore": 0.6500102471881145,
+          "score": 0.6500102471881144,
+          "similarityClass": "HIGH"
+        }
+      ]
+    },
+    {
+      "runIndex": 5,
+      "status": "success",
+      "vectorFingerprint": "a090553fa974628f8292e645570f5d1e057598e6ade3081a2468549253aebd67",
+      "vectorNorm": 1.000000025143721,
+      "cosineToReference": 1,
+      "maxAbsoluteComponentDifference": 0,
+      "meanAbsoluteComponentDifference": 0,
+      "decision": {
+        "overallRisk": "LOW",
+        "top5": [
+          {
+            "collection": "HISTORICAL",
+            "id": 4618,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4624,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4630,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4636,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4642,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          }
+        ]
+      },
+      "probes": [
+        {
+          "targetScore": 0.5521529891797358,
+          "score": 0.5521529891797352,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5561529891797358,
+          "score": 0.5561529891797363,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5571529891797358,
+          "score": 0.5571529891797345,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5581529891797358,
+          "score": 0.5581529891797348,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.5621529891797358,
+          "score": 0.5621529891797359,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6400102471881145,
+          "score": 0.6400102471881133,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6440102471881145,
+          "score": 0.6440102471881143,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6450102471881145,
+          "score": 0.6450102471881135,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6460102471881145,
+          "score": 0.6460102471881132,
+          "similarityClass": "HIGH"
+        },
+        {
+          "targetScore": 0.6500102471881145,
+          "score": 0.6500102471881144,
+          "similarityClass": "HIGH"
+        }
+      ]
+    },
+    {
+      "runIndex": 6,
+      "status": "success",
+      "vectorFingerprint": "a090553fa974628f8292e645570f5d1e057598e6ade3081a2468549253aebd67",
+      "vectorNorm": 1.000000025143721,
+      "cosineToReference": 1,
+      "maxAbsoluteComponentDifference": 0,
+      "meanAbsoluteComponentDifference": 0,
+      "decision": {
+        "overallRisk": "LOW",
+        "top5": [
+          {
+            "collection": "HISTORICAL",
+            "id": 4618,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4624,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4630,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4636,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4642,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          }
+        ]
+      },
+      "probes": [
+        {
+          "targetScore": 0.5521529891797358,
+          "score": 0.5521529891797352,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5561529891797358,
+          "score": 0.5561529891797363,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5571529891797358,
+          "score": 0.5571529891797345,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5581529891797358,
+          "score": 0.5581529891797348,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.5621529891797358,
+          "score": 0.5621529891797359,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6400102471881145,
+          "score": 0.6400102471881133,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6440102471881145,
+          "score": 0.6440102471881143,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6450102471881145,
+          "score": 0.6450102471881135,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6460102471881145,
+          "score": 0.6460102471881132,
+          "similarityClass": "HIGH"
+        },
+        {
+          "targetScore": 0.6500102471881145,
+          "score": 0.6500102471881144,
+          "similarityClass": "HIGH"
+        }
+      ]
+    },
+    {
+      "runIndex": 7,
+      "status": "success",
+      "vectorFingerprint": "a090553fa974628f8292e645570f5d1e057598e6ade3081a2468549253aebd67",
+      "vectorNorm": 1.000000025143721,
+      "cosineToReference": 1,
+      "maxAbsoluteComponentDifference": 0,
+      "meanAbsoluteComponentDifference": 0,
+      "decision": {
+        "overallRisk": "LOW",
+        "top5": [
+          {
+            "collection": "HISTORICAL",
+            "id": 4618,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4624,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4630,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4636,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4642,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          }
+        ]
+      },
+      "probes": [
+        {
+          "targetScore": 0.5521529891797358,
+          "score": 0.5521529891797352,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5561529891797358,
+          "score": 0.5561529891797363,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5571529891797358,
+          "score": 0.5571529891797345,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5581529891797358,
+          "score": 0.5581529891797348,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.5621529891797358,
+          "score": 0.5621529891797359,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6400102471881145,
+          "score": 0.6400102471881133,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6440102471881145,
+          "score": 0.6440102471881143,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6450102471881145,
+          "score": 0.6450102471881135,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6460102471881145,
+          "score": 0.6460102471881132,
+          "similarityClass": "HIGH"
+        },
+        {
+          "targetScore": 0.6500102471881145,
+          "score": 0.6500102471881144,
+          "similarityClass": "HIGH"
+        }
+      ]
+    },
+    {
+      "runIndex": 8,
+      "status": "success",
+      "vectorFingerprint": "a090553fa974628f8292e645570f5d1e057598e6ade3081a2468549253aebd67",
+      "vectorNorm": 1.000000025143721,
+      "cosineToReference": 1,
+      "maxAbsoluteComponentDifference": 0,
+      "meanAbsoluteComponentDifference": 0,
+      "decision": {
+        "overallRisk": "LOW",
+        "top5": [
+          {
+            "collection": "HISTORICAL",
+            "id": 4618,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4624,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4630,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4636,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4642,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          }
+        ]
+      },
+      "probes": [
+        {
+          "targetScore": 0.5521529891797358,
+          "score": 0.5521529891797352,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5561529891797358,
+          "score": 0.5561529891797363,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5571529891797358,
+          "score": 0.5571529891797345,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5581529891797358,
+          "score": 0.5581529891797348,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.5621529891797358,
+          "score": 0.5621529891797359,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6400102471881145,
+          "score": 0.6400102471881133,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6440102471881145,
+          "score": 0.6440102471881143,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6450102471881145,
+          "score": 0.6450102471881135,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6460102471881145,
+          "score": 0.6460102471881132,
+          "similarityClass": "HIGH"
+        },
+        {
+          "targetScore": 0.6500102471881145,
+          "score": 0.6500102471881144,
+          "similarityClass": "HIGH"
+        }
+      ]
+    },
+    {
+      "runIndex": 9,
+      "status": "success",
+      "vectorFingerprint": "a090553fa974628f8292e645570f5d1e057598e6ade3081a2468549253aebd67",
+      "vectorNorm": 1.000000025143721,
+      "cosineToReference": 1,
+      "maxAbsoluteComponentDifference": 0,
+      "meanAbsoluteComponentDifference": 0,
+      "decision": {
+        "overallRisk": "LOW",
+        "top5": [
+          {
+            "collection": "HISTORICAL",
+            "id": 4618,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4624,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4630,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4636,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4642,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          }
+        ]
+      },
+      "probes": [
+        {
+          "targetScore": 0.5521529891797358,
+          "score": 0.5521529891797352,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5561529891797358,
+          "score": 0.5561529891797363,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5571529891797358,
+          "score": 0.5571529891797345,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5581529891797358,
+          "score": 0.5581529891797348,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.5621529891797358,
+          "score": 0.5621529891797359,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6400102471881145,
+          "score": 0.6400102471881133,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6440102471881145,
+          "score": 0.6440102471881143,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6450102471881145,
+          "score": 0.6450102471881135,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6460102471881145,
+          "score": 0.6460102471881132,
+          "similarityClass": "HIGH"
+        },
+        {
+          "targetScore": 0.6500102471881145,
+          "score": 0.6500102471881144,
+          "similarityClass": "HIGH"
+        }
+      ]
+    },
+    {
+      "runIndex": 10,
+      "status": "success",
+      "vectorFingerprint": "a090553fa974628f8292e645570f5d1e057598e6ade3081a2468549253aebd67",
+      "vectorNorm": 1.000000025143721,
+      "cosineToReference": 1,
+      "maxAbsoluteComponentDifference": 0,
+      "meanAbsoluteComponentDifference": 0,
+      "decision": {
+        "overallRisk": "LOW",
+        "top5": [
+          {
+            "collection": "HISTORICAL",
+            "id": 4618,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4624,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4630,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4636,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          },
+          {
+            "collection": "HISTORICAL",
+            "id": 4642,
+            "rawScore": 0.23963455049968166,
+            "similarityClass": "LOW"
+          }
+        ]
+      },
+      "probes": [
+        {
+          "targetScore": 0.5521529891797358,
+          "score": 0.5521529891797352,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5561529891797358,
+          "score": 0.5561529891797363,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5571529891797358,
+          "score": 0.5571529891797345,
+          "similarityClass": "LOW"
+        },
+        {
+          "targetScore": 0.5581529891797358,
+          "score": 0.5581529891797348,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.5621529891797358,
+          "score": 0.5621529891797359,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6400102471881145,
+          "score": 0.6400102471881133,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6440102471881145,
+          "score": 0.6440102471881143,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6450102471881145,
+          "score": 0.6450102471881135,
+          "similarityClass": "MEDIUM"
+        },
+        {
+          "targetScore": 0.6460102471881145,
+          "score": 0.6460102471881132,
+          "similarityClass": "HIGH"
+        },
+        {
+          "targetScore": 0.6500102471881145,
+          "score": 0.6500102471881144,
+          "similarityClass": "HIGH"
+        }
+      ]
+    }
+  ]
+}
