@@ -154,7 +154,7 @@ function CheckMyTopicPage() {
           <section aria-labelledby="checked-proposal-title" className="border border-gray-200 bg-white px-5 py-4">
             <h2 id="checked-proposal-title" className="text-lg font-bold text-brand-green-dark">Checked proposal</h2>
             <p className="mt-2 font-semibold text-text-primary">{checkedProposal?.topic}</p>
-            <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2"><div><dt className="font-bold">Research area</dt><dd>{checkedProposal?.category || 'Not specified'}</dd></div><div><dt className="font-bold">Keywords</dt><dd>{checkedProposal?.keywords || 'Not specified'}</dd></div></dl>
+            <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2"><div><dt className="font-bold">Population</dt><dd>{checkedProposal?.population || 'Not specified'}</dd></div><div><dt className="font-bold">Location</dt><dd>{checkedProposal?.location || 'Not specified'}</dd></div><div><dt className="font-bold">Study focus</dt><dd>{checkedProposal?.studyFocus || 'Not specified'}</dd></div></dl>
             <p className="mt-3 text-sm text-text-secondary">Temporary browser state only. This proposal was not saved or submitted.</p>
           </section>
           <div className="flex flex-col gap-3 border-b border-emerald-100 pb-3 sm:flex-row sm:items-end sm:justify-between">

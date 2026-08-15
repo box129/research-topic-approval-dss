@@ -13,8 +13,9 @@ import { useAuth } from '../../src/auth/useAuth';
 import App from '../../src/App';
 
 const validTopic = 'Machine learning methods for public health surveillance systems';
-const validKeywords = 'machine learning, public health';
-const validCategory = 'Epidemiology';
+const validPopulation = 'Undergraduate students';
+const validLocation = 'Osogbo, Osun State';
+const validStudyFocus = 'Barriers to preventive-health information access';
 
 function buildAuthState(user = { role: 'student', name: 'Student Demo' }) {
   return {
@@ -65,8 +66,9 @@ function buildFypResponse({ risk = 'LOW', maxSimilarity = 0.24, status = 'succes
 
 async function submitValidTopic(user) {
   await user.type(screen.getByPlaceholderText(/enter your research topic/i), validTopic);
-  await user.selectOptions(screen.getByLabelText(/research area/i), validCategory);
-  await user.type(screen.getByLabelText(/keywords/i), validKeywords);
+  await user.type(screen.getByLabelText(/population/i), validPopulation);
+  await user.type(screen.getByLabelText(/location/i), validLocation);
+  await user.type(screen.getByLabelText(/study focus/i), validStudyFocus);
   await user.click(screen.getByRole('button', { name: /check similarity/i }));
 }
 
@@ -222,8 +224,9 @@ describe('End-to-End User Flow Tests', () => {
     expect(mock.history.post[0].url).toBe('/api/similarity/check');
     expect(JSON.parse(mock.history.post[0].data)).toEqual({
       topic: validTopic,
-      keywords: validKeywords,
-      category: validCategory
+      population: validPopulation,
+      location: validLocation,
+      studyFocus: validStudyFocus
     });
   });
 

@@ -2,6 +2,9 @@ import { expect, test } from '@playwright/test';
 
 const evidenceDirectory = 'test-results/student-check-topic-approved-target';
 const validTopic = 'Machine learning methods for public health surveillance systems';
+const validPopulation = 'Undergraduate students';
+const validLocation = 'Osogbo, Osun State';
+const validStudyFocus = 'Barriers to preventive-health information access';
 const observations = new WeakMap();
 
 test.beforeEach(async ({ page }) => {
@@ -83,27 +86,32 @@ async function openChecker(page, viewport) {
 
 async function completeForm(page) {
   await page.getByRole('textbox', { name: /research topic/i }).fill(validTopic);
-  await page.getByLabel(/research area/i).selectOption('Epidemiology');
-  await page.getByLabel(/keywords/i).fill('machine learning, public health');
+  await page.getByLabel(/population/i).fill(validPopulation);
+  await page.getByLabel(/location/i).fill(validLocation);
+  await page.getByLabel(/study focus/i).fill(validStudyFocus);
 }
 
 function record(id, title, extra = {}) {
-  return { id, title, jaccard: 72, tfidf: 74, sbert: 88, ...extra };
+  return { id, title, semantic_score: 0.88, similarity_class: 'HIGH', ...extra };
 }
 
-function response({ status = 'success', risk = 'HIGH', maxSimilarity = 88, matches = true } = {}) {
-  const unavailable = status === 'partial_success' ? { sbert: null } : {};
+function response({ risk = 'HIGH', maxSimilarity = 0.88, matches = true } = {}) {
   return {
-    status,
+    status: 'success',
+    semanticAvailable: true,
+    semanticProvider: 'voyage',
+    semanticModel: 'voyage-4-large',
     data: {
       overall_risk: risk,
       max_similarity: maxSimilarity,
       recommendation: risk === 'LOW'
         ? 'No high-similarity records were identified by this check. Review the proposal and its context before making a submission or approval decision.'
         : 'High similarity detected. Review flagged topics before deciding.',
-      tier1_historical: matches ? [record(1, 'Public health surveillance systems in regional hospitals', { supervisor: 'Dr. Evidence', year: '2024/2025', category: 'Epidemiology', ...unavailable })] : [],
-      tier2_current: matches ? [record(2, 'Machine learning surveillance for community health', { supervisor: 'Dr. Current', approved_date: '2025-06-12', ...unavailable })] : [],
-      tier3_under_review: matches ? [record(3, 'Predictive surveillance across public hospitals', { reviewing_lecturer: 'Dr. Review', review_started_at: '2026-08-01', ...unavailable })] : []
+      matches: matches ? [
+        record(1, 'Public health surveillance systems in regional hospitals', { collection: 'HISTORICAL', supervisor_name: 'Dr. Evidence', session_year: '2024/2025' }),
+        record(2, 'Machine learning surveillance for community health', { collection: 'CURRENT_SESSION', supervisor_name: 'Dr. Current', session_year: '2025-06-12' }),
+        record(3, 'Predictive surveillance across public hospitals', { collection: 'UNDER_REVIEW', supervisor_name: 'Dr. Review', session_year: '2026-08-01' })
+      ] : []
     }
   };
 }
@@ -160,11 +168,12 @@ test('captures deterministic desktop loading evidence', async ({ page }) => {
   await page.getByRole('button', { name: 'Check Similarity' }).click();
   await expect(page.getByRole('button', { name: 'Checking Similarity' })).toHaveCount(1);
   await expect(page.getByRole('textbox', { name: /research topic/i })).toHaveValue(validTopic);
-  await expect(page.getByLabel(/research area/i)).toHaveValue('Epidemiology');
-  await expect(page.getByLabel(/keywords/i)).toHaveValue('machine learning, public health');
+  await expect(page.getByLabel(/population/i)).toHaveValue(validPopulation);
+  await expect(page.getByLabel(/location/i)).toHaveValue(validLocation);
+  await expect(page.getByLabel(/study focus/i)).toHaveValue(validStudyFocus);
   await page.getByText('Checking similarity', { exact: true }).scrollIntoViewIfNeeded();
   await expectInViewport(page.getByText('Checking similarity', { exact: true }));
-  await expectInViewport(page.getByLabel(/keywords/i));
+  await expectInViewport(page.getByLabel(/study focus/i));
   await page.screenshot({ path: `${evidenceDirectory}/desktop-loading.png` });
   releaseRequest();
   await expect(page.getByTestId('student-results-container')).toBeVisible();
@@ -172,7 +181,6 @@ test('captures deterministic desktop loading evidence', async ({ page }) => {
 
 for (const scenario of [
   { name: 'success-high', payload: response(), viewport: { width: 1440, height: 1000 }, fullPage: true },
-  { name: 'partial', payload: response({ status: 'partial_success' }), viewport: { width: 1280, height: 800 } },
   { name: 'no-matches', payload: response({ risk: 'LOW', maxSimilarity: 0, matches: false }), viewport: { width: 1440, height: 1000 } },
   { name: 'mobile-success-high', payload: response(), viewport: { width: 390, height: 844 }, fullPage: true }
 ]) {
@@ -187,28 +195,19 @@ for (const scenario of [
     await expect(page.getByTestId('max-similarity')).toBeVisible();
     await expect(page.getByTestId('risk-banner')).toBeVisible();
 
-    if (scenario.name === 'partial') {
-      await expect(page.getByTestId('sbert-warning')).toBeVisible();
-      await expect(page.getByTestId('sbert-warning')).toContainText(/semantic analysis is temporarily unavailable/i);
-    }
-    if (scenario.payload.data.tier1_historical.length) {
+    if (scenario.payload.data.matches.length) {
       await expect(page.getByText('Historical topics')).toBeVisible();
       await expect(page.getByText('Current-session topics')).toBeVisible();
       await expect(page.getByText('Under-review topics')).toBeVisible();
     } else {
       await expect(page.getByTestId('no-matches')).toBeVisible();
     }
-    if (scenario.name === 'mobile-success-high') {
-      for (const disclosure of await page.locator('details').all()) await disclosure.evaluate(element => { element.open = true; });
-      await expect(page.getByText(/Jaccard: 72%/).first()).toBeVisible();
-      await expect(page.getByText(/TF-IDF\/Cosine: 74%/).first()).toBeVisible();
-      await expect(page.getByText(/SBERT: 88%/).first()).toBeVisible();
-    }
+    await expect(page.getByText(/highest semantic similarity returned by the checker/i)).toBeVisible();
 
     if (!scenario.fullPage) {
-      const scrollTarget = scenario.name === 'partial'
-        ? page.getByText('Checked proposal')
-        : page.getByTestId('no-matches');
+      const scrollTarget = scenario.name === 'no-matches'
+        ? page.getByTestId('no-matches')
+        : page.getByText('Checked proposal');
       await scrollTarget.evaluate(element => window.scrollTo(0, element.getBoundingClientRect().top + window.scrollY - 12));
       await expectInViewport(scrollTarget);
     }
@@ -224,10 +223,11 @@ test('captures mobile request-error evidence and preserves input', async ({ page
   await page.route('**/api/similarity/check', route => route.fulfill({ status: 200, contentType: 'application/json', body: 'null' }));
   await completeForm(page);
   await page.getByRole('button', { name: 'Check Similarity' }).click();
-  await expect(page.getByRole('alert')).toContainText('Invalid response format from server');
+  await expect(page.getByRole('alert')).toContainText('Invalid similarity response format from server');
   await expect(page.getByRole('textbox', { name: /research topic/i })).toHaveValue(validTopic);
-  await expect(page.getByLabel(/research area/i)).toHaveValue('Epidemiology');
-  await expect(page.getByLabel(/keywords/i)).toHaveValue('machine learning, public health');
+  await expect(page.getByLabel(/population/i)).toHaveValue(validPopulation);
+  await expect(page.getByLabel(/location/i)).toHaveValue(validLocation);
+  await expect(page.getByLabel(/study focus/i)).toHaveValue(validStudyFocus);
   await expect(page.getByRole('alert')).toBeFocused();
   await expect(page.getByRole('button', { name: 'Check Similarity' })).toHaveCount(1);
   await expect(page.getByRole('button', { name: 'Check Similarity' })).toBeEnabled();

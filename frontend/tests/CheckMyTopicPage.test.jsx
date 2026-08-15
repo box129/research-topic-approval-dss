@@ -12,8 +12,9 @@ vi.mock('axios', () => ({
 }));
 
 const validTopic = 'Machine learning methods for public health surveillance systems';
-const validKeywords = 'machine learning, public health';
-const validCategory = 'Epidemiology';
+const validPopulation = 'Undergraduate students';
+const validLocation = 'Osogbo, Osun State';
+const validStudyFocus = 'Barriers to preventive-health information access';
 
 function renderCheckMyTopicPage() {
   return render(<CheckMyTopicPage />);
@@ -39,8 +40,9 @@ function buildFypResponse({ risk = 'LOW', maxSimilarity = 0.24, status = 'succes
 
 async function submitTopic(user) {
   fireEvent.change(screen.getByPlaceholderText(/enter your research topic/i), { target: { value: validTopic } });
-  fireEvent.change(screen.getByLabelText(/research area/i), { target: { value: validCategory } });
-  fireEvent.change(screen.getByLabelText(/keywords/i), { target: { value: validKeywords } });
+  fireEvent.change(screen.getByLabelText(/population/i), { target: { value: validPopulation } });
+  fireEvent.change(screen.getByLabelText(/location/i), { target: { value: validLocation } });
+  fireEvent.change(screen.getByLabelText(/study focus/i), { target: { value: validStudyFocus } });
   await user.click(screen.getByRole('button', { name: /check similarity/i }));
 }
 
@@ -82,8 +84,9 @@ describe('CheckMyTopicPage', () => {
         '/api/similarity/check',
         {
           topic: validTopic,
-          keywords: validKeywords,
-          category: validCategory
+          population: validPopulation,
+          location: validLocation,
+          studyFocus: validStudyFocus
         },
         expect.objectContaining({
           signal: expect.any(Object)
@@ -233,8 +236,9 @@ describe('CheckMyTopicPage', () => {
     expect(screen.getByRole('alert')).toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveFocus();
     expect(screen.getByPlaceholderText(/enter your research topic/i)).toHaveValue(validTopic);
-    expect(screen.getByLabelText(/research area/i)).toHaveValue(validCategory);
-    expect(screen.getByLabelText(/keywords/i)).toHaveValue(validKeywords);
+    expect(screen.getByLabelText(/population/i)).toHaveValue(validPopulation);
+    expect(screen.getByLabelText(/location/i)).toHaveValue(validLocation);
+    expect(screen.getByLabelText(/study focus/i)).toHaveValue(validStudyFocus);
     expect(screen.getAllByRole('button', { name: /check similarity/i })).toHaveLength(1);
     expect(screen.getByRole('button', { name: /check similarity/i })).toBeEnabled();
 

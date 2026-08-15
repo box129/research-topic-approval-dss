@@ -44,6 +44,9 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default', compac
   const [topic, setTopic] = useState('');
   const [keywords, setKeywords] = useState('');
   const [category, setCategory] = useState('');
+  const [population, setPopulation] = useState('');
+  const [location, setLocation] = useState('');
+  const [studyFocus, setStudyFocus] = useState('');
   const [submissionError, setSubmissionError] = useState('');
   const isCheckerShell = ['student-checker', 'lecturer-checker'].includes(appearance);
   const isLecturerChecker = appearance === 'lecturer-checker';
@@ -142,16 +145,15 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default', compac
     }
 
     try {
-      const submissionSucceeded = await onSubmit({
-        topic: sanitizeInput(topic),
-        keywords: sanitizeInput(keywords),
-        category: sanitizeInput(category)
-      });
+      const submissionSucceeded = await onSubmit(isCheckerShell ? {
+        topic: sanitizeInput(topic), population: sanitizeInput(population), location: sanitizeInput(location), studyFocus: sanitizeInput(studyFocus)
+      } : { topic: sanitizeInput(topic), keywords: sanitizeInput(keywords), category: sanitizeInput(category) });
       
       if (submissionSucceeded !== false) {
         setTopic('');
         setKeywords('');
         setCategory('');
+        setPopulation(''); setLocation(''); setStudyFocus('');
         setSubmissionError('');
       }
     } catch (err) {
@@ -273,6 +275,11 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default', compac
           </div>
         </div>
 
+        {isCheckerShell ? <>
+        <div><label htmlFor="population" className="block text-sm font-medium text-gray-700 mb-2">Population <span className="text-gray-400">(Optional)</span></label><input id="population" value={population} onChange={e => setPopulation(e.target.value)} disabled={isLoading} className="w-full px-4 py-3 rounded-lg border-2 border-gray-300" /></div>
+        <div><label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">Location <span className="text-gray-400">(Optional)</span></label><input id="location" value={location} onChange={e => setLocation(e.target.value)} disabled={isLoading} className="w-full px-4 py-3 rounded-lg border-2 border-gray-300" /></div>
+        <div><label htmlFor="studyFocus" className="block text-sm font-medium text-gray-700 mb-2">Study Focus <span className="text-gray-400">(Optional)</span></label><textarea id="studyFocus" value={studyFocus} onChange={e => setStudyFocus(e.target.value)} disabled={isLoading} rows="3" className="w-full px-4 py-3 rounded-lg border-2 border-gray-300" /></div>
+        </> : <>
         {/* Research Area / Category (Optional) */}
         <div>
           <label 
@@ -305,8 +312,9 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default', compac
             Select a category to refine results (optional)
           </p>
         </div>
+        </>}
 
-        {/* Keywords Input (Optional) */}
+        {!isCheckerShell && (
         <div>
           <label 
             htmlFor="keywords" 
@@ -337,6 +345,7 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default', compac
           </p>
           {isKeywordsInvalid && <p id="keyword-validation" className="mt-1 text-sm font-medium text-red-600">Keywords must be 500 characters or fewer.</p>}
         </div>
+        )}
 
         {/* Error Message */}
         {submissionError && (
@@ -410,8 +419,8 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default', compac
             <p className="font-semibold text-[#1B5E20]">Validation benchmark</p>
             <p className="whitespace-normal break-keep text-left tracking-normal hyphens-none [word-spacing:normal]">
               {isLecturerChecker
-                ? 'Use 7-24 clear words. Category and keywords are optional and only affect this advisory check.'
-                : 'Use 7-24 clear words. Category and keywords are optional, but they can improve matching.'}
+                ? 'Use 7-24 clear words. Population, location, and study focus are included when supplied.'
+                : 'Use 7-24 clear words. Population, location, and study focus are represented when supplied.'}
             </p>
           </div>
         )) : (

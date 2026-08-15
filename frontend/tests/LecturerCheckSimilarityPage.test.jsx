@@ -12,8 +12,9 @@ vi.mock('axios', () => ({
 }));
 
 const validTopic = 'Machine learning methods for public health surveillance systems';
-const validKeywords = 'machine learning, public health';
-const validCategory = 'Epidemiology';
+const validPopulation = 'Undergraduate students';
+const validLocation = 'Osogbo, Osun State';
+const validStudyFocus = 'Barriers to preventive-health information access';
 
 function renderCheckSimilarityPage() {
   return render(<CheckSimilarityPage />);
@@ -39,13 +40,15 @@ function buildFypResponse({ risk = 'LOW', maxSimilarity = 0.24, status = 'succes
 
 async function submitTopic(user) {
   const topicInput = screen.getByPlaceholderText(/enter your research topic/i);
-  const categoryInput = screen.getByLabelText(/research area/i);
-  const keywordsInput = screen.getByLabelText(/keywords/i);
+  const populationInput = screen.getByLabelText(/population/i);
+  const locationInput = screen.getByLabelText(/location/i);
+  const studyFocusInput = screen.getByLabelText(/study focus/i);
   const submitButton = screen.getByRole('button', { name: /check similarity/i });
 
   fireEvent.change(topicInput, { target: { value: validTopic } });
-  fireEvent.change(categoryInput, { target: { value: validCategory } });
-  fireEvent.change(keywordsInput, { target: { value: validKeywords } });
+  fireEvent.change(populationInput, { target: { value: validPopulation } });
+  fireEvent.change(locationInput, { target: { value: validLocation } });
+  fireEvent.change(studyFocusInput, { target: { value: validStudyFocus } });
 
   await waitFor(() => {
     expect(submitButton).toBeEnabled();
@@ -100,8 +103,9 @@ describe('Lecturer CheckSimilarityPage', () => {
         '/api/similarity/check',
         {
           topic: validTopic,
-          keywords: validKeywords,
-          category: validCategory
+          population: validPopulation,
+          location: validLocation,
+          studyFocus: validStudyFocus
         },
         expect.objectContaining({
           signal: expect.any(Object)

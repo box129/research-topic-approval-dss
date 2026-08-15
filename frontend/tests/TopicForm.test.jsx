@@ -264,7 +264,7 @@ describe('TopicForm Component', () => {
   // ==================== ADDITIONAL COMPREHENSIVE TESTS ====================
   
   describe('Additional Comprehensive Tests', () => {
-    it('applies field-specific accessible validation semantics', () => {
+    it('applies topic validation semantics and exposes semantic context in the student checker', () => {
       render(<TopicForm onSubmit={mockOnSubmit} appearance="student-checker" />);
       const topicInput = fillTopic('Only three words');
 
@@ -275,9 +275,11 @@ describe('TopicForm Component', () => {
       fireEvent.change(topicInput, { target: { value: 'Machine learning methods for public health surveillance systems' } });
       expect(topicInput).not.toHaveAttribute('aria-invalid');
 
-      const keywordsInput = fillKeywords('k'.repeat(501));
-      expect(keywordsInput).toHaveAttribute('aria-invalid', 'true');
-      expect(keywordsInput).toHaveAttribute('aria-describedby', expect.stringContaining('keyword-validation'));
+      expect(screen.getByLabelText(/population/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/location/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/study focus/i)).toBeInTheDocument();
+      expect(screen.queryByLabelText(/research area/i)).not.toBeInTheDocument();
+      expect(screen.queryByLabelText(/keywords/i)).not.toBeInTheDocument();
       expect(topicInput).not.toHaveAttribute('aria-invalid');
     });
 
