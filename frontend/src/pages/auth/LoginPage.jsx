@@ -5,7 +5,7 @@ import { getDashboardPath } from '../../auth/roleRoutes';
 import InfoCallout from '../../components/ui/InfoCallout';
 import PrimaryButton from '../../components/ui/PrimaryButton';
 import TextInput from '../../components/ui/TextInput';
-import AuthSplitLayout from '../../layouts/AuthSplitLayout';
+import PublicAuthLayout from '../../layouts/PublicAuthLayout';
 
 function getLoginErrorVariant(message) {
   const normalizedMessage = String(message || '').toLowerCase();
@@ -39,7 +39,7 @@ function LoginPage() {
     }
   };
 
-  const heroContent = (
+  /* const heroContent = (
     <div className="flex h-full min-h-[420px] flex-col justify-between gap-12">
       <div>
         <p className="inline-flex rounded-full bg-white/10 px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.16em] text-emerald-50">
@@ -76,14 +76,14 @@ function LoginPage() {
         </p>
       </div>
     </div>
-  );
+  ); */
 
   return (
-    <AuthSplitLayout hero={heroContent}>
+    <PublicAuthLayout>
       <p className="text-[0.68rem] font-bold uppercase tracking-[0.28em] text-brand-gold-dark">
         For Lecturers, Students and Administrators
       </p>
-      <h2 className="mt-4 text-3xl font-bold text-text-primary">Welcome back</h2>
+      <h1 className="mt-3 text-[1.625rem] font-bold text-text-primary">Welcome back</h1>
       <p className="mt-3 text-sm leading-6 text-text-secondary">
         Sign in with your university account. Access follows your assigned role automatically.
       </p>
@@ -96,7 +96,7 @@ function LoginPage() {
         />
       )}
 
-      <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+      <form className="mt-[1.375rem] space-y-4" onSubmit={handleSubmit}>
         <TextInput
           id="login-email"
           label="University Email Address"
@@ -137,13 +137,7 @@ function LoginPage() {
         </PrimaryButton>
       </form>
 
-      <div className="mt-6 flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
-        <span className="font-semibold text-brand-gold-dark">
-          Contact your department administrator for account access.
-        </span>
-        <span className="text-text-secondary">No role selector</span>
-      </div>
-    </AuthSplitLayout>
+    </PublicAuthLayout>
   );
 }
 

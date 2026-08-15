@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
-import AuthSplitLayout from './AuthSplitLayout';
+import PublicAuthLayout from './PublicAuthLayout';
 
 function AuthRecoveryLayout({ children, description, eyebrow, title }) {
-  const heroContent = (
+  /* const heroContent = (
     <div className="flex h-full min-h-[380px] flex-col justify-between gap-12">
       <div>
         <p className="inline-flex rounded-full bg-white/10 px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.16em] text-emerald-50">
@@ -38,17 +38,17 @@ function AuthRecoveryLayout({ children, description, eyebrow, title }) {
         </p>
       </div>
     </div>
-  );
+  ); */
 
   return (
-    <AuthSplitLayout hero={heroContent}>
+    <PublicAuthLayout>
       <p className="text-[0.68rem] font-bold uppercase tracking-[0.28em] text-brand-gold-dark">
         {eyebrow}
       </p>
-      <h1 className="mt-4 text-3xl font-bold text-text-primary">{title}</h1>
+      <h1 className="mt-3 text-[1.625rem] font-bold text-text-primary">{title}</h1>
       <p className="mt-3 text-sm leading-6 text-text-secondary">{description}</p>
       {children}
-    </AuthSplitLayout>
+    </PublicAuthLayout>
   );
 }
 

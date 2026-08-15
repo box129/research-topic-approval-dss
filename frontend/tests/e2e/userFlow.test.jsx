@@ -108,7 +108,7 @@ describe('End-to-End User Flow Tests', () => {
 
     expect(await screen.findByRole('heading', { name: /welcome back/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/university email address/i)).toBeInTheDocument();
-    expect(screen.getByText(/^No role selector$/i)).toBeInTheDocument();
+    expect(screen.queryByRole('combobox', { name: /role/i })).not.toBeInTheDocument();
   });
 
   it('preserves role protection by redirecting a wrong-role user to their own dashboard', async () => {

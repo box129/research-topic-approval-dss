@@ -45,13 +45,13 @@ function ResetPasswordPage() {
     <AuthRecoveryLayout
       eyebrow="Password recovery"
       title="Set a new password"
-      description="Create a strong password for your university account. The existing reset workflow validates the final request."
+      description="Create a new password for your university account."
     >
       {!token && (
         <InfoCallout
           className="mt-6"
           variant="warning"
-          message="Reset token is missing. Request a new link to continue."
+          message="This password reset link is incomplete. Request a new link to continue."
         />
       )}
       {message && <InfoCallout className="mt-6" variant="success" message={message} />}

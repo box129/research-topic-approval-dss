@@ -38,23 +38,24 @@
 .landing-skip { position: fixed; z-index: 100; top: 0.75rem; left: 0.75rem; padding: 0.75rem 1rem; background: var(--landing-white); color: var(--landing-green-950); transform: translateY(-160%); }
 .landing-skip:focus { transform: translateY(0); }
 
-.landing-masthead { position: relative; z-index: 20; background: var(--landing-cream); border-bottom: 1px solid rgb(23 63 52 / 0.16); }
+.landing-masthead { position: relative; z-index: 20; background: #145f24; color: #fff; }
 .landing-masthead__inner { min-height: 5.5rem; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 2rem; }
 .landing-brand { display: inline-flex; align-items: center; gap: 0.75rem; text-decoration: none; line-height: 1.05; }
-.landing-brand__mark { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border: 1px solid var(--landing-green-800); color: var(--landing-green-900); font-family: var(--landing-serif); font-weight: 700; }
-.landing-brand__full { font-size: 0.83rem; letter-spacing: 0.01em; }
-.landing-brand__full strong { font-size: 1rem; }
-.landing-brand__short { display: none; color: var(--landing-green-950); font-size: 0.88rem; font-weight: 750; white-space: nowrap; }
+.landing-brand__mark { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 999px; background: #fff; color: #145f24; font-family: var(--landing-sans); font-size: .8125rem; font-weight: 900; }
+.landing-brand__full { color: #fff; font-size: .75rem; letter-spacing: .01em; }
+.landing-brand__full strong { font-size: .875rem; }
+.landing-brand__short { display: none; color: #fff; font-size: .88rem; font-weight: 750; white-space: nowrap; }
 .landing-nav { display: flex; justify-content: center; gap: clamp(1rem, 2vw, 2rem); font-size: 0.88rem; font-weight: 700; }
 .landing-nav a { padding-block: 0.5rem; border-bottom: 2px solid transparent; text-decoration: none; }
-.landing-nav a:hover { border-color: var(--landing-gold); }
+.landing-nav a { color: #e7f3e9; }
+.landing-nav a:hover { border-color: var(--landing-gold); color: #fff; }
 .landing-masthead__actions { grid-column: 3; grid-row: 1; display: flex; align-items: center; gap: 0.75rem; }
-.landing-environment { display: inline-flex; min-height: 2rem; align-items: center; padding: 0.2rem 0.65rem; border: 1px solid #b49a60; border-radius: 999px; color: #684f1d; font-size: 0.75rem; font-weight: 750; letter-spacing: 0.04em; }
-.landing-menu-toggle { display: none; min-width: 2.75rem; min-height: 2.75rem; align-items: center; justify-content: center; border: 1px solid var(--landing-green-800); border-radius: var(--landing-radius-sm); background: transparent; color: var(--landing-green-950); }
+.landing-environment { display: inline-flex; min-height: 2rem; align-items: center; padding: 0.2rem 0.65rem; border: 1px solid rgb(255 255 255 / .35); border-radius: 999px; color: #fef3c7; font-size: 0.75rem; font-weight: 750; letter-spacing: 0.04em; }
+.landing-menu-toggle { display: none; min-width: 2.75rem; min-height: 2.75rem; align-items: center; justify-content: center; gap: .3rem; border: 1px solid rgb(255 255 255 / .4); border-radius: var(--landing-radius-sm); background: transparent; color: #fff; font-size: .75rem; font-weight: 700; }
 .landing-menu-toggle svg { width: 1.25rem; height: 1.25rem; }
 
 .landing-button { display: inline-flex; min-height: 3rem; align-items: center; justify-content: center; padding: 0.65rem 1.15rem; border: 1px solid transparent; border-radius: var(--landing-radius-sm); font-weight: 750; line-height: 1.2; text-decoration: none; transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease; }
-.landing-button--compact { min-height: 2.65rem; padding-inline: 1rem; font-size: 0.9rem; }
+.landing-button--compact { min-height: 2.65rem; padding-inline: 1rem; background: #fff; color: #145f24 !important; font-size: 0.9rem; }
 .landing-button--primary { background: var(--landing-green-900); color: var(--landing-white) !important; }
 .landing-button--primary:hover { background: var(--landing-green-800); }
 .landing-button--secondary { border-color: var(--landing-green-800); background: transparent; color: var(--landing-green-900); }

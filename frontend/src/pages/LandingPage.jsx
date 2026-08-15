@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Link, useLocation } from 'react-router-dom';
 import './LandingPage.css';
@@ -97,8 +97,8 @@ AnchorLink.propTypes = {
 function Brand() {
   return (
     <AnchorLink id="top" className="landing-brand" ariaLabel="Research Topic Approval DSS home">
-      <span className="landing-brand__mark" aria-hidden="true">RT</span>
-      <span className="landing-brand__full">Research Topic<br /><strong>Approval DSS</strong></span>
+      <span className="landing-brand__mark" aria-hidden="true">U</span>
+      <span className="landing-brand__full"><strong>UNIOSUN</strong><br />Research Topic Approval DSS</span>
       <span className="landing-brand__short" aria-hidden="true">Approval DSS</span>
     </AnchorLink>
   );
@@ -116,6 +116,18 @@ MenuIcon.propTypes = { open: PropTypes.bool.isRequired };
 
 function PublicMasthead() {
   const { isMobile, isOpen, setIsOpen } = useMobileNavigation();
+  const menuButtonRef = useRef(null);
+
+  useEffect(() => {
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [isOpen, setIsOpen]);
 
   return (
     <header className="landing-masthead" data-testid="landing-masthead">
@@ -126,13 +138,14 @@ function PublicMasthead() {
           <Link className="landing-button landing-button--compact landing-button--primary" to="/login">Sign In</Link>
           <button
             className="landing-menu-toggle"
+            ref={menuButtonRef}
             type="button"
-            aria-label={isOpen ? 'Close navigation' : 'Open navigation'}
+            aria-label={isOpen ? 'Close menu' : 'Menu'}
             aria-expanded={isOpen}
             aria-controls="landing-navigation"
             onClick={() => setIsOpen((current) => !current)}
           >
-            <MenuIcon open={isOpen} />
+            <MenuIcon open={isOpen} /><span>{isOpen ? 'Close' : 'Menu'}</span>
           </button>
         </div>
         <nav
@@ -269,7 +282,7 @@ function ApprovalWorkflowSection() {
       </ol>
       <div className="landing-container landing-revision" aria-label="Optional revision path">
         <p>Possible revision path</p>
-        <div><span>Revision requested</span><b aria-hidden="true">→</b><span>Student updates and resubmits</span><b aria-hidden="true">→</b><span>Lecturer reviews again</span><em aria-hidden="true">↩ returns to review</em></div>
+        <div><span>Revision requested</span><b aria-hidden="true">→</b><span>Student submits a revised topic</span><b aria-hidden="true">→</b><span>Lecturer reviews again</span><em aria-hidden="true">↩ returns to review</em></div>
       </div>
       <div className="landing-container landing-principle">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 7h14M7 7l-4 7h8L7 7Zm10 0-4 7h8l-4-7Z" /></svg>

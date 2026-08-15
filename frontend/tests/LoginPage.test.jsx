@@ -32,15 +32,17 @@ describe('LoginPage', () => {
     vi.clearAllMocks();
   });
 
-  it('renders AUTH-01 split login content and forgot-password link', () => {
+  it('renders the institutional login card and forgot-password link', () => {
     renderLoginPage();
 
-    expect(screen.getByRole('heading', { name: /research topic similarity detection system/i })).toBeInTheDocument();
+    expect(screen.getByText('UNIOSUN')).toBeInTheDocument();
+    expect(screen.getByText('Research Topic Approval DSS')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /welcome back/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/university email address/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/secure password/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /forgot password/i })).toHaveAttribute('href', '/forgot-password');
-    expect(screen.getByText(/^No role selector$/i)).toBeInTheDocument();
+    expect(screen.queryByText(/role selector/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/department administrator/i)).not.toBeInTheDocument();
   });
 
   it('submits email and password to login', async () => {

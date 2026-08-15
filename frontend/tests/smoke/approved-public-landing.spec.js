@@ -108,13 +108,13 @@ test('approved public landing page matches required responsive states', async ({
   await page.setViewportSize({ width: 768, height: 1024 });
   await page.goto('/');
   await verifyFoundation(page);
-  await expect(page.getByRole('button', { name: 'Open navigation' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Menu' })).toBeVisible();
   await capture(page, 'landing-tablet-768x1024.png');
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
   await verifyFoundation(page);
-  const closedToggle = page.getByRole('button', { name: 'Open navigation' });
+  const closedToggle = page.getByRole('button', { name: 'Menu' });
   await expect(closedToggle).toHaveAttribute('aria-expanded', 'false');
   await expect(page.getByRole('navigation', { name: 'Landing page' })).toBeHidden();
   for (const stage of workflowStages) await expect(page.getByText(stage, { exact: true })).toBeVisible();
@@ -122,13 +122,13 @@ test('approved public landing page matches required responsive states', async ({
   await capture(page, 'landing-mobile-full.png', true);
 
   await page.goto('/?menu=open');
-  const openToggle = page.getByRole('button', { name: 'Close navigation' });
+  const openToggle = page.getByRole('button', { name: 'Close menu' });
   await expect(openToggle).toBeVisible();
   await expect(openToggle).toHaveAttribute('aria-expanded', 'true');
   await expect(page.getByRole('navigation', { name: 'Landing page' })).toBeVisible();
   await capture(page, 'landing-mobile-menu-open.png');
   await openToggle.click();
-  await expect(page.getByRole('button', { name: 'Open navigation' })).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.getByRole('button', { name: 'Menu' })).toHaveAttribute('aria-expanded', 'false');
 
   expect(findings.pageErrors).toEqual([]);
   expect(findings.consoleErrors).toEqual([]);

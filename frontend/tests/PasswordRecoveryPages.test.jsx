@@ -60,7 +60,7 @@ describe('password recovery pages', () => {
   it('keeps reset-password inputs disabled when the token is missing', () => {
     renderResetPasswordPage({ initialEntry: '/reset-password' });
 
-    expect(screen.getByText(/reset token is missing/i)).toBeInTheDocument();
+    expect(screen.getByText(/password reset link is incomplete/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^new password/i)).toBeDisabled();
     expect(screen.getByLabelText(/confirm new password/i)).toBeDisabled();
     expect(screen.getByRole('button', { name: /set new password/i })).toBeDisabled();

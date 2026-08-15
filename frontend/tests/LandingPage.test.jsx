@@ -56,7 +56,7 @@ describe('LandingPage', () => {
     ['Jaccard similarity', 'TF-IDF with cosine similarity', 'SBERT semantic similarity'].forEach((method) => expect(screen.getByRole('heading', { name: method })).toBeInTheDocument());
     ['Proposed topic', 'Jaccard, TF-IDF/Cosine and SBERT', 'Historical, current-session and under-review records', 'Advisory similarity evidence', 'Lecturer-controlled decision'].forEach((stage) => expect(screen.getByText(stage)).toBeInTheDocument());
     ['Topic submission', 'Similarity checking', 'Lecturer review', 'Decision record'].forEach((stage) => expect(screen.getByRole('heading', { name: stage })).toBeInTheDocument());
-    ['Revision requested', 'Student updates and resubmits', 'Lecturer reviews again'].forEach((stage) => expect(screen.getByText(stage)).toBeInTheDocument());
+    ['Revision requested', 'Student submits a revised topic', 'Lecturer reviews again'].forEach((stage) => expect(screen.getByText(stage)).toBeInTheDocument());
   });
 
   it('renders repository, comparison and supported governance content', () => {
@@ -84,12 +84,12 @@ describe('LandingPage', () => {
     const user = userEvent.setup();
     renderLanding('/', { mobile: true });
 
-    const toggle = screen.getByRole('button', { name: 'Open navigation' });
+    const toggle = screen.getByRole('button', { name: 'Menu' });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByRole('navigation', { name: 'Landing page' })).not.toBeInTheDocument();
 
     await user.click(toggle);
-    expect(screen.getByRole('button', { name: 'Close navigation' })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('button', { name: 'Close menu' })).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('navigation', { name: 'Landing page' })).toBeInTheDocument();
   });
 
@@ -97,10 +97,10 @@ describe('LandingPage', () => {
     const user = userEvent.setup();
     renderLanding('/?menu=open', { mobile: true });
 
-    expect(screen.getByRole('button', { name: 'Close navigation' })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('button', { name: 'Close menu' })).toHaveAttribute('aria-expanded', 'true');
     const navigation = screen.getByRole('navigation', { name: 'Landing page' });
     await user.click(within(navigation).getByRole('link', { name: 'Why it exists' }));
-    expect(screen.getByRole('button', { name: 'Open navigation' })).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('button', { name: 'Menu' })).toHaveAttribute('aria-expanded', 'false');
     expect(document.getElementById('why')).toHaveFocus();
   });
 
