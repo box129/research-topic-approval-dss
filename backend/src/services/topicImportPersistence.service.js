@@ -1,4 +1,5 @@
 const prisma = require('../config/database');
+const { residentCorpus } = require('./residentCorpus.service');
 
 const BUCKET_MODEL_MAP = {
   historical: 'historicalTopic',
@@ -223,6 +224,7 @@ async function persistNormalizedTopicImport(records, options = {}) {
     }
   }
 
+  if (report.inserted_records && !options.prismaClient) await residentCorpus.refresh();
   return report;
 }
 

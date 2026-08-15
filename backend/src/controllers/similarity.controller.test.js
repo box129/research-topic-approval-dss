@@ -14,6 +14,7 @@ jest.mock('../services/voyageSemanticSimilarity.service', () => ({
   retrieve: jest.fn(() => []),
   classify: jest.fn(() => 'LOW')
 }));
+jest.mock('../services/residentCorpus.service', () => ({ residentCorpus: { get: jest.fn().mockResolvedValue({ topics: [] }), searchable: jest.fn(() => []) } }));
 jest.mock('../config/logger', () => ({ error: jest.fn(), info: jest.fn(), warn: jest.fn() }));
 
 const { embedQuery, embedDocument } = require('../services/voyageEmbedding.service');
