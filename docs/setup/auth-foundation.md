@@ -2,9 +2,36 @@
 
 This project now uses httpOnly cookie authentication for the v1.0 role-based application foundation.
 
-## Local Demo Users
+## Production First-Administrator Bootstrap
 
-Demo users are local-only and unsafe for production. They are intended only for development and manual testing.
+Production databases must never be initialized with the demo seed. The first administrator is created with an explicit operator-invoked command from `backend/`:
+
+```powershell
+npm run bootstrap:admin -- --email admin@department.example --name "Departmental Administrator"
+```
+
+Properties:
+
+- It never runs automatically at application startup.
+- It contains no hardcoded or default password. A cryptographically secure temporary password is generated, printed exactly once, and stored only as a bcrypt hash (same hashing contract as normal login).
+- It is idempotent: re-running with the same email reports the existing administrator and issues no new credential. Conflicting state (a different administrator already exists, or the email belongs to a non-admin account) is refused with a non-zero exit.
+- The created account is marked as requiring a password change, so the temporary credential cannot operate the application. The administrator must sign in and set a private password first.
+- Transfer the one-time credential to the administrator over a secure channel and have them change it immediately.
+
+## Initial-Access Lifecycle
+
+- **Admin provisioning**: an authenticated administrator creates individual student or lecturer accounts at `POST /api/v1/admin/users` (also available in the Admin User Management page). The API generates a secure temporary password, stores only its hash, marks the account `mustChangePassword`, and returns the plaintext exactly once in that response. Students may optionally be given a matric number (normalized to uppercase, unique). Additional administrators cannot be created through this endpoint.
+- **Forced first password change**: while `mustChangePassword` is set, every authenticated API except `GET /auth/me` and `POST /auth/change-password` returns `403 PASSWORD_CHANGE_REQUIRED`, and the frontend routes the user to the dedicated `/change-password` screen. Changing the password requires the current (temporary) credential and the standard password policy.
+- **Authenticated password change**: `POST /api/v1/auth/change-password` is also available to any signed-in user for voluntary changes.
+- **Admin credential reset**: `POST /api/v1/admin/users/:id/credential-reset` lets an administrator issue a new one-time temporary password for a student or lecturer who is locked out (operational fallback while email delivery is unavailable). The previous password and all existing sessions stop working, and another forced password change is required. Admin accounts cannot be targeted, and admins cannot reset their own credential through it.
+- **Session invalidation**: sessions embed a credential version. Any password change, admin credential reset, or reset-token recovery bumps the version, so all previously issued session tokens become invalid immediately. Suspension takes effect on the next request through per-request revalidation.
+- **Email canonicalization**: emails are stored and compared in lower case everywhere (bootstrap, provisioning, login, password reset, duplicate checks). The `20260820090000_add_identity_initial_access` migration lower-cases existing rows and refuses to run if two rows would collide case-insensitively, so accounts are never silently merged.
+
+Plaintext temporary credentials are never written to the database, audit logs, application logs, or analytics.
+
+## Local Demo Users (development only)
+
+Demo users are local-only and unsafe for production. They are intended only for development and manual testing. The seed refuses to run with `NODE_ENV=production`; production initialization always uses `npm run bootstrap:admin`.
 
 Run from `backend/` after applying Prisma migrations:
 

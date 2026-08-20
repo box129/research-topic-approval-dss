@@ -94,7 +94,13 @@ npm run prisma:seed:auth-demo
 npm run prisma:seed:demo-comparison
 ```
 
-Do not seed demo credentials into public production unless explicitly approved.
+Demo credentials must never be seeded into production; `seed-auth-demo.js` refuses to run with `NODE_ENV=production`. Production databases obtain their first administrator with the explicit operator command:
+
+```powershell
+npm run bootstrap:admin -- --email <admin-email> --name "<admin name>"
+```
+
+See `docs/setup/auth-foundation.md` for the full initial-access lifecycle.
 
 ## Deployment Docs
 

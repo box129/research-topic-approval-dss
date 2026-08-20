@@ -47,7 +47,7 @@ npx prisma migrate deploy
 npx prisma migrate status
 ```
 
-Seed only when explicitly intended:
+Seed only when explicitly intended (development/demo environments only):
 
 ```powershell
 node prisma/seed.js
@@ -55,7 +55,13 @@ node prisma/seed-auth-demo.js
 node prisma/seed-demo-comparison-topics.js
 ```
 
-Do not seed demo users or demo topics into public production unless the deployment owner has explicitly approved that data.
+Do not seed demo users or demo topics into public production. `seed-auth-demo.js` refuses to run with `NODE_ENV=production`. Production initialization creates the first administrator with the operator-invoked bootstrap instead:
+
+```powershell
+npm run bootstrap:admin -- --email <admin-email> --name "<admin name>"
+```
+
+The command prints a one-time temporary password that must be transferred securely and changed at first login (see `docs/setup/auth-foundation.md`).
 
 ## Verify Database-Backed Readiness
 
