@@ -1,7 +1,10 @@
 const fs = require('fs/promises');
 const path = require('path');
 const { normalizeTopicImportFile } = require('../services/topicImportFile.service');
-const { persistNormalizedTopicImport } = require('../services/topicImportPersistence.service');
+const {
+  persistNormalizedTopicImport,
+  TopicImportEmbeddingUnavailableError
+} = require('../services/topicImportPersistence.service');
 const {
   AUDIT_EVENT_TYPES,
   buildAuditContextFromRequest,
@@ -90,6 +93,10 @@ function buildCommitAuditMetadata({ req, importResult, persistenceOptions, persi
       insertedRecords: persistenceReport?.inserted_records ?? null,
       failedRecords: persistenceReport?.failed_records ?? null,
       skippedRecords: persistenceReport?.skipped_records ?? null,
+      duplicateRecords: persistenceReport?.duplicate_records ?? null,
+      searchableRecords: persistenceReport?.searchable_records ?? null,
+      embeddingGenerated: persistenceReport?.embedding_generated ?? null,
+      corpusRefreshed: persistenceReport?.corpus_refreshed ?? null,
       insertedByBucket: persistenceReport?.inserted_by_bucket || null
     }
   };
@@ -212,6 +219,20 @@ async function commitTopicImport(req, res, next) {
   } catch (error) {
     if (error.message === 'worksheet not found') {
       return sendWorksheetNotFoundResponse(res);
+    }
+
+    if (error instanceof TopicImportEmbeddingUnavailableError) {
+      return res.status(503).json({
+        status: 'error',
+        message: 'Topic import was not committed because semantic embeddings could not be generated. No records were persisted.',
+        details: {
+          error_code: 'SEMANTIC_PROVIDER_UNAVAILABLE',
+          field: 'file',
+          reason: error.message,
+          attempted_records: error.attemptedRecords,
+          embedded_before_failure: error.embeddedBeforeFailure
+        }
+      });
     }
 
     return next(error);

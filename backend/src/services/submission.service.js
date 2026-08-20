@@ -1,5 +1,7 @@
 const prisma = require('../config/database');
 const { createNotificationEventService } = require('./notificationEvent.service');
+const defaultCorpusLifecycle = require('./topicCorpusLifecycle.service');
+const { validStoredEmbedding, VoyageProviderError } = require('./voyageEmbedding.service');
 
 const MIN_TITLE_WORDS = 7;
 const MAX_TITLE_WORDS = 24;
@@ -324,15 +326,28 @@ function serializeLecturerDecision(submission) {
 
 function createSubmissionService({
   prismaClient = prisma,
-  notificationEvents = createNotificationEventService({ prismaClient })
+  notificationEvents = createNotificationEventService({ prismaClient }),
+  corpusLifecycle = defaultCorpusLifecycle
 } = {}) {
-  const getCurrentSessionId = async () => {
+  const getCurrentSession = async () => {
     const session = await prismaClient.academicSession.findFirst({
       where: { isCurrent: true },
-      select: { id: true }
+      select: { id: true, name: true }
     });
 
-    return session?.id || null;
+    return session || null;
+  };
+
+  const prepareDocumentEmbeddingOrFail = async (topicShape, failureMessage) => {
+    try {
+      return await corpusLifecycle.prepareDocumentEmbedding(topicShape);
+    } catch (error) {
+      if (error instanceof VoyageProviderError) {
+        throw new SubmissionServiceError(failureMessage, 503, 'SEMANTIC_SYNC_UNAVAILABLE');
+      }
+
+      throw error;
+    }
   };
 
   const createSubmission = async ({ user, input }) => {
@@ -340,21 +355,52 @@ function createSubmissionService({
     const title = validateSubmissionInput(input || {});
     const category = normalizeOptionalText(input?.category);
     const keywords = normalizeKeywords(input?.keywords);
-    const sessionId = await getCurrentSessionId();
+    const session = await getCurrentSession();
+    const sessionId = session?.id || null;
 
-    const submission = await prismaClient.submission.create({
-      data: {
-        studentId: user.id,
-        sessionId,
-        title,
-        category,
-        keywords,
-        status: 'PENDING_REVIEW'
-      },
-      include: {
-        session: true
-      }
+    // A pending submission is an under-review topic other checks must see, so the
+    // Voyage document embedding is prepared before any row is written (never
+    // inside the transaction) and the submission plus its under-review corpus
+    // record are committed atomically. If Voyage is unavailable the submission
+    // fails honestly instead of entering review invisible to similarity checks.
+    const topicShape = corpusLifecycle.buildSubmissionTopicShape({ title, category, keywords });
+    const embeddingData = await prepareDocumentEmbeddingOrFail(
+      topicShape,
+      'Your topic could not be submitted because semantic analysis is currently unavailable. Please try again shortly.'
+    );
+
+    const submission = await prismaClient.$transaction(async (tx) => {
+      const created = await tx.submission.create({
+        data: {
+          studentId: user.id,
+          sessionId,
+          title,
+          category,
+          keywords,
+          status: 'PENDING_REVIEW'
+        },
+        include: {
+          session: true
+        }
+      });
+
+      await tx.underReviewTopic.create({
+        data: {
+          ...topicShape,
+          keywords: topicShape.keywords || '',
+          sessionYear: session?.name || '',
+          supervisorName: '',
+          sourceType: 'submission',
+          reviewStartedAt: created.submittedAt,
+          submissionId: created.id,
+          ...embeddingData
+        }
+      });
+
+      return created;
     });
+
+    await corpusLifecycle.refreshResidentCorpusSafely('submission creation');
 
     await notificationEvents.notifyReviewersOfSubmissionCreatedSafely({
       submission,
@@ -441,6 +487,39 @@ function createSubmissionService({
     });
   };
 
+  // Semantic fields an approved topic carries into the current-session corpus.
+  const CORPUS_CONTENT_FIELDS = ['title', 'keywords', 'category', 'population', 'location', 'studyFocus', 'sessionYear', 'supervisorName'];
+  const EMBEDDING_METADATA_FIELDS = ['embedding', 'embeddingProvider', 'embeddingModel', 'embeddingDimension', 'embeddingRepresentation', 'embeddingSourceHash', 'embeddedAt'];
+
+  const pickFields = (source, fields) => Object.fromEntries(fields.map((field) => [field, source[field] ?? null]));
+
+  // Builds the current-session corpus record for an approved submission. The
+  // stored under-review embedding is reused when it is still valid for the same
+  // semantic content; otherwise (legacy submissions, stale hash) a fresh Voyage
+  // document embedding is generated before the decision transaction opens.
+  const buildApprovedCorpusData = async ({ submission, underReviewRow }) => {
+    if (underReviewRow && validStoredEmbedding(underReviewRow)) {
+      return {
+        ...pickFields(underReviewRow, CORPUS_CONTENT_FIELDS),
+        ...pickFields(underReviewRow, EMBEDDING_METADATA_FIELDS)
+      };
+    }
+
+    const topicShape = corpusLifecycle.buildSubmissionTopicShape(submission);
+    const embeddingData = await prepareDocumentEmbeddingOrFail(
+      topicShape,
+      'The approval could not be completed because semantic analysis is currently unavailable. Please try again shortly.'
+    );
+
+    return {
+      ...topicShape,
+      keywords: topicShape.keywords || '',
+      sessionYear: underReviewRow?.sessionYear || submission.session?.name || '',
+      supervisorName: underReviewRow?.supervisorName || '',
+      ...embeddingData
+    };
+  };
+
   const updateLecturerSubmissionStatus = async ({ user, submissionId, status, reason }) => {
     assertLecturerUser(user);
     const id = parseSubmissionId(submissionId);
@@ -448,9 +527,8 @@ function createSubmissionService({
 
     const existingSubmission = await prismaClient.submission.findUnique({
       where: { id },
-      select: {
-        id: true,
-        status: true
+      include: {
+        session: true
       }
     });
 
@@ -472,29 +550,79 @@ function createSubmissionService({
       reason
     });
 
-    const updatedSubmission = await prismaClient.submission.update({
-      where: { id },
-      data: {
-        status: nextStatus,
-        decisionReason,
-        decidedById: user.id,
-        decidedAt: new Date()
+    const decisionData = {
+      status: nextStatus,
+      decisionReason,
+      decidedById: user.id,
+      decidedAt: new Date()
+    };
+    const decisionInclude = {
+      session: true,
+      decidedBy: {
+        select: {
+          name: true
+        }
       },
-      include: {
-        session: true,
-        decidedBy: {
-          select: {
-            name: true
-          }
-        },
-        student: {
-          select: {
-            name: true,
-            email: true
-          }
+      student: {
+        select: {
+          name: true,
+          email: true
         }
       }
+    };
+
+    // The submission decision and its corpus transition commit atomically:
+    // APPROVED promotes the topic into the current-session repository (keyed by
+    // submissionId, so retries cannot create duplicates) and removes the
+    // under-review copy so the proposal never contributes twice; REJECTED and
+    // AWAITING_REVISION only remove the under-review copy — a revised topic
+    // re-enters the corpus through a new submission.
+    let approvedCorpusData = null;
+
+    if (nextStatus === 'APPROVED') {
+      const underReviewRow = await prismaClient.underReviewTopic.findUnique({
+        where: { submissionId: id }
+      });
+
+      approvedCorpusData = await buildApprovedCorpusData({
+        submission: existingSubmission,
+        underReviewRow
+      });
+    }
+
+    const updatedSubmission = await prismaClient.$transaction(async (tx) => {
+      const updated = await tx.submission.update({
+        where: { id },
+        data: decisionData,
+        include: decisionInclude
+      });
+
+      if (nextStatus === 'APPROVED') {
+        await tx.currentSessionTopic.upsert({
+          where: { submissionId: id },
+          create: {
+            ...approvedCorpusData,
+            approvedDate: decisionData.decidedAt,
+            studentId: String(updated.studentId),
+            sourceType: 'submission',
+            submissionId: id
+          },
+          update: {
+            ...approvedCorpusData,
+            approvedDate: decisionData.decidedAt,
+            studentId: String(updated.studentId)
+          }
+        });
+      }
+
+      await tx.underReviewTopic.deleteMany({
+        where: { submissionId: id }
+      });
+
+      return updated;
     });
+
+    await corpusLifecycle.refreshResidentCorpusSafely('lecturer decision');
 
     await notificationEvents.notifyStudentOfSubmissionDecisionSafely({
       submission: updatedSubmission

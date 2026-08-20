@@ -15,4 +15,26 @@ describe('ResidentCorpus', () => {
     await expect(corpus.refresh()).rejects.toThrow('database unavailable'); expect(corpus.snapshot).toBe(before); expect(corpus.searchable().map(x=>x.id)).toEqual([1]);
     const stale=new ResidentCorpus(client({historical:[{id:2,embedding:vector(.1),embeddingSourceHash:'old'}]})); await stale.refresh(); expect(stale.searchable()).toEqual([]);
   });
+  test('a process restart reconstructs the same eligible corpus from PostgreSQL state', async () => {
+    const rows = {
+      historical: [{ id: 1, embedding: vector(.1), embeddingSourceHash: 'current' }],
+      current: [{ id: 2, embedding: vector(.2), embeddingSourceHash: 'current' }],
+      review: [
+        { id: 3, embedding: vector(.3), embeddingSourceHash: 'current', reviewStartedAt: new Date() },
+        { id: 4, embedding: vector(.4), embeddingSourceHash: 'current', reviewStartedAt: new Date(Date.now() - 49 * 3600000) },
+        { id: 5, embedding: null, embeddingSourceHash: 'current', reviewStartedAt: new Date() }
+      ]
+    };
+    const beforeRestart = new ResidentCorpus(client(rows));
+    const eligibleBefore = beforeRestart.searchable(await beforeRestart.get()).map(topic => `${topic.collection}:${topic.id}`);
+
+    // A restarted process begins with no snapshot; get() must rebuild the exact
+    // same eligible corpus from the persisted rows alone.
+    const afterRestart = new ResidentCorpus(client(rows));
+    expect(afterRestart.snapshot).toBeNull();
+    const eligibleAfter = afterRestart.searchable(await afterRestart.get()).map(topic => `${topic.collection}:${topic.id}`);
+
+    expect(eligibleBefore).toEqual(['HISTORICAL:1', 'CURRENT_SESSION:2', 'UNDER_REVIEW:3']);
+    expect(eligibleAfter).toEqual(eligibleBefore);
+  });
 });

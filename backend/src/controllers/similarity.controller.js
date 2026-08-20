@@ -7,12 +7,18 @@ async function checkSimilarity(req, res, next) {
   try {
     const { topic: title, population, location, studyFocus } = req.body || {};
     if (!title || typeof title !== 'string' || !title.trim()) return res.status(400).json({ status:'error', message:'Topic is required.', details:{field:'topic',error_code:'MISSING_FIELD'} });
+    const searchable = residentCorpus.searchable(await residentCorpus.get());
+    // An empty comparison corpus is reported truthfully: it is not evidence that
+    // the proposed topic is new or original, so no risk class is asserted.
+    if (!searchable.length) {
+      return res.json({ status:'success', semanticAvailable:true, semanticProvider:'voyage', semanticModel:'voyage-4-large', data:{ input_topic:title, corpus_size:0, overall_risk:null, max_similarity:null, matches:[], recommendation:'No eligible stored topics are currently available for comparison. This result does not establish that the topic is new or original.' } });
+    }
     let query;
     try { query = await embedQuery({ title, population, location, studyFocus }); }
     catch (error) { if (error instanceof VoyageProviderError) return res.status(503).json({ status:'semantic_unavailable', message:'Semantic analysis is currently unavailable.', semanticAvailable:false, semanticProvider:'voyage', semanticModel:'voyage-4-large' }); throw error; }
-    const matches=retrieve(query,residentCorpus.searchable(await residentCorpus.get()),5);
+    const matches=retrieve(query,searchable,5);
     const top=matches[0]?.score ?? 0;
-    return res.json({ status:'success', semanticAvailable:true, semanticProvider:'voyage', semanticModel:'voyage-4-large', data:{ input_topic:title, overall_risk:classify(top), max_similarity:top, matches:matches.map(responseMatch), recommendation:'Similarity classification is advisory; final academic judgement remains human.' } });
+    return res.json({ status:'success', semanticAvailable:true, semanticProvider:'voyage', semanticModel:'voyage-4-large', data:{ input_topic:title, corpus_size:searchable.length, overall_risk:classify(top), max_similarity:top, matches:matches.map(responseMatch), recommendation:'Similarity classification is advisory; final academic judgement remains human.' } });
   } catch (error) { logger.error(`Voyage semantic check failed: ${error.message}`); return next(error); }
 }
 module.exports={checkSimilarity};

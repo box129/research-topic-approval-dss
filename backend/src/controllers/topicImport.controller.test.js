@@ -2,9 +2,21 @@ jest.mock('../services/topicImportFile.service', () => ({
   normalizeTopicImportFile: jest.fn()
 }));
 
-jest.mock('../services/topicImportPersistence.service', () => ({
-  persistNormalizedTopicImport: jest.fn()
-}));
+jest.mock('../services/topicImportPersistence.service', () => {
+  class TopicImportEmbeddingUnavailableError extends Error {
+    constructor(message, { attemptedRecords = 0, embeddedBeforeFailure = 0 } = {}) {
+      super(message);
+      this.name = 'TopicImportEmbeddingUnavailableError';
+      this.attemptedRecords = attemptedRecords;
+      this.embeddedBeforeFailure = embeddedBeforeFailure;
+    }
+  }
+
+  return {
+    persistNormalizedTopicImport: jest.fn(),
+    TopicImportEmbeddingUnavailableError
+  };
+});
 
 jest.mock('../services/auditLog.service', () => ({
   AUDIT_EVENT_TYPES: {
@@ -82,11 +94,16 @@ describe('Topic Import Controller', () => {
       inserted_records: 1,
       failed_records: 0,
       skipped_records: 0,
+      duplicate_records: 0,
+      searchable_records: 1,
+      embedding_generated: 1,
+      corpus_refreshed: true,
       inserted_by_bucket: {
         historical: 1,
         current_session: 0,
         under_review: 0
       },
+      duplicates: [],
       warnings: [],
       errors: []
     });
@@ -216,6 +233,10 @@ describe('Topic Import Controller', () => {
           insertedRecords: 1,
           failedRecords: 0,
           skippedRecords: 0,
+          duplicateRecords: 0,
+          searchableRecords: 1,
+          embeddingGenerated: 1,
+          corpusRefreshed: true,
           insertedByBucket: {
             historical: 1,
             current_session: 0,
@@ -278,6 +299,37 @@ describe('Topic Import Controller', () => {
       }
     });
     expect(fs.unlink).toHaveBeenCalledWith('tmp/upload.csv');
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  test('should report an honest 503 when import embeddings cannot be generated', async () => {
+    topicImportPersistenceService.persistNormalizedTopicImport.mockRejectedValue(
+      new topicImportPersistenceService.TopicImportEmbeddingUnavailableError(
+        'Voyage embedding could not be generated for "Imported Topic": Voyage embedding request failed (503).',
+        { attemptedRecords: 1, embeddedBeforeFailure: 0 }
+      )
+    );
+    const req = {
+      file: { path: 'tmp/upload.xlsx', originalname: 'topics.xlsx' },
+      body: {}
+    };
+    const res = createResponse();
+    const next = jest.fn();
+
+    await commitTopicImport(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      status: 'error',
+      message: expect.stringContaining('No records were persisted'),
+      details: expect.objectContaining({
+        error_code: 'SEMANTIC_PROVIDER_UNAVAILABLE',
+        attempted_records: 1,
+        embedded_before_failure: 0
+      })
+    }));
+    expect(notificationEventService.notifyAdminImportCommittedSafely).not.toHaveBeenCalled();
+    expect(fs.unlink).toHaveBeenCalledWith('tmp/upload.xlsx');
     expect(next).not.toHaveBeenCalled();
   });
 

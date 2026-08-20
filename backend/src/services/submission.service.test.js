@@ -3,9 +3,11 @@ const {
   countWords,
   serializeSubmission
 } = require('./submission.service');
+const { documentMetadata, VoyageProviderError } = require('./voyageEmbedding.service');
+const { buildSubmissionTopicShape } = require('./topicCorpusLifecycle.service');
 
 function createPrismaMock(overrides = {}) {
-  return {
+  const prismaMock = {
     academicSession: {
       findFirst: jest.fn(),
       ...overrides.academicSession
@@ -17,6 +19,16 @@ function createPrismaMock(overrides = {}) {
       findMany: jest.fn(),
       update: jest.fn(),
       ...overrides.submission
+    },
+    underReviewTopic: {
+      create: jest.fn().mockResolvedValue({ id: 501 }),
+      findUnique: jest.fn().mockResolvedValue(null),
+      deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+      ...overrides.underReviewTopic
+    },
+    currentSessionTopic: {
+      upsert: jest.fn().mockResolvedValue({ id: 601 }),
+      ...overrides.currentSessionTopic
     },
     auditLog: {
       create: jest.fn(),
@@ -31,6 +43,34 @@ function createPrismaMock(overrides = {}) {
       create: jest.fn(),
       ...overrides.notification
     }
+  };
+
+  prismaMock.$transaction = jest.fn(async (callback) => callback(prismaMock));
+
+  return prismaMock;
+}
+
+const TEST_VECTOR = Array(1024).fill(0).map((_, index) => (index === 0 ? 1 : 0));
+
+function createCorpusLifecycleMock(overrides = {}) {
+  return {
+    buildSubmissionTopicShape,
+    prepareDocumentEmbedding: jest.fn((topicShape) => Promise.resolve(documentMetadata(topicShape, TEST_VECTOR))),
+    refreshResidentCorpusSafely: jest.fn().mockResolvedValue(true),
+    ...overrides
+  };
+}
+
+function buildValidUnderReviewRow(submissionId, shape) {
+  return {
+    id: 501,
+    ...shape,
+    sessionYear: '2025/2026',
+    supervisorName: '',
+    sourceType: 'submission',
+    reviewStartedAt: new Date('2026-05-19T10:00:00Z'),
+    submissionId,
+    ...documentMetadata(shape, TEST_VECTOR)
   };
 }
 
@@ -77,7 +117,8 @@ describe('submission.service', () => {
         })
       }
     });
-    const service = createSubmissionService({ prismaClient: prisma });
+    const corpusLifecycle = createCorpusLifecycleMock();
+    const service = createSubmissionService({ prismaClient: prisma, corpusLifecycle });
 
     const result = await service.createSubmission({
       user: studentUser,
@@ -104,6 +145,79 @@ describe('submission.service', () => {
       session_name: '2025/2026',
       status: 'pending_review'
     });
+  });
+
+  test('student submission atomically persists an embedded under-review corpus record', async () => {
+    const createdAt = new Date('2026-05-19T10:00:00Z');
+    const prisma = createPrismaMock({
+      academicSession: {
+        findFirst: jest.fn().mockResolvedValue({ id: 3, name: '2025/2026' })
+      },
+      submission: {
+        create: jest.fn().mockResolvedValue({
+          id: 11,
+          studentId: studentUser.id,
+          sessionId: 3,
+          session: { id: 3, name: '2025/2026' },
+          title: validInput.title,
+          category: validInput.category,
+          keywords: validInput.keywords,
+          status: 'PENDING_REVIEW',
+          submittedAt: createdAt,
+          createdAt,
+          updatedAt: createdAt
+        })
+      }
+    });
+    const corpusLifecycle = createCorpusLifecycleMock();
+    const service = createSubmissionService({ prismaClient: prisma, corpusLifecycle });
+
+    await service.createSubmission({ user: studentUser, input: validInput });
+
+    expect(corpusLifecycle.prepareDocumentEmbedding).toHaveBeenCalledTimes(1);
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(prisma.underReviewTopic.create).toHaveBeenCalledTimes(1);
+
+    const underReviewData = prisma.underReviewTopic.create.mock.calls[0][0].data;
+    expect(underReviewData).toMatchObject({
+      title: validInput.title,
+      category: validInput.category,
+      sessionYear: '2025/2026',
+      supervisorName: '',
+      sourceType: 'submission',
+      reviewStartedAt: createdAt,
+      submissionId: 11,
+      embedding: TEST_VECTOR,
+      embeddingProvider: 'voyage',
+      embeddingModel: 'voyage-4-large',
+      embeddingDimension: 1024
+    });
+    expect(underReviewData.embeddingSourceHash).toEqual(expect.any(String));
+    expect(corpusLifecycle.refreshResidentCorpusSafely).toHaveBeenCalled();
+  });
+
+  test('submission fails honestly and persists nothing when Voyage embedding is unavailable', async () => {
+    const prisma = createPrismaMock({
+      academicSession: {
+        findFirst: jest.fn().mockResolvedValue({ id: 3, name: '2025/2026' })
+      }
+    });
+    const corpusLifecycle = createCorpusLifecycleMock({
+      prepareDocumentEmbedding: jest.fn().mockRejectedValue(new VoyageProviderError('Voyage embedding request failed (503).', 503))
+    });
+    const service = createSubmissionService({ prismaClient: prisma, corpusLifecycle });
+
+    await expect(service.createSubmission({
+      user: studentUser,
+      input: validInput
+    })).rejects.toMatchObject({
+      statusCode: 503,
+      code: 'SEMANTIC_SYNC_UNAVAILABLE'
+    });
+
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+    expect(prisma.submission.create).not.toHaveBeenCalled();
+    expect(prisma.underReviewTopic.create).not.toHaveBeenCalled();
   });
 
   test('student submission notifies real reviewer roles through event hook', async () => {
@@ -134,7 +248,7 @@ describe('submission.service', () => {
         recipientCount: 2
       })
     };
-    const service = createSubmissionService({ prismaClient: prisma, notificationEvents });
+    const service = createSubmissionService({ prismaClient: prisma, notificationEvents, corpusLifecycle: createCorpusLifecycleMock() });
 
     const result = await service.createSubmission({
       user: studentUser,
@@ -173,7 +287,7 @@ describe('submission.service', () => {
         })
       }
     });
-    const service = createSubmissionService({ prismaClient: prisma });
+    const service = createSubmissionService({ prismaClient: prisma, corpusLifecycle: createCorpusLifecycleMock() });
 
     await service.createSubmission({
       user: studentUser,
@@ -181,6 +295,7 @@ describe('submission.service', () => {
     });
 
     expect(prisma.submission.create.mock.calls[0][0].data.sessionId).toBeNull();
+    expect(prisma.underReviewTopic.create.mock.calls[0][0].data.sessionYear).toBe('');
   });
 
   test.each([
@@ -707,11 +822,22 @@ describe('submission.service', () => {
   ])('lecturer can update pending submission to %s', async (clientStatus, prismaStatus, reason, expectedReason) => {
     const updatedAt = new Date('2026-05-19T12:00:00Z');
     const decidedAt = new Date('2026-05-19T12:05:00Z');
+    const reviewShape = buildSubmissionTopicShape(validInput);
     const prisma = createPrismaMock({
+      underReviewTopic: {
+        create: jest.fn(),
+        findUnique: jest.fn().mockResolvedValue(buildValidUnderReviewRow(21, reviewShape)),
+        deleteMany: jest.fn().mockResolvedValue({ count: 1 })
+      },
       submission: {
         findUnique: jest.fn().mockResolvedValue({
           id: 21,
-          status: 'PENDING_REVIEW'
+          status: 'PENDING_REVIEW',
+          studentId: studentUser.id,
+          title: validInput.title,
+          category: validInput.category,
+          keywords: validInput.keywords,
+          session: { id: 3, name: '2025/2026' }
         }),
         update: jest.fn().mockResolvedValue({
           id: 21,
@@ -741,7 +867,8 @@ describe('submission.service', () => {
     const notificationEvents = {
       notifyStudentOfSubmissionDecisionSafely: jest.fn().mockResolvedValue({ created: 1 })
     };
-    const service = createSubmissionService({ prismaClient: prisma, notificationEvents });
+    const corpusLifecycle = createCorpusLifecycleMock();
+    const service = createSubmissionService({ prismaClient: prisma, notificationEvents, corpusLifecycle });
 
     const result = await service.updateLecturerSubmissionStatus({
       user: lecturerUser,
@@ -752,11 +879,18 @@ describe('submission.service', () => {
 
     expect(prisma.submission.findUnique).toHaveBeenCalledWith({
       where: { id: 21 },
-      select: {
-        id: true,
-        status: true
+      include: {
+        session: true
       }
     });
+    expect(prisma.underReviewTopic.deleteMany).toHaveBeenCalledWith({
+      where: { submissionId: 21 }
+    });
+    if (prismaStatus === 'APPROVED') {
+      expect(prisma.currentSessionTopic.upsert).toHaveBeenCalledTimes(1);
+    } else {
+      expect(prisma.currentSessionTopic.upsert).not.toHaveBeenCalled();
+    }
     expect(prisma.submission.update).toHaveBeenCalledWith({
       where: { id: 21 },
       data: {
@@ -798,6 +932,178 @@ describe('submission.service', () => {
         decidedById: lecturerUser.id
       })
     });
+  });
+
+  function createDecisionPrismaMock({ underReviewRow }) {
+    const decidedAt = new Date('2026-05-19T12:05:00Z');
+
+    return createPrismaMock({
+      underReviewTopic: {
+        create: jest.fn(),
+        findUnique: jest.fn().mockResolvedValue(underReviewRow),
+        deleteMany: jest.fn().mockResolvedValue({ count: underReviewRow ? 1 : 0 })
+      },
+      submission: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 21,
+          status: 'PENDING_REVIEW',
+          studentId: studentUser.id,
+          title: validInput.title,
+          category: validInput.category,
+          keywords: validInput.keywords,
+          session: { id: 3, name: '2025/2026' }
+        }),
+        update: jest.fn().mockResolvedValue({
+          id: 21,
+          studentId: studentUser.id,
+          sessionId: 3,
+          session: { id: 3, name: '2025/2026' },
+          student: { name: 'Student Demo', email: 'student.demo@uniosun.edu.ng' },
+          title: validInput.title,
+          category: validInput.category,
+          keywords: validInput.keywords,
+          status: 'APPROVED',
+          decisionReason: null,
+          decidedById: lecturerUser.id,
+          decidedBy: { name: 'Lecturer Demo' },
+          decidedAt,
+          submittedAt: decidedAt,
+          createdAt: decidedAt,
+          updatedAt: decidedAt
+        })
+      }
+    });
+  }
+
+  test('approval reuses the valid stored under-review embedding without a new Voyage call', async () => {
+    const reviewShape = buildSubmissionTopicShape(validInput);
+    const underReviewRow = buildValidUnderReviewRow(21, reviewShape);
+    const prisma = createDecisionPrismaMock({ underReviewRow });
+    const corpusLifecycle = createCorpusLifecycleMock();
+    const service = createSubmissionService({
+      prismaClient: prisma,
+      notificationEvents: { notifyStudentOfSubmissionDecisionSafely: jest.fn().mockResolvedValue({ created: 1 }) },
+      corpusLifecycle
+    });
+
+    await service.updateLecturerSubmissionStatus({
+      user: lecturerUser,
+      submissionId: 21,
+      status: 'approved'
+    });
+
+    expect(corpusLifecycle.prepareDocumentEmbedding).not.toHaveBeenCalled();
+    const upsertArgs = prisma.currentSessionTopic.upsert.mock.calls[0][0];
+    expect(upsertArgs.where).toEqual({ submissionId: 21 });
+    expect(upsertArgs.create).toMatchObject({
+      title: validInput.title,
+      submissionId: 21,
+      sourceType: 'submission',
+      embedding: TEST_VECTOR,
+      embeddingSourceHash: underReviewRow.embeddingSourceHash
+    });
+    expect(prisma.underReviewTopic.deleteMany).toHaveBeenCalledWith({ where: { submissionId: 21 } });
+    expect(corpusLifecycle.refreshResidentCorpusSafely).toHaveBeenCalled();
+  });
+
+  test('approval regenerates the embedding when the stored under-review vector is stale', async () => {
+    const reviewShape = buildSubmissionTopicShape(validInput);
+    const staleRow = {
+      ...buildValidUnderReviewRow(21, reviewShape),
+      embeddingSourceHash: 'stale-source-hash'
+    };
+    const prisma = createDecisionPrismaMock({ underReviewRow: staleRow });
+    const corpusLifecycle = createCorpusLifecycleMock();
+    const service = createSubmissionService({
+      prismaClient: prisma,
+      notificationEvents: { notifyStudentOfSubmissionDecisionSafely: jest.fn().mockResolvedValue({ created: 1 }) },
+      corpusLifecycle
+    });
+
+    await service.updateLecturerSubmissionStatus({
+      user: lecturerUser,
+      submissionId: 21,
+      status: 'approved'
+    });
+
+    expect(corpusLifecycle.prepareDocumentEmbedding).toHaveBeenCalledTimes(1);
+    const upsertArgs = prisma.currentSessionTopic.upsert.mock.calls[0][0];
+    expect(upsertArgs.create.embeddingSourceHash).not.toBe('stale-source-hash');
+    expect(upsertArgs.create.embedding).toEqual(TEST_VECTOR);
+  });
+
+  test('approval of a legacy submission without an under-review row generates a fresh embedding', async () => {
+    const prisma = createDecisionPrismaMock({ underReviewRow: null });
+    const corpusLifecycle = createCorpusLifecycleMock();
+    const service = createSubmissionService({
+      prismaClient: prisma,
+      notificationEvents: { notifyStudentOfSubmissionDecisionSafely: jest.fn().mockResolvedValue({ created: 1 }) },
+      corpusLifecycle
+    });
+
+    await service.updateLecturerSubmissionStatus({
+      user: lecturerUser,
+      submissionId: 21,
+      status: 'approved'
+    });
+
+    expect(corpusLifecycle.prepareDocumentEmbedding).toHaveBeenCalledTimes(1);
+    const upsertArgs = prisma.currentSessionTopic.upsert.mock.calls[0][0];
+    expect(upsertArgs.create).toMatchObject({
+      title: validInput.title,
+      sessionYear: '2025/2026',
+      embedding: TEST_VECTOR
+    });
+  });
+
+  test('approval fails honestly when Voyage is unavailable and persists no decision', async () => {
+    const prisma = createDecisionPrismaMock({ underReviewRow: null });
+    const corpusLifecycle = createCorpusLifecycleMock({
+      prepareDocumentEmbedding: jest.fn().mockRejectedValue(new VoyageProviderError('Voyage embedding request failed (503).', 503))
+    });
+    const service = createSubmissionService({ prismaClient: prisma, corpusLifecycle });
+
+    await expect(service.updateLecturerSubmissionStatus({
+      user: lecturerUser,
+      submissionId: 21,
+      status: 'approved'
+    })).rejects.toMatchObject({
+      statusCode: 503,
+      code: 'SEMANTIC_SYNC_UNAVAILABLE'
+    });
+
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+    expect(prisma.submission.update).not.toHaveBeenCalled();
+    expect(prisma.currentSessionTopic.upsert).not.toHaveBeenCalled();
+    expect(prisma.underReviewTopic.deleteMany).not.toHaveBeenCalled();
+  });
+
+  test('a repeated decision request cannot create duplicate corpus records', async () => {
+    const prisma = createDecisionPrismaMock({ underReviewRow: null });
+    prisma.submission.findUnique.mockResolvedValue({
+      id: 21,
+      status: 'APPROVED',
+      studentId: studentUser.id,
+      title: validInput.title,
+      category: validInput.category,
+      keywords: validInput.keywords,
+      session: { id: 3, name: '2025/2026' }
+    });
+    const corpusLifecycle = createCorpusLifecycleMock();
+    const service = createSubmissionService({ prismaClient: prisma, corpusLifecycle });
+
+    await expect(service.updateLecturerSubmissionStatus({
+      user: lecturerUser,
+      submissionId: 21,
+      status: 'approved'
+    })).rejects.toMatchObject({
+      statusCode: 400,
+      code: 'SUBMISSION_NOT_PENDING'
+    });
+
+    expect(prisma.currentSessionTopic.upsert).not.toHaveBeenCalled();
+    expect(prisma.underReviewTopic.deleteMany).not.toHaveBeenCalled();
+    expect(corpusLifecycle.prepareDocumentEmbedding).not.toHaveBeenCalled();
   });
 
   test('rejects rejected status without a decision reason', async () => {

@@ -128,6 +128,8 @@ model Submission {
   decidedBy                User?                     @relation("SubmissionDecisions", fields: [decidedById], references: [id], onDelete: Restrict)
   decidedAt                DateTime?                 @map("decided_at")
   similarityCheckSnapshots SimilarityCheckSnapshot[]
+  underReviewTopic         UnderReviewTopic?
+  currentSessionTopic      CurrentSessionTopic?
   submittedAt              DateTime                  @default(now()) @map("submitted_at")
   createdAt                DateTime                  @default(now()) @map("created_at")
   updatedAt                DateTime                  @updatedAt @map("updated_at")
@@ -215,6 +217,7 @@ model HistoricalTopic {
   sourceType     String?  @map("source_type")
   sourceFilename String?  @map("source_filename") @db.Text
   importBatchId  String?  @map("import_batch_id")
+  sourceFingerprint String? @unique @map("source_fingerprint")
   embedding      Json?
   embeddingProvider String? @map("embedding_provider")
   embeddingModel String? @map("embedding_model")
@@ -256,6 +259,9 @@ model CurrentSessionTopic {
   embeddedAt DateTime? @map("embedded_at")
   approvedDate   DateTime? @map("approved_date")
   studentId      String?   @map("student_id")
+  sourceFingerprint String? @unique @map("source_fingerprint")
+  submissionId   Int?      @unique @map("submission_id")
+  submission     Submission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
@@ -290,6 +296,9 @@ model UnderReviewTopic {
   embeddedAt DateTime? @map("embedded_at")
   reviewStartedAt   DateTime? @map("review_started_at")
   reviewingLecturer String?   @map("reviewing_lecturer")
+  sourceFingerprint String?   @unique @map("source_fingerprint")
+  submissionId      Int?      @unique @map("submission_id")
+  submission        Submission? @relation(fields: [submissionId], references: [id], onDelete: Cascade)
   createdAt         DateTime  @default(now()) @map("created_at")
   updatedAt         DateTime  @updatedAt @map("updated_at")
 
