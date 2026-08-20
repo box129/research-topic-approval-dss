@@ -32,6 +32,22 @@ export async function updateAdminUserStatus(id, status) {
   };
 }
 
+export async function createAdminUser(payload) {
+  const response = await apiClient.post('/admin/users', payload);
+  return {
+    data: response.data?.data,
+    meta: response.data?.meta
+  };
+}
+
+export async function resetAdminUserCredential(id) {
+  const response = await apiClient.post(`/admin/users/${id}/credential-reset`);
+  return {
+    data: response.data?.data,
+    meta: response.data?.meta
+  };
+}
+
 export async function listAdminSuperviseeAssignments(params = {}) {
   const response = await apiClient.get('/admin/supervisee-assignments', { params });
   return {

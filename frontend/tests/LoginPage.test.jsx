@@ -74,6 +74,24 @@ describe('LoginPage', () => {
     expect(await screen.findByTestId('location-display')).toHaveTextContent('/student/dashboard');
   });
 
+  it('routes accounts with a pending forced password change to the change-password screen', async () => {
+    const user = userEvent.setup();
+    const login = vi.fn().mockResolvedValue({ role: 'student', mustChangePassword: true });
+    renderLoginPage({
+      initialEntry: {
+        pathname: '/login',
+        state: { from: '/student/my-submissions' }
+      },
+      login
+    });
+
+    await user.type(screen.getByLabelText(/email/i), 'student@example.edu');
+    await user.type(screen.getByLabelText(/password/i), 'temporary123');
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
+
+    expect(await screen.findByTestId('location-display')).toHaveTextContent('/change-password');
+  });
+
   it('redirects to safe requested path when it matches returned role', async () => {
     const user = userEvent.setup();
     const login = vi.fn().mockResolvedValue({ role: 'student' });

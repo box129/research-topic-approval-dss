@@ -5,9 +5,11 @@ import apiClient from '../src/api/client';
 import axios from 'axios';
 import {
   createAdminSuperviseeAssignment,
+  createAdminUser,
   endAdminSuperviseeAssignment,
   listAdminSuperviseeAssignments,
   listAdminUsers,
+  resetAdminUserCredential,
   updateAdminUserStatus
 } from '../src/api/admin';
 
@@ -31,9 +33,11 @@ vi.mock('../src/api/client', () => ({
 
 vi.mock('../src/api/admin', () => ({
   createAdminSuperviseeAssignment: vi.fn(),
+  createAdminUser: vi.fn(),
   endAdminSuperviseeAssignment: vi.fn(),
   listAdminSuperviseeAssignments: vi.fn(),
   listAdminUsers: vi.fn(),
+  resetAdminUserCredential: vi.fn(),
   updateAdminUserStatus: vi.fn()
 }));
 
@@ -455,5 +459,190 @@ describe('AdminUserManagementPage', () => {
       expect(screen.getByText(/Assignment ended for student.one@example.edu/i)).toBeInTheDocument();
     });
     expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('lecturer.one@example.edu'));
+  });
+
+  it('provisions an individual student and shows the one-time credential exactly once', async () => {
+    createAdminUser.mockResolvedValue({
+      data: {
+        item: {
+          id: 20,
+          name: 'Synthetic Student',
+          email: 'synthetic.student@example.edu',
+          role: 'student',
+          status: 'active',
+          matricNumber: 'CSC/21/0451',
+          mustChangePassword: true,
+          createdAt: '2026-08-20T09:00:00.000Z',
+          updatedAt: '2026-08-20T09:00:00.000Z'
+        },
+        temporaryPassword: 'GeneratedTemp9x'
+      },
+      meta: {
+        auditEventType: 'USER_PROVISIONED'
+      }
+    });
+
+    render(<AdminUserManagementPage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /create account/i })).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByLabelText(/full name/i), {
+      target: { value: 'Synthetic Student' }
+    });
+    fireEvent.change(screen.getByLabelText(/university email/i), {
+      target: { value: 'synthetic.student@example.edu' }
+    });
+    fireEvent.change(screen.getByLabelText(/matric number/i), {
+      target: { value: 'CSC/21/0451' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /create account/i }));
+
+    await waitFor(() => {
+      expect(createAdminUser).toHaveBeenCalledWith({
+        role: 'student',
+        name: 'Synthetic Student',
+        email: 'synthetic.student@example.edu',
+        matricNumber: 'CSC/21/0451'
+      });
+    });
+
+    expect(await screen.findByText('GeneratedTemp9x')).toBeInTheDocument();
+    expect(screen.getByText(/it will not be shown again/i)).toBeInTheDocument();
+    expect(screen.getByText(/change it at first login/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /dismiss/i }));
+    expect(screen.queryByText('GeneratedTemp9x')).not.toBeInTheDocument();
+
+    // The credential lives only in component state; nothing is persisted.
+    expect(window.localStorage.getItem('temporaryPassword')).toBeNull();
+    expect(Object.keys(window.localStorage).join(' ')).not.toContain('credential');
+  });
+
+  it('provisions a lecturer without offering a matric field', async () => {
+    createAdminUser.mockResolvedValue({
+      data: {
+        item: {
+          id: 21,
+          name: 'Synthetic Lecturer',
+          email: 'synthetic.lecturer@example.edu',
+          role: 'lecturer',
+          status: 'active',
+          matricNumber: null,
+          mustChangePassword: true
+        },
+        temporaryPassword: 'LecturerTemp7q'
+      },
+      meta: {}
+    });
+
+    render(<AdminUserManagementPage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /create account/i })).toBeInTheDocument();
+    });
+
+    const provisionSection = screen
+      .getByRole('heading', { name: /create individual account/i })
+      .closest('section');
+    fireEvent.change(within(provisionSection).getByLabelText(/role/i), {
+      target: { name: 'role', value: 'lecturer' }
+    });
+    expect(screen.queryByLabelText(/matric number/i)).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/full name/i), {
+      target: { value: 'Synthetic Lecturer' }
+    });
+    fireEvent.change(screen.getByLabelText(/university email/i), {
+      target: { value: 'synthetic.lecturer@example.edu' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /create account/i }));
+
+    await waitFor(() => {
+      expect(createAdminUser).toHaveBeenCalledWith({
+        role: 'lecturer',
+        name: 'Synthetic Lecturer',
+        email: 'synthetic.lecturer@example.edu'
+      });
+    });
+    expect(await screen.findByText('LecturerTemp7q')).toBeInTheDocument();
+  });
+
+  it('shows backend provisioning errors without a credential panel', async () => {
+    createAdminUser.mockRejectedValue({
+      response: {
+        data: {
+          error: {
+            code: 'USER_PROVISION_EMAIL_EXISTS',
+            message: 'An account with this email already exists.'
+          }
+        }
+      }
+    });
+
+    render(<AdminUserManagementPage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /create account/i })).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByLabelText(/full name/i), {
+      target: { value: 'Duplicate Student' }
+    });
+    fireEvent.change(screen.getByLabelText(/university email/i), {
+      target: { value: 'student.one@example.edu' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /create account/i }));
+
+    expect(await screen.findByText(/an account with this email already exists/i)).toBeInTheDocument();
+    expect(screen.queryByText(/one-time temporary password/i)).not.toBeInTheDocument();
+  });
+
+  it('resets a credential after confirmation and shows the replacement once', async () => {
+    resetAdminUserCredential.mockResolvedValue({
+      data: {
+        item: {
+          id: 2,
+          name: 'Student One',
+          email: 'student.one@example.edu',
+          role: 'student',
+          status: 'active',
+          matricNumber: null,
+          mustChangePassword: true,
+          createdAt: '2026-06-02T10:00:00.000Z',
+          updatedAt: '2026-08-20T09:00:00.000Z'
+        },
+        temporaryPassword: 'ReplacementTemp5z'
+      },
+      meta: {
+        auditEventType: 'USER_CREDENTIAL_RESET'
+      }
+    });
+
+    render(<AdminUserManagementPage />);
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('button', { name: /reset credential/i }).length).toBeGreaterThan(0);
+    });
+
+    fireEvent.click(screen.getAllByRole('button', { name: /reset credential/i })[0]);
+
+    expect(await screen.findByText(/reset this account's credential\?/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /issue new temporary password/i }));
+
+    await waitFor(() => {
+      expect(resetAdminUserCredential).toHaveBeenCalledWith(2);
+    });
+    expect(await screen.findByText('ReplacementTemp5z')).toBeInTheDocument();
+  });
+
+  it('never offers credential reset for admin accounts or the current admin', async () => {
+    render(<AdminUserManagementPage />);
+
+    // Three listed users: current admin (no reset), student and lecturer (reset).
+    await waitFor(() => {
+      expect(screen.getAllByRole('button', { name: /reset credential/i })).toHaveLength(2);
+    });
   });
 });

@@ -12,7 +12,7 @@ function PublicAuthRoute({ children }) {
   }
 
   if (user) {
-    return <Navigate to={getDashboardPath(user.role)} replace />;
+    return <Navigate to={user.mustChangePassword ? '/change-password' : getDashboardPath(user.role)} replace />;
   }
 
   return children;

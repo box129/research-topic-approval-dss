@@ -1,9 +1,11 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import PasswordChangeRoute from './auth/PasswordChangeRoute';
 import ProtectedRoute from './auth/ProtectedRoute';
 import PublicAuthRoute from './auth/PublicAuthRoute';
 import AppLayout from './layouts/AppLayout';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/auth/LoginPage';
+import ChangePasswordPage from './pages/auth/ChangePasswordPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import CheckSimilarityPage from './pages/lecturer/CheckSimilarityPage';
@@ -35,6 +37,7 @@ function App() {
       <Route path="/login" element={<PublicAuthRoute><LoginPage /></PublicAuthRoute>} />
       <Route path="/forgot-password" element={<PublicAuthRoute><ForgotPasswordPage /></PublicAuthRoute>} />
       <Route path="/reset-password" element={<PublicAuthRoute><ResetPasswordPage /></PublicAuthRoute>} />
+      <Route path="/change-password" element={<PasswordChangeRoute><ChangePasswordPage /></PasswordChangeRoute>} />
 
       <Route path="/lecturer" element={<ProtectedRoute role="lecturer"><AppLayout role="lecturer" /></ProtectedRoute>}>
         <Route index element={<Navigate to="/lecturer/dashboard" replace />} />

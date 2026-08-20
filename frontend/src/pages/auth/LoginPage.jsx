@@ -28,6 +28,12 @@ function LoginPage() {
 
     try {
       const user = await login({ email, password });
+      if (user?.mustChangePassword) {
+        // Temporary credential: the account must establish a private password
+        // before any normal navigation. The backend blocks other APIs too.
+        navigate('/change-password', { replace: true });
+        return;
+      }
       const dashboardPath = getDashboardPath(user?.role);
       const requestedPath = location.state?.from;
       const safeRequestedPath = requestedPath?.startsWith(`/${user?.role}/`) ? requestedPath : null;

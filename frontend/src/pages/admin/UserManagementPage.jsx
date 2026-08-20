@@ -7,9 +7,11 @@ import ConfirmActionModal from '../../components/ui/ConfirmActionModal';
 import { useAuth } from '../../auth/useAuth';
 import {
   createAdminSuperviseeAssignment,
+  createAdminUser,
   endAdminSuperviseeAssignment,
   listAdminSuperviseeAssignments,
   listAdminUsers,
+  resetAdminUserCredential,
   updateAdminUserStatus
 } from '../../api/admin';
 
@@ -70,6 +72,164 @@ function buildListParams(filters) {
   };
 }
 
+const provisionRoleOptions = [
+  { value: 'student', label: 'Student' },
+  { value: 'lecturer', label: 'Lecturer' }
+];
+
+const emptyProvisionForm = {
+  role: 'student',
+  name: '',
+  email: '',
+  matricNumber: ''
+};
+
+function OneTimeCredentialPanel({ credential, onDismiss }) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(credential.temporaryPassword);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  return (
+    <section
+      aria-label="One-time temporary credential"
+      className="rounded-[10px] border-2 border-amber-300 bg-amber-50 p-5"
+    >
+      <h2 className="text-lg font-semibold text-amber-900">One-time temporary password</h2>
+      <p className="mt-1 text-sm leading-6 text-amber-900">
+        Copy it now — it will not be shown again and is stored nowhere else. Transfer it to the user
+        through a secure channel. They must change it at first login before any other access.
+      </p>
+      <dl className="mt-4 grid gap-2 text-sm text-amber-950">
+        <div className="flex flex-wrap gap-2">
+          <dt className="font-bold">Account:</dt>
+          <dd className="break-all">{credential.name} ({credential.email})</dd>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <dt className="font-bold">Temporary password:</dt>
+          <dd>
+            <code className="rounded bg-white px-2 py-1 font-mono text-base tracking-wide">
+              {credential.temporaryPassword}
+            </code>
+          </dd>
+        </div>
+      </dl>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          className="rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-900"
+          onClick={handleCopy}
+          type="button"
+        >
+          {copied ? 'Copied' : 'Copy temporary password'}
+        </button>
+        <button
+          className="rounded-xl border border-amber-400 bg-white px-4 py-2 text-sm font-semibold text-amber-900 transition hover:bg-amber-100"
+          onClick={onDismiss}
+          type="button"
+        >
+          I have copied it — dismiss
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function ProvisionUserSection({
+  form,
+  isSubmitting,
+  onFieldChange,
+  onSubmit,
+  provisionError
+}) {
+  const isStudent = form.role === 'student';
+
+  return (
+    <section className="rounded-[10px] border border-border-subtle bg-white p-5 shadow-sm">
+      <div className="border-b border-border-subtle pb-4">
+        <h2 className="text-lg font-semibold text-text-primary">Create individual account</h2>
+        <p className="mt-1 max-w-3xl text-sm leading-6 text-text-secondary">
+          Provision a student or lecturer account. The system generates a secure temporary password,
+          shows it once, and requires the user to set a private password at first login.
+        </p>
+      </div>
+
+      {provisionError ? (
+        <InfoCallout className="mt-4" role="alert" message={provisionError} title="Account could not be created" variant="warning" />
+      ) : null}
+
+      <form className="mt-4 grid gap-3 lg:grid-cols-[10rem_minmax(0,1fr)_minmax(0,1fr)_12rem_auto] lg:items-end" onSubmit={onSubmit}>
+        <label className="text-sm font-semibold text-text-primary">
+          Role
+          <select
+            className="mt-1 w-full rounded-xl border border-border-subtle bg-white px-3 py-2 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+            name="role"
+            onChange={onFieldChange}
+            value={form.role}
+          >
+            {provisionRoleOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </label>
+
+        <label className="text-sm font-semibold text-text-primary">
+          Full name
+          <input
+            className="mt-1 w-full rounded-xl border border-border-subtle px-3 py-2 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+            name="name"
+            onChange={onFieldChange}
+            placeholder="Full name"
+            required
+            type="text"
+            value={form.name}
+          />
+        </label>
+
+        <label className="text-sm font-semibold text-text-primary">
+          University email
+          <input
+            className="mt-1 w-full rounded-xl border border-border-subtle px-3 py-2 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+            name="email"
+            onChange={onFieldChange}
+            placeholder="name@uniosun.edu.ng"
+            required
+            type="email"
+            value={form.email}
+          />
+        </label>
+
+        {isStudent ? (
+          <label className="text-sm font-semibold text-text-primary">
+            Matric number (optional)
+            <input
+              className="mt-1 w-full rounded-xl border border-border-subtle px-3 py-2 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+              name="matricNumber"
+              onChange={onFieldChange}
+              placeholder="e.g. CSC/21/0451"
+              type="text"
+              value={form.matricNumber}
+            />
+          </label>
+        ) : <span className="hidden lg:block" />}
+
+        <button
+          className="rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-900 disabled:cursor-not-allowed disabled:bg-slate-400"
+          disabled={isSubmitting}
+          type="submit"
+        >
+          {isSubmitting ? 'Creating account...' : 'Create account'}
+        </button>
+      </form>
+    </section>
+  );
+}
+
 function UserStatusBadge({ status }) {
   const isSuspended = status === 'suspended';
   return (
@@ -82,9 +242,10 @@ function UserStatusBadge({ status }) {
   );
 }
 
-function UserRow({ currentUserId, isUpdating, onStatusChange, user }) {
+function UserRow({ currentUserId, isResettingCredential, isUpdating, onCredentialReset, onStatusChange, user }) {
   const isCurrentUser = String(currentUserId || '') === String(user.id);
   const canUpdateStatus = user.role !== 'admin' && !isCurrentUser;
+  const canResetCredential = user.role !== 'admin' && !isCurrentUser;
   const nextStatus = user.status === 'suspended' ? 'active' : 'suspended';
   const actionLabel = nextStatus === 'suspended' ? 'Suspend account' : 'Activate account';
 
@@ -97,9 +258,17 @@ function UserRow({ currentUserId, isUpdating, onStatusChange, user }) {
               {roleLabels[user.role] || user.role || 'Unknown role'}
             </span>
             <UserStatusBadge status={user.status} />
+            {user.mustChangePassword ? (
+              <span className="inline-flex rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-800">
+                Awaiting first password
+              </span>
+            ) : null}
           </div>
           <h2 className="mt-3 truncate text-base font-semibold leading-6 text-text-primary">{user.name}</h2>
           <p className="mt-1 break-all text-sm leading-5 text-text-secondary">{user.email}</p>
+          {user.matricNumber ? (
+            <p className="mt-1 text-xs font-semibold text-text-muted">Matric: {user.matricNumber}</p>
+          ) : null}
         </div>
 
         <div>
@@ -133,6 +302,16 @@ function UserRow({ currentUserId, isUpdating, onStatusChange, user }) {
               Status action unavailable
             </span>
           )}
+          {canResetCredential ? (
+            <button
+              className="rounded-xl border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={isResettingCredential}
+              onClick={() => onCredentialReset(user)}
+              type="button"
+            >
+              {isResettingCredential ? 'Resetting...' : 'Reset credential'}
+            </button>
+          ) : null}
         </div>
       </div>
     </article>
@@ -336,6 +515,14 @@ function UserManagementPage() {
   const [assignmentOptionsState, setAssignmentOptionsState] = useState('loading');
   const [creatingAssignment, setCreatingAssignment] = useState(false);
   const [endingAssignmentId, setEndingAssignmentId] = useState(null);
+  const [provisionForm, setProvisionForm] = useState(emptyProvisionForm);
+  const [provisioning, setProvisioning] = useState(false);
+  const [provisionError, setProvisionError] = useState('');
+  // Held only in component memory while the panel is open; never persisted to
+  // storage, URLs, or logs, and unrecoverable once dismissed.
+  const [oneTimeCredential, setOneTimeCredential] = useState(null);
+  const [resettingCredentialUserId, setResettingCredentialUserId] = useState(null);
+  const [pendingCredentialReset, setPendingCredentialReset] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -530,6 +717,79 @@ function UserManagementPage() {
     }
   }
 
+  function handleProvisionFieldChange(event) {
+    const { name, value } = event.target;
+    setProvisionForm((current) => ({
+      ...current,
+      [name]: value,
+      ...(name === 'role' && value !== 'student' ? { matricNumber: '' } : {})
+    }));
+  }
+
+  async function handleProvisionSubmit(event) {
+    event.preventDefault();
+    setProvisioning(true);
+    setProvisionError('');
+    setOneTimeCredential(null);
+
+    try {
+      const result = await createAdminUser({
+        role: provisionForm.role,
+        name: provisionForm.name,
+        email: provisionForm.email,
+        ...(provisionForm.role === 'student' && provisionForm.matricNumber.trim()
+          ? { matricNumber: provisionForm.matricNumber.trim() }
+          : {})
+      });
+      const createdUser = result.data?.item;
+      if (createdUser) {
+        setUsers((current) => [createdUser, ...current]);
+      }
+      setOneTimeCredential({
+        name: createdUser?.name || provisionForm.name,
+        email: createdUser?.email || provisionForm.email,
+        temporaryPassword: result.data?.temporaryPassword || ''
+      });
+      setProvisionForm(emptyProvisionForm);
+    } catch (error) {
+      setProvisionError(error?.response?.data?.error?.message || 'Account could not be created.');
+    } finally {
+      setProvisioning(false);
+    }
+  }
+
+  function handleCredentialReset(targetUser) {
+    setPendingCredentialReset(targetUser);
+  }
+
+  async function confirmCredentialReset() {
+    if (!pendingCredentialReset) return;
+    const targetUser = pendingCredentialReset;
+    setResettingCredentialUserId(targetUser.id);
+    setProvisionError('');
+    setOneTimeCredential(null);
+    try {
+      const result = await resetAdminUserCredential(targetUser.id);
+      const updatedUser = result.data?.item;
+      if (updatedUser) {
+        setUsers((current) => current.map((item) => (
+          item.id === updatedUser.id ? updatedUser : item
+        )));
+      }
+      setOneTimeCredential({
+        name: updatedUser?.name || targetUser.name,
+        email: updatedUser?.email || targetUser.email,
+        temporaryPassword: result.data?.temporaryPassword || ''
+      });
+      setPendingCredentialReset(null);
+    } catch (error) {
+      setProvisionError(error?.response?.data?.error?.message || 'Credential could not be reset.');
+      setPendingCredentialReset(null);
+    } finally {
+      setResettingCredentialUserId(null);
+    }
+  }
+
   function handleAssignmentFieldChange(event) {
     const { name, value } = event.target;
     setAssignmentForm((current) => ({
@@ -625,6 +885,21 @@ function UserManagementPage() {
             </div>
 
       </section>
+
+      <ProvisionUserSection
+        form={provisionForm}
+        isSubmitting={provisioning}
+        onFieldChange={handleProvisionFieldChange}
+        onSubmit={handleProvisionSubmit}
+        provisionError={provisionError}
+      />
+
+      {oneTimeCredential ? (
+        <OneTimeCredentialPanel
+          credential={oneTimeCredential}
+          onDismiss={() => setOneTimeCredential(null)}
+        />
+      ) : null}
 
       <AssignmentManagementSection
         assignmentError={assignmentError}
@@ -728,8 +1003,10 @@ function UserManagementPage() {
               {users.map((item) => (
                 <UserRow
                   currentUserId={currentUser?.id}
+                  isResettingCredential={resettingCredentialUserId === item.id}
                   isUpdating={updatingUserId === item.id}
                   key={item.id}
+                  onCredentialReset={handleCredentialReset}
                   onStatusChange={handleStatusChange}
                   user={item}
                 />
@@ -749,6 +1026,17 @@ function UserManagementPage() {
           </div>
         ) : null}
       </section>
+
+      <ConfirmActionModal
+        confirmLabel="Issue new temporary password"
+        isConfirming={Boolean(resettingCredentialUserId)}
+        isOpen={Boolean(pendingCredentialReset)}
+        message={pendingCredentialReset ? `${pendingCredentialReset.email} will get a new one-time temporary password. Their current password and all active sessions stop working immediately, and they must set a new password at next login.` : ''}
+        onCancel={() => setPendingCredentialReset(null)}
+        onConfirm={confirmCredentialReset}
+        title="Reset this account's credential?"
+        variant="danger"
+      />
 
       <ConfirmActionModal
         confirmLabel={pendingStatusChange?.nextStatus === 'suspended' ? 'Suspend account' : 'Activate account'}

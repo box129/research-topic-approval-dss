@@ -16,6 +16,12 @@ function ProtectedRoute({ children, role }) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
+  // Accounts holding a temporary credential must establish a private password
+  // before any normal navigation. The backend enforces this on every API too.
+  if (user.mustChangePassword) {
+    return <Navigate to="/change-password" replace />;
+  }
+
   if (role && user.role !== role) {
     return <Navigate to={getDashboardPath(user.role)} replace />;
   }
