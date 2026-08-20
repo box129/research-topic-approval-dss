@@ -64,6 +64,8 @@ describe('adminUser.service', () => {
         email: 'admin.demo@uniosun.edu.ng',
         role: 'admin',
         status: 'active',
+        matricNumber: null,
+        mustChangePassword: false,
         createdAt: '2026-06-01T10:00:00.000Z',
         updatedAt: '2026-06-02T10:00:00.000Z'
       },
@@ -73,6 +75,8 @@ describe('adminUser.service', () => {
         email: 'lecturer.demo@uniosun.edu.ng',
         role: 'lecturer',
         status: 'active',
+        matricNumber: null,
+        mustChangePassword: false,
         createdAt: '2026-06-03T10:00:00.000Z',
         updatedAt: '2026-06-04T10:00:00.000Z'
       }
@@ -112,7 +116,8 @@ describe('adminUser.service', () => {
         status: 'ACTIVE',
         OR: [
           { name: { contains: 'demo', mode: 'insensitive' } },
-          { email: { contains: 'demo', mode: 'insensitive' } }
+          { email: { contains: 'demo', mode: 'insensitive' } },
+          { matricNumber: { contains: 'demo', mode: 'insensitive' } }
         ]
       },
       select: {
@@ -121,6 +126,8 @@ describe('adminUser.service', () => {
         email: true,
         role: true,
         status: true,
+        matricNumber: true,
+        mustChangePassword: true,
         createdAt: true,
         updatedAt: true
       },
@@ -195,6 +202,8 @@ describe('adminUser.service', () => {
         email: true,
         role: true,
         status: true,
+        matricNumber: true,
+        mustChangePassword: true,
         createdAt: true,
         updatedAt: true
       }

@@ -39,17 +39,20 @@ describe('auth.service', () => {
       passwordHash: 'hidden',
       resetTokenHash: 'hidden',
       role: 'ADMIN',
-      status: 'ACTIVE'
+      status: 'ACTIVE',
+      credentialVersion: 3
     })).toEqual({
       id: 1,
       name: 'Admin User',
       email: 'admin.demo@uniosun.edu.ng',
       role: 'admin',
-      status: 'active'
+      status: 'active',
+      matricNumber: null,
+      mustChangePassword: false
     });
   });
 
-  test('logs in active users and returns a signed token', async () => {
+  test('logs in active users and returns a signed token carrying the credential version', async () => {
     const passwordHash = await bcrypt.hash('Password1', 4);
     const prisma = createPrismaMock({
       user: {
@@ -59,7 +62,9 @@ describe('auth.service', () => {
           email: 'lecturer.demo@uniosun.edu.ng',
           passwordHash,
           role: 'LECTURER',
-          status: 'ACTIVE'
+          status: 'ACTIVE',
+          credentialVersion: 4,
+          mustChangePassword: true
         })
       }
     });
@@ -71,12 +76,61 @@ describe('auth.service', () => {
     });
 
     expect(result.user.role).toBe('lecturer');
+    expect(result.user.mustChangePassword).toBe(true);
     expect(jwt.verify(result.token, authConfig.jwtSecret)).toMatchObject({
       sub: '2',
-      role: 'lecturer'
+      role: 'lecturer',
+      cv: 4
     });
     expect(prisma.user.findUnique).toHaveBeenCalledWith({
       where: { email: 'lecturer.demo@uniosun.edu.ng' }
+    });
+  });
+
+  test('authenticateToken accepts tokens matching the stored credential version', async () => {
+    const user = {
+      id: 7,
+      name: 'Student Demo',
+      email: 'student.demo@uniosun.edu.ng',
+      role: 'STUDENT',
+      status: 'ACTIVE',
+      credentialVersion: 2,
+      mustChangePassword: false
+    };
+    const prisma = createPrismaMock({
+      user: { findUnique: jest.fn().mockResolvedValue(user) }
+    });
+    const service = createAuthService({ prismaClient: prisma, authConfig });
+    const token = jwt.sign({ sub: '7', role: 'student', cv: 2 }, authConfig.jwtSecret);
+
+    await expect(service.authenticateToken(token)).resolves.toMatchObject({
+      id: 7,
+      role: 'student'
+    });
+  });
+
+  test('authenticateToken rejects tokens issued before a credential change', async () => {
+    const user = {
+      id: 7,
+      role: 'STUDENT',
+      status: 'ACTIVE',
+      credentialVersion: 3
+    };
+    const prisma = createPrismaMock({
+      user: { findUnique: jest.fn().mockResolvedValue(user) }
+    });
+    const service = createAuthService({ prismaClient: prisma, authConfig });
+
+    const staleToken = jwt.sign({ sub: '7', role: 'student', cv: 2 }, authConfig.jwtSecret);
+    await expect(service.authenticateToken(staleToken)).rejects.toMatchObject({
+      statusCode: 401,
+      code: 'INVALID_SESSION'
+    });
+
+    const legacyTokenWithoutVersion = jwt.sign({ sub: '7', role: 'student' }, authConfig.jwtSecret);
+    await expect(service.authenticateToken(legacyTokenWithoutVersion)).rejects.toMatchObject({
+      statusCode: 401,
+      code: 'INVALID_SESSION'
     });
   });
 
@@ -182,14 +236,15 @@ describe('auth.service', () => {
     expect(prisma.user.update).not.toHaveBeenCalled();
   });
 
-  test('reset password clears token fields after valid reset', async () => {
+  test('reset password clears token fields, forced-change state, and invalidates prior sessions', async () => {
+    const audit = { createAuditLogSafely: jest.fn().mockResolvedValue(null) };
     const prisma = createPrismaMock({
       user: {
         findFirst: jest.fn().mockResolvedValue({ id: 5 }),
         update: jest.fn().mockResolvedValue({})
       }
     });
-    const service = createAuthService({ prismaClient: prisma, authConfig });
+    const service = createAuthService({ prismaClient: prisma, authConfig, audit });
 
     await service.resetPassword({
       token: 'valid-reset-token',
@@ -206,8 +261,118 @@ describe('auth.service', () => {
     });
     expect(prisma.user.update.mock.calls[0][0].data).toMatchObject({
       resetTokenHash: null,
-      resetTokenExpiresAt: null
+      resetTokenExpiresAt: null,
+      mustChangePassword: false,
+      credentialVersion: { increment: 1 }
     });
     expect(prisma.user.update.mock.calls[0][0].data.passwordHash).not.toBe('NewPass123');
+    const auditEvent = audit.createAuditLogSafely.mock.calls[0][0];
+    expect(auditEvent.eventType).toBe('PASSWORD_CHANGED');
+    expect(JSON.stringify(auditEvent)).not.toContain('NewPass123');
+  });
+
+  describe('changePassword', () => {
+    const buildUser = async (overrides = {}) => ({
+      id: 9,
+      name: 'Student Demo',
+      email: 'student.demo@uniosun.edu.ng',
+      passwordHash: await bcrypt.hash('TempPass123', 4),
+      role: 'STUDENT',
+      status: 'ACTIVE',
+      credentialVersion: 1,
+      mustChangePassword: true,
+      ...overrides
+    });
+
+    test('verifies current credential, replaces hash, clears forced state, bumps version', async () => {
+      const user = await buildUser();
+      const audit = { createAuditLogSafely: jest.fn().mockResolvedValue(null) };
+      const prisma = createPrismaMock({
+        user: {
+          findUnique: jest.fn().mockResolvedValue(user),
+          update: jest.fn().mockResolvedValue({
+            ...user,
+            mustChangePassword: false,
+            credentialVersion: 2
+          })
+        }
+      });
+      const service = createAuthService({ prismaClient: prisma, authConfig, audit });
+
+      const result = await service.changePassword({
+        userId: 9,
+        currentPassword: 'TempPass123',
+        newPassword: 'PrivatePass9'
+      });
+
+      const updateData = prisma.user.update.mock.calls[0][0].data;
+      expect(updateData.mustChangePassword).toBe(false);
+      expect(updateData.credentialVersion).toEqual({ increment: 1 });
+      expect(updateData.resetTokenHash).toBeNull();
+      expect(updateData.passwordHash).not.toBe('PrivatePass9');
+      expect(await bcrypt.compare('PrivatePass9', updateData.passwordHash)).toBe(true);
+      expect(result.user.mustChangePassword).toBe(false);
+      expect(jwt.verify(result.token, authConfig.jwtSecret)).toMatchObject({ sub: '9', cv: 2 });
+      const auditEvent = audit.createAuditLogSafely.mock.calls[0][0];
+      expect(auditEvent.eventType).toBe('PASSWORD_CHANGED');
+      expect(auditEvent.metadata.method).toBe('forced-initial-change');
+      expect(JSON.stringify(auditEvent)).not.toContain('PrivatePass9');
+      expect(JSON.stringify(auditEvent)).not.toContain('TempPass123');
+    });
+
+    test('rejects an incorrect current password', async () => {
+      const user = await buildUser();
+      const prisma = createPrismaMock({
+        user: { findUnique: jest.fn().mockResolvedValue(user), update: jest.fn() }
+      });
+      const service = createAuthService({ prismaClient: prisma, authConfig });
+
+      await expect(service.changePassword({
+        userId: 9,
+        currentPassword: 'WrongPass123',
+        newPassword: 'PrivatePass9'
+      })).rejects.toMatchObject({ statusCode: 401, code: 'INVALID_CURRENT_PASSWORD' });
+      expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+
+    test('enforces the password policy on the new password', async () => {
+      const service = createAuthService({ prismaClient: createPrismaMock(), authConfig });
+
+      await expect(service.changePassword({
+        userId: 9,
+        currentPassword: 'TempPass123',
+        newPassword: 'nodigits'
+      })).rejects.toMatchObject({ statusCode: 400, code: 'WEAK_PASSWORD' });
+    });
+
+    test('rejects reusing the current password', async () => {
+      const user = await buildUser();
+      const prisma = createPrismaMock({
+        user: { findUnique: jest.fn().mockResolvedValue(user), update: jest.fn() }
+      });
+      const service = createAuthService({ prismaClient: prisma, authConfig });
+
+      await expect(service.changePassword({
+        userId: 9,
+        currentPassword: 'TempPass123',
+        newPassword: 'TempPass123'
+      })).rejects.toMatchObject({ statusCode: 400, code: 'PASSWORD_UNCHANGED' });
+      expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+
+    test('rejects suspended accounts even with a valid credential', async () => {
+      const user = await buildUser({ status: 'SUSPENDED' });
+      const prisma = createPrismaMock({
+        user: { findUnique: jest.fn().mockResolvedValue(user), update: jest.fn() }
+      });
+      const service = createAuthService({ prismaClient: prisma, authConfig });
+
+      await expect(service.changePassword({
+        userId: 9,
+        currentPassword: 'TempPass123',
+        newPassword: 'PrivatePass9'
+      })).rejects.toMatchObject({ statusCode: 401, code: 'INVALID_SESSION' });
+      expect(prisma.user.update).not.toHaveBeenCalled();
+    });
   });
 });

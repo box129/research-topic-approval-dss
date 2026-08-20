@@ -1,5 +1,21 @@
+/**
+ * DEVELOPMENT/DEMO SEED ONLY.
+ *
+ * This script creates shared-password demo accounts for local development
+ * and manual testing. It is NOT the production initialization path and must
+ * never run against a production database.
+ *
+ * Production initialization uses the explicit operator-invoked bootstrap:
+ *   npm run bootstrap:admin -- --email <admin-email> --name "<admin name>"
+ */
 const bcrypt = require('bcryptjs');
 const { PrismaClient } = require('@prisma/client');
+
+if (process.env.NODE_ENV === 'production') {
+  console.error('Refusing to run the demo auth seed with NODE_ENV=production.');
+  console.error('Use "npm run bootstrap:admin" for production initialization.');
+  process.exit(1);
+}
 
 const prisma = new PrismaClient();
 
@@ -33,12 +49,14 @@ async function main() {
       update: {
         name: user.name,
         role: user.role,
-        status: 'ACTIVE'
+        status: 'ACTIVE',
+        mustChangePassword: false
       },
       create: {
         ...user,
         passwordHash,
-        status: 'ACTIVE'
+        status: 'ACTIVE',
+        mustChangePassword: false
       }
     });
     console.log(`Demo user ready: ${user.email}`);

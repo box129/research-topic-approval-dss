@@ -61,7 +61,7 @@ async function forgotPassword(req, res) {
 
 async function resetPassword(req, res) {
   try {
-    const result = await authService.resetPassword(req.body || {});
+    const result = await authService.resetPassword({ ...(req.body || {}), req });
 
     return res.status(200).json({
       status: 'success',
@@ -72,7 +72,33 @@ async function resetPassword(req, res) {
   }
 }
 
+async function changePassword(req, res) {
+  try {
+    const result = await authService.changePassword({
+      userId: req.user?.id,
+      currentPassword: req.body?.currentPassword,
+      newPassword: req.body?.newPassword,
+      req
+    });
+
+    // Re-issue the session cookie so this session carries the new credential
+    // version; all other sessions for the account become invalid.
+    res.cookie(config.auth.cookieName, result.token, authService.getCookieOptions());
+
+    return res.status(200).json({
+      status: 'success',
+      message: result.message,
+      data: {
+        user: result.user
+      }
+    });
+  } catch (error) {
+    return sendAuthError(res, error);
+  }
+}
+
 module.exports = {
+  changePassword,
   forgotPassword,
   login,
   logout,

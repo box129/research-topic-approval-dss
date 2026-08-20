@@ -1,4 +1,7 @@
 const adminUserService = require('../services/adminUser.service');
+const userProvisioningService = require('../services/userProvisioning.service');
+
+const SERVICE_ERROR_NAMES = new Set(['AdminUserServiceError', 'UserProvisioningError']);
 
 function sendServiceError(res, error) {
   return res.status(error.statusCode || 400).json({
@@ -98,8 +101,78 @@ async function updateUserStatus(req, res, next) {
   }
 }
 
+async function createUser(req, res, next) {
+  try {
+    const result = await userProvisioningService.provisionUser({
+      input: req.body || {},
+      actor: req.user,
+      req
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: {
+        item: result.user,
+        // One-time operational information: shown only in this response,
+        // never stored or logged in plaintext anywhere.
+        temporaryPassword: result.temporaryPassword
+      },
+      meta: {
+        auditEventType: 'USER_PROVISIONED',
+        credentialNotice: 'This temporary password is shown once and cannot be retrieved again. Transfer it securely; the user must change it at first login.'
+      }
+    });
+  } catch (error) {
+    if (SERVICE_ERROR_NAMES.has(error.name)) {
+      return sendServiceError(res, error);
+    }
+
+    return next(error);
+  }
+}
+
+async function resetUserCredential(req, res, next) {
+  try {
+    const result = await userProvisioningService.resetUserCredential({
+      id: req.params.id,
+      actor: req.user,
+      req
+    });
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'ADMIN_USER_NOT_FOUND',
+          message: 'User record not found.'
+        }
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        item: result.user,
+        temporaryPassword: result.temporaryPassword
+      },
+      meta: {
+        auditEventType: 'USER_CREDENTIAL_RESET',
+        credentialNotice: 'This temporary password is shown once and cannot be retrieved again. The previous password and all existing sessions are now invalid.'
+      }
+    });
+  } catch (error) {
+    if (SERVICE_ERROR_NAMES.has(error.name)) {
+      return sendServiceError(res, error);
+    }
+
+    return next(error);
+  }
+}
+
 module.exports = {
+  createUser,
   listUsers,
   getUserById,
+  resetUserCredential,
   updateUserStatus
 };

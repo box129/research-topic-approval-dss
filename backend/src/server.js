@@ -25,7 +25,7 @@ let notificationController;
 let readinessController;
 let superviseeAssignmentController;
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler.middleware');
-const { requireAuth, requireRole } = require('./middleware/auth.middleware');
+const { requireAuth, requireAuthAllowingPasswordChange, requireRole } = require('./middleware/auth.middleware');
 
 const app = express();
 const IMPORT_UPLOAD_LIMIT_BYTES = 5 * 1024 * 1024;
@@ -241,8 +241,15 @@ app.post('/api/v1/auth/logout', (req, res, next) => {
   getAuthController().logout(req, res, next);
 });
 
-app.get('/api/v1/auth/me', requireAuth, (req, res, next) => {
+// /auth/me and /auth/change-password intentionally stay reachable while a
+// forced password change is pending; every other authenticated route is
+// blocked until the user establishes a private password.
+app.get('/api/v1/auth/me', requireAuthAllowingPasswordChange, (req, res, next) => {
   getAuthController().me(req, res, next);
+});
+
+app.post('/api/v1/auth/change-password', requireAuthAllowingPasswordChange, (req, res, next) => {
+  getAuthController().changePassword(req, res, next);
 });
 
 app.post('/api/v1/auth/forgot-password', (req, res, next) => {
@@ -311,6 +318,14 @@ app.get('/api/v1/admin/dashboard/summary', requireAuth, requireRole('admin'), (r
 
 app.get('/api/v1/admin/users', requireAuth, requireRole('admin'), (req, res, next) => {
   getAdminUserController().listUsers(req, res, next);
+});
+
+app.post('/api/v1/admin/users', requireAuth, requireRole('admin'), (req, res, next) => {
+  getAdminUserController().createUser(req, res, next);
+});
+
+app.post('/api/v1/admin/users/:id/credential-reset', requireAuth, requireRole('admin'), (req, res, next) => {
+  getAdminUserController().resetUserCredential(req, res, next);
 });
 
 app.patch('/api/v1/admin/users/:id/status', requireAuth, requireRole('admin'), (req, res, next) => {

@@ -36,6 +36,9 @@ model User {
   passwordHash             String                    @map("password_hash") @db.Text
   role                     Role
   status                   UserStatus                @default(ACTIVE)
+  matricNumber             String?                   @unique @map("matric_number") @db.VarChar(50)
+  mustChangePassword       Boolean                   @default(false) @map("must_change_password")
+  credentialVersion        Int                       @default(1) @map("credential_version")
   resetTokenHash           String?                   @map("reset_token_hash") @db.Text
   resetTokenExpiresAt      DateTime?                 @map("reset_token_expires_at")
   studentSubmissions       Submission[]              @relation("StudentSubmissions")

@@ -17,6 +17,8 @@ const USER_SAFE_SELECT = {
   email: true,
   role: true,
   status: true,
+  matricNumber: true,
+  mustChangePassword: true,
   createdAt: true,
   updatedAt: true
 };
@@ -107,6 +109,8 @@ function serializeUser(user) {
     email: user.email,
     role: toClientEnum(user.role),
     status: toClientEnum(user.status),
+    matricNumber: user.matricNumber || null,
+    mustChangePassword: Boolean(user.mustChangePassword),
     createdAt: toIso(user.createdAt),
     updatedAt: toIso(user.updatedAt)
   };
@@ -169,7 +173,8 @@ function buildWhere(filters) {
   if (filters.search) {
     where.OR = [
       { name: contains(filters.search) },
-      { email: contains(filters.search) }
+      { email: contains(filters.search) },
+      { matricNumber: contains(filters.search) }
     ];
   }
 
