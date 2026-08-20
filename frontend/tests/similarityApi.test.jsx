@@ -50,7 +50,37 @@ describe('similarity API adapter', () => {
         semantic_available: false,
         risk_level: null,
         max_similarity: null,
+        corpus_size: null,
         recommendation: unavailable.message,
+        tier1_matches: [],
+        tier2_matches: [],
+        tier3_matches: []
+      }
+    });
+  });
+
+  it('preserves the truthful empty-corpus result without inventing a LOW classification', async () => {
+    mocks.apiPost.mockResolvedValue({ data: {
+      ...successful,
+      data: {
+        input_topic: 'New topic',
+        corpus_size: 0,
+        overall_risk: null,
+        max_similarity: null,
+        matches: [],
+        recommendation: 'No eligible stored topics are currently available for comparison. This result does not establish that the topic is new or original.'
+      }
+    } });
+
+    await expect(runSimilarityCheck({ topic: 'New topic' })).resolves.toMatchObject({
+      status: 'success',
+      semanticAvailable: true,
+      results: {
+        semantic_available: true,
+        risk_level: null,
+        max_similarity: null,
+        corpus_size: 0,
+        recommendation: expect.stringContaining('does not establish that the topic is new or original'),
         tier1_matches: [],
         tier2_matches: [],
         tier3_matches: []

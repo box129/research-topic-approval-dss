@@ -235,7 +235,7 @@ describe('ResultsDisplay Component - Redesigned', () => {
   });
 
   describe('No Matches State', () => {
-    it('shows friendly message when no matches found', () => {
+    it('shows a truthful message without originality claims when no matches return', () => {
       const noMatchesData = {
         risk_level: 'LOW',
         max_similarity: 0,
@@ -244,11 +244,54 @@ describe('ResultsDisplay Component - Redesigned', () => {
         tier2_matches: [],
         tier3_matches: []
       };
-      
+
       render(<ResultsDisplay results={noMatchesData} />);
-      
+
       expect(screen.getByTestId('no-matches')).toBeInTheDocument();
-      expect(screen.getByText(/No similar topics found/i)).toBeInTheDocument();
+      expect(screen.getByText(/No matching topics were returned by this check/i)).toBeInTheDocument();
+      expect(screen.getByText(/does not establish originality/i)).toBeInTheDocument();
+      expect(screen.queryByText(/appears unique/i)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Empty Comparison Corpus', () => {
+    const emptyCorpusData = {
+      risk_level: null,
+      max_similarity: null,
+      corpus_size: 0,
+      semantic_available: true,
+      recommendation: 'No eligible stored topics are currently available for comparison. This result does not establish that the topic is new or original.',
+      tier1_matches: [],
+      tier2_matches: [],
+      tier3_matches: []
+    };
+
+    it('never renders an empty corpus as a LOW risk result', () => {
+      render(<ResultsDisplay results={emptyCorpusData} />);
+
+      expect(screen.getByTestId('risk-title')).toHaveTextContent('No Risk Classification');
+      expect(screen.getByTestId('risk-title')).not.toHaveTextContent('Low Risk');
+      expect(screen.getByTestId('summary-risk')).toHaveTextContent('NOT CLASSIFIED');
+      expect(screen.getByTestId('risk-recommendation')).toHaveTextContent(
+        'No eligible stored topics are currently available for comparison.'
+      );
+      expect(screen.queryByText(/appears unique/i)).not.toBeInTheDocument();
+    });
+
+    it('states that no eligible stored topics were available in the no-matches area', () => {
+      render(<ResultsDisplay results={emptyCorpusData} />);
+
+      expect(screen.getByTestId('no-matches')).toHaveTextContent(
+        'No eligible stored topics are currently available for comparison.'
+      );
+    });
+
+    it('keeps the checker shell truthful for an empty corpus', () => {
+      render(<ResultsDisplay appearance="student-checker" results={emptyCorpusData} />);
+
+      expect(screen.getByTestId('risk-title')).toHaveTextContent('No Risk Classification');
+      expect(screen.getByTestId('summary-risk')).toHaveTextContent('NOT CLASSIFIED');
+      expect(screen.getByTestId('max-similarity')).toHaveTextContent('N/A');
     });
   });
 

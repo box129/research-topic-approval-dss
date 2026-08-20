@@ -317,7 +317,7 @@ function SubmissionDetailPage() {
                       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
-                            <RiskBadge level={snapshot.overall_risk || 'LOW'} />
+                            <RiskBadge level={snapshot.overall_risk || 'NONE'} />
                             <span className="rounded-badge bg-white px-2.5 py-1 text-xs font-semibold uppercase text-text-muted ring-1 ring-inset ring-border-subtle">
                               {snapshot.response_status || 'N/A'}
                             </span>

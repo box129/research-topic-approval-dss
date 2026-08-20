@@ -17,6 +17,7 @@ function mapSimilarityResponse(responsePayload) {
       semantic_available: false,
       risk_level: null,
       max_similarity: null,
+      corpus_size: null,
       recommendation: responsePayload.message,
       tier1_matches: [],
       tier2_matches: [],
@@ -28,8 +29,11 @@ function mapSimilarityResponse(responsePayload) {
   }
 
   return {
-    risk_level: data.overall_risk,
-    max_similarity: data.max_similarity,
+    // risk_level stays null when the backend asserted no classification
+    // (empty comparison corpus); it must never be coerced to LOW.
+    risk_level: data.overall_risk ?? null,
+    max_similarity: data.max_similarity ?? null,
+    corpus_size: data.corpus_size ?? null,
     recommendation: data.recommendation,
     semantic_available: responsePayload.semanticAvailable === true,
     tier1_matches: (data.matches || []).filter(match => match.collection === 'HISTORICAL').map(match => ({

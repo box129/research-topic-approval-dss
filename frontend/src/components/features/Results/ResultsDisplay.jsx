@@ -11,7 +11,7 @@ const RISK_CONFIGS = {
     textColor: 'text-green-800',
     iconColor: 'text-green-600',
     title: 'Low Risk',
-    recommendation: 'Your topic appears unique. You can likely proceed with confidence.'
+    recommendation: 'No high-similarity records were identified by this check. Review the proposal and its context before making a submission or approval decision.'
   },
   MEDIUM: {
     color: 'yellow',
@@ -31,6 +31,19 @@ const RISK_CONFIGS = {
     title: 'High Risk',
     recommendation: 'Significant overlap detected. We recommend revising your topic to differentiate it.'
   }
+};
+
+// Rendered when the backend returned no risk classification (risk_level null),
+// which happens when no eligible stored topics were available for comparison.
+// An empty corpus must never be presented as a LOW-risk or "unique" result.
+const NO_CLASSIFICATION_CONFIG = {
+  color: 'gray',
+  bgColor: 'bg-gray-50',
+  borderColor: 'border-gray-400',
+  textColor: 'text-gray-800',
+  iconColor: 'text-gray-500',
+  title: 'No Risk Classification',
+  recommendation: 'No eligible stored topics are currently available for comparison. This result does not establish that the topic is new or original.'
 };
 
 // ============ Utility Functions ============
@@ -64,8 +77,10 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
   const isCheckerShell = ['student-checker', 'lecturer-checker'].includes(appearance);
   const isStudentChecker = appearance === 'student-checker';
 
-  // Risk level configuration
-  const riskConfig = RISK_CONFIGS[results.risk_level] || RISK_CONFIGS.LOW;
+  // Risk level configuration; a null risk level means the backend made no
+  // classification (empty comparison corpus) and must not fall back to LOW.
+  const riskConfig = RISK_CONFIGS[results.risk_level] || NO_CLASSIFICATION_CONFIG;
+  const riskLabel = results.risk_level || 'NOT CLASSIFIED';
   const recommendation = results.recommendation || (isStudentChecker && results.risk_level === 'LOW'
     ? 'No high-similarity records were identified by this check. Review the proposal and its context before making a submission or approval decision.'
     : riskConfig.recommendation);
@@ -237,7 +252,7 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
               {recommendation}
             </p>
             <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
-              <span className="rounded-full bg-white/75 px-3 py-1" data-testid="summary-risk">{results.risk_level}</span>
+              <span className="rounded-full bg-white/75 px-3 py-1" data-testid="summary-risk">{riskLabel}</span>
               <span className="rounded-full bg-white/75 px-3 py-1" data-testid="summary-total-matches">
                 {totalMatches} {totalMatches === 1 ? 'match' : 'matches'} returned
               </span>
@@ -306,10 +321,16 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
                   d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
                   clipRule="evenodd"
                 />
-              ) : (
+              ) : results.risk_level === 'LOW' ? (
                 <path
                   fillRule="evenodd"
                   d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              ) : (
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
                   clipRule="evenodd"
                 />
               )}
@@ -336,7 +357,7 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
           <div className="bg-white p-4 rounded-lg shadow-sm border-b-4 border-blue-200">
             <p className="text-sm text-gray-600 mb-1">Risk Level</p>
             <p className={`text-2xl font-bold ${riskConfig.textColor}`} data-testid="summary-risk">
-              {results.risk_level}
+              {riskLabel}
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-sm border-b-4 border-blue-200">
@@ -380,15 +401,18 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
         results.tier3_matches
       )}
 
-      {/* No Matches Message */}
-      {(!results.tier1_matches || results.tier1_matches.length === 0) && 
-       (!results.tier2_matches || results.tier2_matches.length === 0) && 
+      {/* No Matches Message — must not claim originality: zero matches usually
+          means no eligible stored topics were available for comparison. */}
+      {(!results.tier1_matches || results.tier1_matches.length === 0) &&
+       (!results.tier2_matches || results.tier2_matches.length === 0) &&
        (!results.tier3_matches || results.tier3_matches.length === 0) && (
-        <div className="text-center py-12 bg-green-50 rounded-lg border border-green-200" data-testid="no-matches">
-          <svg className="mx-auto h-12 w-12 text-green-600 mb-2" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-          </svg>
-          <p className="text-green-800 font-medium">No similar topics found. Your topic appears unique!</p>
+        <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200" data-testid="no-matches">
+          <p className="text-gray-800 font-medium">
+            {results.corpus_size === 0
+              ? 'No eligible stored topics are currently available for comparison.'
+              : 'No matching topics were returned by this check.'}
+          </p>
+          <p className="mt-2 text-sm text-gray-600">This does not establish originality or guarantee approval. Review the proposal and its context before deciding how to proceed.</p>
         </div>
       )}
     </div>
@@ -409,8 +433,10 @@ const MATCH_SHAPE = PropTypes.shape({
 
 ResultsDisplay.propTypes = {
   results: PropTypes.shape({
-    risk_level: PropTypes.oneOf(['LOW', 'MEDIUM', 'HIGH']).isRequired,
-    max_similarity: PropTypes.number.isRequired,
+    // null when the backend made no classification (empty comparison corpus).
+    risk_level: PropTypes.oneOf(['LOW', 'MEDIUM', 'HIGH']),
+    max_similarity: PropTypes.number,
+    corpus_size: PropTypes.number,
     recommendation: PropTypes.string,
     tier1_matches: PropTypes.arrayOf(MATCH_SHAPE),
     tier2_matches: PropTypes.arrayOf(MATCH_SHAPE),
