@@ -136,7 +136,22 @@ function validateEnv(source = process.env) {
     if ((smtpUser && !smtpPassword) || (!smtpUser && smtpPassword)) {
       throw new Error('SMTP_USER and SMTP_PASSWORD must be provided together when SMTP authentication is used.');
     }
+
+    // Emailed invitation/reset links are built from the public frontend URL;
+    // in production those links must never be plain http.
+    if (source.NODE_ENV === 'production') {
+      const linkBase = effectiveCorsOrigin(source) || '';
+      if (!/^https:\/\//i.test(linkBase)) {
+        throw new Error('FRONTEND_URL (or CORS_ORIGIN) must be an https:// URL in production when EMAIL_PROVIDER=smtp, because emailed links are built from it.');
+      }
+    }
   }
+
+  parseBoundedPositiveInteger(source.INVITATION_EXPIRES_HOURS, 'INVITATION_EXPIRES_HOURS', {
+    defaultValue: 168,
+    min: 1,
+    max: 720
+  });
 
   const auditPurgeMinAgeDays = parseBoundedPositiveInteger(source.AUDIT_LOG_PURGE_MIN_AGE_DAYS, 'AUDIT_LOG_PURGE_MIN_AGE_DAYS', {
     defaultValue: 90,
@@ -205,6 +220,13 @@ function buildConfig(source = process.env) {
       cookieName: source.AUTH_COOKIE_NAME || 'rtadss_session',
       cookieSecure: source.NODE_ENV === 'production',
       resetTokenExpiresMinutes: parseInt(source.RESET_TOKEN_EXPIRES_MINUTES, 10) || 30,
+      // Departmental invitations tolerate a longer window than password
+      // resets: 7 days by default, bounded 1 hour to 30 days.
+      invitationExpiresHours: parseBoundedPositiveInteger(source.INVITATION_EXPIRES_HOURS, 'INVITATION_EXPIRES_HOURS', {
+        defaultValue: 168,
+        min: 1,
+        max: 720
+      }),
       frontendUrl: browserOrigin
     },
 

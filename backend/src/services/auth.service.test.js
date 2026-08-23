@@ -236,6 +236,87 @@ describe('auth.service', () => {
     expect(prisma.user.update).not.toHaveBeenCalled();
   });
 
+  test('forgot password stays materially indistinguishable when the provider fails for an existing account', async () => {
+    const prisma = createPrismaMock({
+      user: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 4,
+          name: 'Admin Demo',
+          email: 'admin.demo@uniosun.edu.ng',
+          role: 'ADMIN',
+          status: 'ACTIVE'
+        }),
+        update: jest.fn().mockResolvedValue({})
+      }
+    });
+    const providerFailure = Object.assign(new Error('SMTP email delivery failed.'), {
+      name: 'EmailServiceError',
+      code: 'EMAIL_DELIVERY_FAILED',
+      reasonCode: 'smtp-connect-failed',
+      statusCode: 503
+    });
+    const emailProvider = {
+      sendPasswordResetEmail: jest.fn().mockRejectedValue(providerFailure)
+    };
+    const notificationEvents = {
+      notifyPasswordResetRequestedSafely: jest.fn()
+    };
+    const log = { warn: jest.fn(), info: jest.fn(), error: jest.fn() };
+    const service = createAuthService({
+      prismaClient: prisma,
+      emailProvider,
+      authConfig,
+      notificationEvents,
+      log
+    });
+
+    // Identical resolved value to both the success path and the
+    // unknown-email path: the requester cannot distinguish provider failure
+    // from normal acceptance, so account existence never leaks through
+    // delivery behavior.
+    await expect(service.requestPasswordReset({ email: 'admin.demo@uniosun.edu.ng' }))
+      .resolves.toEqual({ message: 'If that email exists, a password reset link has been sent.' });
+
+    // The failure remains internally observable without token material.
+    expect(log.warn).toHaveBeenCalledWith('Password reset email could not be delivered', {
+      reasonCode: 'smtp-connect-failed',
+      userId: 4
+    });
+    const emailedToken = emailProvider.sendPasswordResetEmail.mock.calls[0][0].token;
+    expect(JSON.stringify(log.warn.mock.calls)).not.toContain(emailedToken);
+  });
+
+  test('forgot password response for a disabled provider matches the unknown-email response', async () => {
+    const prisma = createPrismaMock({
+      user: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 4,
+          name: 'Admin Demo',
+          email: 'admin.demo@uniosun.edu.ng',
+          role: 'ADMIN',
+          status: 'ACTIVE'
+        }),
+        update: jest.fn().mockResolvedValue({})
+      }
+    });
+    const emailProvider = {
+      sendPasswordResetEmail: jest.fn().mockRejectedValue(Object.assign(new Error('Email delivery is disabled.'), {
+        name: 'EmailServiceError',
+        code: 'EMAIL_PROVIDER_DISABLED'
+      }))
+    };
+    const service = createAuthService({
+      prismaClient: prisma,
+      emailProvider,
+      authConfig,
+      notificationEvents: { notifyPasswordResetRequestedSafely: jest.fn() },
+      log: { warn: jest.fn(), info: jest.fn(), error: jest.fn() }
+    });
+
+    await expect(service.requestPasswordReset({ email: 'admin.demo@uniosun.edu.ng' }))
+      .resolves.toEqual({ message: 'If that email exists, a password reset link has been sent.' });
+  });
+
   test('reset password clears token fields, forced-change state, and invalidates prior sessions', async () => {
     const audit = { createAuditLogSafely: jest.fn().mockResolvedValue(null) };
     const prisma = createPrismaMock({

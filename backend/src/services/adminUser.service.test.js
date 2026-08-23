@@ -57,6 +57,14 @@ describe('adminUser.service', () => {
 
     const result = await service.listUsers({ page: '1', limit: '10' });
 
+    const emptyInvitation = {
+      status: 'not_invited',
+      lastAttemptAt: null,
+      lastSentAt: null,
+      acceptedAt: null,
+      expiresAt: null,
+      lastError: null
+    };
     expect(result.data.items).toEqual([
       {
         id: 1,
@@ -66,6 +74,7 @@ describe('adminUser.service', () => {
         status: 'active',
         matricNumber: null,
         mustChangePassword: false,
+        invitation: emptyInvitation,
         createdAt: '2026-06-01T10:00:00.000Z',
         updatedAt: '2026-06-02T10:00:00.000Z'
       },
@@ -77,12 +86,15 @@ describe('adminUser.service', () => {
         status: 'active',
         matricNumber: null,
         mustChangePassword: false,
+        invitation: emptyInvitation,
         createdAt: '2026-06-03T10:00:00.000Z',
         updatedAt: '2026-06-04T10:00:00.000Z'
       }
     ]);
     expect(result.data.items[0]).not.toHaveProperty('passwordHash');
     expect(result.data.items[0]).not.toHaveProperty('resetTokenHash');
+    expect(result.data.items[0]).not.toHaveProperty('invitationTokenHash');
+    expect(JSON.stringify(result.data.items)).not.toContain('TokenHash');
     expect(result.meta.pagination).toEqual({
       page: 1,
       limit: 10,
@@ -129,7 +141,13 @@ describe('adminUser.service', () => {
         matricNumber: true,
         mustChangePassword: true,
         createdAt: true,
-        updatedAt: true
+        updatedAt: true,
+        invitationTokenHash: true,
+        invitationExpiresAt: true,
+        invitationLastAttemptAt: true,
+        invitationLastSentAt: true,
+        invitationLastError: true,
+        invitationAcceptedAt: true
       },
       orderBy: { email: 'asc' },
       skip: 5,
@@ -205,7 +223,13 @@ describe('adminUser.service', () => {
         matricNumber: true,
         mustChangePassword: true,
         createdAt: true,
-        updatedAt: true
+        updatedAt: true,
+        invitationTokenHash: true,
+        invitationExpiresAt: true,
+        invitationLastAttemptAt: true,
+        invitationLastSentAt: true,
+        invitationLastError: true,
+        invitationAcceptedAt: true
       }
     });
     expect(updated).toMatchObject({

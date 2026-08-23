@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const prisma = require('../config/database');
 const config = require('../config/env');
+const logger = require('../config/logger');
 const emailService = require('./email.service');
 const { createNotificationEventService } = require('./notificationEvent.service');
 const {
@@ -81,7 +82,8 @@ function createAuthService({
   emailProvider = emailService,
   authConfig = config.auth,
   notificationEvents = createNotificationEventService({ prismaClient }),
-  audit = { createAuditLogSafely }
+  audit = { createAuditLogSafely },
+  log = logger
 } = {}) {
   const createSessionToken = (user) => jwt.sign(
     {
@@ -242,13 +244,24 @@ function createAuthService({
         }
       });
 
-      await emailProvider.sendPasswordResetEmail({
-        to: user.email,
-        name: user.name,
-        token
-      });
-
-      await notificationEvents.notifyPasswordResetRequestedSafely({ user });
+      // Anti-enumeration: the requester's response must be identical whether
+      // the account exists, is suspended, or the provider fails. A delivery
+      // failure is therefore swallowed here after internal logging (the email
+      // service has already logged the classified failure); returning an
+      // error only when an account exists would reveal account existence.
+      try {
+        await emailProvider.sendPasswordResetEmail({
+          to: user.email,
+          name: user.name,
+          token
+        });
+        await notificationEvents.notifyPasswordResetRequestedSafely({ user });
+      } catch (error) {
+        log.warn('Password reset email could not be delivered', {
+          reasonCode: error?.reasonCode || error?.code || 'unknown',
+          userId: user.id
+        });
+      }
     }
 
     return {

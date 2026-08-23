@@ -41,6 +41,12 @@ model User {
   credentialVersion        Int                       @default(1) @map("credential_version")
   resetTokenHash           String?                   @map("reset_token_hash") @db.Text
   resetTokenExpiresAt      DateTime?                 @map("reset_token_expires_at")
+  invitationTokenHash      String?                   @map("invitation_token_hash") @db.Text
+  invitationExpiresAt      DateTime?                 @map("invitation_expires_at")
+  invitationLastAttemptAt  DateTime?                 @map("invitation_last_attempt_at")
+  invitationLastSentAt     DateTime?                 @map("invitation_last_sent_at")
+  invitationLastError      String?                   @map("invitation_last_error") @db.VarChar(100)
+  invitationAcceptedAt     DateTime?                 @map("invitation_accepted_at")
   studentSubmissions       Submission[]              @relation("StudentSubmissions")
   submissionDecisions      Submission[]              @relation("SubmissionDecisions")
   similarityCheckSnapshots SimilarityCheckSnapshot[]
@@ -54,6 +60,7 @@ model User {
 
   @@index([role])
   @@index([status])
+  @@index([invitationTokenHash])
   @@map("users")
 }
 

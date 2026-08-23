@@ -20,7 +20,15 @@ const USER_SAFE_SELECT = {
   matricNumber: true,
   mustChangePassword: true,
   createdAt: true,
-  updatedAt: true
+  updatedAt: true,
+  // Invitation lifecycle fields. The token hash is selected only so the
+  // serializer can derive a status; it is never included in API output.
+  invitationTokenHash: true,
+  invitationExpiresAt: true,
+  invitationLastAttemptAt: true,
+  invitationLastSentAt: true,
+  invitationLastError: true,
+  invitationAcceptedAt: true
 };
 
 class AdminUserServiceError extends Error {
@@ -98,6 +106,44 @@ function toIso(value) {
   return String(value);
 }
 
+function toTime(value) {
+  if (!value) {
+    return null;
+  }
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.getTime();
+}
+
+function deriveInvitationStatus(user, now = new Date()) {
+  if (user.invitationAcceptedAt) {
+    return 'accepted';
+  }
+  if (user.invitationTokenHash && user.invitationLastError) {
+    return 'failed';
+  }
+  const expiresAtTime = toTime(user.invitationExpiresAt);
+  if (user.invitationTokenHash && expiresAtTime && expiresAtTime > now.getTime()) {
+    return 'pending';
+  }
+  if (user.invitationTokenHash) {
+    return 'expired';
+  }
+  return 'not_invited';
+}
+
+// Safe admin-facing invitation summary: derived status, timestamps, and a
+// short reason code only — never the token or its hash.
+function serializeInvitationState(user, now = new Date()) {
+  return {
+    status: deriveInvitationStatus(user, now),
+    lastAttemptAt: toIso(user.invitationLastAttemptAt),
+    lastSentAt: toIso(user.invitationLastSentAt),
+    acceptedAt: toIso(user.invitationAcceptedAt),
+    expiresAt: toIso(user.invitationExpiresAt),
+    lastError: user.invitationLastError || null
+  };
+}
+
 function serializeUser(user) {
   if (!user) {
     return null;
@@ -111,6 +157,7 @@ function serializeUser(user) {
     status: toClientEnum(user.status),
     matricNumber: user.matricNumber || null,
     mustChangePassword: Boolean(user.mustChangePassword),
+    invitation: serializeInvitationState(user),
     createdAt: toIso(user.createdAt),
     updatedAt: toIso(user.updatedAt)
   };
@@ -327,6 +374,8 @@ module.exports = {
   createAdminUserService,
   AdminUserServiceError,
   serializeUser,
+  serializeInvitationState,
+  deriveInvitationStatus,
   DEFAULT_PAGE,
   DEFAULT_LIMIT,
   MAX_LIMIT

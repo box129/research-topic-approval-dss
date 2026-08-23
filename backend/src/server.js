@@ -19,6 +19,7 @@ let adminDashboardController;
 let adminTopicRepositoryController;
 let adminUserController;
 let userBulkImportController;
+let userInvitationController;
 let adminSettingsController;
 let adminReportsController;
 let lecturerResearchTrendsController;
@@ -195,6 +196,13 @@ const getUserBulkImportController = () => {
   return userBulkImportController;
 };
 
+const getUserInvitationController = () => {
+  if (!userInvitationController) {
+    userInvitationController = require('./controllers/userInvitation.controller');
+  }
+  return userInvitationController;
+};
+
 const getAdminSettingsController = () => {
   if (!adminSettingsController) {
     adminSettingsController = require('./controllers/adminSettings.controller');
@@ -266,6 +274,18 @@ app.post('/api/v1/auth/forgot-password', (req, res, next) => {
 
 app.post('/api/v1/auth/reset-password', (req, res, next) => {
   getAuthController().resetPassword(req, res, next);
+});
+
+// Invitation acceptance is public in the narrow sense that no session is
+// required: the one-time emailed token is the sole authorization, and it can
+// only establish the password of an already-provisioned account. This is not
+// public registration — no account can be created here.
+app.post('/api/v1/auth/invitation/validate', (req, res, next) => {
+  getUserInvitationController().validateInvitation(req, res, next);
+});
+
+app.post('/api/v1/auth/invitation/accept', (req, res, next) => {
+  getUserInvitationController().acceptInvitation(req, res, next);
 });
 
 app.get('/api/v1/notifications', requireAuth, (req, res, next) => {
@@ -349,6 +369,16 @@ app.get('/api/v1/admin/users/import/template', requireAuth, requireRole('admin')
 
 app.patch('/api/v1/admin/users/:id/identity', requireAuth, requireRole('admin'), (req, res, next) => {
   getAdminUserController().correctUserIdentity(req, res, next);
+});
+
+// Email invitations for provisioned accounts: individual (send/resend) and
+// bounded-concurrency bulk. Registered before the :id routes for clarity.
+app.post('/api/v1/admin/users/invitations/bulk', requireAuth, requireRole('admin'), (req, res, next) => {
+  getUserInvitationController().sendBulkInvitations(req, res, next);
+});
+
+app.post('/api/v1/admin/users/:id/invite', requireAuth, requireRole('admin'), (req, res, next) => {
+  getUserInvitationController().inviteUser(req, res, next);
 });
 
 app.post('/api/v1/admin/users/:id/credential-reset', requireAuth, requireRole('admin'), (req, res, next) => {
