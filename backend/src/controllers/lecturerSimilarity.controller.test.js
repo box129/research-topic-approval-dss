@@ -213,6 +213,23 @@ describe('Lecturer similarity wrapper route', () => {
     expect(similaritySnapshotService.createSnapshotFromSimilarityResponse).not.toHaveBeenCalled();
   });
 
+  test('does not expose an unexpected lecturer similarity service error', async () => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+    submissionService.getLecturerSubmission.mockRejectedValue(new Error('database connection string or provider secret'));
+
+    const response = await request(app)
+      .post('/api/v1/lecturer/submissions/4/similarity-check')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .expect(500);
+
+    expect(response.body).toEqual({
+      status: 'error',
+      message: 'Lecturer similarity service is temporarily unavailable.',
+      details: { error_code: 'LECTURER_SIMILARITY_UNAVAILABLE' }
+    });
+    expect(JSON.stringify(response.body)).not.toMatch(/connection string|provider secret/i);
+  });
+
   test('wrapper does not mutate submission status', async () => {
     authService.authenticateToken.mockResolvedValue(lecturerUser);
     submissionService.getLecturerSubmission.mockResolvedValue({

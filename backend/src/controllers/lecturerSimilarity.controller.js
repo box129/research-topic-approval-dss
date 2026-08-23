@@ -4,12 +4,14 @@ const similarityController = require('./similarity.controller');
 const logger = require('../config/logger');
 
 function sendLecturerSimilarityError(res, error) {
-  return res.status(error.statusCode || 500).json({
+  const statusCode = error.statusCode || 500;
+  const isServerError = statusCode >= 500;
+  return res.status(statusCode).json({
     status: 'error',
-    message: error.message || 'Lecturer similarity request failed.',
+    message: isServerError ? 'Lecturer similarity service is temporarily unavailable.' : (error.message || 'Lecturer similarity request failed.'),
     details: {
-      error_code: error.code || 'LECTURER_SIMILARITY_ERROR',
-      ...(error.field ? { field: error.field } : {})
+      error_code: isServerError ? 'LECTURER_SIMILARITY_UNAVAILABLE' : (error.code || 'LECTURER_SIMILARITY_ERROR'),
+      ...(!isServerError && error.field ? { field: error.field } : {})
     }
   });
 }

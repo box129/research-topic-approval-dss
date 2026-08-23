@@ -305,6 +305,39 @@ describe('resetUserCredential', () => {
     expect(JSON.stringify(auditEvent)).not.toContain(result.temporaryPassword);
   });
 
+  test('invalidates a pending invitation when an administrator resets credentials', async () => {
+    const pendingInvitation = {
+      ...student,
+      resetTokenHash: 'existing-reset-token-hash',
+      resetTokenExpiresAt: new Date('2026-08-30T09:00:00.000Z'),
+      invitationTokenHash: 'pending-invitation-token-hash',
+      invitationExpiresAt: new Date('2026-08-30T09:00:00.000Z')
+    };
+    const prismaMock = createPrismaMock({ users: [pendingInvitation] });
+    const service = createService(prismaMock);
+
+    await service.resetUserCredential({
+      id: 5,
+      actor: { id: 1, role: 'admin' }
+    });
+
+    const updateData = prismaMock.user.update.mock.calls[0][0].data;
+    expect(updateData).toMatchObject({
+      credentialVersion: { increment: 1 },
+      resetTokenHash: null,
+      resetTokenExpiresAt: null,
+      invitationTokenHash: null,
+      invitationExpiresAt: null
+    });
+    expect(prismaMock.__store[0]).toMatchObject({
+      credentialVersion: 3,
+      resetTokenHash: null,
+      resetTokenExpiresAt: null,
+      invitationTokenHash: null,
+      invitationExpiresAt: null
+    });
+  });
+
   test('returns null for missing users', async () => {
     const service = createService(createPrismaMock());
     await expect(service.resetUserCredential({ id: 99, actor: { id: 1 } })).resolves.toBeNull();
@@ -382,6 +415,42 @@ describe('correctUserIdentity', () => {
     expect(auditEvent.metadata.next.email).toBe('right.address@uniosun.edu.ng');
     expect(auditEvent.metadata.priorSessionsInvalidated).toBe(true);
     expect(JSON.stringify(auditEvent)).not.toContain('stored-hash');
+  });
+
+  test('invalidates a pending invitation when correcting an email address', async () => {
+    const pendingInvitation = {
+      ...student,
+      resetTokenHash: 'existing-reset-token-hash',
+      resetTokenExpiresAt: new Date('2026-08-30T09:00:00.000Z'),
+      invitationTokenHash: 'pending-invitation-token-hash',
+      invitationExpiresAt: new Date('2026-08-30T09:00:00.000Z')
+    };
+    const prismaMock = createPrismaMock({ users: [pendingInvitation] });
+    const service = createService(prismaMock);
+
+    await service.correctUserIdentity({
+      id: 5,
+      input: { email: 'corrected.address@uniosun.edu.ng' },
+      actor: { id: 1, role: 'admin' }
+    });
+
+    const updateData = prismaMock.user.update.mock.calls[0][0].data;
+    expect(updateData).toMatchObject({
+      email: 'corrected.address@uniosun.edu.ng',
+      credentialVersion: { increment: 1 },
+      resetTokenHash: null,
+      resetTokenExpiresAt: null,
+      invitationTokenHash: null,
+      invitationExpiresAt: null
+    });
+    expect(prismaMock.__store[0]).toMatchObject({
+      email: 'corrected.address@uniosun.edu.ng',
+      credentialVersion: 4,
+      resetTokenHash: null,
+      resetTokenExpiresAt: null,
+      invitationTokenHash: null,
+      invitationExpiresAt: null
+    });
   });
 
   test('validates and normalizes matric corrections without touching sessions', async () => {

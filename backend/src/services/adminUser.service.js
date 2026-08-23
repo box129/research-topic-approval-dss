@@ -339,9 +339,29 @@ function createAdminUserService({
       return null;
     }
 
+    const statusChanged = existing.status !== newStatus;
     const updated = await prismaClient.user.update({
       where: { id },
-      data: { status: newStatus },
+      data: {
+        status: newStatus,
+        ...(statusChanged
+          ? {
+            // Suspension must invalidate already-issued sessions. Otherwise a
+            // cookie issued before suspension becomes valid again on a later
+            // reactivation. Suspend also kills pending recovery/invitation
+            // credentials tied to the account.
+            credentialVersion: { increment: 1 },
+            ...(newStatus === 'SUSPENDED'
+              ? {
+                resetTokenHash: null,
+                resetTokenExpiresAt: null,
+                invitationTokenHash: null,
+                invitationExpiresAt: null
+              }
+              : {})
+          }
+          : {})
+      },
       select: USER_SAFE_SELECT
     });
 
@@ -355,7 +375,9 @@ function createAdminUserService({
         newStatus,
         targetUserId: existing.id,
         targetUserRole: existing.role,
-        targetUserEmail: existing.email
+        targetUserEmail: existing.email,
+        priorSessionsInvalidated: statusChanged,
+        recoveryCredentialsInvalidated: statusChanged && newStatus === 'SUSPENDED'
       }
     });
 

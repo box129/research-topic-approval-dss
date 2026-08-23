@@ -63,6 +63,58 @@ describe('Voyage production similarity controller', () => {
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ status: 'semantic_unavailable', semanticAvailable: false }));
   });
 
+  test('maps a malformed Voyage provider body to semantic_unavailable', async () => {
+    let checkSimilarity;
+    jest.isolateModules(() => { ({ checkSimilarity } = require('./similarity.controller')); });
+    const ProviderError = require('../services/voyageEmbedding.service').VoyageProviderError;
+    embedQuery.mockRejectedValue(new ProviderError('Voyage returned malformed embedding data.'));
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+    await checkSimilarity({ body: { topic: 'New topic' } }, res, jest.fn());
+
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      status: 'semantic_unavailable',
+      semanticAvailable: false,
+      semanticProvider: 'voyage'
+    }));
+    expect(retrieve).not.toHaveBeenCalled();
+  });
+
+  test('maps a bounded Voyage timeout to semantic_unavailable without a fallback result', async () => {
+    let checkSimilarity;
+    jest.isolateModules(() => { ({ checkSimilarity } = require('./similarity.controller')); });
+    const TimeoutError = require('../services/voyageEmbedding.service').VoyageProviderError;
+    const timeout = new TimeoutError('Voyage embedding request timed out.');
+    timeout.code = 'VOYAGE_TIMEOUT';
+    embedQuery.mockRejectedValue(timeout);
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+    await checkSimilarity({ body: { topic: 'New topic' } }, res, jest.fn());
+
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      status: 'semantic_unavailable',
+      semanticAvailable: false,
+      semanticProvider: 'voyage'
+    }));
+    expect(retrieve).not.toHaveBeenCalled();
+  });
+
+  test('rejects oversized similarity context before provider work', async () => {
+    let checkSimilarity;
+    jest.isolateModules(() => { ({ checkSimilarity } = require('./similarity.controller')); });
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+    await checkSimilarity({ body: { topic: 'New topic', population: 'x'.repeat(1001) } }, res, jest.fn());
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      details: { field: 'population', error_code: 'SIMILARITY_INPUT_TOO_LARGE' }
+    }));
+    expect(embedQuery).not.toHaveBeenCalled();
+  });
+
   test('an empty corpus is reported truthfully and never classified as low risk or original', async () => {
     let checkSimilarity;
     jest.isolateModules(() => { ({ checkSimilarity } = require('./similarity.controller')); });

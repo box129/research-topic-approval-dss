@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const {
   createAuthService,
+  hashLoginIdentifier,
   hashResetToken,
   serializeUser,
   validatePasswordPolicy
@@ -85,6 +86,103 @@ describe('auth.service', () => {
     expect(prisma.user.findUnique).toHaveBeenCalledWith({
       where: { email: 'lecturer.demo@uniosun.edu.ng' }
     });
+  });
+
+  test('records failed logins with a hashed attempted identifier and no credentials or session material', async () => {
+    const attemptedEmail = 'Unrecognized.Attempt@uniosun.edu.ng';
+    const attemptedPassword = 'LoginPasswordSentinel9';
+    const sessionToken = 'session-token-sentinel-that-must-not-be-audited';
+    const audit = { createAuditLogSafely: jest.fn().mockResolvedValue(null) };
+    const prisma = createPrismaMock({
+      user: { findUnique: jest.fn().mockResolvedValue(null) }
+    });
+    const service = createAuthService({ prismaClient: prisma, authConfig, audit });
+
+    await expect(service.login({
+      email: attemptedEmail,
+      password: attemptedPassword,
+      req: {
+        ip: '203.0.113.24',
+        headers: {
+          cookie: `session=${sessionToken}`,
+          authorization: `Bearer ${sessionToken}`
+        }
+      }
+    })).rejects.toMatchObject({ statusCode: 401, code: 'INVALID_CREDENTIALS' });
+
+    const event = audit.createAuditLogSafely.mock.calls[0][0];
+    expect(event).toMatchObject({
+      eventType: 'AUTH_LOGIN_FAILED',
+      targetType: 'Authentication',
+      targetId: null,
+      ipAddress: '203.0.113.24',
+      metadata: {
+        reason: 'invalid-credentials',
+        attemptedEmailHash: hashLoginIdentifier(attemptedEmail)
+      }
+    });
+    expect(event.metadata).not.toHaveProperty('email');
+    expect(event.metadata).not.toHaveProperty('password');
+    expect(event.metadata).not.toHaveProperty('sessionToken');
+    const eventJson = JSON.stringify(event);
+    expect(eventJson).not.toContain(attemptedEmail);
+    expect(eventJson).not.toContain(attemptedPassword);
+    expect(eventJson).not.toContain(sessionToken);
+  });
+
+  test('records login and logout without including passwords or session tokens', async () => {
+    const password = 'ValidPasswordSentinel9';
+    const passwordHash = await bcrypt.hash(password, 4);
+    const sessionToken = 'session-token-sentinel-that-must-not-be-audited';
+    const user = {
+      id: 21,
+      name: 'Audited Lecturer',
+      email: 'audited.lecturer@uniosun.edu.ng',
+      passwordHash,
+      role: 'LECTURER',
+      status: 'ACTIVE',
+      credentialVersion: 2,
+      mustChangePassword: false
+    };
+    const audit = { createAuditLogSafely: jest.fn().mockResolvedValue(null) };
+    const prisma = createPrismaMock({
+      user: { findUnique: jest.fn().mockResolvedValue(user) }
+    });
+    const request = {
+      ip: '203.0.113.25',
+      headers: {
+        cookie: `session=${sessionToken}`,
+        authorization: `Bearer ${sessionToken}`
+      }
+    };
+    const service = createAuthService({ prismaClient: prisma, authConfig, audit });
+
+    const loginResult = await service.login({
+      email: user.email,
+      password,
+      req: request
+    });
+    await service.recordLogout({ user: loginResult.user, req: request });
+
+    expect(audit.createAuditLogSafely).toHaveBeenCalledTimes(2);
+    const [loginEvent, logoutEvent] = audit.createAuditLogSafely.mock.calls.map(([event]) => event);
+    expect(loginEvent).toMatchObject({
+      eventType: 'AUTH_LOGIN',
+      actorId: user.id,
+      targetId: String(user.id),
+      metadata: { method: 'password' }
+    });
+    expect(logoutEvent).toMatchObject({
+      eventType: 'AUTH_LOGOUT',
+      actorId: user.id,
+      targetId: String(user.id),
+      metadata: { method: 'session-cookie-cleared' }
+    });
+
+    const eventsJson = JSON.stringify([loginEvent, logoutEvent]);
+    expect(eventsJson).not.toContain(password);
+    expect(eventsJson).not.toContain(sessionToken);
+    expect(eventsJson).not.toContain(loginResult.token);
   });
 
   test('authenticateToken accepts tokens matching the stored credential version', async () => {

@@ -2,11 +2,24 @@ const { embedQuery, VoyageProviderError } = require('../services/voyageEmbedding
 const { retrieve, classify } = require('../services/voyageSemanticSimilarity.service');
 const { residentCorpus } = require('../services/residentCorpus.service');
 const logger = require('../config/logger');
+const MAX_SIMILARITY_FIELD_LENGTH = 1000;
 function responseMatch(item) { return { id:item.topic.id, title:item.topic.title, category:item.topic.category || null, collection:item.topic.collection, semantic_score:item.score, similarity_class:classify(item.score) }; }
 async function checkSimilarity(req, res, next) {
   try {
     const { topic: title, population, location, studyFocus } = req.body || {};
     if (!title || typeof title !== 'string' || !title.trim()) return res.status(400).json({ status:'error', message:'Topic is required.', details:{field:'topic',error_code:'MISSING_FIELD'} });
+    const oversizedField = Object.entries({ topic: title, population, location, studyFocus })
+      .find(([, value]) => typeof value === 'string' && value.length > MAX_SIMILARITY_FIELD_LENGTH)?.[0];
+    if (oversizedField) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Similarity input is too long.',
+        details: {
+          field: oversizedField,
+          error_code: 'SIMILARITY_INPUT_TOO_LARGE'
+        }
+      });
+    }
     const searchable = residentCorpus.searchable(await residentCorpus.get());
     // An empty comparison corpus is reported truthfully: it is not evidence that
     // the proposed topic is new or original, so no risk class is asserted.

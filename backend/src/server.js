@@ -1,13 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 const multer = require('multer');
 const cookieParser = require('cookie-parser');
 const fs = require('fs');
 const path = require('path');
 const config = require('./config/env');
 const logger = require('./config/logger');
+const { createRateLimiters } = require('./middleware/rateLimit.middleware');
+const { createCsrfOriginGuard } = require('./middleware/csrf.middleware');
 // Lazy-load the similarity controller to avoid Prisma initialization blocking
 let similarityController;
 let topicImportController;
@@ -27,11 +28,20 @@ let notificationController;
 let readinessController;
 let superviseeAssignmentController;
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler.middleware');
-const { requireAuth, requireAuthAllowingPasswordChange, requireRole } = require('./middleware/auth.middleware');
+const {
+  optionallyAuthenticateRequest,
+  requireAuth,
+  requireAuthAllowingPasswordChange,
+  requireRole
+} = require('./middleware/auth.middleware');
 
 const app = express();
-const IMPORT_UPLOAD_LIMIT_BYTES = 5 * 1024 * 1024;
+const IMPORT_UPLOAD_LIMIT_BYTES = config.requestLimits.importUploadBytes;
+const IMPORT_UPLOAD_MAX_FIELDS = config.requestLimits.importUploadMaxFields;
+const IMPORT_UPLOAD_MAX_PARTS = config.requestLimits.importUploadMaxParts;
+const IMPORT_UPLOAD_FIELD_SIZE_BYTES = config.requestLimits.importUploadFieldSizeBytes;
 const importUploadDir = path.join(__dirname, '..', 'tmp', 'imports');
+const limiters = createRateLimiters(config.rateLimit);
 
 const importUploadStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -48,7 +58,11 @@ const importUploadStorage = multer.diskStorage({
 const importUpload = multer({
   storage: importUploadStorage,
   limits: {
-    fileSize: IMPORT_UPLOAD_LIMIT_BYTES
+    fileSize: IMPORT_UPLOAD_LIMIT_BYTES,
+    files: 1,
+    fields: IMPORT_UPLOAD_MAX_FIELDS,
+    parts: IMPORT_UPLOAD_MAX_PARTS,
+    fieldSize: IMPORT_UPLOAD_FIELD_SIZE_BYTES
   }
 });
 
@@ -65,6 +79,41 @@ const importUploadMiddleware = (req, res, next) => {
       });
     }
 
+    if (error instanceof multer.MulterError && error.code === 'LIMIT_FIELD_VALUE') {
+      return res.status(413).json({
+        status: 'error',
+        message: 'Import form field is too large.',
+        details: {
+          error_code: 'MULTIPART_FIELD_TOO_LARGE'
+        }
+      });
+    }
+
+    if (error instanceof multer.MulterError && [
+      'LIMIT_FILE_COUNT',
+      'LIMIT_FIELD_COUNT',
+      'LIMIT_PART_COUNT',
+      'LIMIT_FIELD_KEY'
+    ].includes(error.code)) {
+      return res.status(413).json({
+        status: 'error',
+        message: 'Import request exceeds the allowed multipart limits.',
+        details: {
+          error_code: 'MULTIPART_LIMIT_EXCEEDED'
+        }
+      });
+    }
+
+    if (error instanceof multer.MulterError) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Import upload is invalid.',
+        details: {
+          error_code: 'INVALID_IMPORT_UPLOAD'
+        }
+      });
+    }
+
     if (error) {
       return next(error);
     }
@@ -74,32 +123,39 @@ const importUploadMiddleware = (req, res, next) => {
 };
 
 // Middleware
-app.use(helmet());
+// A false default avoids trusting arbitrary X-Forwarded-For values from direct
+// clients. Future hosting must set TRUST_PROXY to its precise known topology.
+app.set('trust proxy', config.trustProxy);
+app.use(helmet({
+  frameguard: { action: 'deny' },
+  referrerPolicy: { policy: 'no-referrer' }
+}));
 app.use(cors({
-  origin: config.cors.origin,
+  origin: (origin, callback) => {
+    if (!origin || config.cors.allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Omit CORS permission rather than reflecting a hostile origin. The
+    // cookie-authenticated mutation surface is rejected by the origin guard.
+    return callback(null, false);
+  },
   credentials: config.cors.credentials
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(optionallyAuthenticateRequest);
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: config.rateLimit.windowMs,
-  max: config.rateLimit.max,
-  handler: (req, res) => {
-    res.set('Retry-After', '300');
-    res.status(429).json({
-      status: 'error',
-      message: 'Rate limit exceeded. Please try again in 5 minutes.',
-      details: {
-        retry_after: 300,
-        limit: '100 requests per hour'
-      }
-    });
-  }
-});
-app.use(limiter);
+// Broad low-cost protection runs before body parsing. Valid sessions are
+// keyed by user ID so a shared departmental NAT does not collapse ordinary
+// authenticated traffic into one bucket; public traffic remains IP-keyed.
+app.use(limiters.global);
+app.use(createCsrfOriginGuard({
+  allowedOrigins: config.csrf.allowedOrigins,
+  cookieName: config.auth.cookieName,
+  requireOrigin: config.csrf.requireOrigin
+}));
+app.use(express.json({ limit: config.requestLimits.jsonBodyBytes }));
+app.use(express.urlencoded({ extended: true, limit: config.requestLimits.jsonBodyBytes }));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -128,10 +184,16 @@ const similarityRouteHandler = (req, res, next) => {
   similarityController.checkSimilarity(req, res, next);
 };
 
-app.post('/api/similarity/check', similarityRouteHandler);
+const directSimilarityMiddleware = [
+  requireAuth,
+  requireRole('student', 'lecturer'),
+  limiters.similarity
+];
+
+app.post('/api/similarity/check', directSimilarityMiddleware, similarityRouteHandler);
 
 // Architecture alias — matches API spec
-app.post('/api/v1/check-similarity', similarityRouteHandler);
+app.post('/api/v1/check-similarity', directSimilarityMiddleware, similarityRouteHandler);
 
 const getTopicImportController = () => {
   if (!topicImportController) {
@@ -249,7 +311,7 @@ app.get('/api/v1/readiness', (req, res, next) => {
   getReadinessController().getReadiness(req, res, next);
 });
 
-app.post('/api/v1/auth/login', (req, res, next) => {
+app.post('/api/v1/auth/login', limiters.loginIp, limiters.loginIdentifier, (req, res, next) => {
   getAuthController().login(req, res, next);
 });
 
@@ -268,11 +330,11 @@ app.post('/api/v1/auth/change-password', requireAuthAllowingPasswordChange, (req
   getAuthController().changePassword(req, res, next);
 });
 
-app.post('/api/v1/auth/forgot-password', (req, res, next) => {
+app.post('/api/v1/auth/forgot-password', limiters.forgotPassword, (req, res, next) => {
   getAuthController().forgotPassword(req, res, next);
 });
 
-app.post('/api/v1/auth/reset-password', (req, res, next) => {
+app.post('/api/v1/auth/reset-password', limiters.resetPassword, (req, res, next) => {
   getAuthController().resetPassword(req, res, next);
 });
 
@@ -280,11 +342,11 @@ app.post('/api/v1/auth/reset-password', (req, res, next) => {
 // required: the one-time emailed token is the sole authorization, and it can
 // only establish the password of an already-provisioned account. This is not
 // public registration — no account can be created here.
-app.post('/api/v1/auth/invitation/validate', (req, res, next) => {
+app.post('/api/v1/auth/invitation/validate', limiters.invitationValidation, (req, res, next) => {
   getUserInvitationController().validateInvitation(req, res, next);
 });
 
-app.post('/api/v1/auth/invitation/accept', (req, res, next) => {
+app.post('/api/v1/auth/invitation/accept', limiters.invitationAcceptance, (req, res, next) => {
   getUserInvitationController().acceptInvitation(req, res, next);
 });
 
@@ -304,7 +366,7 @@ app.get('/api/v1/submissions', requireAuth, requireRole('student'), (req, res, n
   getSubmissionController().listSubmissions(req, res, next);
 });
 
-app.post('/api/v1/submissions', requireAuth, requireRole('student'), (req, res, next) => {
+app.post('/api/v1/submissions', requireAuth, requireRole('student'), limiters.similarity, (req, res, next) => {
   getSubmissionController().createSubmission(req, res, next);
 });
 
@@ -328,7 +390,7 @@ app.get('/api/v1/lecturer/submissions/:id', requireAuth, requireRole('lecturer')
   getSubmissionController().getLecturerSubmission(req, res, next);
 });
 
-app.post('/api/v1/lecturer/submissions/:id/similarity-check', requireAuth, requireRole('lecturer'), (req, res, next) => {
+app.post('/api/v1/lecturer/submissions/:id/similarity-check', requireAuth, requireRole('lecturer'), limiters.similarity, (req, res, next) => {
   getLecturerSimilarityController().checkLecturerSubmissionSimilarity(req, res, next);
 });
 
@@ -373,15 +435,15 @@ app.patch('/api/v1/admin/users/:id/identity', requireAuth, requireRole('admin'),
 
 // Email invitations for provisioned accounts: individual (send/resend) and
 // bounded-concurrency bulk. Registered before the :id routes for clarity.
-app.post('/api/v1/admin/users/invitations/bulk', requireAuth, requireRole('admin'), (req, res, next) => {
+app.post('/api/v1/admin/users/invitations/bulk', requireAuth, requireRole('admin'), limiters.adminBulkInvitation, (req, res, next) => {
   getUserInvitationController().sendBulkInvitations(req, res, next);
 });
 
-app.post('/api/v1/admin/users/:id/invite', requireAuth, requireRole('admin'), (req, res, next) => {
+app.post('/api/v1/admin/users/:id/invite', requireAuth, requireRole('admin'), limiters.adminAccountAction, (req, res, next) => {
   getUserInvitationController().inviteUser(req, res, next);
 });
 
-app.post('/api/v1/admin/users/:id/credential-reset', requireAuth, requireRole('admin'), (req, res, next) => {
+app.post('/api/v1/admin/users/:id/credential-reset', requireAuth, requireRole('admin'), limiters.adminAccountAction, (req, res, next) => {
   getAdminUserController().resetUserCredential(req, res, next);
 });
 
@@ -458,13 +520,18 @@ const commitImportRouteHandler = (req, res, next) => {
 };
 
 const adminImportMiddleware = [requireAuth, requireRole('admin'), importUploadMiddleware];
+// Commit (unlike preview) creates one paid Voyage document embedding for each
+// accepted record, so rate-limit it by the authenticated administrator before
+// receiving the multipart body. Preview remains deliberately unthrottled by
+// this narrow provider-cost limiter because it does not invoke Voyage.
+const adminImportCommitMiddleware = [requireAuth, requireRole('admin'), limiters.adminTopicImport, importUploadMiddleware];
 
 app.post('/api/import/topics/preview', adminImportMiddleware, previewImportRouteHandler);
-app.post('/api/import/topics/commit', adminImportMiddleware, commitImportRouteHandler);
+app.post('/api/import/topics/commit', adminImportCommitMiddleware, commitImportRouteHandler);
 app.post('/api/v1/import/topics/preview', adminImportMiddleware, previewImportRouteHandler);
-app.post('/api/v1/import/topics/commit', adminImportMiddleware, commitImportRouteHandler);
+app.post('/api/v1/import/topics/commit', adminImportCommitMiddleware, commitImportRouteHandler);
 app.post('/api/v1/admin/import/topics/preview', adminImportMiddleware, previewImportRouteHandler);
-app.post('/api/v1/admin/import/topics/commit', adminImportMiddleware, commitImportRouteHandler);
+app.post('/api/v1/admin/import/topics/commit', adminImportCommitMiddleware, commitImportRouteHandler);
 
 // 404 handler (must be before error handler)
 app.use(notFoundHandler);

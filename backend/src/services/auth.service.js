@@ -60,6 +60,13 @@ function hashResetToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
+function hashLoginIdentifier(email) {
+  return crypto.createHash('sha256')
+    .update(normalizeEmail(email))
+    .digest('hex')
+    .slice(0, 24);
+}
+
 function getCookieOptions() {
   return {
     httpOnly: true,
@@ -95,7 +102,7 @@ function createAuthService({
     { expiresIn: authConfig.jwtExpiresIn }
   );
 
-  const login = async ({ email, password }) => {
+  const login = async ({ email, password, req } = {}) => {
     const normalizedEmail = normalizeEmail(email);
 
     if (!normalizedEmail || !password) {
@@ -111,12 +118,46 @@ function createAuthService({
       : false;
 
     if (!user || !validPassword) {
+      await audit.createAuditLogSafely({
+        eventType: AUDIT_EVENT_TYPES.AUTH_LOGIN_FAILED,
+        ...buildAuditContextFromRequest(req),
+        targetType: 'Authentication',
+        targetId: null,
+        metadata: {
+          reason: 'invalid-credentials',
+          attemptedEmailHash: hashLoginIdentifier(normalizedEmail)
+        }
+      });
       throw new AuthServiceError('Invalid email or password.', 401, 'INVALID_CREDENTIALS');
     }
 
     if (user.status !== 'ACTIVE') {
+      await audit.createAuditLogSafely({
+        eventType: AUDIT_EVENT_TYPES.AUTH_LOGIN_FAILED,
+        ...buildAuditContextFromRequest(req),
+        targetType: 'User',
+        targetId: String(user.id),
+        metadata: {
+          reason: 'account-inactive',
+          attemptedEmailHash: hashLoginIdentifier(normalizedEmail)
+        }
+      });
       throw new AuthServiceError('This account is not active.', 403, 'ACCOUNT_INACTIVE');
     }
+
+    const requestContext = buildAuditContextFromRequest(req);
+    await audit.createAuditLogSafely({
+      eventType: AUDIT_EVENT_TYPES.AUTH_LOGIN,
+      ...requestContext,
+      actorId: user.id,
+      actorRole: toClientRole(user.role),
+      actorEmail: user.email,
+      targetType: 'User',
+      targetId: String(user.id),
+      metadata: {
+        method: 'password'
+      }
+    });
 
     return {
       token: createSessionToken(user),
@@ -325,12 +366,33 @@ function createAuthService({
     };
   };
 
+  const recordLogout = async ({ user, req } = {}) => {
+    if (!user?.id) {
+      return null;
+    }
+
+    const requestContext = buildAuditContextFromRequest(req);
+    return audit.createAuditLogSafely({
+      eventType: AUDIT_EVENT_TYPES.AUTH_LOGOUT,
+      ...requestContext,
+      actorId: user.id,
+      actorRole: user.role,
+      actorEmail: user.email,
+      targetType: 'User',
+      targetId: String(user.id),
+      metadata: {
+        method: 'session-cookie-cleared'
+      }
+    });
+  };
+
   return {
     login,
     authenticateToken,
     changePassword,
     requestPasswordReset,
-    resetPassword
+    resetPassword,
+    recordLogout
   };
 }
 
@@ -340,6 +402,7 @@ module.exports = {
   createAuthService,
   getClearCookieOptions,
   getCookieOptions,
+  hashLoginIdentifier,
   hashResetToken,
   normalizeEmail,
   serializeUser,

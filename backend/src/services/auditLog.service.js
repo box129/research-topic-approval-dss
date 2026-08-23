@@ -4,6 +4,7 @@ const config = require('../config/env');
 
 const AUDIT_EVENT_TYPES = Object.freeze({
   AUTH_LOGIN: 'AUTH_LOGIN',
+  AUTH_LOGIN_FAILED: 'AUTH_LOGIN_FAILED',
   AUTH_LOGOUT: 'AUTH_LOGOUT',
   SUBMISSION_CREATED: 'SUBMISSION_CREATED',
   SUBMISSION_REVIEWED: 'SUBMISSION_REVIEWED',
@@ -31,7 +32,7 @@ const AUDIT_EVENT_TYPES = Object.freeze({
   AUDIT_LOGS_PURGED: 'AUDIT_LOGS_PURGED'
 });
 
-const SENSITIVE_KEY_PATTERN = /(password|passwordHash|token|resetToken|resetTokenHash|secret|authorization|cookie|jwt|session)/i;
+const SENSITIVE_KEY_PATTERN = /(password|token|secret|authorization|cookie|jwt|session|api[_-]?key|voyage|smtp|credential)/i;
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 100;
@@ -83,7 +84,9 @@ function buildAuditContextFromRequest(req = {}) {
     actorId: normalizeNullableInteger(req.user?.id),
     actorRole: normalizeNullableString(req.user?.role),
     actorEmail: normalizeNullableString(req.user?.email),
-    ipAddress: normalizeNullableString(req.ip || req.headers?.['x-forwarded-for']),
+    // req.ip is Express's proxy-aware canonical address. Never persist a raw
+    // forwarding header as a fallback: direct clients can supply one.
+    ipAddress: normalizeNullableString(req.ip),
     userAgent: normalizeNullableString(req.get?.('user-agent') || req.headers?.['user-agent']),
     requestId: normalizeNullableString(req.get?.('x-request-id') || req.headers?.['x-request-id'])
   };

@@ -194,9 +194,17 @@ describe('adminUser.service', () => {
     expect(user).not.toHaveProperty('resetTokenHash');
   });
 
-  test('updates another user status and emits USER_STATUS_CHANGED audit event', async () => {
+  test('suspension invalidates sessions and recovery credentials before emitting USER_STATUS_CHANGED', async () => {
     const audit = { createAuditLogSafely: jest.fn().mockResolvedValue(null) };
-    const prisma = createPrismaMock();
+    const suspendableUser = {
+      ...lecturerUser,
+      credentialVersion: 7,
+      resetTokenHash: 'pending-reset-token-hash',
+      resetTokenExpiresAt: new Date('2026-08-30T10:00:00.000Z'),
+      invitationTokenHash: 'pending-invitation-token-hash',
+      invitationExpiresAt: new Date('2026-08-30T10:00:00.000Z')
+    };
+    const prisma = createPrismaMock({ users: [adminUser, suspendableUser] });
     const service = createAdminUserService({ prismaClient: prisma, audit });
 
     const updated = await service.updateUserStatus({
@@ -213,7 +221,14 @@ describe('adminUser.service', () => {
 
     expect(prisma.user.update).toHaveBeenCalledWith({
       where: { id: 2 },
-      data: { status: 'SUSPENDED' },
+      data: {
+        status: 'SUSPENDED',
+        credentialVersion: { increment: 1 },
+        resetTokenHash: null,
+        resetTokenExpiresAt: null,
+        invitationTokenHash: null,
+        invitationExpiresAt: null
+      },
       select: {
         id: true,
         name: true,
@@ -248,8 +263,47 @@ describe('adminUser.service', () => {
         newStatus: 'SUSPENDED',
         targetUserId: 2,
         targetUserRole: 'LECTURER',
-        targetUserEmail: 'lecturer.demo@uniosun.edu.ng'
+        targetUserEmail: 'lecturer.demo@uniosun.edu.ng',
+        priorSessionsInvalidated: true,
+        recoveryCredentialsInvalidated: true
       }
+    }));
+  });
+
+  test('reactivation also bumps credentialVersion so an old session cannot become valid again', async () => {
+    const suspendedUser = {
+      ...lecturerUser,
+      status: 'SUSPENDED',
+      credentialVersion: 8,
+      resetTokenHash: null,
+      resetTokenExpiresAt: null,
+      invitationTokenHash: null,
+      invitationExpiresAt: null
+    };
+    const prisma = createPrismaMock({ users: [adminUser, suspendedUser] });
+    const audit = { createAuditLogSafely: jest.fn().mockResolvedValue(null) };
+    const service = createAdminUserService({ prismaClient: prisma, audit });
+
+    await service.updateUserStatus({
+      id: 2,
+      status: 'active',
+      actor: { id: 1, role: 'admin' }
+    });
+
+    expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 2 },
+      data: {
+        status: 'ACTIVE',
+        credentialVersion: { increment: 1 }
+      }
+    }));
+    expect(audit.createAuditLogSafely).toHaveBeenCalledWith(expect.objectContaining({
+      metadata: expect.objectContaining({
+        oldStatus: 'SUSPENDED',
+        newStatus: 'ACTIVE',
+        priorSessionsInvalidated: true,
+        recoveryCredentialsInvalidated: false
+      })
     }));
   });
 

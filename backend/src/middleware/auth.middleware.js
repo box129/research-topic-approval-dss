@@ -12,8 +12,33 @@ function sendAuthError(res, error) {
 }
 
 async function authenticateRequest(req) {
+  if (req.user) {
+    return req.user;
+  }
+
   const token = req.cookies?.[config.auth.cookieName];
   req.user = await authService.authenticateToken(token);
+  return req.user;
+}
+
+// Resolve a valid session before the broad rate limiter without turning every
+// route into an authentication requirement. This lets normal authenticated
+// users behind a shared departmental NAT receive independent global limits.
+// Invalid/expired cookies deliberately fall back to an IP key; protected
+// routes still perform their normal authentication check and error response.
+async function optionallyAuthenticateRequest(req, res, next) {
+  const token = req.cookies?.[config.auth.cookieName];
+  if (!token) {
+    return next();
+  }
+
+  try {
+    await authenticateRequest(req);
+  } catch {
+    // Do not turn a stale session cookie into an error on public routes.
+  }
+
+  return next();
 }
 
 // Standard guard: authenticated, active, and not pending a forced password
@@ -78,6 +103,7 @@ function requireRole(...allowedRoles) {
 }
 
 module.exports = {
+  optionallyAuthenticateRequest,
   requireAuth,
   requireAuthAllowingPasswordChange,
   requireRole

@@ -2,18 +2,20 @@ const authService = require('../services/auth.service');
 const config = require('../config/env');
 
 function sendAuthError(res, error) {
-  return res.status(error.statusCode || 500).json({
+  const statusCode = error.statusCode || 500;
+  const isServerError = statusCode >= 500;
+  return res.status(statusCode).json({
     status: 'error',
-    message: error.message || 'Authentication failed.',
+    message: isServerError ? 'Authentication service is temporarily unavailable.' : (error.message || 'Authentication failed.'),
     details: {
-      error_code: error.code || 'AUTH_ERROR'
+      error_code: isServerError ? 'AUTH_SERVICE_UNAVAILABLE' : (error.code || 'AUTH_ERROR')
     }
   });
 }
 
 async function login(req, res) {
   try {
-    const result = await authService.login(req.body || {});
+    const result = await authService.login({ ...(req.body || {}), req });
 
     res.cookie(config.auth.cookieName, result.token, authService.getCookieOptions());
 
@@ -29,6 +31,13 @@ async function login(req, res) {
 }
 
 async function logout(req, res) {
+  try {
+    await authService.recordLogout?.({ user: req.user, req });
+  } catch {
+    // Logout must remain available even if best-effort audit persistence has
+    // an unexpected infrastructure failure.
+  }
+
   res.clearCookie(config.auth.cookieName, authService.getClearCookieOptions());
 
   return res.status(200).json({

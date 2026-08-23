@@ -2,6 +2,9 @@ const mockReadFile = jest.fn();
 const mockGetWorksheet = jest.fn();
 let mockWorksheets = [];
 
+// ExcelJS is installed in the test environment.  This must be a normal mock,
+// rather than a virtual mock, so Jest replaces a module that another test may
+// already have resolved during a full --runInBand suite.
 jest.mock('exceljs', () => ({
   Workbook: jest.fn().mockImplementation(() => ({
     xlsx: {
@@ -12,7 +15,7 @@ jest.mock('exceljs', () => ({
       return mockWorksheets;
     }
   }))
-}), { virtual: true });
+}));
 
 const topicImportService = require('./topicImport.service');
 

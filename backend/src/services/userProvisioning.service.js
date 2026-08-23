@@ -274,7 +274,12 @@ function createUserProvisioningService({
         mustChangePassword: true,
         credentialVersion: { increment: 1 },
         resetTokenHash: null,
-        resetTokenExpiresAt: null
+        resetTokenExpiresAt: null,
+        // A credential reset changes who should be able to establish the
+        // account password. Any previously emailed invitation must therefore
+        // be dead rather than remaining a second valid credential path.
+        invitationTokenHash: null,
+        invitationExpiresAt: null
       }
     });
 
@@ -371,7 +376,8 @@ function createUserProvisioningService({
     }, {});
 
     // A changed email changes the login identity itself, so sessions issued
-    // for the previous identity (and any pending reset token) stop working.
+    // for the previous identity (and any pending reset/invitation token) stop
+    // working. Otherwise the former mailbox holder could accept an old link.
     const emailChanged = changedFields.includes('email');
 
     let updated;
@@ -391,7 +397,9 @@ function createUserProvisioningService({
               ? {
                 credentialVersion: { increment: 1 },
                 resetTokenHash: null,
-                resetTokenExpiresAt: null
+                resetTokenExpiresAt: null,
+                invitationTokenHash: null,
+                invitationExpiresAt: null
               }
               : {})
           }

@@ -3,7 +3,9 @@
  * The provider is mocked; fixtures contain already-persisted document vectors.
  */
 const request = require('supertest');
+const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
+const config = require('../../src/config/env');
 
 jest.mock('../../src/config/logger', () => ({ info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() }));
 jest.mock('../../src/services/voyageEmbedding.service', () => {
@@ -20,7 +22,8 @@ const QUERY_VECTOR = Array.from({ length: 1024 }, () => 1);
 const DOCUMENT_VECTOR = Array.from({ length: 1024 }, () => 1);
 
 describe('POST /api/similarity/check - Voyage semantic-only integration', () => {
-  const created = { historical: [], current: [], review: [] };
+  const created = { historical: [], current: [], review: [], userId: null };
+  let sessionToken;
 
   const seed = async (model, bucket, data) => {
     const persisted = await prisma[model].create({ data: { ...data, ...documentMetadata(data, DOCUMENT_VECTOR) } });
@@ -28,6 +31,24 @@ describe('POST /api/similarity/check - Voyage semantic-only integration', () => 
   };
 
   beforeAll(async () => {
+    const user = await prisma.user.create({
+      data: {
+        name: 'C2 Integration Student',
+        email: `c2-integration-${process.pid}-${Date.now()}@example.test`,
+        passwordHash: 'not-used-by-token-authentication',
+        role: 'STUDENT',
+        status: 'ACTIVE',
+        mustChangePassword: false,
+        credentialVersion: 1
+      }
+    });
+    created.userId = user.id;
+    sessionToken = jwt.sign(
+      { sub: String(user.id), role: 'student', cv: user.credentialVersion },
+      config.auth.jwtSecret,
+      { expiresIn: '1h' }
+    );
+
     await seed('historicalTopic', 'historical', {
       title: 'Machine Learning Applications in Healthcare Diagnosis', keywords: 'legacy, keywords',
       sessionYear: 'C2-integration', supervisorName: 'C2 fixture', category: 'Computer Science',
@@ -55,11 +76,18 @@ describe('POST /api/similarity/check - Voyage semantic-only integration', () => 
     await prisma.underReviewTopic.deleteMany({ where: { id: { in: created.review } } });
     await prisma.currentSessionTopic.deleteMany({ where: { id: { in: created.current } } });
     await prisma.historicalTopic.deleteMany({ where: { id: { in: created.historical } } });
+    if (created.userId) {
+      await prisma.user.delete({ where: { id: created.userId } });
+    }
     await prisma.$disconnect();
   });
 
-  const successfulRequest = (topic, extra = {}) => request(app)
-    .post('/api/similarity/check').send({ topic, ...extra }).expect('Content-Type', /json/).expect(200);
+  const authenticatedRequest = () => request(app)
+    .post('/api/similarity/check')
+    .set('Cookie', `${config.auth.cookieName}=${sessionToken}`);
+
+  const successfulRequest = (topic, extra = {}) => authenticatedRequest()
+    .send({ topic, ...extra }).expect('Content-Type', /json/).expect(200);
 
   test('returns the semantic-only success envelope with persisted matches from all searchable models', async () => {
     const response = await successfulRequest('Machine Learning Applications in Healthcare Diagnosis');
@@ -97,7 +125,7 @@ describe('POST /api/similarity/check - Voyage semantic-only integration', () => 
 
   test('returns explicit semantic_unavailable for a missing Voyage configuration', async () => {
     voyage.embedQuery.mockRejectedValueOnce(new VoyageProviderError('Voyage semantic analysis is not configured.'));
-    const response = await request(app).post('/api/similarity/check').send({ topic: 'Configuration failure fixture' }).expect(503);
+    const response = await authenticatedRequest().send({ topic: 'Configuration failure fixture' }).expect(503);
     expect(response.body).toEqual(expect.objectContaining({ status: 'semantic_unavailable', semanticAvailable: false, semanticProvider: 'voyage', semanticModel: 'voyage-4-large', message: 'Semantic analysis is currently unavailable.' }));
     expect(response.body).not.toHaveProperty('results');
     expect(response.body).not.toHaveProperty('algorithmStatus');
@@ -106,7 +134,7 @@ describe('POST /api/similarity/check - Voyage semantic-only integration', () => 
   test.each([[429, 'rate limited'], [504, 'provider timeout'], [502, 'malformed provider response']])(
     'returns semantic_unavailable for controlled Voyage provider failure %i', async (status, message) => {
       voyage.embedQuery.mockRejectedValueOnce(new VoyageProviderError(message, status));
-      const response = await request(app).post('/api/similarity/check').send({ topic: 'Provider failure fixture' }).expect(503);
+      const response = await authenticatedRequest().send({ topic: 'Provider failure fixture' }).expect(503);
       expect(response.body).toMatchObject({ status: 'semantic_unavailable', semanticAvailable: false, semanticProvider: 'voyage', semanticModel: 'voyage-4-large' });
       expect(response.body).not.toHaveProperty('error');
     }
@@ -145,22 +173,22 @@ describe('POST /api/similarity/check - Voyage semantic-only integration', () => 
     [{ topic: '   ' }, 'whitespace topic'],
     [{ topic: null }, 'null topic']
   ])('returns 400 for %s', async (body) => {
-    const response = await request(app).post('/api/similarity/check').send(body).expect(400);
+    const response = await authenticatedRequest().send(body).expect(400);
     expect(response.body).toMatchObject({ status: 'error', details: { field: 'topic', error_code: 'MISSING_FIELD' } });
   });
 
   test('returns the generic error envelope for malformed JSON', async () => {
-    const response = await request(app).post('/api/similarity/check').set('Content-Type', 'application/json').send('{"topic": invalid json}').expect(400);
+    const response = await authenticatedRequest().set('Content-Type', 'application/json').send('{"topic": invalid json}').expect(400);
     expect(response.body).toMatchObject({ status: 'error', message: 'Invalid request format.', details: { error_code: 'INVALID_FORMAT' } });
   });
 
   test('accepts application/json content type', async () => {
-    const response = await request(app).post('/api/similarity/check').set('Content-Type', 'application/json').send({ topic: 'Data Mining Techniques for Business Intelligence Applications' }).expect(200);
+    const response = await authenticatedRequest().set('Content-Type', 'application/json').send({ topic: 'Data Mining Techniques for Business Intelligence Applications' }).expect(200);
     expect(response.body.semanticAvailable).toBe(true);
   });
 
   test('rejects a non-JSON similarity request without processing it', async () => {
-    const response = await request(app).post('/api/similarity/check').set('Content-Type', 'text/plain').send('topic=test').expect(400);
+    const response = await authenticatedRequest().set('Content-Type', 'text/plain').send('topic=test').expect(400);
     expect(response.body).toMatchObject({ status: 'error', details: { field: 'topic', error_code: 'MISSING_FIELD' } });
     expect(voyage.embedQuery).not.toHaveBeenCalled();
   });

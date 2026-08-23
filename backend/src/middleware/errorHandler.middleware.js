@@ -55,6 +55,16 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
+  if (err.type === 'entity.too.large' || err.status === 413 || err.statusCode === 413) {
+    return res.status(413).json({
+      status: 'error',
+      message: 'Request body is too large.',
+      details: {
+        error_code: 'PAYLOAD_TOO_LARGE'
+      }
+    });
+  }
+
   if (err.message === 'Database connection failed') {
     return res.status(500).json({
       status: 'error',

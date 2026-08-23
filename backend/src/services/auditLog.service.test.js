@@ -1,5 +1,6 @@
 const {
   AUDIT_EVENT_TYPES,
+  buildAuditContextFromRequest,
   createAuditLogService,
   redactMetadata
 } = require('./auditLog.service');
@@ -106,6 +107,36 @@ describe('auditLog.service', () => {
         acceptedRows: 4
       }
     });
+  });
+
+  test('uses Express canonical req.ip rather than a client-supplied forwarding header', () => {
+    const context = buildAuditContextFromRequest({
+      user: { id: 7, role: 'admin', email: 'admin@example.edu' },
+      ip: '203.0.113.55',
+      headers: {
+        'x-forwarded-for': '198.51.100.99, 198.51.100.98',
+        'user-agent': 'fallback-agent',
+        'x-request-id': 'fallback-request-id'
+      },
+      get: jest.fn((name) => {
+        if (name === 'user-agent') return 'trusted-agent';
+        if (name === 'x-request-id') return 'trusted-request-id';
+        return undefined;
+      })
+    });
+
+    expect(context).toEqual({
+      actorId: 7,
+      actorRole: 'admin',
+      actorEmail: 'admin@example.edu',
+      ipAddress: '203.0.113.55',
+      userAgent: 'trusted-agent',
+      requestId: 'trusted-request-id'
+    });
+
+    expect(buildAuditContextFromRequest({
+      headers: { 'x-forwarded-for': '198.51.100.99' }
+    }).ipAddress).toBeNull();
   });
 
   test('safe audit creation logs and continues when persistence fails', async () => {

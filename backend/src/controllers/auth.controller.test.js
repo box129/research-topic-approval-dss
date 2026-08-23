@@ -64,6 +64,22 @@ describe('Auth API routes', () => {
     expect(response.headers['set-cookie'][0]).toContain('SameSite=Lax');
   });
 
+  test('does not expose an unexpected authentication service error', async () => {
+    authService.login.mockRejectedValue(new Error('database password or internal host detail'));
+
+    const response = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: 'student@example.test', password: 'ExamplePass123' })
+      .expect(500);
+
+    expect(response.body).toEqual({
+      status: 'error',
+      message: 'Authentication service is temporarily unavailable.',
+      details: { error_code: 'AUTH_SERVICE_UNAVAILABLE' }
+    });
+    expect(JSON.stringify(response.body)).not.toMatch(/password|internal host/i);
+  });
+
   test('POST /api/v1/auth/logout clears the session cookie', async () => {
     const response = await request(app)
       .post('/api/v1/auth/logout')

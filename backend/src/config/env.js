@@ -1,5 +1,7 @@
 require('dotenv').config();
 
+const { isIP } = require('net');
+
 function envValue(source, key) {
   const value = source[key];
   if (value === undefined || value === null) {
@@ -16,6 +18,94 @@ function envValue(source, key) {
 
 function effectiveCorsOrigin(source) {
   return envValue(source, 'FRONTEND_URL') || envValue(source, 'CORS_ORIGIN');
+}
+
+function normalizeOrigin(value, key) {
+  const normalized = envValue({ [key]: value }, key);
+  if (normalized === undefined) {
+    return undefined;
+  }
+
+  if (normalized === '*') {
+    // This application uses cookie sessions. A wildcard cannot safely be
+    // combined with credentialed browser requests, and the CORS middleware
+    // intentionally never reflects hostile origins. Reject it consistently
+    // instead of accepting a configuration that cannot work as intended.
+    throw new Error(`${key} must not be wildcard (*); configure one explicit http(s) origin.`);
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(normalized);
+  } catch {
+    throw new Error(`${key} must be a valid absolute URL.`);
+  }
+
+  if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password || parsed.pathname !== '/' || parsed.search || parsed.hash) {
+    throw new Error(`${key} must be an http(s) origin without a path, query, fragment, or credentials.`);
+  }
+
+  return parsed.origin;
+}
+
+function isValidIpOrCidr(value) {
+  const parts = String(value).split('/');
+  if (parts.length > 2) {
+    return false;
+  }
+
+  const [address, prefixLength] = parts;
+  const version = isIP(address);
+  if (!version) {
+    return false;
+  }
+
+  if (prefixLength === undefined) {
+    return true;
+  }
+
+  if (!/^\d+$/.test(prefixLength)) {
+    return false;
+  }
+
+  const prefix = Number.parseInt(prefixLength, 10);
+  return prefix >= 0 && prefix <= (version === 4 ? 32 : 128);
+}
+
+function parseTrustProxy(value) {
+  const normalized = envValue({ TRUST_PROXY: value }, 'TRUST_PROXY');
+  if (normalized === undefined || normalized.toLowerCase() === 'false' || normalized === '0') {
+    return false;
+  }
+
+  const lowered = normalized.toLowerCase();
+  if (lowered === 'true' || normalized === '*') {
+    throw new Error('TRUST_PROXY must not be true or *. Use a specific proxy hop count, named subnet, IP address, or CIDR range.');
+  }
+
+  if (/^\d+$/.test(normalized)) {
+    const hops = Number.parseInt(normalized, 10);
+    if (hops > 10) {
+      throw new Error('TRUST_PROXY hop count must be between 0 and 10.');
+    }
+    return hops;
+  }
+
+  const namedSubnets = new Set(['loopback', 'linklocal', 'uniquelocal']);
+  const entries = normalized.split(',').map((entry) => entry.trim()).filter(Boolean);
+  if (!entries.length || !entries.every((entry) => namedSubnets.has(entry.toLowerCase()) || isValidIpOrCidr(entry))) {
+    throw new Error('TRUST_PROXY must be false, a hop count, loopback/linklocal/uniquelocal, or a comma-separated list of IP/CIDR ranges.');
+  }
+
+  // proxy-addr accepts these named subnets only in lowercase. Validation is
+  // deliberately case-insensitive for operators, so canonicalize before
+  // handing the values to Express rather than allowing a valid-looking
+  // deployment setting to fail during app initialization.
+  const canonicalEntries = entries.map((entry) => (
+    namedSubnets.has(entry.toLowerCase()) ? entry.toLowerCase() : entry
+  ));
+
+  return canonicalEntries.length === 1 ? canonicalEntries[0] : canonicalEntries;
 }
 
 function parseBooleanEnv(value, key) {
@@ -64,6 +154,14 @@ function parseBoundedPositiveInteger(value, key, { defaultValue, min = 1, max })
   return finalValue;
 }
 
+function parseSecurityLimit(source, key, defaultValue, { min = 1, max = 1000000 } = {}) {
+  return parseBoundedPositiveInteger(source[key], key, {
+    defaultValue,
+    min,
+    max
+  });
+}
+
 /**
  * Validate required environment variables
  */
@@ -93,6 +191,10 @@ function validateEnv(source = process.env) {
     const jwtSecret = envValue(source, 'JWT_SECRET') || '';
     const unsafeJwtSecrets = new Set([
       'local-dev-auth-secret-change-before-production',
+      'local-compose-jwt-secret-change-before-any-shared-environment',
+      'replace_with_a_long_random_secret_for_shared_or_staging_use',
+      'local-ci-only-secret-not-for-production',
+      'local-development-secret',
       'replace_with_a_long_random_secret_before_production',
       'production-secret'
     ]);
@@ -101,11 +203,50 @@ function validateEnv(source = process.env) {
       throw new Error('JWT_SECRET must be a strong production secret with at least 32 characters.');
     }
 
-    const corsOrigin = effectiveCorsOrigin(source) || '';
-    if (!corsOrigin || corsOrigin === '*') {
+    const corsOrigin = normalizeOrigin(effectiveCorsOrigin(source), 'FRONTEND_URL or CORS_ORIGIN') || '';
+    if (!corsOrigin) {
       throw new Error('Production CORS origin must be an explicit trusted origin.');
     }
+
+    if (!corsOrigin.startsWith('https://')) {
+      throw new Error('Production CORS origin must use https://.');
+    }
   }
+
+  // Parse early so invalid proxy topology is rejected at startup rather than
+  // silently trusting spoofable forwarding headers at runtime.
+  parseTrustProxy(source.TRUST_PROXY);
+
+  const configuredOrigin = effectiveCorsOrigin(source);
+  if (configuredOrigin) {
+    normalizeOrigin(configuredOrigin, 'FRONTEND_URL or CORS_ORIGIN');
+  }
+
+  parseSecurityLimit(source, 'RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000, { min: 1000, max: 24 * 60 * 60 * 1000 });
+  parseSecurityLimit(source, 'RATE_LIMIT_MAX', 10000, { min: 10 });
+  parseSecurityLimit(source, 'AUTH_RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000, { min: 1000, max: 24 * 60 * 60 * 1000 });
+  parseSecurityLimit(source, 'SIMILARITY_RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000, { min: 1000, max: 24 * 60 * 60 * 1000 });
+  parseSecurityLimit(source, 'SIMILARITY_RATE_LIMIT_MAX', 30, { min: 1, max: 10000 });
+  parseSecurityLimit(source, 'LOGIN_RATE_LIMIT_MAX', 30, { min: 1, max: 10000 });
+  parseSecurityLimit(source, 'LOGIN_IDENTIFIER_RATE_LIMIT_MAX', 8, { min: 1, max: 10000 });
+  parseSecurityLimit(source, 'FORGOT_PASSWORD_RATE_LIMIT_MAX', 15, { min: 1, max: 10000 });
+  parseSecurityLimit(source, 'INVITATION_VALIDATION_RATE_LIMIT_MAX', 30, { min: 1, max: 10000 });
+  parseSecurityLimit(source, 'INVITATION_ACCEPTANCE_RATE_LIMIT_MAX', 10, { min: 1, max: 10000 });
+  parseSecurityLimit(source, 'RESET_PASSWORD_RATE_LIMIT_MAX', 10, { min: 1, max: 10000 });
+  parseSecurityLimit(source, 'ADMIN_ACCOUNT_ACTION_RATE_LIMIT_MAX', 30, { min: 1, max: 10000 });
+  parseSecurityLimit(source, 'ADMIN_BULK_INVITATION_RATE_LIMIT_MAX', 10, { min: 1, max: 10000 });
+  parseSecurityLimit(source, 'ADMIN_TOPIC_IMPORT_RATE_LIMIT_MAX', 5, { min: 1, max: 10000 });
+  parseSecurityLimit(source, 'JSON_BODY_LIMIT_BYTES', 100 * 1024, { min: 1024, max: 5 * 1024 * 1024 });
+  parseSecurityLimit(source, 'IMPORT_UPLOAD_LIMIT_BYTES', 5 * 1024 * 1024, { min: 1024, max: 50 * 1024 * 1024 });
+  const importUploadMaxFields = parseSecurityLimit(source, 'IMPORT_UPLOAD_MAX_FIELDS', 10, { min: 1, max: 100 });
+  const importUploadMaxParts = parseSecurityLimit(source, 'IMPORT_UPLOAD_MAX_PARTS', 12, { min: 2, max: 200 });
+  if (importUploadMaxParts < importUploadMaxFields + 1) {
+    throw new Error('IMPORT_UPLOAD_MAX_PARTS must allow the configured fields plus one file part.');
+  }
+  parseSecurityLimit(source, 'IMPORT_UPLOAD_FIELD_SIZE_BYTES', 16 * 1024, { min: 1024, max: 1024 * 1024 });
+  parseSecurityLimit(source, 'RATE_LIMIT_IPV6_SUBNET_PREFIX', 56, { min: 32, max: 64 });
+  parseSecurityLimit(source, 'VOYAGE_REQUEST_TIMEOUT_MS', 10000, { min: 1000, max: 60000 });
+  parseSecurityLimit(source, 'VOYAGE_READINESS_PROBE_CACHE_MS', 5 * 60 * 1000, { min: 10000, max: 60 * 60 * 1000 });
 
   const emailProvider = (source.EMAIL_PROVIDER || '').trim().toLowerCase();
   const allowedEmailProviders = new Set(['', 'mock', 'disabled', 'smtp']);
@@ -177,7 +318,27 @@ function validateEnv(source = process.env) {
 function buildConfig(source = process.env) {
   validateEnv(source);
 
-  const browserOrigin = effectiveCorsOrigin(source) || 'http://localhost:5173';
+  const browserOrigin = normalizeOrigin(effectiveCorsOrigin(source), 'FRONTEND_URL or CORS_ORIGIN') || 'http://localhost:5173';
+  const generalRateLimitWindowMs = parseSecurityLimit(source, 'RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000, {
+    min: 1000,
+    max: 24 * 60 * 60 * 1000
+  });
+  const authRateLimitWindowMs = parseSecurityLimit(source, 'AUTH_RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000, {
+    min: 1000,
+    max: 24 * 60 * 60 * 1000
+  });
+  const similarityRateLimitWindowMs = parseSecurityLimit(source, 'SIMILARITY_RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000, {
+    min: 1000,
+    max: 24 * 60 * 60 * 1000
+  });
+  const importUploadMaxFields = parseSecurityLimit(source, 'IMPORT_UPLOAD_MAX_FIELDS', 10, {
+    min: 1,
+    max: 100
+  });
+  const importUploadMaxParts = parseSecurityLimit(source, 'IMPORT_UPLOAD_MAX_PARTS', 12, {
+    min: 2,
+    max: 200
+  });
 
   return {
     // Application environment
@@ -201,16 +362,72 @@ function buildConfig(source = process.env) {
       retryAttempts: parseInt(source.SBERT_RETRY_ATTEMPTS, 10) || 3
     },
 
-    // Rate limiting configuration
+    // Reverse-proxy topology. Disabled by default so direct clients cannot
+    // forge X-Forwarded-For and influence client identity/rate-limit keys.
+    trustProxy: parseTrustProxy(source.TRUST_PROXY),
+
+    // Rate limiting configuration. The broad limiter deliberately has a high
+    // default for a shared departmental NAT; sensitive endpoints are governed
+    // by the dedicated limits below.
     rateLimit: {
-      windowMs: parseInt(source.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000, // 15 minutes
-      max: parseInt(source.RATE_LIMIT_MAX, 10) || 100 // limit each IP to 100 requests per windowMs
+      windowMs: generalRateLimitWindowMs,
+      max: parseSecurityLimit(source, 'RATE_LIMIT_MAX', 10000, { min: 10 }),
+      authWindowMs: authRateLimitWindowMs,
+      similarityWindowMs: similarityRateLimitWindowMs,
+      loginMax: parseSecurityLimit(source, 'LOGIN_RATE_LIMIT_MAX', 30, { min: 1, max: 10000 }),
+      loginIdentifierMax: parseSecurityLimit(source, 'LOGIN_IDENTIFIER_RATE_LIMIT_MAX', 8, { min: 1, max: 10000 }),
+      forgotPasswordMax: parseSecurityLimit(source, 'FORGOT_PASSWORD_RATE_LIMIT_MAX', 15, { min: 1, max: 10000 }),
+      invitationValidationMax: parseSecurityLimit(source, 'INVITATION_VALIDATION_RATE_LIMIT_MAX', 30, { min: 1, max: 10000 }),
+      invitationAcceptanceMax: parseSecurityLimit(source, 'INVITATION_ACCEPTANCE_RATE_LIMIT_MAX', 10, { min: 1, max: 10000 }),
+      resetPasswordMax: parseSecurityLimit(source, 'RESET_PASSWORD_RATE_LIMIT_MAX', 10, { min: 1, max: 10000 }),
+      similarityMax: parseSecurityLimit(source, 'SIMILARITY_RATE_LIMIT_MAX', 30, { min: 1, max: 10000 }),
+      adminAccountActionMax: parseSecurityLimit(source, 'ADMIN_ACCOUNT_ACTION_RATE_LIMIT_MAX', 30, { min: 1, max: 10000 }),
+      adminBulkInvitationMax: parseSecurityLimit(source, 'ADMIN_BULK_INVITATION_RATE_LIMIT_MAX', 10, { min: 1, max: 10000 }),
+      adminTopicImportMax: parseSecurityLimit(source, 'ADMIN_TOPIC_IMPORT_RATE_LIMIT_MAX', 5, { min: 1, max: 10000 }),
+      ipv6SubnetPrefix: parseSecurityLimit(source, 'RATE_LIMIT_IPV6_SUBNET_PREFIX', 56, { min: 32, max: 64 })
+    },
+
+    requestLimits: {
+      jsonBodyBytes: parseSecurityLimit(source, 'JSON_BODY_LIMIT_BYTES', 100 * 1024, {
+        min: 1024,
+        max: 5 * 1024 * 1024
+      }),
+      importUploadBytes: parseSecurityLimit(source, 'IMPORT_UPLOAD_LIMIT_BYTES', 5 * 1024 * 1024, {
+        min: 1024,
+        max: 50 * 1024 * 1024
+      }),
+      importUploadMaxFields,
+      importUploadMaxParts,
+      importUploadFieldSizeBytes: parseSecurityLimit(source, 'IMPORT_UPLOAD_FIELD_SIZE_BYTES', 16 * 1024, {
+        min: 1024,
+        max: 1024 * 1024
+      })
     },
 
     // CORS configuration
     cors: {
       origin: browserOrigin,
+      allowedOrigins: [browserOrigin],
       credentials: source.CORS_CREDENTIALS !== 'false'
+    },
+
+    csrf: {
+      // Browsers send Origin for SPA mutations. In production, missing
+      // Origin/Referer is rejected when a session cookie is present; local
+      // non-browser tooling can continue to operate outside production.
+      requireOrigin: source.NODE_ENV === 'production',
+      allowedOrigins: [browserOrigin]
+    },
+
+    voyage: {
+      requestTimeoutMs: parseSecurityLimit(source, 'VOYAGE_REQUEST_TIMEOUT_MS', 10000, {
+        min: 1000,
+        max: 60000
+      }),
+      readinessProbeCacheMs: parseSecurityLimit(source, 'VOYAGE_READINESS_PROBE_CACHE_MS', 5 * 60 * 1000, {
+        min: 10000,
+        max: 60 * 60 * 1000
+      })
     },
 
     // Auth configuration
@@ -290,6 +507,8 @@ Object.defineProperties(module.exports, {
   buildConfig: { value: buildConfig },
   parseBooleanEnv: { value: parseBooleanEnv },
   parseBoundedPositiveInteger: { value: parseBoundedPositiveInteger },
+  parseTrustProxy: { value: parseTrustProxy },
+  normalizeOrigin: { value: normalizeOrigin },
   validateEnv: { value: validateEnv },
   effectiveCorsOrigin: { value: effectiveCorsOrigin }
 });

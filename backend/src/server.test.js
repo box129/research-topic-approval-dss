@@ -1,5 +1,6 @@
 const request = require('supertest');
 const app = require('./server');
+const config = require('./config/env');
 
 describe('Server Integration Tests', () => {
   describe('Health Check Endpoint', () => {
@@ -25,6 +26,8 @@ describe('Server Integration Tests', () => {
       expect(response.headers).toHaveProperty('x-frame-options');
       expect(response.headers).toHaveProperty('x-content-type-options');
       expect(response.headers).toHaveProperty('x-download-options');
+      expect(response.headers['x-frame-options']).toBe('DENY');
+      expect(response.headers['referrer-policy']).toBe('no-referrer');
     });
   });
 
@@ -35,15 +38,31 @@ describe('Server Integration Tests', () => {
         .set('Origin', 'http://localhost:5173');
 
       expect(response.headers).toHaveProperty('access-control-allow-origin');
+      expect(response.headers['access-control-allow-origin']).toBe('http://localhost:5173');
+      expect(response.headers['access-control-allow-credentials']).toBe('true');
     });
 
     test('should handle OPTIONS preflight request', async () => {
       const response = await request(app)
         .options('/health')
         .set('Origin', 'http://localhost:5173')
-        .set('Access-Control-Request-Method', 'GET');
+        .set('Access-Control-Request-Method', 'POST')
+        .set('Access-Control-Request-Headers', 'Content-Type');
 
       expect(response.status).toBeLessThan(300);
+      expect(response.headers['access-control-allow-origin']).toBe('http://localhost:5173');
+      expect(response.headers['access-control-allow-credentials']).toBe('true');
+      expect(response.headers['access-control-allow-methods']).toContain('POST');
+      expect(response.headers['access-control-allow-headers']).toMatch(/content-type/i);
+    });
+
+    test('does not grant a hostile browser origin CORS access', async () => {
+      const response = await request(app)
+        .get('/health')
+        .set('Origin', 'https://attacker.example');
+
+      expect(response.status).toBe(200);
+      expect(response.headers['access-control-allow-origin']).toBeUndefined();
     });
   });
 
@@ -205,30 +224,30 @@ describe('Server Integration Tests', () => {
       });
     });
 
-    test('should keep similarity endpoint available after submission route wiring', async () => {
+    test('should deny anonymous callers on the legacy similarity route', async () => {
       const response = await request(app)
         .post('/api/similarity/check')
         .send({})
-        .expect(400);
+        .expect(401);
 
       expect(response.body).toMatchObject({
         status: 'error',
         details: {
-          error_code: 'MISSING_FIELD'
+          error_code: 'AUTHENTICATION_REQUIRED'
         }
       });
     });
 
-    test('should keep v1 similarity endpoint available after lecturer queue route wiring', async () => {
+    test('should deny anonymous callers on the v1 similarity route', async () => {
       const response = await request(app)
         .post('/api/v1/check-similarity')
         .send({})
-        .expect(400);
+        .expect(401);
 
       expect(response.body).toMatchObject({
         status: 'error',
         details: {
-          error_code: 'MISSING_FIELD'
+          error_code: 'AUTHENTICATION_REQUIRED'
         }
       });
     });
@@ -311,29 +330,14 @@ describe('Server Configuration', () => {
   });
 });
 
-describe('Rate Limit Contract Reconciliation', () => {
-  test('should expose intended FYP_Selected rate-limit error response contract', async () => {
-    // Reconciliation spec based on authoritative FYP_Selected rate-limit docs.
-    // Rate-limit error_code is not documented, so this intentionally does not assert one.
-    let response;
+describe('Broad Rate Limit Contract', () => {
+  test('uses a high, truthful departmental ceiling rather than a stale fixed message', async () => {
+    const response = await request(app).get('/health').expect(200);
 
-    for (let i = 0; i < 120; i++) {
-      response = await request(app).get('/health');
-
-      if (response.status === 429) {
-        break;
-      }
-    }
-
-    expect(response.status).toBe(429);
-    expect(response.body).toHaveProperty('status', 'error');
-    expect(response.body).toHaveProperty(
-      'message',
-      'Rate limit exceeded. Please try again in 5 minutes.'
-    );
-    expect(response.body).toHaveProperty('details');
-    expect(response.body.details).toHaveProperty('retry_after', 300);
-    expect(response.body.details).toHaveProperty('limit', '100 requests per hour');
-    expect(response.headers).toHaveProperty('retry-after', '300');
-  }, 15000);
+    // The checked-in local environment may deliberately override the broad
+    // ceiling. The response must accurately advertise the configured value;
+    // sensitive routes have their own lower, identity-aware limits.
+    expect(Number(response.headers['x-ratelimit-limit'])).toBe(config.rateLimit.max);
+    expect(response.headers).toHaveProperty('ratelimit');
+  });
 });
