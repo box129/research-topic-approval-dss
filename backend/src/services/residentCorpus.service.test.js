@@ -37,4 +37,38 @@ describe('ResidentCorpus', () => {
     expect(eligibleBefore).toEqual(['HISTORICAL:1', 'CURRENT_SESSION:2', 'UNDER_REVIEW:3']);
     expect(eligibleAfter).toEqual(eligibleBefore);
   });
+
+  test('stats reports truthful diagnostic state before and after build without topic content', async () => {
+    const log = { info: jest.fn(), error: jest.fn() };
+    const corpus = new ResidentCorpus(client({ historical: [{ id: 1, title: 'Sensitive Topic Title', embedding: vector(.1), embeddingSourceHash: 'current' }] }), log);
+
+    expect(corpus.stats()).toEqual({ built: false, topics: null, searchable: null, builtAt: null, lastRefreshError: null });
+
+    await corpus.refresh();
+    const stats = corpus.stats();
+    expect(stats).toMatchObject({ built: true, topics: 1, searchable: 1, lastRefreshError: null });
+    expect(typeof stats.builtAt).toBe('string');
+    expect(JSON.stringify(stats)).not.toContain('Sensitive Topic Title');
+  });
+
+  test('refresh failures log one state-change event per outage and one recovery event', async () => {
+    const log = { info: jest.fn(), error: jest.fn() };
+    const db = client({ historical: [{ id: 1, embedding: vector(.1), embeddingSourceHash: 'current' }] });
+    const corpus = new ResidentCorpus(db, log);
+    await corpus.refresh();
+
+    db.historicalTopic.findMany.mockRejectedValue(new Error('database unavailable'));
+    await expect(corpus.refresh()).rejects.toThrow('database unavailable');
+    await expect(corpus.refresh()).rejects.toThrow('database unavailable');
+    // The identical continuing failure is not re-logged on every retry.
+    expect(log.error).toHaveBeenCalledTimes(1);
+    expect(log.error.mock.calls[0][0]).toMatch(/refresh failed/);
+    expect(corpus.stats().lastRefreshError).toBe('database unavailable');
+
+    db.historicalTopic.findMany.mockResolvedValue([{ id: 1, embedding: vector(.1), embeddingSourceHash: 'current' }]);
+    await corpus.refresh();
+    expect(log.info).toHaveBeenCalledTimes(1);
+    expect(log.info.mock.calls[0][0]).toMatch(/recovered/);
+    expect(corpus.stats().lastRefreshError).toBeNull();
+  });
 });

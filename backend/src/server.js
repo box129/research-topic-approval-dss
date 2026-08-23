@@ -10,7 +10,9 @@ const logger = require('./config/logger');
 const prisma = require('./config/database');
 const { createRateLimiters } = require('./middleware/rateLimit.middleware');
 const { createCsrfOriginGuard } = require('./middleware/csrf.middleware');
+const { createRequestContextMiddleware } = require('./middleware/requestContext.middleware');
 const { createServerLifecycle } = require('./runtime/serverLifecycle');
+const packageInfo = require('../package.json');
 // Lazy-load the similarity controller to avoid Prisma initialization blocking
 let similarityController;
 let topicImportController;
@@ -24,6 +26,7 @@ let adminUserController;
 let userBulkImportController;
 let userInvitationController;
 let adminSettingsController;
+let adminSystemStatusController;
 let adminReportsController;
 let lecturerResearchTrendsController;
 let notificationController;
@@ -128,6 +131,9 @@ const importUploadMiddleware = (req, res, next) => {
 // A false default avoids trusting arbitrary X-Forwarded-For values from direct
 // clients. Future hosting must set TRUST_PROXY to its precise known topology.
 app.set('trust proxy', config.trustProxy);
+// Correlation runs first so every response — including CORS/limiter/guard
+// rejections — carries an X-Request-Id and produces one completion log line.
+app.use(createRequestContextMiddleware());
 app.use(helmet({
   frameguard: { action: 'deny' },
   referrerPolicy: { policy: 'no-referrer' }
@@ -279,6 +285,13 @@ const getAdminReportsController = () => {
     adminReportsController = require('./controllers/adminReports.controller');
   }
   return adminReportsController;
+};
+
+const getAdminSystemStatusController = () => {
+  if (!adminSystemStatusController) {
+    adminSystemStatusController = require('./controllers/adminSystemStatus.controller');
+  }
+  return adminSystemStatusController;
 };
 
 const getLecturerResearchTrendsController = () => {
@@ -477,6 +490,12 @@ app.get('/api/v1/admin/settings', requireAuth, requireRole('admin'), (req, res, 
   getAdminSettingsController().listSettings(req, res, next);
 });
 
+// Admin-only operational diagnostics: component states, corpus stats, and
+// build identity. This is not a public debug endpoint.
+app.get('/api/v1/admin/system-status', requireAuth, requireRole('admin'), (req, res, next) => {
+  getAdminSystemStatusController().getSystemStatus(req, res, next);
+});
+
 app.get('/api/v1/admin/reports/summary', requireAuth, requireRole('admin'), (req, res, next) => {
   getAdminReportsController().getReportsSummary(req, res, next);
 });
@@ -559,6 +578,9 @@ function startServer({
     exit
   });
   const removeSignalHandlers = lifecycle.installSignalHandlers(processRef);
+  // Fatal-failure policy: uncaughtException/unhandledRejection log one
+  // redacted fatal event and terminate through a bounded shutdown.
+  const removeFatalHandlers = lifecycle.installFatalHandlers(processRef);
   let listening = false;
 
   server.on('listening', () => {
@@ -566,7 +588,10 @@ function startServer({
     log.info('Server is listening.', {
       port: runtimeConfig.port,
       environment: runtimeConfig.env,
-      apiVersion: runtimeConfig.apiVersion
+      apiVersion: runtimeConfig.apiVersion,
+      version: packageInfo.version,
+      buildId: process.env.BUILD_ID || null,
+      nodeVersion: process.version
     });
   });
 
@@ -578,6 +603,7 @@ function startServer({
 
     if (!listening) {
       removeSignalHandlers();
+      removeFatalHandlers();
       exit(1);
     }
   });
@@ -585,7 +611,8 @@ function startServer({
   return {
     server,
     shutdown: lifecycle.shutdown,
-    removeSignalHandlers
+    removeSignalHandlers,
+    removeFatalHandlers
   };
 }
 

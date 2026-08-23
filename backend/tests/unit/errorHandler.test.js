@@ -356,6 +356,9 @@ describe('Error Handler Middleware', () => {
         stack: error.stack,
         statusCode: 400,
         code: 'TEST_ERROR',
+        category: 'VALIDATION',
+        requestId: null,
+        userId: null,
         path: '/api/test',
         method: 'POST',
         ip: '127.0.0.1'

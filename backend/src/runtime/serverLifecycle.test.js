@@ -157,4 +157,56 @@ describe('server lifecycle', () => {
     expect(exit).toHaveBeenCalledTimes(1);
     expect(exit).toHaveBeenCalledWith(1);
   });
+
+  describe('fatal failure policy', () => {
+    function createFatalHarness() {
+      const { server, finishDrain } = createPendingServer();
+      const prisma = { $disconnect: jest.fn().mockResolvedValue(undefined) };
+      const log = createLog();
+      const exit = jest.fn();
+      const processRef = new EventEmitter();
+      const lifecycle = createServerLifecycle({ server, prisma, log, exit });
+      const removeFatalHandlers = lifecycle.installFatalHandlers(processRef);
+      return { server, finishDrain, prisma, log, exit, processRef, removeFatalHandlers };
+    }
+
+    test.each(['uncaughtException', 'unhandledRejection'])('%s logs one redacted fatal event and exits through bounded shutdown', async (kind) => {
+      const { finishDrain, prisma, log, exit, processRef } = createFatalHarness();
+
+      processRef.emit(kind, new Error('simulated fatal failure'));
+
+      const [message, entry] = log.error.mock.calls[0];
+      expect(message).toMatch(/Fatal uncaught failure/);
+      expect(entry).toMatchObject({ kind, error: 'simulated fatal failure' });
+
+      finishDrain();
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(prisma.$disconnect).toHaveBeenCalledTimes(1);
+      // Fatal failures never exit 0: the process state was untrusted.
+      expect(exit).toHaveBeenCalledWith(1);
+      expect(exit).toHaveBeenCalledTimes(1);
+    });
+
+    test('non-error rejection reasons are handled safely', async () => {
+      const { finishDrain, log, exit, processRef } = createFatalHarness();
+
+      processRef.emit('unhandledRejection', 'string-reason');
+
+      expect(log.error.mock.calls[0][1].error).toBe('string-reason');
+      finishDrain();
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(exit).toHaveBeenCalledWith(1);
+    });
+
+    test('handlers can be removed', () => {
+      const { log, processRef, removeFatalHandlers } = createFatalHarness();
+      removeFatalHandlers();
+      expect(processRef.listenerCount('uncaughtException')).toBe(0);
+      expect(processRef.listenerCount('unhandledRejection')).toBe(0);
+      expect(log.error).not.toHaveBeenCalled();
+    });
+  });
 });

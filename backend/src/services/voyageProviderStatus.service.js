@@ -71,6 +71,7 @@ function createVoyageProviderStatusService({
     }
 
     inFlightProbe = (async () => {
+      const previousStatus = state.status;
       try {
         // A single short query embedding verifies the real configured
         // credential/provider/model contract without touching departmental
@@ -100,9 +101,25 @@ function createVoyageProviderStatusService({
           lastFailureCode: failureCode,
           cached: false
         };
-        log.warn('Voyage readiness probe failed', { failureCode });
       } finally {
         inFlightProbe = null;
+      }
+
+      // State-change events only: a provider that stays down does not repeat
+      // a log line on every cache-window refresh, and recovery is visible.
+      if (state.status !== previousStatus) {
+        if (state.status === PROVIDER_STATUS.AVAILABLE) {
+          log.info('Voyage provider status changed', {
+            from: previousStatus,
+            to: state.status
+          });
+        } else {
+          log.warn('Voyage provider status changed', {
+            from: previousStatus,
+            to: state.status,
+            failureCode: state.lastFailureCode
+          });
+        }
       }
 
       return serializeState(state);

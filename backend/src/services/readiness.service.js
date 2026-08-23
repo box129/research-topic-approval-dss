@@ -1,7 +1,23 @@
 const prisma = require('../config/database');
+const logger = require('../config/logger');
 const voyageProviderStatus = require('./voyageProviderStatus.service');
 
 const DATABASE_READINESS_TIMEOUT_MS = 2000;
+
+// Database availability transitions are operational events: log once when
+// connectivity is lost and once when it recovers, not on every readiness poll.
+let lastDatabaseStatus = null;
+
+function noteDatabaseStatus(status) {
+  if (lastDatabaseStatus !== null && lastDatabaseStatus !== status) {
+    if (status === 'available') {
+      logger.info('Database connectivity recovered', { from: lastDatabaseStatus, to: status });
+    } else {
+      logger.error('Database connectivity lost', { from: lastDatabaseStatus, to: status });
+    }
+  }
+  lastDatabaseStatus = status;
+}
 
 function withTimeout(promise, timeoutMs, timeoutMessage) {
   let timeoutId;
@@ -23,11 +39,13 @@ async function checkDatabase() {
       DATABASE_READINESS_TIMEOUT_MS,
       'Database readiness check timed out.'
     );
+    noteDatabaseStatus('available');
     return {
       status: 'available',
       message: 'Database connectivity check succeeded.'
     };
   } catch (error) {
+    noteDatabaseStatus('unavailable');
     return {
       status: 'unavailable',
       message: 'Database connectivity check failed.'

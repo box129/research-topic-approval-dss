@@ -1,5 +1,9 @@
 const DEFAULT_SHUTDOWN_GRACE_PERIOD_MS = 300000;
 const FORCED_DISCONNECT_TIMEOUT_MS = 5000;
+// After an uncaught exception the process state is untrusted, so the fatal
+// path does not wait out the full administrative drain window: it attempts a
+// clean shutdown but guarantees exit within this short bound.
+const FATAL_EXIT_TIMEOUT_MS = 10000;
 
 function logSafely(log, level, message, metadata) {
   try {
@@ -75,6 +79,9 @@ function createServerLifecycle({
   let forceTimer = null;
   let hasExited = false;
   let forced = false;
+  // Set when shutdown was initiated by a fatal uncaught failure: even a clean
+  // drain must then exit non-zero, because the process state was untrusted.
+  let fatalMode = false;
 
   const disconnectPrisma = () => {
     if (!disconnectPromise) {
@@ -157,7 +164,7 @@ function createServerLifecycle({
       };
 
       const finish = async ({ exitCode }) => {
-        let finalExitCode = exitCode;
+        let finalExitCode = fatalMode ? 1 : exitCode;
         try {
           await disconnectPrisma();
         } catch {
@@ -237,15 +244,66 @@ function createServerLifecycle({
     };
   };
 
+  // Fatal-failure policy: an uncaughtException or unhandledRejection leaves
+  // the process in an unknown state, so it must not keep serving traffic.
+  // The handler logs one redacted fatal event (message/stack only — the log
+  // redaction layer strips credential-shaped fields), attempts the normal
+  // bounded shutdown for connection draining and Prisma cleanup, and arms a
+  // short failsafe timer so exit is guaranteed even if shutdown itself hangs.
+  const installFatalHandlers = (processRef = process, { fatalExitTimeoutMs = FATAL_EXIT_TIMEOUT_MS } = {}) => {
+    const handleFatal = (kind) => (errorOrReason) => {
+      const error = errorOrReason instanceof Error
+        ? errorOrReason
+        : new Error(String(errorOrReason ?? 'unknown fatal failure'));
+
+      fatalMode = true;
+      logSafely(log, 'error', 'Fatal uncaught failure; process will exit after bounded shutdown.', {
+        kind,
+        error: error.message,
+        stack: error.stack
+      });
+
+      const failsafe = setTimeoutImpl(() => {
+        forceCloseConnections();
+        exitOnce(1);
+      }, fatalExitTimeoutMs);
+      // Never let the failsafe timer itself keep the process alive.
+      failsafe.unref?.();
+
+      void Promise.resolve(shutdown(kind))
+        .then(() => {
+          clearTimeoutImpl(failsafe);
+          exitOnce(1);
+        })
+        .catch(() => {
+          clearTimeoutImpl(failsafe);
+          exitOnce(1);
+        });
+    };
+
+    const handleUncaught = handleFatal('uncaughtException');
+    const handleUnhandled = handleFatal('unhandledRejection');
+
+    processRef.on('uncaughtException', handleUncaught);
+    processRef.on('unhandledRejection', handleUnhandled);
+
+    return () => {
+      processRef.removeListener?.('uncaughtException', handleUncaught);
+      processRef.removeListener?.('unhandledRejection', handleUnhandled);
+    };
+  };
+
   return {
     shutdown,
-    installSignalHandlers
+    installSignalHandlers,
+    installFatalHandlers
   };
 }
 
 module.exports = {
   DEFAULT_SHUTDOWN_GRACE_PERIOD_MS,
   FORCED_DISCONNECT_TIMEOUT_MS,
+  FATAL_EXIT_TIMEOUT_MS,
   closeHttpServer,
   createServerLifecycle
 };

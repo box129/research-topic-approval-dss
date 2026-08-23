@@ -24,6 +24,64 @@ class AppError extends Error {
   }
 }
 
+// Internal operational taxonomy. Categories exist for logs/diagnosis only —
+// user-facing response contracts from previous phases stay exactly as they
+// are. An operator filtering production logs by category can immediately
+// separate a Voyage outage from a database or SMTP problem.
+const ERROR_CATEGORIES = Object.freeze({
+  AUTHENTICATION: 'AUTHENTICATION',
+  AUTHORIZATION: 'AUTHORIZATION',
+  VALIDATION: 'VALIDATION',
+  RATE_LIMIT: 'RATE_LIMIT',
+  DATABASE: 'DATABASE',
+  VOYAGE_PROVIDER: 'VOYAGE_PROVIDER',
+  SMTP_PROVIDER: 'SMTP_PROVIDER',
+  IMPORT: 'IMPORT',
+  CORPUS: 'CORPUS',
+  INTERNAL: 'INTERNAL'
+});
+
+function categorizeError(err) {
+  const name = String(err?.name || '');
+  const code = String(err?.code || '');
+  const statusCode = Number(err?.statusCode || err?.status || 0);
+  const message = String(err?.message || '');
+
+  if (name === 'VoyageProviderError' || /^SEMANTIC_PROVIDER/.test(code) || /^VOYAGE/.test(code)) {
+    return ERROR_CATEGORIES.VOYAGE_PROVIDER;
+  }
+  if (name === 'EmailServiceError' || /^EMAIL_/.test(code) || /^SMTP/i.test(code)) {
+    return ERROR_CATEGORIES.SMTP_PROVIDER;
+  }
+  if (name.startsWith('PrismaClient') || /^P\d{4}$/.test(code) || message === 'Database connection failed') {
+    return ERROR_CATEGORIES.DATABASE;
+  }
+  if (
+    name === 'UserBulkImportError'
+    || name === 'BulkImportStateChangedError'
+    || /IMPORT/.test(code)
+    || /^(MALFORMED_WORKBOOK|EMPTY_IMPORT|WORKSHEET_NOT_FOUND)$/.test(code)
+  ) {
+    return ERROR_CATEGORIES.IMPORT;
+  }
+  if (/corpus/i.test(message) || /CORPUS/.test(code)) {
+    return ERROR_CATEGORIES.CORPUS;
+  }
+  if (statusCode === 401 || /^(AUTHENTICATION_REQUIRED|INVALID_SESSION|INVALID_CREDENTIALS)$/.test(code)) {
+    return ERROR_CATEGORIES.AUTHENTICATION;
+  }
+  if (statusCode === 403 || code === 'FORBIDDEN') {
+    return ERROR_CATEGORIES.AUTHORIZATION;
+  }
+  if (statusCode === 429 || name === 'RateLimitError') {
+    return ERROR_CATEGORIES.RATE_LIMIT;
+  }
+  if ((statusCode >= 400 && statusCode < 500) || name === 'ValidationError') {
+    return ERROR_CATEGORIES.VALIDATION;
+  }
+  return ERROR_CATEGORIES.INTERNAL;
+}
+
 /**
  * Error handler middleware
  * @param {Error} err - Error object
@@ -41,12 +99,17 @@ const errorHandler = (err, req, res, next) => {
   let message = err.message || 'An unexpected error occurred';
   let details = null;
 
-  // Log error
+  // Log error with the internal operational category and request correlation
+  // ID. Stack traces stay in operator logs only; they never reach clients in
+  // production responses.
   logger.error('Error occurred:', {
     message: err.message,
     stack: err.stack,
     statusCode,
     code: errorCode,
+    category: categorizeError(err),
+    requestId: req.requestId || null,
+    userId: req.user?.id ?? null,
     path: req.path,
     method: req.method,
     ip: req.ip
@@ -179,5 +242,7 @@ const notFoundHandler = (req, res, next) => {
 module.exports = {
   errorHandler,
   notFoundHandler,
-  AppError
+  AppError,
+  categorizeError,
+  ERROR_CATEGORIES
 };
