@@ -1,86 +1,86 @@
-# HTTPS, Domain, and TLS Checklist
+# HTTPS, Domain, and Proxy Checklist
 
-## Status
+> **Current Phase 6 topology:** HTTPS edge -> frontend Nginx SPA and `/api`
+> proxy -> private backend. This is a deployment checklist, not evidence that a
+> domain, certificate, or target platform has already been configured.
 
-This checklist prepares public endpoint requirements. It does not configure a domain, DNS record, TLS certificate, reverse proxy, or public production deployment.
+## Domain and TLS ownership
 
-## Domain Ownership
+Record outside Git:
 
-Before production, record outside Git:
+- approved public domain/subdomain and DNS owner;
+- certificate issuer, renewal owner, and expiry monitoring path;
+- HTTPS edge/reverse-proxy owner and rollback/DNS plan;
+- approved target environment (staging or production), never a defence database.
 
-- approved domain name
-- DNS owner/team
-- hosting environment
-- TLS certificate owner
-- renewal process
-- rollback DNS plan
+Do not commit registrar credentials, TLS private keys, private addresses if
+policy forbids them, or screenshots containing secrets.
 
-Do not commit private domain registrar credentials or TLS private keys.
+## Required public behavior
 
-## HTTPS Requirements
+- HTTP redirects to HTTPS at the edge.
+- The certificate is valid for the one approved browser origin.
+- Nginx serves SPA files and sends `/api/*` only to the private backend.
+- SPA refresh works for `/login`, `/accept-invitation`, `/reset-password`, and
+  protected client routes; `/api/*` never falls through to `index.html`.
+- PostgreSQL and the backend have no direct public route.
+- The edge/Nginx platform permits request/proxy timeouts of at least 180
+  seconds, configured to 300 seconds, for the demonstrated 142-second bulk
+  administrative operation.
+- Container/orchestrator termination grace is at least 330 seconds so the
+  backend’s 300-second graceful drain can complete.
 
-- Public traffic must use HTTPS.
-- HTTP should redirect to HTTPS where supported.
-- TLS certificate must be valid for the production domain.
-- Certificate renewal must be monitored.
-- TLS private keys must be stored outside Git.
-- Backend production cookies depend on HTTPS because `secure` is enabled when `NODE_ENV=production`.
+## Cookie, CORS, CSRF, and proxy identity
 
-## Reverse Proxy Requirements
-
-The frontend uses relative `/api/v1` calls. Production hosting must ensure:
-
-- frontend origin is the same trusted origin configured in `FRONTEND_URL` or `CORS_ORIGIN`, or CORS is explicitly configured for the exact frontend origin
-- `/api/*` routes reach the backend API
-- backend is not exposed with wildcard CORS
-- request body and upload limits are compatible with topic import limits
-- proxy timeouts allow normal similarity checks and import previews
-- logs do not include secrets
-
-No Express `trust proxy` setting is currently configured. If a TLS-terminating reverse proxy requires proxy-aware IP/cookie behavior, document and test that separately before public production.
-
-## DNS Checklist
-
-- DNS record points to approved frontend/reverse proxy target.
-- No old public test records point to stale deployments.
-- TTL is appropriate for launch and rollback.
-- DNS changes are approved by the owner.
-- Internal-only services such as PostgreSQL and SBERT are not publicly published.
-
-## CORS Checklist
-
-Production must use:
+Set the backend browser origin once:
 
 ```text
-FRONTEND_URL=https://<approved-domain>
+FRONTEND_URL=https://<approved-origin>
 ```
 
-or:
-
-```text
-CORS_ORIGIN=https://<approved-domain>
-```
-
-Do not use:
+`CORS_ORIGIN` is normally unnecessary for same-origin deployment. If it is
+used, it must be the exact same bare HTTPS origin. Never use:
 
 ```text
 CORS_ORIGIN=*
+TRUST_PROXY=true
+TRUST_PROXY=*
 ```
 
-`FRONTEND_URL` is preferred when both variables exist.
+Production cookies are `HttpOnly`, `SameSite=Lax`, and `Secure`. Do not disable
+the secure flag as a proxy workaround.
 
-## Smoke Checks
+The backend already supports a safe configurable `TRUST_PROXY`; it is **not**
+an unconfigured legacy setting. Configure it only after mapping the real chain:
 
-After deployment:
+```text
+browser -> HTTPS edge -> Nginx -> private backend
+```
+
+The edge and Nginx must preserve a verified forwarded protocol/client chain. In
+particular, Nginx must not replace an edge-provided HTTPS indication with its
+internal HTTP transport value. Use the exact reviewed hop count or trusted proxy
+CIDR list; do not copy a hop count blindly. Ensure the backend cannot be reached
+directly by clients that could inject `X-Forwarded-*` headers.
+
+## Post-deployment smoke checks
+
+Use the public HTTPS origin, not a direct private backend port:
 
 ```powershell
-Invoke-WebRequest https://<approved-domain>/
-Invoke-RestMethod https://<approved-domain>/api/v1/health
-Invoke-RestMethod https://<approved-domain>/api/v1/readiness
+Invoke-WebRequest https://<approved-origin>/
+Invoke-WebRequest https://<approved-origin>/login
+Invoke-RestMethod https://<approved-origin>/api/v1/health
+Invoke-RestMethod https://<approved-origin>/api/v1/readiness
 ```
 
-Credentialed smoke should use approved test accounts only, with credentials supplied outside Git.
+Also verify a protected similarity route rejects anonymous access, and run
+credentialed smoke only with approved synthetic staging accounts. A successful
+liveness response is not enough: readiness must be `ready` before traffic is
+admitted.
 
-## Open Gap
+## Open proof boundary
 
-Public HTTPS/domain readiness remains unverified until DNS, TLS, reverse proxy, and smoke checks are completed in the target environment.
+DNS, TLS, proxy-header behavior, cookie behavior in a real browser, and the
+public HTTPS smoke remain environment-specific proof items. Do not claim them
+until performed against the chosen staging/production-like target.

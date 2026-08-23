@@ -1,5 +1,10 @@
 # Render Backend Configuration Review
 
+> **Historical/superseded provider guide.** This records the pre-Phase-6
+> Render backend path. It must not be used for the current private backend
+> behind same-origin Nginx; see the [production runbook](./deployment-runbook.md)
+> and [environment matrix](./environment-matrix.md).
+
 ## Status
 
 PR #127 documented the exact Render backend deployment configuration for the free managed staging path. PR #128 corrects the Render build command based on the first successful online Render deployment proof. This document remains configuration guidance; the online evidence is recorded separately in [render-backend-online-proof.md](./render-backend-online-proof.md).

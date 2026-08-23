@@ -2,7 +2,11 @@
 
 ## Status
 
-The application exposes health and readiness endpoints and writes application logs. This document prepares an operations monitoring plan, but no production monitoring provider or alert route is configured by this PR.
+> **Deferred observability reference.** The application exposes health and
+> readiness endpoints and writes logs, but Phase 6 does not configure a
+> centralized monitoring provider, alert route, dashboard, or retention system.
+> The active operational sink is redacted stdout/stderr; use this document only
+> to plan a later approved observability phase.
 
 ## Signals To Monitor
 
@@ -11,7 +15,7 @@ The application exposes health and readiness endpoints and writes application lo
 | Backend liveness | `GET /api/v1/health` | HTTP 200 and `status: "OK"` |
 | Backend readiness | `GET /api/v1/readiness` | HTTP 200 and `status: "ready"` for full readiness |
 | Database readiness | `/api/v1/readiness` details | `database: "available"` |
-| SBERT readiness | `/api/v1/readiness` details and SBERT `/health` | `sbert: "available"` |
+| Voyage readiness | `/api/v1/readiness` safe details | Provider state available and overall `status: "ready"` |
 | Frontend availability | Static host root path | HTTP 200 |
 | PostgreSQL storage | Database host metrics | Below approved disk threshold |
 | Error rate | Backend logs or hosting metrics | Alert on sustained spikes |
@@ -23,9 +27,9 @@ The application exposes health and readiness endpoints and writes application lo
 
 Backend readiness policy:
 
-- `ready`: API, database, and SBERT are available.
-- `degraded`: database is available but SBERT is unavailable; lexical fallback may operate, but semantic readiness is not complete.
-- `not_ready`: database check failed; do not route production traffic.
+- `ready`: API, database, and required Voyage provider state are available.
+- any non-ready result: do not route real traffic. There is no SBERT, lexical,
+  or fabricated-vector fallback in the Phase 6 runtime.
 
 Do not hide `degraded` as healthy in production dashboards.
 
@@ -55,8 +59,7 @@ Acceptable logs:
 
 Create alerts for:
 
-- `/api/v1/readiness` returns `not_ready`
-- `/api/v1/readiness` returns `degraded` for longer than the approved window
+- `/api/v1/readiness` is not HTTP 200 / `ready`
 - backend 5xx rate exceeds threshold
 - database disk usage exceeds threshold
 - failed login spikes
@@ -72,7 +75,7 @@ Recommended dashboard sections:
 
 - API health/readiness
 - database connectivity/storage
-- SBERT availability
+- Voyage availability
 - request volume and error rate
 - auth failures
 - email provider health

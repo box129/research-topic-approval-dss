@@ -1,5 +1,10 @@
 # Hugging Face SBERT Space Setup Evidence
 
+> **Historical/superseded evidence.** SBERT/Hugging Face is not part of the
+> Phase 6 runtime. This evidence remains for research traceability only; use
+> the [production runbook](./deployment-runbook.md) and
+> [environment matrix](./environment-matrix.md) for current deployment.
+
 ## Status
 
 PR #124 records safe evidence that the Hugging Face Space for the SBERT staging service has been created for the free managed staging path. It does not record secrets and does not prove SBERT API availability.

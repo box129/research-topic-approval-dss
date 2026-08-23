@@ -1,5 +1,11 @@
 # Free Managed Staging Plan
 
+> **Historical/superseded planning evidence.** This records the pre-Phase-6
+> managed-provider chain and must not be used to deploy the current Voyage,
+> same-origin topology. Use the [production runbook](./deployment-runbook.md)
+> and [environment matrix](./environment-matrix.md); no historical evidence has
+> been deleted.
+
 ## Status
 
 PR #120 prepares a no-cost managed staging plan for final-year project demonstration. It does not deploy the Research Topic Approval DSS and does not prove dependable departmental production readiness.

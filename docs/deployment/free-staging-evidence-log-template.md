@@ -1,5 +1,11 @@
 # Free Staging Evidence Log Template
 
+> **Historical/superseded evidence template.** This records the pre-Phase-6
+> provider-chain path. It is retained for traceability only and must not be used
+> as a current Voyage deployment recipe; see the
+> [production runbook](./deployment-runbook.md) and
+> [environment matrix](./environment-matrix.md).
+
 ## Status
 
 Use this template only after executing the free managed staging setup. PR #122 adds the template but does not provide completed staging evidence.

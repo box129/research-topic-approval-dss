@@ -1,5 +1,11 @@
 # Backend Project Setup Summary
 
+> **Historical setup snapshot.** Do not use its `prisma db push`, SBERT, or
+> seed instructions for staging or production. The current deployment uses the
+> pinned `npm run prisma:migrate:deploy` workflow, explicit administrator
+> bootstrap, and Voyage `voyage-4-large`; follow the
+> [Phase 6 deployment runbook](../deployment/deployment-runbook.md).
+
 ## ✅ Completed Setup
 
 ### 1. Project Structure

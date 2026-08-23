@@ -1,61 +1,74 @@
 # Topic Similarity MVP
 
-Topic Similarity MVP is a research-topic approval decision-support system. It combines lexical similarity, TF-IDF scoring, and SBERT embeddings to help identify reused or overly similar research topics while preserving lecturer/admin review workflows.
+Topic Similarity MVP is a research-topic approval decision-support system with
+role-based student, lecturer, and administrator workflows.
 
-## Current Release Classification
+## Current production architecture
+
+The current semantic production contract is Voyage AI (`voyage-4-large`, 1024
+dimensions, `structured-context-v1`). The real similarity routes are
+authenticated, fail closed when Voyage is unavailable, and do not fall back to
+SBERT, lexical scores, or fabricated embeddings.
+
+The authoritative initial deployment topology is:
+
+```text
+Browser -> HTTPS edge -> Nginx SPA and /api proxy -> one private Node/Express backend
+                                                     -> private PostgreSQL
+                                                     -> Voyage HTTPS
+                                                     -> SMTP when configured
+```
+
+SBERT/FastAPI remains only historical/research material. It is not a required
+production component, readiness dependency, or standard Compose service.
+
+## Release boundary
 
 | Mode | Status |
 | --- | --- |
-| Local native development | SUPPORTED |
-| Local integrated demonstration | SUPPORTED |
-| Controlled release-candidate deployment | CONDITIONALLY SUPPORTED |
-| Public HTTPS production deployment | NOT VERIFIED |
+| Local development | Supported |
+| Synthetic staging / production-like rehearsal | Prepared; runtime proof depends on an available Docker daemon and target services |
+| Controlled single-instance deployment | Technically specified; requires target-platform validation |
+| Real Public Health production/data admission | Not approved by repository evidence alone |
 
-Current published pre-release: `v0.4.0-rc1`. Current post-RC work is preparing stable-release validation evidence. Do not treat local passing tests as proof of public production readiness. Public deployment still requires HTTPS, secrets management, backups, monitoring, operational ownership, and provider configuration.
+No real departmental data, accounts, final production database, or real secrets
+belong in this repository or this phase. Passing tests or containers starting is
+not a public-production go-live claim.
 
-## Main Services
+## Local development
 
-- `backend/`: Node.js/Express API, Prisma, auth, governance APIs, import endpoints, notifications foundation, and similarity orchestration.
-- `frontend/`: React/Vite role-based UI.
-- `sbert-service/`: Python FastAPI service for 384-dimensional embeddings with a deterministic fallback mode.
-- `docs/`: setup, deployment, evaluation, governance, and release documentation.
-
-## Quick Local Start
-
-1. Start PostgreSQL and configure `backend/.env` from `backend/env.example`.
-2. Apply database migrations:
+1. Start a local PostgreSQL instance and configure `backend/.env` from
+   `backend/env.example` with development-safe placeholders.
+2. Install backend dependencies and apply existing migrations:
 
    ```powershell
    cd backend
    npm ci
-   npx prisma validate
-   npx prisma generate
-   npx prisma migrate deploy
+   .\node_modules\.bin\prisma.cmd validate
+   npm run prisma:generate
+   npm run prisma:migrate:deploy
    ```
 
-3. Start SBERT:
+3. Start the backend:
 
    ```powershell
-   cd ..\sbert-service
-   .\venv\Scripts\python.exe app.py
-   ```
-
-4. Start the backend:
-
-   ```powershell
-   cd ..\backend
    npm run dev
    ```
 
-5. Start the frontend:
+4. Start the frontend in another terminal:
 
    ```powershell
-   cd ..\frontend
+   cd frontend
    npm ci
    npm run dev -- --host 127.0.0.1
    ```
 
-## Health and Readiness
+`VOYAGE_API_KEY` is required for semantic similarity and full readiness. Do not
+place a production key in a local `.env` or frontend build. Legacy SBERT may be
+used only for explicitly historical research/evaluation work; it is not part of
+the current direct similarity flow.
+
+## Health and readiness
 
 Backend liveness:
 
@@ -69,54 +82,33 @@ Backend readiness:
 Invoke-RestMethod http://127.0.0.1:3000/api/v1/readiness
 ```
 
-SBERT health:
+Liveness means that the HTTP process is alive. Readiness is stricter: it checks
+the database and safe Voyage provider state and is the condition for traffic
+admission in a deployed environment.
 
-```powershell
-Invoke-RestMethod http://127.0.0.1:8000/health
-```
+## Authoritative deployment documentation
 
-Readiness distinguishes full readiness from degraded lexical fallback when SBERT is unavailable.
+- [Production deployment runbook](docs/deployment/deployment-runbook.md)
+- [Production environment matrix](docs/deployment/environment-matrix.md)
+- [Docker Compose deployment guide](docs/deployment/docker-compose.md)
+- [Database migration contract](docs/deployment/database-migrations-and-rollback.md)
+- [Direct similarity security contract](docs/api/direct-similarity-security-contract.md)
 
-## Release Gate
+Older Vercel, Render, Neon, Hugging Face, and SBERT documents are retained as
+historical staging/research evidence only. Do not use them as a current Voyage
+production recipe.
 
-From repository root:
+## Important boundaries
 
-```powershell
-npm run release:check
-```
-
-While validating an uncommitted PR:
-
-```powershell
-$env:RELEASE_CHECK_ALLOW_DIRTY='1'
-npm run release:check
-```
-
-Credentialed smoke tests are opt-in with `RELEASE_CHECK_SMOKE=1` and `SMOKE_*` credentials. Do not commit credentials.
-
-## Validation Framework
-
-Post-RC validation work prepares lecturer-reviewed benchmark collection and departmental-scale data-quality validation without claiming final results. PR #108 alone does not make the project a stable release. Start with:
-
-- [Lecturer review protocol](docs/validation/lecturer-review-protocol.md)
-- [Final effectiveness evaluation workflow](docs/validation/final-effectiveness-evaluation-workflow.md)
-- [Departmental data-quality validation workflow](docs/validation/departmental-data-quality-validation.md)
-- [Stable production readiness tracker](docs/release/stable-production-readiness-tracker.md)
-
-These documents and templates are framework evidence only. There are no completed lecturer labels yet, no departmental-scale data-quality proof yet, and stable release readiness still depends on collecting and validating real approved evidence.
-
-## Documentation
-
-- [Deployment runbook](docs/deployment/deployment-runbook.md)
-- [Environment matrix](docs/deployment/environment-matrix.md)
-- [Database migration and rollback runbook](docs/deployment/database-migrations-and-rollback.md)
-- [Security readiness checklist](docs/deployment/security-readiness-checklist.md)
-- [Release notes for v0.4.0-rc1](docs/release/v0.4.0-rc1.md)
-- [Release readiness report](docs/testing/release-readiness-report.md)
-
-## Important Boundaries
-
-- Do not change similarity scoring, weights, thresholds, tiers, ranking, or fallback behavior without a dedicated evaluation-backed change.
-- Do not commit `.env`, secrets, `node_modules`, virtual environments, build outputs, smoke artifacts, screenshots, or reports.
-- Do not use `prisma migrate dev` or `prisma db push` for production-like deployments.
-- Do not claim provider-smoke-verified SMTP delivery, notification UI/event hooks, departmental-scale evaluation, or public production readiness until those are proven.
+- Do not change semantic model, scoring, thresholds, tiers, ranking, topic
+  lifecycle, identity semantics, or additional-admin governance in deployment
+  work.
+- Do not run `prisma migrate dev` or `prisma db push` in staging/production;
+  use the explicit `prisma migrate deploy` maintenance/release step.
+- Do not automatically seed demo users/topics or bootstrap an administrator.
+- Do not commit `.env` files, database URLs, API keys, passwords, generated
+  credential manifests, raw data, embeddings, or backup files.
+- Do not treat an empty comparison corpus as evidence a topic is original.
+- Do not claim real SMTP delivery, Docker runtime proof, backup/restore,
+  observability, HTTPS/domain proof, or real-data readiness until separately
+  demonstrated.

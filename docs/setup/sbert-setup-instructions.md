@@ -1,5 +1,11 @@
 # SBERT Service Setup Instructions
 
+> **Legacy research-only instructions.** The current deployment contract does
+> not deploy or depend on SBERT/FastAPI. Use these instructions only for
+> historical evaluation work under the explicit `legacy-sbert` profile; see the
+> [Phase 6 deployment runbook](../deployment/deployment-runbook.md) for the
+> current Voyage topology.
+
 ## Installation Issues & Solutions
 
 If you encounter timeout errors while installing dependencies (especially PyTorch), try these solutions:

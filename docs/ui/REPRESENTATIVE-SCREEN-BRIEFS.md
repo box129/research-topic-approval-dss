@@ -36,7 +36,7 @@ The redesign must not solve this by becoming an overly minimal entry page. The c
 - Use a confident, value-led headline and concise system explanation.
 - Provide a primary Sign In action and secondary **See how the process works** anchor action.
 - Include one substantial but clearly illustrative evidence or approval-workflow visual.
-- The recommended message is: “A role-based decision-support system that compares proposed undergraduate research topics with existing records using lexical and semantic similarity while keeping final approval under lecturer control.” Final copy remains subject to target-screen approval.
+- The recommended message is: “A role-based decision-support system that compares proposed undergraduate research topics with existing records using Voyage semantic similarity while keeping final approval under lecturer control.” Final copy remains subject to target-screen approval.
 - The illustration must not contain fabricated scores, records, users, statuses, metrics, or live-health claims.
 
 #### 3. Why the platform exists
@@ -55,13 +55,11 @@ Do not promise unrestricted user lifecycle management, unrestricted settings cha
 
 #### 5. How similarity evidence is produced
 
-Explain the implemented approaches in accessible language:
+Explain the implemented approach in accessible language:
 
-- **Jaccard similarity:** compares overlap between normalized sets of topic terms.
-- **TF-IDF with cosine similarity:** gives greater weight to terms that are informative across the repository, then compares weighted topic vectors.
-- **SBERT semantic similarity:** compares sentence-level meaning so related wording, synonyms, and paraphrases can be identified beyond exact term overlap.
+- **Voyage semantic similarity:** `voyage-4-large` compares structured topic context with eligible stored records so related wording, synonyms, and paraphrases can be identified beyond exact-term overlap.
 
-State that the methods provide lexical and semantic evidence, results remain advisory, and similarity never automatically approves or rejects a topic. Deeper scoring detail may sit behind an accessible disclosure. Do not present the system as unexplained “advanced AI.”
+State that the provider returns advisory semantic evidence only, has no lexical fallback, and never automatically approves or rejects a topic. Deeper scoring detail may sit behind an accessible disclosure. Do not present the system as unexplained “advanced AI.”
 
 #### 6. From proposal to decision
 
@@ -82,7 +80,7 @@ Explain that comparison may use historical topics, current-session topics, and u
 
 Use a structured comparison:
 
-- **Similarity evidence:** produced by the checking workflow, identifies related records, combines lexical and semantic approaches, and may be saved in supported lecturer snapshots.
+- **Similarity evidence:** produced by the checking workflow, identifies related records through the Voyage semantic approach, and may be saved in supported lecturer snapshots.
 - **Academic decision:** made by an authorized lecturer, considers the proposal and academic context, may approve/reject/request revision, and records rationale where required.
 
 This section must prevent the platform from being mistaken for an automatic plagiarism or approval engine.
@@ -95,7 +93,7 @@ Do not claim institutional certification, accreditation reporting, immutable ori
 
 #### 10. Technical foundation
 
-Place technical structure below the product, role, evidence, and workflow explanations. It may accurately describe the React frontend, Node.js/Express backend, PostgreSQL with Prisma, Python/FastAPI semantic service, and role-protected workflows.
+Place technical structure below the product, role, evidence, and workflow explanations. It may accurately describe the React frontend, Node.js/Express backend, PostgreSQL with Prisma, Voyage semantic provider, and role-protected workflows.
 
 Use a compact architecture diagram or accessible **View technical architecture** disclosure. Label static information as technical architecture or staging configuration. Do not use static green availability indicators or imply live monitoring.
 
@@ -192,7 +190,7 @@ Below the first viewport, use the approved information architecture in a deliber
 
 ### Acceptance notes
 
-A future target is acceptable only when it provides substantially more useful platform information than the current landing page while remaining factual. The first viewport must explain product value before infrastructure; all three roles and the four-stage workflow must be understandable; Jaccard, TF-IDF/cosine, and SBERT must be described accurately; lecturer control must be unmistakable; and mobile Sign In must not be buried.
+A future target is acceptable only when it provides substantially more useful platform information than the current landing page while remaining factual. The first viewport must explain product value before infrastructure; all three roles and the four-stage workflow must be understandable; Voyage semantic similarity and its no-fallback failure behavior must be described accurately; lecturer control must be unmistakable; and mobile Sign In must not be buried.
 
 It is unacceptable if it contains a fake metric, result, record, endorsement, live-status presentation, unsupported feature, repeated filler, infrastructure-first storytelling, excessive cards, or inaccessible/hidden mobile Sign In.
 
@@ -262,7 +260,7 @@ The 1440×1000 screen uses a page introduction, separate “Pre-check only” ba
 - Existing similarity endpoint and exact `TopicForm` payload.
 - 7–24-word validation, optional category and keywords, counters, disabled/loading behavior.
 - LOW/MEDIUM/HIGH semantics, maximum similarity, recommendation, tier mapping, and real matches.
-- Success, empty, API error, server/network error, reset, SBERT-unavailable, and partial-success states.
+- Success, empty, API error, server/network error, reset, and semantic-unavailable states.
 - No submission, lecturer-decision, snapshot, or status mutation from this page.
 
 ### Required states
@@ -273,7 +271,7 @@ The 1440×1000 screen uses a page introduction, separate “Pre-check only” ba
 - Disabled and checking states.
 - LOW, MEDIUM, and HIGH populated results.
 - No matches.
-- Degraded/partial success with SBERT unavailable.
+- Fail-closed semantic-unavailable response when Voyage is unavailable.
 - API and network error.
 - Long topic/match titles.
 - Mobile form and mobile populated result.
@@ -356,7 +354,7 @@ At 1440×1000 the screen is logically ordered but uses many large rounded surfac
 - Submission-detail and snapshot-history API calls with route ID.
 - Retry behavior for detail and history failures.
 - Lecturer similarity-check payload and history refresh after success.
-- LOW/MEDIUM/HIGH, partial success, SBERT warning, and ResultsDisplay behavior.
+- LOW/MEDIUM/HIGH, semantic-unavailable handling, and ResultsDisplay behavior.
 - Exact decision status payloads.
 - Rationale validation and requirements.
 - Confirmation before Approve, Request Revision, and Reject.

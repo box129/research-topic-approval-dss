@@ -1,5 +1,11 @@
 # Winston Logging Monitoring Guide
 
+> **Historical logging examples may mention SBERT fallback.** The current
+> production semantic path uses Voyage and fails closed when unavailable; use
+> the [monitoring runbook](../deployment/monitoring-and-logging.md) and
+> [direct-similarity contract](../api/direct-similarity-security-contract.md)
+> for current operational behavior.
+
 ## Overview
 
 This guide provides comprehensive information on monitoring and analyzing Winston logs in the Topic Similarity API.

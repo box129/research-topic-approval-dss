@@ -1,5 +1,9 @@
 # Departmental Pilot Cost Estimate
 
+> **Historical/superseded planning estimate.** Prices, providers, and topology
+> assumptions here predate the Phase 6 Voyage same-origin deployment contract.
+> Retain it as planning evidence only; it is not approval to procure or deploy.
+
 ## Status
 
 PR #120 prepares a paid departmental pilot estimate for the Research Topic Approval DSS. It does not procure infrastructure, deploy a VPS, register a domain, configure SMTP, or prove public production readiness.

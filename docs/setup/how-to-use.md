@@ -1,5 +1,11 @@
 # 🎯 INSTRUCTIONS - How to Use the Topic Similarity MVP
 
+> **Historical SBERT-era usage guide.** Current protected direct similarity
+> uses Voyage `voyage-4-large` and fails closed when the provider is
+> unavailable; it has no SBERT/Jaccard/TF-IDF fallback. Consult the
+> [current direct-similarity contract](../api/direct-similarity-security-contract.md)
+> and [Phase 6 deployment runbook](../deployment/deployment-runbook.md).
+
 ## ✅ Application Status
 
 **All Services Running:**

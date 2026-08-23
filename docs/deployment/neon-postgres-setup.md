@@ -1,5 +1,10 @@
 # Neon PostgreSQL Setup
 
+> **Historical/superseded provider guide.** This is retained as evidence for
+> the pre-Phase-6 managed staging path. It is not the authoritative database
+> deployment recipe; use the [production runbook](./deployment-runbook.md) and
+> [database migration contract](./database-migrations-and-rollback.md).
+
 ## Status
 
 This document prepares Neon Free PostgreSQL setup for managed staging. It does not create a Neon project and does not commit a database URL.

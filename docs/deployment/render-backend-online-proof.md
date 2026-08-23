@@ -1,5 +1,10 @@
 # Render Backend Online Proof
 
+> **Historical/superseded evidence.** This records the pre-Phase-6 Render
+> backend path and remains only for traceability. It is not proof of the current
+> private-backend Voyage deployment; see the
+> [production runbook](./deployment-runbook.md).
+
 ## Status
 
 PR #128 records safe online evidence for the Render backend stage of the free managed staging path. It also corrects the Render build command to the command that succeeded online:

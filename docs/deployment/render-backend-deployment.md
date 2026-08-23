@@ -1,5 +1,10 @@
 # Render Backend Deployment
 
+> **Historical/superseded provider guide.** This records the pre-Phase-6
+> Render backend path. It must not be used for the current private backend
+> behind same-origin Nginx; see the [production runbook](./deployment-runbook.md)
+> and [environment matrix](./environment-matrix.md).
+
 ## Status
 
 This document prepares Render Free backend deployment for FYP/demo staging. PR #128 records the first safe online Render backend proof and corrects the build command to the one that succeeded on Render.

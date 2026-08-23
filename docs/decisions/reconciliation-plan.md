@@ -1,5 +1,11 @@
 # Reconciliation Plan
 
+> **Superseded for current deployment and migration decisions.** This is a
+> historical reconciliation snapshot. Do not follow its `prisma db push` or
+> SBERT-era statements for staging/production; use the [Phase 6 deployment
+> runbook](../deployment/deployment-runbook.md) and the pinned
+> [migration contract](../deployment/database-migrations-and-rollback.md).
+
 This plan reflects the current MVP state after the API contract, import workflow, and evaluation harness cleanup. Older reconciliation steps about removing public `combinedScore` behavior or switching away from normalized public scores are historical and should not be treated as active work.
 
 ## Current State

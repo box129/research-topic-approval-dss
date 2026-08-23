@@ -1,5 +1,13 @@
 # Admin and Governance API Contract Plan
 
+> **Historical planning and evidence record.** This document contains
+> pre-Phase-6 SBERT, lexical-fallback, and release-candidate material. It is
+> not the current production architecture or direct-similarity contract. Use
+> the [deployment runbook](../deployment/deployment-runbook.md),
+> [environment matrix](../deployment/environment-matrix.md), and
+> [direct-similarity security contract](../api/direct-similarity-security-contract.md)
+> for current operational guidance.
+
 ## 1. Metadata
 
 | Field | Value |

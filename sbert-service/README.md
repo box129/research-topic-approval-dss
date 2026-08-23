@@ -1,5 +1,12 @@
 # SBERT Embedding Service
 
+> **Historical/research-only component.** The current production and staging
+> architecture uses Voyage `voyage-4-large` through the Node backend and does
+> not deploy, depend on, or fall back to this FastAPI service. Use the
+> [Phase 6 production runbook](../docs/deployment/deployment-runbook.md) for
+> current deployment instructions. This document is retained only for legacy
+> evaluation and reproducibility work.
+
 FastAPI microservice for generating semantic embeddings using Sentence-BERT (SBERT).
 
 ## Overview
@@ -70,7 +77,9 @@ The service will be available at `http://localhost:8000`
 
 Use one worker for the release candidate unless memory capacity has been measured. Multiple workers can load separate model instances and substantially increase memory usage.
 
-Do not expose this service directly to the public internet without a deployment-specific network policy. The backend should reach it through `SBERT_SERVICE_URL`.
+Do not expose this service directly to the public internet. The historical
+backend integration used `SBERT_SERVICE_URL`; current Voyage production/staging
+deployments must not configure or require that value.
 
 ## API Endpoints
 

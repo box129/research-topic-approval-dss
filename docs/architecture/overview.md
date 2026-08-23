@@ -1,76 +1,79 @@
-# Architecture
+# Architecture Overview
 
-## High-Level Overview
+## Current production architecture
 
-Topic Similarity MVP checks a submitted research topic against existing topic records. The system has a React/Vite frontend, a Node/Express backend, a Python FastAPI SBERT-style embedding service, and a PostgreSQL database accessed through Prisma.
+The current production semantic contract is Voyage AI, model
+`voyage-4-large`, dimension 1024, representation `structured-context-v1`.
 
-The backend is the main coordinator. It receives topic submissions, reads existing topics from the database, runs similarity algorithms, groups matches into tiers, calculates a risk level, and returns results to the frontend.
+```text
+Browser
+  -> HTTPS edge
+  -> Nginx: React/Vite static SPA + same-origin /api proxy
+  -> Node/Express backend (single initial instance)
+       -> PostgreSQL via Prisma
+       -> Voyage API over outbound HTTPS
+       -> SMTP provider when email is enabled
+```
 
-## Main System Parts
+The browser uses relative `/api` paths. In the standard deployment, Nginx
+serves the SPA and forwards `/api/*` privately to the backend, keeping cookie,
+CORS, CSRF, reset-link, and invitation-link behavior on one HTTPS origin.
+
+Only the HTTPS edge/frontend layer is public. PostgreSQL and the backend are
+private-network services. The initial backend is intentionally one instance:
+the Phase 5 rate-limit store and Voyage readiness-probe cache are process-local,
+so horizontal scale requires a separate shared-control design.
+
+## Runtime components
+
+### Frontend and edge
+
+- React/Vite produces a static SPA artifact.
+- Nginx serves static content, supports SPA fallback, and proxies `/api/*`.
+- The HTTPS edge terminates TLS, redirects HTTP, and preserves the reviewed
+  forwarded protocol/client chain.
 
 ### Backend
 
-Located in `backend/`.
+- `backend/src/server.js` defines the Express API, liveness/readiness endpoints,
+  protected routes, security middleware, and import upload boundary.
+- Prisma accesses PostgreSQL.
+- Session cookies are `HttpOnly`, `SameSite=Lax`, and `Secure` in production.
+- `TRUST_PROXY` defaults to disabled outside production; a public production
+  deployment must supply the exact reviewed proxy topology.
 
-- `backend/src/server.js` defines the Express app, health endpoints, and similarity routes.
-- `backend/src/controllers/similarity.controller.js` coordinates validation, database reads, algorithm execution, result tiering, and risk calculation.
-- `backend/src/services/jaccard.service.js` calculates token-overlap similarity.
-- `backend/src/services/tfidf.service.js` calculates TF-IDF/cosine similarity.
-- `backend/src/services/sbert.service.js` calls the SBERT service and calculates embedding similarity.
-- `backend/src/utils/preprocessing.js` handles tokenization, stopword removal, and stemming.
+### Semantic provider
 
-### Frontend
+- `backend/src/services/voyageEmbedding.service.js` uses Voyage query/document
+  embeddings.
+- Stored vectors are accepted only when provider, model, dimension,
+  representation, and source hash match the current contract.
+- Provider failures return controlled semantic unavailability; there is no
+  SBERT, lexical, deterministic, or score fallback for the protected direct
+  similarity contract.
 
-Located in `frontend/`.
+### Database and email
 
-- `frontend/src/App.jsx` submits topic data to the backend and maps the backend response into UI-friendly result data.
-- `frontend/src/components/features/TopicInput/TopicForm.jsx` handles topic, keywords, category input, and validation.
-- `frontend/src/components/features/Results/ResultsDisplay.jsx` displays risk level, tiered matches, and expandable technical scores.
-- `frontend/vite.config.js` configures the Vite dev server and API proxy.
+- PostgreSQL stores users, lifecycle records, topic records, snapshots, audits,
+  notifications, and semantic metadata.
+- SMTP is an optional configured delivery integration. `disabled` is a
+  fail-closed staging posture; `smtp` needs an actual provider smoke before it
+  is considered operationally verified.
 
-### SBERT Service
+## Health and deployment boundaries
 
-Located in `sbert-service/`.
+`/api/v1/health` is liveness only. `/api/v1/readiness` is the traffic-admission
+signal and reflects database plus safe Voyage provider state. Container liveness
+must not restart the service simply because a transient external dependency is
+unavailable.
 
-- `sbert-service/app.py` exposes FastAPI endpoints for health checks and embedding generation.
-- The service is intended to use `sentence-transformers/all-MiniLM-L6-v2`.
-- If the model or dependency is unavailable, the service can fall back to deterministic hash-based embeddings.
+The definitive deployment, migration, timeout, graceful-shutdown, staging, and
+environment contract is in [the Phase 6 deployment runbook](../deployment/deployment-runbook.md)
+and [environment matrix](../deployment/environment-matrix.md).
 
-### Database / Prisma Layer
+## Historical SBERT material
 
-Located mainly in `backend/prisma/`.
-
-- `backend/prisma/schema.prisma` defines `HistoricalTopic`, `CurrentSessionTopic`, and `UnderReviewTopic`.
-- `backend/prisma/seed.js` and CSV files support sample/import data.
-- The similarity controller currently uses Prisma raw SQL queries against the topic tables.
-
-## Request Flow
-
-1. A user enters a research topic in the frontend form.
-2. `frontend/src/App.jsx` sends the submission to `POST /api/similarity/check`.
-3. The backend validates the request body.
-4. The backend reads historical, current-session, and under-review topics from the database.
-5. The backend preprocesses topic text and runs Jaccard, TF-IDF, and SBERT similarity.
-6. SBERT similarity calls the Python service for a query embedding and uses stored or generated topic embeddings.
-7. The backend returns separate public algorithm scores, filters results into tiers, and calculates LOW/MEDIUM/HIGH risk.
-8. The backend returns tiered results using the current public API contract.
-9. The frontend maps the response and renders the risk banner, matches, and technical score details.
-
-## Protected / High-Risk Areas
-
-- Similarity scoring and result tiering in `backend/src/controllers/similarity.controller.js`.
-- Tier filtering and LOW/MEDIUM/HIGH risk calculation.
-- API response shape consumed by `frontend/src/App.jsx`.
-- Prisma schema and database table/field mappings.
-- SBERT service fallback behavior and embedding dimensions.
-- Frontend result mapping and display components.
-- Dev-server/API proxy configuration in `frontend/vite.config.js`.
-
-## Known Uncertainties
-
-- Backend runtime startup in the current environment: needs verification.
-- Frontend proxy target versus documented backend port: needs verification.
-- Whether the SBERT service loads real `sentence-transformers` or uses fallback mode: needs verification.
-- Whether database schema, seed data, and actual database are aligned: needs verification.
-- Current backend and frontend test status: needs verification.
-- Whether API documentation exactly matches the current backend response shape: needs verification.
+The repository retains `sbert-service/`, legacy scoring/evaluation material,
+and historical Hugging Face staging evidence for research and provenance. Those
+artifacts do not describe the current production runtime and must not be added
+to standard Compose startup, readiness, or deployment requirements.

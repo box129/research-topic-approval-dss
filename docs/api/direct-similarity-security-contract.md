@@ -102,7 +102,7 @@ The broad global guard, login/recovery/invitation limits, and admin-action limit
 
 - CORS permits only the one normalized configured browser origin; production requires explicit `https://` origin configuration and wildcard `*` is rejected in every mode.
 - Session cookies are `HttpOnly`, `SameSite=Lax`, and `Secure` in production.
-- `TRUST_PROXY` defaults to `false`. Only a precise hop count, named subnet, or IP/CIDR allowlist is accepted; `true` and `*` are rejected at startup.
+- `TRUST_PROXY` defaults to `false` outside production. Production requires a precise reviewed hop count, named subnet, or IP/CIDR allowlist; `true` and `*` are rejected at startup.
 - Voyage calls time out according to `VOYAGE_REQUEST_TIMEOUT_MS` (10 seconds by default).
 
 `GET /api/v1/readiness` is operationally public. It reports only safe provider state: `not_configured`, `configured_not_yet_verified`, `available`, `unavailable`, or `stale`; it never returns a Voyage key or raw provider error.

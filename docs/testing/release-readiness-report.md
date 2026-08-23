@@ -1,5 +1,10 @@
 # Release Readiness Report
 
+> **Historical v0.4.0-rc1 report — superseded for the current release path.**
+> It records an earlier SBERT-era environment and must not be used as evidence
+> for the Phase 6 Voyage deployment contract. See the
+> [current deployment runbook](../deployment/deployment-runbook.md).
+
 | Field | Value |
 | --- | --- |
 | Branch | `release/deployment-readiness-rc` |

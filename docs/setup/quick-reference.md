@@ -1,5 +1,10 @@
 # Quick Reference - Topic Similarity MVP
 
+> **Historical SBERT-era local reference.** It is not a supported staging or
+> production startup sequence. The current deployment uses Voyage from the
+> Node backend, without a required Python/FastAPI service; use the
+> [Phase 6 deployment runbook](../deployment/deployment-runbook.md) instead.
+
 ## 🚀 Quick Start (3 Steps)
 
 ### Step 1: Start Backend

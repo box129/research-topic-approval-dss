@@ -1,112 +1,103 @@
 # Topic Similarity Backend
 
-Node.js/Express backend for the Topic Similarity MVP.
+Node/Express and Prisma backend for the current Voyage-backed Topic Similarity
+MVP.
+
+## Runtime contract
+
+The current protected similarity paths use Voyage `voyage-4-large` with a
+1024-dimensional `structured-context-v1` representation. They are not backed by
+the historical SBERT microservice and have no lexical/fabricated-vector
+fallback. A production backend therefore requires PostgreSQL and outbound HTTPS
+to Voyage, but does not require FastAPI, Hugging Face model downloads, or an
+SBERT model cache.
+
+The standard deployment keeps this backend private behind the same-origin
+frontend Nginx `/api` proxy. See the repository-level
+[production runbook](../docs/deployment/deployment-runbook.md) and
+[environment matrix](../docs/deployment/environment-matrix.md).
 
 ## Requirements
 
-- Node.js 22 is used for the PR #107 release-candidate gate.
-- PostgreSQL with the migrations in `prisma/migrations`.
-- SBERT service reachable through `SBERT_SERVICE_URL` for full semantic readiness.
+- The reviewed backend production Docker image uses Node 20. Use that image or
+  a verified compatible Node 20+ runtime; do not substitute an untested
+  platform version.
+- PostgreSQL with repository migrations applied through the explicit release
+  step.
+- `VOYAGE_API_KEY` for production semantic operation. A missing/blank key is
+  startup-fatal in production.
+- A strong `JWT_SECRET`, exact HTTPS `FRONTEND_URL`, accurate `TRUST_PROXY`,
+  and `EMAIL_PROVIDER` configuration for production.
 
-## Setup
+## Development setup
 
 ```powershell
 cd backend
 npm ci
 Copy-Item env.example .env
-```
-
-Edit `.env` and set at minimum:
-
-```text
-DATABASE_URL=postgresql://<user>:<password>@<host>:5432/<db>?schema=public
-SBERT_SERVICE_URL=http://localhost:8000
-FRONTEND_URL=http://localhost:5173
-```
-
-Production-like deployments must also set a strong `JWT_SECRET`, explicit `FRONTEND_URL` or `CORS_ORIGIN`, and `EMAIL_PROVIDER` to `disabled` or `smtp`. `EMAIL_PROVIDER=mock` is rejected in production.
-
-## Migrations
-
-Production-style migration path:
-
-```powershell
-npx prisma validate
-npx prisma generate
-npx prisma migrate deploy
-npx prisma migrate status
-```
-
-Use `prisma migrate dev` only for local migration authoring. Do not use `prisma db push` for production-like deployments.
-
-## Run
-
-Development:
-
-```powershell
+.\node_modules\.bin\prisma.cmd validate
+npm run prisma:generate
+npm run prisma:migrate:deploy
 npm run dev
 ```
 
-Release-candidate process after migrations:
+Use development-only database credentials in `.env`; never commit that file or
+a real Voyage/API key. `env.example` documents development and security
+configuration, while the deployment environment matrix is authoritative for
+production.
+
+## Migrations
+
+Production-like migration path:
 
 ```powershell
-npm start
+.\node_modules\.bin\prisma.cmd validate
+npm run prisma:generate
+npm run prisma:migrate:deploy
+.\node_modules\.bin\prisma.cmd migrate status
 ```
 
-Default port: `3000`.
+In the container deployment, run the repository-pinned Prisma CLI through the
+profile-only `backend-migrate` maintenance target before the serving version
+receives traffic. Never use `prisma migrate dev` or `prisma db push` for
+deployment, and never seed demo data as part of startup.
 
-## Health and Readiness
+## Health and readiness
 
-Liveness:
+| Endpoint | Meaning |
+| --- | --- |
+| `GET /health`, `GET /api/v1/health` | Liveness only: the HTTP process is running. |
+| `GET /api/v1/readiness` | Readiness: PostgreSQL and safe Voyage provider state are usable for real traffic. |
 
-```text
-GET /health
-GET /api/v1/health
+Only HTTP 200 / `ready` from readiness admits traffic. Provider states are
+reported safely without API keys or raw provider errors. A readiness failure
+does not authorise a semantic fallback.
+
+## Shutdown and operator actions
+
+The production server handles `SIGTERM` and `SIGINT` by draining normal
+in-flight work, then closing the HTTP server and Prisma connection within its
+bounded grace period. The deployment platform’s termination allowance must be
+longer than the backend’s 300-second drain, for example **330 seconds or more**.
+
+The first administrator is never seeded or created on startup. After migrations
+and backend readiness, the reviewed Compose maintenance command is:
+
+```powershell
+docker compose --profile maintenance run --rm backend-bootstrap --email <admin-email> --name "<administrator name>"
 ```
 
-Readiness:
+It runs only when an operator invokes the `maintenance` profile; it never seeds
+topics/users or runs as part of normal startup. Transfer its one-time credential
+securely. See the repository-level runbook for required target configuration.
 
-```text
-GET /api/v1/readiness
-```
-
-Readiness policy:
-
-- `ready` / HTTP `200`: API, database, and SBERT are available.
-- `degraded` / HTTP `503`: database is available but SBERT is unavailable; lexical fallback may work, but full semantic readiness is not present.
-- `not_ready` / HTTP `503`: database check failed.
-
-## Scripts
+## Useful checks
 
 ```powershell
 npm test -- --runInBand
-npx prisma validate
-npx prisma migrate status
-npm run evaluate:topics
-npm run audit:data-quality
+.\node_modules\.bin\prisma.cmd validate
+.\node_modules\.bin\prisma.cmd migrate status
 ```
 
-Seed scripts exist for local/demo use only:
-
-```powershell
-npm run prisma:seed
-npm run prisma:seed:auth-demo
-npm run prisma:seed:demo-comparison
-```
-
-Demo credentials must never be seeded into production; `seed-auth-demo.js` refuses to run with `NODE_ENV=production`. Production databases obtain their first administrator with the explicit operator command:
-
-```powershell
-npm run bootstrap:admin -- --email <admin-email> --name "<admin name>"
-```
-
-See `docs/setup/auth-foundation.md` for the full initial-access lifecycle.
-
-## Deployment Docs
-
-Use the repository-level deployment docs for release-candidate operation:
-
-- `docs/deployment/deployment-runbook.md`
-- `docs/deployment/environment-matrix.md`
-- `docs/deployment/database-migrations-and-rollback.md`
-- `docs/deployment/security-readiness-checklist.md`
+Seed and evaluation scripts are local/demo/research tools. Do not run them
+against staging or production data without a separately approved procedure.

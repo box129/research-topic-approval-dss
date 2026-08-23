@@ -1,5 +1,11 @@
 # Neon Staging Setup Evidence
 
+> **Historical/superseded provider evidence.** This is retained for the
+> pre-Phase-6 managed staging record only. Use the
+> [production runbook](./deployment-runbook.md) and
+> [database migration contract](./database-migrations-and-rollback.md) for the
+> current topology.
+
 ## Status
 
 PR #123 records safe evidence that the Neon PostgreSQL staging database has been created for the free managed staging path. It does not record secrets and does not prove the full free staging deployment.

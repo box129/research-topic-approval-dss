@@ -1,5 +1,11 @@
 # Free Staging Setup Checklist
 
+> **Historical/superseded checklist.** This describes the pre-Phase-6
+> provider-chain path and is retained as evidence only. It must not be used for
+> the current Voyage, same-origin deployment; see the
+> [production runbook](./deployment-runbook.md) and
+> [environment matrix](./environment-matrix.md).
+
 ## Status
 
 PR #122 adds a practical execution checklist for the free managed staging path. PR #130 records completed free managed staging readiness evidence for the Vercel -> Render -> Neon + Hugging Face SBERT chain. This checklist remains useful for reruns and evidence refreshes; it does not claim public production readiness.

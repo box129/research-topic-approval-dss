@@ -67,8 +67,8 @@ Then verify:
 
 ```powershell
 cd backend
-npx prisma validate
-npx prisma migrate status
+.\node_modules\.bin\prisma.cmd validate
+.\node_modules\.bin\prisma.cmd migrate status
 ```
 
 Start the backend against the restored database only in a controlled environment and call:

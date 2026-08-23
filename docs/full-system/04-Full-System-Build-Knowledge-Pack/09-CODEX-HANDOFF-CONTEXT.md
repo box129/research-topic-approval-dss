@@ -1,5 +1,12 @@
 # 09 — Codex Handoff Context
 
+> **Historical pre-Phase-6 handoff record.** Do not use its SBERT, lexical
+> fallback, Vercel/Render, or database-deployment statements as current
+> instructions. The current contract is Voyage-only for production semantics;
+> use the root [AGENTS.md](../../../AGENTS.md), the
+> [deployment runbook](../../deployment/deployment-runbook.md), and the
+> [direct-similarity security contract](../../api/direct-similarity-security-contract.md).
+
 > **Purpose:** Paste this file into Codex, place it at the root of the repo as `AGENT-CONTEXT.md`, or use it as the system prompt for any coding agent working on this project.
 
 ---

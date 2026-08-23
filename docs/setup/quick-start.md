@@ -1,5 +1,10 @@
 # 🚀 Quick Start - Topic Similarity MVP
 
+> **Historical SBERT-era quick-start snapshot.** Do not use this as a current
+> staging or production guide. The supported topology uses Voyage from the
+> Node backend and no required FastAPI/SBERT service; follow the
+> [Phase 6 deployment runbook](../deployment/deployment-runbook.md) instead.
+
 ## ✅ Services Running
 
 ```

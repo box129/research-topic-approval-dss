@@ -1,5 +1,10 @@
 # Hugging Face SBERT Space Deployment Package
 
+> **Historical/superseded package record.** SBERT/Hugging Face is not part of
+> the Phase 6 runtime. This material remains for research/evaluation
+> traceability only; use the [production runbook](./deployment-runbook.md) and
+> [environment matrix](./environment-matrix.md) for current deployment.
+
 ## Status
 
 PR #125 prepares a deployable Hugging Face Spaces Docker package for the SBERT staging service. It does not deploy the online Space and does not prove that `/health` or `/embed` works online.

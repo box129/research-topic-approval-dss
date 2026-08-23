@@ -1,5 +1,11 @@
 # Staging Deployment Evidence Template
 
+> **Historical/superseded template.** This reflects the pre-Phase-6 deployment
+> assumptions. For a new synthetic-data staging exercise, use the current
+> [production runbook](./deployment-runbook.md),
+> [environment matrix](./environment-matrix.md), and same-origin smoke
+> contract instead.
+
 Use this template after executing [staging-deployment-proof-plan.md](./staging-deployment-proof-plan.md).
 
 Do not commit completed evidence if it contains secrets, private infrastructure details, or student data. Store completed evidence according to the deployment owner policy.

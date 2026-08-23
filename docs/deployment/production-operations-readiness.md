@@ -2,7 +2,11 @@
 
 ## Status
 
-PR #118 prepares production operations documentation for the Research Topic Approval DSS. It does not prove public production deployment, staging deployment, monitoring coverage, backup drills, SMTP provider delivery, or incident-response readiness.
+This is a future public-production ownership checklist, not evidence that Phase 6
+has completed an operations program. Phase 6 establishes a same-origin,
+single-instance deployment contract only; it does not prove public deployment,
+SMTP delivery, backup/restore drills, centralized observability, or a real
+incident-response rota.
 
 Use this pack as a checklist before a controlled production launch.
 
@@ -10,11 +14,11 @@ Use this pack as a checklist before a controlled production launch.
 
 | Area | Runbook |
 | --- | --- |
-| Backup and restore | [backup-and-restore-runbook.md](./backup-and-restore-runbook.md) |
+| Backup and restore (future phase) | [backup-and-restore-runbook.md](./backup-and-restore-runbook.md) |
 | Secrets management | [secrets-management.md](./secrets-management.md) |
-| Monitoring and logging | [monitoring-and-logging.md](./monitoring-and-logging.md) |
+| Monitoring and logging (future phase) | [monitoring-and-logging.md](./monitoring-and-logging.md) |
 | HTTPS, domain, and TLS | [https-domain-checklist.md](./https-domain-checklist.md) |
-| Incident response and rollback | [incident-response-runbook.md](./incident-response-runbook.md) |
+| Incident response and rollback (future ownership) | [incident-response-runbook.md](./incident-response-runbook.md) |
 
 Related existing docs:
 
@@ -46,18 +50,29 @@ Do not put owner personal phone numbers, passwords, private email accounts, or s
 Before public production:
 
 1. Confirm `NODE_ENV=production`.
-2. Use a strong deployment-owned `JWT_SECRET`.
-3. Configure exact `FRONTEND_URL` or `CORS_ORIGIN`; never use `*`.
-4. Use `EMAIL_PROVIDER=disabled` or `EMAIL_PROVIDER=smtp`; never use `mock`.
-5. If SMTP is enabled, run `npm run smoke:smtp` with deployment-owned credentials and verify recipient delivery.
+2. Use a strong deployment-owned `JWT_SECRET` and production-required
+   `VOYAGE_API_KEY`.
+3. Configure exact HTTPS `FRONTEND_URL`; same-origin deployment normally leaves
+   `CORS_ORIGIN` unset, and any supplied value must never be `*`.
+4. Use `EMAIL_PROVIDER=smtp`; never use `mock` or `disabled` for a public or
+   departmental launch. `disabled` is reserved for deliberately email-disabled
+   synthetic/staging environments.
+5. Run `npm run smoke:smtp` with deployment-owned credentials and a controlled
+   recipient, then verify delivery before public traffic is admitted.
 6. Use a managed or operations-owned PostgreSQL instance with private network exposure.
-7. Apply Prisma migrations with `npx prisma migrate deploy`; do not use `prisma db push`.
-8. Verify `/api/v1/health` and `/api/v1/readiness`.
-9. Confirm SBERT health at `/health` and private network exposure.
+7. Apply Prisma migrations through the explicit `backend-migrate` maintenance
+   target; do not use `prisma db push`.
+8. Verify same-origin `/api/v1/health` and `/api/v1/readiness`; readiness
+   includes safe Voyage availability, not SBERT.
+9. Keep PostgreSQL and the backend private behind the HTTPS edge and frontend
+   Nginx proxy.
 10. Configure HTTPS/TLS and secure cookie behavior.
-11. Confirm backups are scheduled, encrypted where required, and restore-tested.
-12. Confirm monitoring alerts reach the owner.
-13. Confirm rollback steps and backup restore authority.
+11. Before a future public-production launch, separately confirm backups are
+   scheduled, encrypted where required, and restore-tested.
+12. Before that future launch, separately confirm monitoring alerts reach the
+   owner.
+13. Confirm application rollback steps now; establish backup restore authority
+   in the later backup/recovery phase.
 14. Confirm no demo credentials or seed-only accounts are active unless formally approved.
 15. Record evidence outside Git without secrets or raw student data.
 

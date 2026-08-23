@@ -2,13 +2,20 @@
 
 ## Project Purpose
 
-Topic Similarity MVP is a research-topic similarity checker. It uses a Node/Express backend, React/Vite frontend, Python FastAPI SBERT-style embedding service, and PostgreSQL/Prisma data model to compare submitted topics against existing topic records.
+Topic Similarity MVP is a research-topic similarity checker. Its current
+deployment contract uses a Node/Express backend, React/Vite frontend,
+PostgreSQL/Prisma data model, and Voyage `voyage-4-large` embeddings to compare
+submitted topics against existing topic records. The Python FastAPI SBERT
+service remains a legacy research/evaluation artifact, not a production runtime
+dependency.
 
 ## Main Repo Areas
 
 - `backend/`: Express API, Prisma schema, similarity services, middleware, tests, and setup scripts.
 - `frontend/`: React/Vite UI for topic entry and tiered similarity results.
-- `sbert-service/`: FastAPI embedding service with 384-dimensional embeddings and fallback mode.
+- `sbert-service/`: legacy FastAPI/SBERT research and evaluation artifact; use
+  only through its explicit `legacy-sbert` profile, never as a required
+  production dependency.
 - `docs/`: practical project documentation, including archived status notes in `docs/archive/status-reports/` and API docs in `docs/api/`.
 - Root Markdown files: historical guides, status reports, audits, and implementation notes; freshness needs verification.
 - Seed CSV files: sample/import data for topic records.
@@ -35,7 +42,7 @@ Do not change these casually. Inspect dependencies and behavior first.
 - `frontend/package.json`
 - `frontend/package-lock.json`
 
-Protect the similarity scoring, result tiering, LOW/MEDIUM/HIGH risk logic, API response shape, Prisma data model, frontend response mapping, and SBERT fallback behavior from accidental changes.
+Protect the similarity scoring, result tiering, LOW/MEDIUM/HIGH risk logic, API response shape, Prisma data model, frontend response mapping, and current Voyage semantic contract from accidental changes. Do not reintroduce an SBERT or lexical fallback into the protected production direct-similarity path without an explicit approved methodology change.
 
 ## Working Rules
 
@@ -55,7 +62,7 @@ After code changes, recommend the relevant tests or verification steps. Typical 
 - Backend: `cd backend && npm test`
 - Frontend: `cd frontend && npm test`
 - Frontend build: `cd frontend && npm run build`
-- SBERT service: `cd sbert-service && python test_service.py`
+- Legacy SBERT research only: `cd sbert-service && python test_service.py`
 - Manual verification: backend health endpoint, frontend topic submission, and end-to-end results display.
 
 If a command cannot be run or its result is unknown, mark it as `needs verification`.

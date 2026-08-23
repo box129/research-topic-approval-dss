@@ -1,5 +1,11 @@
 # 🚀 Complete Operating Guide - Topic Similarity MVP
 
+> **Historical SBERT-era local guide — not a current deployment instruction.**
+> The supported production/staging topology is Node/Express, PostgreSQL,
+> same-origin Nginx frontend, and Voyage `voyage-4-large`; it does not require
+> this FastAPI/SBERT service. Use the [Phase 6 deployment runbook](../deployment/deployment-runbook.md)
+> and [environment matrix](../deployment/environment-matrix.md) for current operations.
+
 **Date:** February 17, 2026  
 **Goal:** Get the entire application running locally from scratch
 

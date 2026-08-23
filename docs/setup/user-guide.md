@@ -1,5 +1,10 @@
 # Topic Similarity MVP - User Guide
 
+> **Historical SBERT-era user-guide snapshot.** The current protected
+> direct-similarity flow uses Voyage `voyage-4-large` and fails closed when the
+> semantic provider is unavailable; it has no SBERT or lexical fallback. See
+> the [current direct-similarity contract](../api/direct-similarity-security-contract.md).
+
 ## 🚀 Application Running!
 
 Your Topic Similarity MVP system is now running with all three services active:

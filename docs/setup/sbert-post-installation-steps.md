@@ -1,5 +1,10 @@
 # Post-Installation Steps
 
+> **Legacy research-only instructions.** Current production and staging use
+> Voyage `voyage-4-large` from the Node backend and must not require this
+> service. Follow the [Phase 6 deployment runbook](../deployment/deployment-runbook.md)
+> for supported operations.
+
 ## Once Dependencies Are Installed
 
 ### 1. Verify Installation

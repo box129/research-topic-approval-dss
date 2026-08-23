@@ -1,5 +1,10 @@
 # Hugging Face SBERT Online Proof
 
+> **Historical/superseded evidence.** SBERT/Hugging Face is not part of the
+> Phase 6 runtime. This proof is retained for research traceability only; use
+> the [production runbook](./deployment-runbook.md) and
+> [environment matrix](./environment-matrix.md) for the Voyage deployment.
+
 ## Status
 
 PR #126 records safe online proof for the Hugging Face Spaces SBERT staging service. It does not prove Render backend deployment, Vercel frontend deployment, Prisma migrations against Neon, or full free managed staging deployment.

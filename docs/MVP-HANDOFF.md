@@ -1,5 +1,12 @@
 # MVP Handoff Index
 
+> **Superseded as the current deployment navigation source by Phase 6.** This
+> handoff preserves historical MVP/evaluation context, including the former
+> SBERT-era similarity workflow. For current deployment architecture and
+> operations, use the [Phase 6 production runbook](deployment/deployment-runbook.md),
+> [environment matrix](deployment/environment-matrix.md), and
+> [direct-similarity contract](api/direct-similarity-security-contract.md).
+
 ## Purpose
 
 This document is the central navigation point for the current MVP state of the project. It links the main status, evaluation, planning, testing, and defense documents so the project is easier to review by a developer, supervisor, examiner, or future collaborator.

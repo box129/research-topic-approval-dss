@@ -2,6 +2,11 @@
 
 This document describes the currently reconciled error response paths for the Topic Similarity API. Paths that have not been reconciled are marked `needs verification`.
 
+> **Current semantic-provider note:** protected direct-similarity routes use
+> Voyage and fail closed. A Voyage failure returns the documented `503`
+> semantic-unavailable envelope; it does not return SBERT/lexical
+> `partial_success`. See the [direct-similarity security contract](direct-similarity-security-contract.md).
+
 ## Current Reconciled Error Shape
 
 Reconciled errors use:
@@ -136,11 +141,11 @@ The following paths still need verification before being documented as settled A
 
 | Area | Current status |
 |------|----------------|
-| `401` unauthorized errors | `needs verification`; authentication is not a settled MVP contract in the current endpoint. |
-| `403` forbidden errors | `needs verification`; authorization behavior is not settled for this endpoint. |
+| `401` unauthorized errors | Protected direct-similarity routes require an active allowed-role session and return the current unauthorized envelope when absent; other legacy endpoint details remain `needs verification`. |
+| `403` forbidden errors | Protected direct-similarity routes enforce role/status authorization; other legacy endpoint details remain `needs verification`. |
 | Prisma known-request errors | `needs verification`; not all Prisma error variants are reconciled to the staged FYP shape. |
 | Prisma validation/query-shape errors | `needs verification`; current middleware behavior may still use older error shape. |
-| Generic `503` service-unavailable errors | `needs verification`; SBERT outages currently return `partial_success`, not a `503` error response. |
+| Generic `503` service-unavailable errors | Protected direct-similarity routes return the Voyage semantic-unavailable `503` contract; unrelated `503` paths remain `needs verification`. |
 | Rate-limit enforcement window | `needs verification`; response body says `100 requests per hour`, while runtime config may vary by environment. |
 
 ## Frontend Handling Guidance

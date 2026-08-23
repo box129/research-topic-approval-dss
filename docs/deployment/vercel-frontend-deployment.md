@@ -1,5 +1,11 @@
 # Vercel Frontend Deployment
 
+> **Historical/superseded provider guide.** This records the pre-Phase-6
+> Vercel-to-Render rewrite path. The committed Vercel rewrite is no longer a
+> runtime contract; use the current same-origin Nginx topology in the
+> [production runbook](./deployment-runbook.md) and
+> [environment matrix](./environment-matrix.md).
+
 ## Status
 
 This document prepares Vercel frontend deployment for free managed staging. PR #129 adds the committed `frontend/vercel.json` rewrite configuration needed for Vercel to serve the React SPA and proxy relative `/api/*` calls to the Render backend. PR #130 records online Vercel proof in [vercel-frontend-online-proof.md](./vercel-frontend-online-proof.md).

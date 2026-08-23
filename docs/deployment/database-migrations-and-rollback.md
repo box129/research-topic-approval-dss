@@ -1,107 +1,125 @@
-# Database Migrations and Rollback Runbook
+# Database Migration and Rollback Contract
 
-This repository uses PostgreSQL and Prisma migrations. Production-style environments must use `npx prisma migrate deploy`, not `prisma migrate dev` or `prisma db push`.
+> **Current Phase 6 contract.** This document applies to the Voyage-backed,
+> single-instance deployment. It replaces older SBERT/readiness references in
+> deployment material.
 
-## Current Migration Sequence
+## Database boundary
 
-Apply these migrations in order:
-
-1. `20260518120000_init_v1_auth_foundation`
-2. `20260519133945_add_student_submissions`
-3. `20260522121805_add_similarity_check_snapshots`
-4. `20260522202153_add_submission_decision_rationale`
-5. `20260605164000_add_audit_logs`
-6. `20260619120000_add_notifications`
-
-## Provision a Database
-
-Create a database and least-privilege application user with your PostgreSQL tooling. Example placeholders:
-
-```sql
-CREATE DATABASE topic_similarity;
-CREATE USER topic_similarity_app WITH PASSWORD '<strong-password>';
-GRANT CONNECT ON DATABASE topic_similarity TO topic_similarity_app;
-```
-
-Adjust schema privileges for your PostgreSQL version and organization policy. Do not paste real passwords into docs, logs, or release evidence.
-
-## Configure the Backend
-
-Set:
+Use one dedicated PostgreSQL database per environment:
 
 ```text
-DATABASE_URL=postgresql://topic_similarity_app:<password>@<host>:5432/topic_similarity?schema=public
+staging database != defence database != future production database
 ```
 
-For production-like deployments also set a strong `JWT_SECRET`, explicit `FRONTEND_URL` or `CORS_ORIGIN`, and non-mock `EMAIL_PROVIDER`.
+Use synthetic data only in staging during this phase. PostgreSQL is private to
+the deployment network, persistent, and reached through a deployment-owned
+`DATABASE_URL`. Use provider-approved TLS/SSL settings and a least-privilege
+runtime user. A direct connection is sufficient for the initial one-backend
+instance; introduce a pooler only after confirming Prisma and migration
+compatibility.
 
-## Validate and Apply
+Repository migrations, not operator hand-edits, own the schema's integrity and
+lookup contracts. Representative constraints include unique user identities,
+topic source fingerprints, and submission-to-lifecycle-topic links; indexes
+support role/status, lifecycle/session/time, import-batch, and audit/query
+lookups. Review the pinned migration SQL, `prisma validate`, and `migrate
+status` before every release rather than recreating constraints with `db push`.
 
-From `backend/`:
+The initial topology intentionally has one Node/Prisma process. Connection-pool
+and database connection limits are provider-owned: size and verify them in the
+target staging environment before traffic admission, then allow Prisma
+reconnect/readiness recovery after a restart. No connection-capacity figure is
+claimed until that target-environment check is recorded.
+
+## Release migration sequence
+
+Migrations are an explicit, one-off release job before a new serving version
+receives traffic. They use the repository-pinned Prisma CLI and must exit
+non-zero on failure.
+
+For the Compose deployment:
 
 ```powershell
-npm ci
-npx prisma validate
-npx prisma generate
-npx prisma migrate deploy
-npx prisma migrate status
+docker compose --profile maintenance run --rm backend-migrate
 ```
 
-Seed only when explicitly intended (development/demo environments only):
+The job runs `prisma migrate deploy`. It does not seed users/topics, bootstrap
+an administrator, or start the serving application.
+
+For an approved non-Compose release environment, run the pinned repository CLI
+only after installing the reviewed release dependencies. These PowerShell
+commands use the checked-out local binary and never ask `npx` to download a
+package:
 
 ```powershell
-node prisma/seed.js
-node prisma/seed-auth-demo.js
-node prisma/seed-demo-comparison-topics.js
+cd backend
+.\node_modules\.bin\prisma.cmd validate
+npm run prisma:migrate:deploy
+.\node_modules\.bin\prisma.cmd migrate status
 ```
 
-Do not seed demo users or demo topics into public production. `seed-auth-demo.js` refuses to run with `NODE_ENV=production`. Production initialization creates the first administrator with the operator-invoked bootstrap instead:
+`npm run prisma:migrate:deploy` resolves the repository-pinned Prisma script.
+Do not rely on a runtime download of an arbitrary latest package. The container
+serving image uses the dedicated maintenance target instead of the pruned
+runtime image.
 
-```powershell
-npm run bootstrap:admin -- --email <admin-email> --name "<admin name>"
+## Fresh database path
+
+1. Provision the isolated PostgreSQL database and approved credentials.
+2. Store `DATABASE_URL` only in the target secret store.
+3. Run the explicit migration job.
+4. Start the backend with production configuration, including `VOYAGE_API_KEY`.
+5. Require `/api/v1/health` and then `/api/v1/readiness` to succeed before
+   traffic is admitted.
+6. Create the first administrator only through the explicit one-off operator
+   bootstrap path; do not seed demo accounts:
+
+   ```powershell
+   docker compose --profile maintenance run --rm backend-bootstrap --email <admin-email> --name "<administrator name>"
+   ```
+
+   This profile-only target runs `node scripts/bootstrap-admin.js`; it does not
+   run during migrations or normal service startup.
+
+## Existing database upgrade path
+
+1. Identify the target database and current migration state.
+2. Obtain approved backup/restore authority before a risky release. This phase
+   does not perform the backup/restore drill.
+3. Run `migrate deploy` once before traffic shifts.
+4. If migration fails, stop the release and investigate; do not hand-edit the
+   schema or retry against a different database without approval.
+5. Start the compatible application version and verify readiness.
+
+## Explicit prohibitions
+
+Never use either of these as a deployment workflow:
+
+```text
+prisma migrate dev
+prisma db push
 ```
 
-The command prints a one-time temporary password that must be transferred securely and changed at first login (see `docs/setup/auth-foundation.md`).
+Never automatically seed demo users/topics, automatically bootstrap an
+administrator, use the defence database, or run a destructive rollback command.
 
-## Verify Database-Backed Readiness
+## Rollback limitation
 
-Start the backend and call:
+Prisma migrations are forward-only. If a release fails:
 
-```powershell
-Invoke-RestMethod http://127.0.0.1:3000/api/v1/readiness
-```
+1. Drain and roll back the application image/version first.
+2. Prefer a corrective forward migration if the schema must change.
+3. Restore a database only with explicit owner approval and a verified backup.
+4. Re-run migration status and backend readiness before reopening traffic.
 
-The database check must be `available`. If SBERT is down, readiness is `degraded` and HTTP `503`; that means the API can report degraded fallback but is not full semantic readiness.
+Do not delete, reset, or overwrite a database as a generic rollback action.
 
-## Backup Before Risky Changes
+## Readiness interpretation
 
-Example backup placeholder:
-
-```powershell
-pg_dump --format=custom --file=topic_similarity-<date>.dump "postgresql://<user>:<password>@<host>:5432/topic_similarity"
-```
-
-Store backups outside the deployment host according to departmental policy. Verify restore before relying on a backup for rollback.
-
-## Restore Placeholder
-
-Example restore into a replacement database:
-
-```powershell
-createdb topic_similarity_restore
-pg_restore --clean --if-exists --dbname "postgresql://<user>:<password>@<host>:5432/topic_similarity_restore" topic_similarity-<date>.dump
-```
-
-Do not run restore commands against production without an approved incident plan.
-
-## Rollback Policy
-
-Prisma migrations are forward migrations. If a deployment fails:
-
-1. Roll back the application version first.
-2. If the migrated database is incompatible with the previous app, restore a verified backup or deploy a corrective forward migration.
-3. Re-run `npx prisma migrate status`.
-4. Re-run `/api/v1/readiness`.
-5. Re-run smoke checks before reopening the system.
-
-Do not delete the database as a rollback strategy.
+Database availability is necessary but not sufficient. Full readiness also
+requires safe Voyage provider availability. SBERT status is not part of the
+current production migration or readiness contract. A missing/blank
+`VOYAGE_API_KEY` is production startup-fatal; a Voyage provider failure after
+startup must prevent readiness/traffic admission rather than cause a semantic
+fallback.

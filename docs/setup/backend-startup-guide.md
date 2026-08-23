@@ -1,5 +1,10 @@
 # Backend Startup Guide - Windows Configuration
 
+> **Historical local troubleshooting guide.** Do not use its SBERT-era startup
+> sequence as a staging or production contract. Current deployment uses the
+> [Phase 6 runbook](../deployment/deployment-runbook.md): Node/Express,
+> PostgreSQL, same-origin frontend, and Voyage `voyage-4-large`.
+
 ## Critical Issue: Windows Firewall Blocking Node.js
 
 The Node.js backend application is fully functional but **cannot accept network connections due to Windows Firewall restrictions**.

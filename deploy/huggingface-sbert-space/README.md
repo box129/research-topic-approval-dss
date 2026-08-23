@@ -8,7 +8,14 @@ app_port: 7860
 
 # Research Topic Approval DSS SBERT Service
 
-This is the Hugging Face Spaces Docker package for the Research Topic Approval DSS staging SBERT service.
+> **Historical/research-only deployment package.** The current production and
+> staging architecture uses Voyage `voyage-4-large` from the Node backend and
+> must not deploy, configure, or depend on this Hugging Face SBERT service.
+> See the [Phase 6 production runbook](../../docs/deployment/deployment-runbook.md)
+> for the authoritative deployment topology.
+
+This package is retained for historical evaluation/reproducibility of the
+former Hugging Face Spaces SBERT service.
 
 It preserves the backend-facing contract used by `backend/src/services/sbert.service.js`:
 
@@ -69,14 +76,18 @@ curl -fsS https://<space-owner>-<space-name>.hf.space/embed \
   -d '{"text":"malaria prevention among children"}'
 ```
 
-Only after the deployed Space responds should Render receive:
+Historically, the former Render integration received:
 
 ```text
 SBERT_SERVICE_URL=https://<space-owner>-<space-name>.hf.space
 ```
 
+Do not set this value in the current Voyage production or staging deployment.
+
 ## Free-Tier Notes
 
 The first request can be slow because the model may download and load on CPU. Free Spaces can sleep, restart, or rebuild, and they do not provide departmental production reliability guarantees.
 
-If `/health` or `/embed` fails online, record the failure honestly and leave Render readiness as degraded until the Space is fixed.
+If `/health` or `/embed` fails online, record the failure honestly as legacy
+research evidence. It does not change current Voyage production or staging
+readiness.

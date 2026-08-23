@@ -1,5 +1,11 @@
 # Hugging Face SBERT Space
 
+> **Historical/superseded deployment guide.** SBERT/Hugging Face is not part of
+> the Phase 6 runtime. Retain this only for research/evaluation traceability;
+> deploy the current Voyage topology using the
+> [production runbook](./deployment-runbook.md) and
+> [environment matrix](./environment-matrix.md).
+
 ## Status
 
 This document prepares Hugging Face Spaces setup for the SBERT service in free managed staging. It does not create a Space and does not prove SBERT availability.

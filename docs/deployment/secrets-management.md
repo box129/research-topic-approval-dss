@@ -26,6 +26,7 @@ Do not commit:
 | --- | --- | --- |
 | `DATABASE_URL` | Prisma database connection | Store in deployment secret manager. |
 | `JWT_SECRET` | Cookie-backed JWT signing | Minimum 32 random characters; avoid reused or placeholder values. |
+| `VOYAGE_API_KEY` | Backend-only Voyage semantic provider access | Required and startup-fatal in production; never send to a browser or log it. |
 | `SMTP_PASSWORD` | SMTP auth, if provider requires it | Must be paired with `SMTP_USER`; omit both if provider uses network/IP allowlist. |
 | `SMOKE_*` credentials | Optional credentialed smoke | Do not store longer than necessary unless policy approves. |
 | TLS private key | HTTPS termination, if self-managed | Prefer managed certificate storage where available. |
@@ -39,7 +40,8 @@ These are not usually secrets, but should still be reviewed:
 - `EMAIL_FROM`
 - `SMTP_HOST`
 - `SMTP_PORT`
-- `SBERT_SERVICE_URL`
+- `TRUST_PROXY`
+- Voyage request/readiness timeout settings
 - audit retention settings
 - rate-limit settings
 
@@ -51,8 +53,9 @@ Production must set:
 NODE_ENV=production
 DATABASE_URL=<secret>
 JWT_SECRET=<secret>
+VOYAGE_API_KEY=<secret>
 FRONTEND_URL=https://<approved-domain>
-EMAIL_PROVIDER=disabled|smtp
+EMAIL_PROVIDER=smtp
 ```
 
 If using SMTP:
@@ -71,8 +74,11 @@ Reject:
 - `EMAIL_PROVIDER=mock`
 - `CORS_ORIGIN=*`
 - placeholder `JWT_SECRET`
+- blank `VOYAGE_API_KEY` in production
 - local Compose database passwords
 - demo credentials in public production
+- `EMAIL_PROVIDER=disabled` for a public or departmental launch (it is only
+  for deliberately email-disabled synthetic/staging environments)
 
 ## Rotation
 

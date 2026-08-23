@@ -1,5 +1,10 @@
 # Vercel Frontend Online Proof
 
+> **Historical/superseded evidence.** This records the pre-Phase-6
+> Vercel-to-Render rewrite path and is retained only for traceability. It is not
+> proof of the current same-origin Nginx/Voyage deployment; see the
+> [production runbook](./deployment-runbook.md).
+
 ## Status
 
 PR #130 records safe online proof that the free managed staging frontend is deployed on Vercel and that Vercel rewrites existing relative `/api/*` calls to the Render backend.

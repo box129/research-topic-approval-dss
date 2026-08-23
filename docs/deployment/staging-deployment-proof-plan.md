@@ -1,5 +1,11 @@
 # Staging Deployment Proof Plan
 
+> **Historical/superseded proof plan.** This reflects the pre-Phase-6 stack.
+> For a new synthetic-data staging exercise, use the current
+> [production runbook](./deployment-runbook.md),
+> [environment matrix](./environment-matrix.md), and same-origin smoke
+> contract instead.
+
 ## Status
 
 PR #119 prepares the staging deployment proof plan for the Research Topic Approval DSS. It does not complete a staging deployment and does not prove public production readiness.

@@ -1,5 +1,10 @@
 # SEED TESTING GUIDE
 
+> **Historical local-fixture guide.** Never use its seed, reset, `db push`, or
+> SBERT instructions against staging or production. Current deployments use
+> reviewed Prisma migrations, no automatic/demo seeding, and Voyage from the
+> Node backend; see the [Phase 6 deployment runbook](../deployment/deployment-runbook.md).
+
 ## Section 1 — Setup & Seeding
 
 ### How to run each seed file and in what order

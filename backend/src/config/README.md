@@ -1,104 +1,71 @@
-# Configuration Module
+# Backend Configuration Module
 
-This module handles all environment variable loading and validation for the application.
+`env.js` loads and validates backend configuration before the application
+starts. The production source of truth is the repository
+[environment matrix](../../../docs/deployment/environment-matrix.md); this
+document explains the code-facing shape rather than creating a second
+deployment recipe.
 
-## Overview
+## Current runtime contract
 
-The `env.js` file provides a centralized configuration object that loads and validates environment variables using `dotenv`. It ensures all required variables are present and provides sensible defaults for optional settings.
+The protected similarity runtime uses Voyage, PostgreSQL, and the browser
+origin/proxy settings. In production it requires a valid `DATABASE_URL`, strong
+`JWT_SECRET`, `EMAIL_PROVIDER`, `VOYAGE_API_KEY`, and an exact HTTPS
+`FRONTEND_URL`. A blank Voyage key is startup-fatal in
+production.
 
-## Usage
+Use `backend/env.example` only as a development/reference template. Inject
+production values from the target secret store; do not commit `.env` files,
+database URLs, tokens, or passwords.
+
+## Useful configuration properties
 
 ```javascript
 const config = require('./config/env');
 
-// Access configuration values
-console.log(config.port);              // 3000
-console.log(config.database.url);      // PostgreSQL connection string
-console.log(config.sbertService.url);  // SBERT service URL
+console.log(config.port);                    // private listener (default 3000)
+console.log(config.database.url);            // PostgreSQL URL
+console.log(config.voyage.requestTimeoutMs); // provider request deadline
+console.log(config.trustProxy);              // validated proxy topology
+console.log(config.shutdownGracePeriodMs);   // bounded backend drain
 ```
 
-## Configuration Structure
+The standard deployment keeps the backend private behind frontend Nginx. Set
+`TRUST_PROXY` only to the reviewed hop count or proxy CIDR set; `true` and `*`
+are rejected.
 
-### Application Settings
-- `env` - Application environment (development, production, test)
-- `port` - Server port number
-- `apiVersion` - API version string
+## Configuration groups
 
-### Database
-- `database.url` - PostgreSQL connection string (required)
+| Group | Examples | Notes |
+| --- | --- | --- |
+| Application | `NODE_ENV`, `PORT`, `API_VERSION`, `SHUTDOWN_GRACE_PERIOD_MS` | Production drain defaults to 300000 ms and is bounded 180000–300000 ms, so the documented 330-second outer platform allowance always leaves cleanup time. |
+| Database | `DATABASE_URL` | Required; target a private per-environment PostgreSQL database. |
+| Browser/proxy | `FRONTEND_URL`, `CORS_ORIGIN`, `CORS_CREDENTIALS`, `TRUST_PROXY` | Production requires one explicit HTTPS `FRONTEND_URL`; same-origin deployment leaves `CORS_ORIGIN` unset, and any supplied value must exactly match. `CORS_CREDENTIALS` is literal `true` or `false`. |
+| Voyage | `VOYAGE_API_KEY`, `VOYAGE_REQUEST_TIMEOUT_MS`, `VOYAGE_READINESS_PROBE_CACHE_MS` | The key is backend-only and required in production; readiness does not permit a fallback provider. |
+| Email | `EMAIL_PROVIDER`, `EMAIL_FROM`, `SMTP_*` | `mock` is rejected in production. SMTP requires complete validated configuration. |
+| Limits | `RATE_LIMIT_*`, `JSON_BODY_LIMIT_BYTES`, `IMPORT_UPLOAD_*` | The process-local rate limits support the reviewed single-backend topology. |
+| Audit/auth | `JWT_*`, `AUTH_COOKIE_NAME`, `INVITATION_EXPIRES_HOURS`, `RESET_TOKEN_EXPIRES_MINUTES`, `AUDIT_LOG_*` | See the matrix for bounds and operational meaning. |
+| Logging | `LOG_LEVEL` | The active logger uses `LOG_LEVEL`, Console/stdout/stderr, and fixed local `logs/error.log` / `logs/combined.log` paths. `LOG_FILE` is not consumed by that logger. |
 
-### SBERT Service
-- `sbertService.url` - URL of the SBERT microservice
-- `sbertService.timeout` - Request timeout in milliseconds
-- `sbertService.retryAttempts` - Number of retry attempts for failed requests
+## Legacy SBERT compatibility
 
-### Rate Limiting
-- `rateLimit.windowMs` - Time window for rate limiting
-- `rateLimit.max` - Maximum requests per IP within window
+`env.js` still exposes a legacy `config.sbertService` shape for compatibility
+with retained research material. It is not a current production dependency and
+must not be used to add SBERT to standard Compose startup, liveness, readiness,
+or browser traffic. Research-only SBERT is isolated behind the explicit
+`legacy-sbert` profile described in the deployment documentation.
 
-### CORS
-- `cors.origin` - Allowed origin for CORS requests
-- `cors.credentials` - Allow credentials in CORS requests
+## Local CLI validation
 
-### Logging
-- `logging.level` - Log level (error, warn, info, debug, etc.)
-- `logging.file` - Path to log file
+After installing the pinned backend dependencies, use the local executable
+rather than an unpinned network download:
 
-### Similarity Settings
-- `similarity.tier2Threshold` - Threshold for Tier 2 similarity (0.0-1.0)
-- `similarity.tier3TimeWindowHours` - Time window for Tier 3 checks
-
-## Environment Variables
-
-All environment variables should be defined in a `.env` file in the project root. Use `env.example` as a template.
-
-### Required Variables
-- `DATABASE_URL` - PostgreSQL connection string
-
-### Optional Variables (with defaults)
-All other variables have sensible defaults and are optional. See `env.example` for the complete list.
-
-## Validation
-
-The module validates that all required environment variables are present on startup. If any required variables are missing, it will throw an error with details about which variables are missing.
-
-## Example .env File
-
-```env
-# Server
-PORT=3000
-NODE_ENV=development
-
-# Database (REQUIRED)
-DATABASE_URL="postgresql://user:password@localhost:5432/topic_similarity?schema=public"
-
-# SBERT Service
-SBERT_SERVICE_URL=http://localhost:8000
-SBERT_TIMEOUT=30000
-SBERT_RETRY_ATTEMPTS=3
-
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX=100
-
-# CORS
-CORS_ORIGIN=http://localhost:5173
-CORS_CREDENTIALS=true
-
-# Logging
-LOG_LEVEL=info
-LOG_FILE=logs/app.log
-
-# Similarity
-SIMILARITY_TIER2_THRESHOLD=0.60
-SIMILARITY_TIER3_TIME_WINDOW_HOURS=48
+```powershell
+cd backend
+.\node_modules\.bin\prisma.cmd validate
 ```
 
-## Adding New Configuration
-
-To add new configuration values:
-
-1. Add the environment variable to `env.example`
-2. Add the configuration property to the config object in `env.js`
-3. If the variable is required, add it to the `required` array in `validateEnv()`
-4. Update this README with the new configuration option
+For the production migration contract, use the explicit `backend-migrate`
+maintenance target or `npm run prisma:migrate:deploy` from an already-installed
+reviewed release checkout. Do not use `prisma migrate dev` or `prisma db push`
+for a deployment.

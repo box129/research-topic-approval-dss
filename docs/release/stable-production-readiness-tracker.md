@@ -1,5 +1,10 @@
 # Stable Production Readiness Tracker
 
+> **Historical pre-Phase-6 tracker — superseded for deployment topology.** It
+> retains older SBERT/Vercel/Render/Neon/Hugging Face evidence but is not the
+> current production architecture. Use the [Phase 6 deployment runbook](../deployment/deployment-runbook.md)
+> and [environment matrix](../deployment/environment-matrix.md) for current gates.
+
 This tracker follows limitations from `v0.4.0-rc1` toward a stable FYP/public production release.
 
 | Limitation | Status | Required PR or Evidence | Needed for FYP Stable Release | Needed for Public Production | Owner / Action | Current Post-RC Impact |

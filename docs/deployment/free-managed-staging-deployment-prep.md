@@ -1,5 +1,11 @@
 # Free Managed Staging Deployment Prep
 
+> **Historical/superseded planning evidence.** This records the pre-Phase-6
+> managed-provider chain and must not be used to deploy the current Voyage,
+> same-origin topology. Use the [production runbook](./deployment-runbook.md)
+> and [environment matrix](./environment-matrix.md); no historical evidence has
+> been deleted.
+
 ## Status
 
 PR #121 prepares provider-specific guidance for a free managed staging deployment of the Research Topic Approval DSS. It does not execute deployment, verify provider uptime, add real provider URLs, or prove public production readiness.

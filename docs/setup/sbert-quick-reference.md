@@ -1,5 +1,10 @@
 # SBERT Service - Quick Reference Guide
 
+> **Legacy research-only reference.** It is not a production or staging
+> dependency. The current semantic provider is Voyage `voyage-4-large`; use the
+> [Phase 6 deployment runbook](../deployment/deployment-runbook.md) for current
+> operations.
+
 ## 🚀 Quick Start (After Installation)
 
 ```powershell
