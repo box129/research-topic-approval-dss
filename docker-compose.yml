@@ -6,10 +6,10 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-topic_similarity}
       POSTGRES_USER: ${POSTGRES_USER:-topic_similarity}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in a local .env file before starting Compose}
-    ports:
-      - "${COMPOSE_BIND_HOST:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    stop_grace_period: 300s
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-topic_similarity} -d ${POSTGRES_DB:-topic_similarity}"]
       interval: 10s
@@ -21,10 +21,11 @@ services:
     build:
       context: ./sbert-service
     container_name: topic-similarity-sbert
+    # Historical research/evaluation only. It is deliberately excluded from
+    # the standard Voyage production topology.
+    profiles: ["legacy-sbert"]
     environment:
       LOG_LEVEL: ${SBERT_LOG_LEVEL:-INFO}
-    ports:
-      - "${COMPOSE_BIND_HOST:-127.0.0.1}:${SBERT_PORT:-8000}:8000"
     volumes:
       - sbert-model-cache:/root/.cache/huggingface
     healthcheck:
@@ -39,37 +40,73 @@ services:
       context: ./backend
     container_name: topic-similarity-backend
     environment:
-      NODE_ENV: ${NODE_ENV:-development}
+      NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
       API_VERSION: ${API_VERSION:-v1}
       DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-topic_similarity}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in a local .env file before starting Compose}@postgres:5432/${POSTGRES_DB:-topic_similarity}?schema=public}
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in a local .env file or deployment secret store before starting Compose}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
+      # Same-origin deployments use FRONTEND_URL. The local development
+      # example explicitly supplies its localhost CORS origin when desired.
+      CORS_ORIGIN: ${CORS_ORIGIN:-}
       CORS_CREDENTIALS: ${CORS_CREDENTIALS:-true}
-      # A blank key intentionally yields degraded local readiness; deployment
-      # environments must inject the real value through their secret store.
+      # The local development example supplies 1 for its direct Nginx hop.
+      # Every production-like deployment must supply its own reviewed proxy
+      # hop count or trusted CIDR topology; never guess this value.
+      TRUST_PROXY: ${TRUST_PROXY:?Set TRUST_PROXY to the reviewed proxy hop count or CIDR topology before starting Compose}
+      # The committed local example deliberately uses NODE_ENV=development and
+      # may leave this blank for degraded local checks. Production validation
+      # rejects a blank key, so a deployment secret store must inject it.
       VOYAGE_API_KEY: ${VOYAGE_API_KEY:-}
       VOYAGE_REQUEST_TIMEOUT_MS: ${VOYAGE_REQUEST_TIMEOUT_MS:-10000}
       VOYAGE_READINESS_PROBE_CACHE_MS: ${VOYAGE_READINESS_PROBE_CACHE_MS:-300000}
-      SBERT_SERVICE_URL: ${SBERT_SERVICE_URL:-http://sbert-service:8000}
-      SBERT_TIMEOUT: ${SBERT_TIMEOUT:-30000}
-      SBERT_RETRY_ATTEMPTS: ${SBERT_RETRY_ATTEMPTS:-3}
+      SHUTDOWN_GRACE_PERIOD_MS: ${SHUTDOWN_GRACE_PERIOD_MS:-300000}
       EMAIL_PROVIDER: ${EMAIL_PROVIDER:-disabled}
       EMAIL_FROM: ${EMAIL_FROM:-no-reply@localhost}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_TIMEOUT_MS: ${SMTP_TIMEOUT_MS:-10000}
+      INVITATION_EXPIRES_HOURS: ${INVITATION_EXPIRES_HOURS:-168}
+      RESET_TOKEN_EXPIRES_MINUTES: ${RESET_TOKEN_EXPIRES_MINUTES:-30}
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-10000}
+      RATE_LIMIT_IPV6_SUBNET_PREFIX: ${RATE_LIMIT_IPV6_SUBNET_PREFIX:-56}
+      AUTH_RATE_LIMIT_WINDOW_MS: ${AUTH_RATE_LIMIT_WINDOW_MS:-900000}
+      LOGIN_RATE_LIMIT_MAX: ${LOGIN_RATE_LIMIT_MAX:-30}
+      LOGIN_IDENTIFIER_RATE_LIMIT_MAX: ${LOGIN_IDENTIFIER_RATE_LIMIT_MAX:-8}
+      FORGOT_PASSWORD_RATE_LIMIT_MAX: ${FORGOT_PASSWORD_RATE_LIMIT_MAX:-15}
+      INVITATION_VALIDATION_RATE_LIMIT_MAX: ${INVITATION_VALIDATION_RATE_LIMIT_MAX:-30}
+      INVITATION_ACCEPTANCE_RATE_LIMIT_MAX: ${INVITATION_ACCEPTANCE_RATE_LIMIT_MAX:-10}
+      RESET_PASSWORD_RATE_LIMIT_MAX: ${RESET_PASSWORD_RATE_LIMIT_MAX:-10}
+      ADMIN_ACCOUNT_ACTION_RATE_LIMIT_MAX: ${ADMIN_ACCOUNT_ACTION_RATE_LIMIT_MAX:-30}
+      ADMIN_BULK_INVITATION_RATE_LIMIT_MAX: ${ADMIN_BULK_INVITATION_RATE_LIMIT_MAX:-10}
+      ADMIN_TOPIC_IMPORT_RATE_LIMIT_MAX: ${ADMIN_TOPIC_IMPORT_RATE_LIMIT_MAX:-5}
+      BULK_HASH_CONCURRENCY: ${BULK_HASH_CONCURRENCY:-}
+      SIMILARITY_RATE_LIMIT_WINDOW_MS: ${SIMILARITY_RATE_LIMIT_WINDOW_MS:-900000}
+      SIMILARITY_RATE_LIMIT_MAX: ${SIMILARITY_RATE_LIMIT_MAX:-30}
+      JSON_BODY_LIMIT_BYTES: ${JSON_BODY_LIMIT_BYTES:-102400}
+      IMPORT_UPLOAD_LIMIT_BYTES: ${IMPORT_UPLOAD_LIMIT_BYTES:-5242880}
+      IMPORT_UPLOAD_MAX_FIELDS: ${IMPORT_UPLOAD_MAX_FIELDS:-10}
+      IMPORT_UPLOAD_MAX_PARTS: ${IMPORT_UPLOAD_MAX_PARTS:-12}
+      IMPORT_UPLOAD_FIELD_SIZE_BYTES: ${IMPORT_UPLOAD_FIELD_SIZE_BYTES:-16384}
       AUDIT_LOG_RETENTION_DAYS: ${AUDIT_LOG_RETENTION_DAYS:-365}
       AUDIT_LOG_PURGE_MIN_AGE_DAYS: ${AUDIT_LOG_PURGE_MIN_AGE_DAYS:-90}
       AUDIT_LOG_PURGE_MAX_BATCH: ${AUDIT_LOG_PURGE_MAX_BATCH:-1000}
       LOG_LEVEL: ${LOG_LEVEL:-info}
-    ports:
-      - "${COMPOSE_BIND_HOST:-127.0.0.1}:${BACKEND_PORT:-3000}:3000"
     depends_on:
       postgres:
         condition: service_healthy
-      sbert-service:
-        condition: service_healthy
+    restart: unless-stopped
+    # Leave time beyond the application's 300-second drain timer so Prisma
+    # disconnect and server close handlers can finish before Docker SIGKILLs.
+    stop_grace_period: 330s
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:3000/api/v1/readiness"]
+      # Container restart is based on liveness. Readiness is reserved for
+      # traffic admission so a transient Voyage failure does not restart the API.
+      test: ["CMD", "curl", "-fsS", "http://localhost:3000/api/v1/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -88,17 +125,50 @@ services:
       postgres:
         condition: service_healthy
 
+  # Explicit operator-only first-administrator bootstrap. It never starts
+  # with the standard stack, never seeds demo data, and receives arguments
+  # only from the `docker compose run` invocation.
+  backend-bootstrap:
+    build:
+      context: ./backend
+      target: bootstrap
+    container_name: topic-similarity-backend-bootstrap
+    profiles: ["maintenance"]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-topic_similarity}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in a local .env file before starting Compose}@postgres:5432/${POSTGRES_DB:-topic_similarity}?schema=public}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in a local .env file or deployment secret store before starting Compose}
+      FRONTEND_URL: ${FRONTEND_URL:?Set FRONTEND_URL to the HTTPS browser origin before running the production bootstrap target}
+      CORS_ORIGIN: ${CORS_ORIGIN:-}
+      TRUST_PROXY: ${TRUST_PROXY:?Set TRUST_PROXY to the reviewed proxy hop count or CIDR topology before running the production bootstrap target}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-disabled}
+      EMAIL_FROM: ${EMAIL_FROM:-no-reply@localhost}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_TIMEOUT_MS: ${SMTP_TIMEOUT_MS:-10000}
+      VOYAGE_API_KEY: ${VOYAGE_API_KEY:-}
+      VOYAGE_REQUEST_TIMEOUT_MS: ${VOYAGE_REQUEST_TIMEOUT_MS:-10000}
+      VOYAGE_READINESS_PROBE_CACHE_MS: ${VOYAGE_READINESS_PROBE_CACHE_MS:-300000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   frontend:
     build:
       context: ./frontend
     container_name: topic-similarity-frontend
     ports:
-      - "${COMPOSE_BIND_HOST:-127.0.0.1}:${FRONTEND_PORT:-8080}:80"
+      - "${COMPOSE_BIND_HOST:-127.0.0.1}:${FRONTEND_PORT:-8080}:8080"
     depends_on:
       backend:
-        condition: service_started
+        condition: service_healthy
+    restart: unless-stopped
+    stop_grace_period: 300s
     healthcheck:
-      test: ["CMD-SHELL", "test -f /usr/share/nginx/html/index.html"]
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/ || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 5

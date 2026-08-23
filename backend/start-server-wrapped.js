@@ -21,14 +21,16 @@ process.on('unhandledRejection', (reason) => {
 
 // Start server
 try {
-  require('./src/server');
+  const config = require('./src/config/env');
+  const app = require('./src/server');
+  app.startServer();
   console.log('✅ Server started successfully\n');
   console.log('═'.repeat(50));
-  console.log('Server is running on port 8080');
+  console.log(`Server is running on port ${config.port}`);
   console.log('Press CTRL+C to stop\n');
   console.log('Endpoints:');
-  console.log('  GET  http://localhost:8080/health');
-  console.log('  POST http://localhost:8080/api/similarity/check\n');
+  console.log(`  GET  http://localhost:${config.port}/health`);
+  console.log(`  POST http://localhost:${config.port}/api/similarity/check\n`);
   console.log('═'.repeat(50) + '\n');
 } catch (err) {
   console.error('❌ Failed to start server:', err.message);

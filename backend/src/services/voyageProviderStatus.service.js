@@ -28,7 +28,7 @@ function createVoyageProviderStatusService({
   cacheMs = config.voyage.readinessProbeCacheMs,
   now = () => new Date(),
   log = logger,
-  autoProbe = env.NODE_ENV !== 'test'
+  autoProbe = String(env.NODE_ENV || '').trim().toLowerCase() !== 'test'
 } = {}) {
   let state = {
     status: PROVIDER_STATUS.CONFIGURED_NOT_YET_VERIFIED,

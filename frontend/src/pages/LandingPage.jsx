@@ -34,10 +34,10 @@ const roleJourneys = [
   }
 ];
 
-const methods = [
-  ['J', 'Jaccard similarity', 'Identifies direct overlap between important words and terms.'],
-  ['T', 'TF-IDF with cosine similarity', 'Gives greater weight to informative terms and compares lexical structure.'],
-  ['S', 'SBERT semantic similarity', 'Examines contextual meaning so related topics may still be recognised when wording differs.']
+const semanticEvidencePoints = [
+  ['V', 'Voyage (voyage-4-large) semantic similarity', 'Compares contextual meaning so related topics may still be recognised when wording differs.'],
+  ['C', 'Structured topic context', 'Uses the submitted title and any supplied population, location or study-focus context in one semantic representation.'],
+  ['A', 'Advisory evidence', 'Returns relevant stored records for lecturer review; it does not make an academic decision.']
 ];
 
 const approvalSteps = [
@@ -173,7 +173,7 @@ function WorkflowFigure() {
           <span>Proposed topic</span>
         </div>
         <span className="landing-workflow__arrow" aria-hidden="true">→</span>
-        <div className="landing-workflow__node"><span>01</span><strong>Jaccard, TF-IDF/Cosine and SBERT</strong></div>
+        <div className="landing-workflow__node"><span>01</span><strong>Voyage semantic similarity</strong></div>
         <span className="landing-workflow__arrow" aria-hidden="true">→</span>
         <div className="landing-workflow__node"><span>02</span><strong>Historical, current-session and under-review records</strong></div>
         <span className="landing-workflow__arrow" aria-hidden="true">→</span>
@@ -195,7 +195,7 @@ function LandingHero() {
         <div className="landing-hero__copy">
           <p className="landing-eyebrow">Research decision support</p>
           <h1 id="landing-title">Better research topics begin with better evidence.</h1>
-          <p className="landing-hero__lede">A role-based decision-support system that compares proposed undergraduate research topics with existing records using lexical and semantic similarity while keeping final approval under lecturer control.</p>
+          <p className="landing-hero__lede">A role-based decision-support system that compares proposed undergraduate research topics with existing records using Voyage semantic similarity while keeping final approval under lecturer control.</p>
           <div className="landing-button-row">
             <Link className="landing-button landing-button--primary" to="/login">Sign In to your workspace</Link>
             <AnchorLink className="landing-button landing-button--secondary" id="approval">See how the process works</AnchorLink>
@@ -254,19 +254,19 @@ function SimilarityEvidenceSection() {
       <div className="landing-container landing-evidence-layout">
         <div className="landing-heading landing-heading--light">
           <p className="landing-eyebrow">Similarity evidence</p>
-          <h2 id="evidence-title">Three perspectives on how topics relate.</h2>
-          <p>The combined result supports academic review. It does not automatically approve or reject a proposal.</p>
+          <h2 id="evidence-title">One semantic comparison, reviewed in context.</h2>
+          <p>The Voyage semantic result supports academic review. It does not automatically approve or reject a proposal.</p>
         </div>
         <div className="landing-methods">
-          {methods.map(([code, title, copy]) => (
+          {semanticEvidencePoints.map(([code, title, copy]) => (
             <article key={title}><span className="landing-method-code">{code}</span><div><h3>{title}</h3><p>{copy}</p></div></article>
           ))}
         </div>
       </div>
       <div className="landing-container landing-disclosure-wrap">
         <details>
-          <summary>How the methods complement one another</summary>
-          <p>Jaccard makes direct term overlap legible. TF-IDF/Cosine reduces the influence of common vocabulary. SBERT adds contextual, sentence-level comparison. Together they provide different signals for an authorised reviewer to interpret.</p>
+          <summary>How Voyage semantic comparison supports review</summary>
+          <p>Voyage&apos;s <code>voyage-4-large</code> model compares structured topic context with eligible stored records. It returns advisory semantic evidence only; it does not provide a lexical fallback, an originality guarantee or an automatic decision.</p>
         </details>
       </div>
     </section>
@@ -309,7 +309,7 @@ function RepositoryLifecycleSection() {
   );
 }
 
-const evidenceFacts = [['Produced by', 'The checking workflow'], ['Identifies', 'Related stored records'], ['Draws on', 'Lexical and semantic approaches'], ['May support', 'Saved lecturer evidence snapshots']];
+const evidenceFacts = [['Produced by', 'The checking workflow'], ['Identifies', 'Related stored records'], ['Uses', 'Voyage semantic comparison'], ['May support', 'Saved lecturer evidence snapshots']];
 const decisionFacts = [['Made by', 'An authorised lecturer'], ['Considers', 'The proposal and academic context'], ['May record', 'Approve, reject or request revision'], ['Documents', 'Rationale where required']];
 
 function ComparisonRecord({ label, title, facts, decision = false }) {
@@ -364,7 +364,7 @@ function TechnicalFoundationDisclosure() {
   return (
     <section className="landing-section landing-technical" id="technical" tabIndex="-1" aria-labelledby="technical-title">
       <div className="landing-container landing-technical__inner">
-        <div><p className="landing-eyebrow">Technical foundation</p><h2 id="technical-title">A role-protected application with a separate semantic service.</h2></div>
+        <div><p className="landing-eyebrow">Technical foundation</p><h2 id="technical-title">A role-protected application with a managed semantic provider.</h2></div>
         <details className="landing-technical__disclosure">
           <summary>View technical architecture</summary>
           <div className="landing-architecture" aria-label="Technical architecture">
@@ -372,9 +372,9 @@ function TechnicalFoundationDisclosure() {
             <div><strong>React</strong><span>Frontend</span></div><b aria-hidden="true">→</b>
             <div><strong>Node.js / Express</strong><span>Application API</span></div><b aria-hidden="true">→</b>
             <div><strong>PostgreSQL / Prisma</strong><span>Application records</span></div><b aria-hidden="true">+</b>
-            <div><strong>Python / FastAPI</strong><span>Semantic service</span></div>
+            <div><strong>Voyage API</strong><span>Semantic provider</span></div>
           </div>
-          <p>Role-protected workflows connect the frontend to the application API. The semantic service provides contextual comparison alongside lexical methods. This static diagram describes architecture; it does not report runtime status.</p>
+          <p>Role-protected workflows connect the frontend to the application API. The Voyage semantic provider uses <code>voyage-4-large</code> for contextual comparison. This static diagram describes architecture; it does not report runtime status.</p>
         </details>
       </div>
     </section>

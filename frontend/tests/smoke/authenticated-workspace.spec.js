@@ -150,7 +150,7 @@ async function installMocks(page, role) {
         submissions: { total: 8, pendingReview: 4, awaitingRevision: 1, approved: 2, rejected: 1, status: 'available' },
         topics: { total: 45, historical: 30, currentSession: 10, underReview: 5, status: 'available' },
         similarityChecks: { snapshots: 7, highRisk: 1, mediumRisk: 2, lowRisk: 4, status: 'available', notes: [] },
-        serviceHealth: { api: { status: 'available', message: 'API responded.' }, database: { status: 'available', message: 'Database counts are available.' }, sbert: { status: 'unknown', message: 'Similarity service status is not currently available.' } },
+        serviceHealth: { api: { status: 'available', message: 'API responded.' }, database: { status: 'available', message: 'Database counts are available.' }, semanticProvider: { status: 'unknown', provider: 'voyage', model: 'voyage-4-large', message: 'Voyage semantic provider (voyage-4-large) health is not checked by this dashboard endpoint yet.' } },
         warnings: []
       },
       meta: { generatedAt: '2026-06-25T10:00:00.000Z', dataCoverage: 'Stored administrative metrics.' }

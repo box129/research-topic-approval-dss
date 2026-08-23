@@ -26,12 +26,13 @@ console.log(`✅ Config loaded: env=${config.env}, port=${config.port}`);
 
 console.log('🔍 [DEBUG] Creating Express app...');
 const app = require('./src/server');
+app.startServer();
 console.log('✅ Express app created');
 
 console.log('🔍 [DEBUG] Server will attempt to bind to port ' + config.port);
 console.log('🔍 [DEBUG] Waiting for startup...');
 
-// The server.js file already has the listen() call, so just wait
+// startServer() owns the listen call and installs graceful signal handling.
 setTimeout(() => {
   console.log('🔍 [DEBUG] Startup complete. Server should be running.');
 }, 2000);

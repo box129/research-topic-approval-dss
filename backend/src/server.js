@@ -7,8 +7,10 @@ const fs = require('fs');
 const path = require('path');
 const config = require('./config/env');
 const logger = require('./config/logger');
+const prisma = require('./config/database');
 const { createRateLimiters } = require('./middleware/rateLimit.middleware');
 const { createCsrfOriginGuard } = require('./middleware/csrf.middleware');
+const { createServerLifecycle } = require('./runtime/serverLifecycle');
 // Lazy-load the similarity controller to avoid Prisma initialization blocking
 let similarityController;
 let topicImportController;
@@ -539,20 +541,65 @@ app.use(notFoundHandler);
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
-// Only start server if not in test mode
-if (config.env !== 'test') {
-  const server = app.listen(config.port, '0.0.0.0');
-  
+function startServer({
+  application = app,
+  runtimeConfig = config,
+  prismaClient = prisma,
+  log = logger,
+  processRef = process,
+  exit = (code) => process.exit(code),
+  host = '0.0.0.0'
+} = {}) {
+  const server = application.listen(runtimeConfig.port, host);
+  const lifecycle = createServerLifecycle({
+    server,
+    prisma: prismaClient,
+    log,
+    gracePeriodMs: runtimeConfig.shutdownGracePeriodMs,
+    exit
+  });
+  const removeSignalHandlers = lifecycle.installSignalHandlers(processRef);
+  let listening = false;
+
   server.on('listening', () => {
-    console.log(`Server is running on port ${config.port}`);
-    console.log(`Environment: ${config.env}`);
-    console.log(`API Version: ${config.apiVersion}`);
+    listening = true;
+    log.info('Server is listening.', {
+      port: runtimeConfig.port,
+      environment: runtimeConfig.env,
+      apiVersion: runtimeConfig.apiVersion
+    });
   });
 
-  server.on('error', (err) => {
-    console.error('Server error:', err);
-    process.exit(1);
+  server.on('error', (error) => {
+    log.error('HTTP server error.', {
+      error: error?.message,
+      listening
+    });
+
+    if (!listening) {
+      removeSignalHandlers();
+      exit(1);
+    }
   });
+
+  return {
+    server,
+    shutdown: lifecycle.shutdown,
+    removeSignalHandlers
+  };
 }
 
+// Export the Express application for Supertest and other in-process callers.
+// The production entrypoint starts only when this module is executed directly,
+// so importing the app cannot accidentally bind a port.
 module.exports = app;
+module.exports.startServer = startServer;
+
+if (require.main === module) {
+  try {
+    startServer();
+  } catch (error) {
+    logger.error('Server startup failed.', { error: error?.message });
+    process.exit(1);
+  }
+}

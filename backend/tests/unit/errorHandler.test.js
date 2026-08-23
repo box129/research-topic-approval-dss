@@ -270,6 +270,26 @@ describe('Error Handler Middleware', () => {
       process.env.NODE_ENV = originalEnv;
     });
 
+    test('normalizes production environment casing before sanitizing 500 errors', () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = ' Production ';
+
+      const error = new Error('Internal database connection failed');
+      error.statusCode = 500;
+
+      errorHandler(error, req, res, next);
+
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'An unexpected error occurred',
+        details: {
+          error_code: 'INTERNAL_ERROR'
+        }
+      });
+
+      process.env.NODE_ENV = originalEnv;
+    });
+
     test('should not sanitize error messages in development', () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'development';

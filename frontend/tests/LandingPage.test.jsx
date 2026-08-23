@@ -39,24 +39,25 @@ describe('LandingPage', () => {
     [
       'A clearer basis for discussing topic similarity.',
       'One process, three distinct responsibilities.',
-      'Three perspectives on how topics relate.',
+      'One semantic comparison, reviewed in context.',
       'A guided approval sequence with a human decision at its centre.',
       'Comparison grounded in topic records across their lifecycle.',
       'A deliberate boundary between finding similarity and making a decision.',
       'The surrounding controls keep academic work attributable.',
-      'A role-protected application with a separate semantic service.',
+      'A role-protected application with a managed semantic provider.',
       'Continue to your research workspace'
     ].forEach((heading) => expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument());
   });
 
-  it('renders all supported roles, evidence methods and workflow stages', () => {
+  it('renders all supported roles, Voyage semantic evidence points and workflow stages', () => {
     renderLanding();
 
     ['Student', 'Lecturer', 'Administrator'].forEach((role) => expect(screen.getByText(new RegExp(`/ ${role}$`))).toBeInTheDocument());
-    ['Jaccard similarity', 'TF-IDF with cosine similarity', 'SBERT semantic similarity'].forEach((method) => expect(screen.getByRole('heading', { name: method })).toBeInTheDocument());
-    ['Proposed topic', 'Jaccard, TF-IDF/Cosine and SBERT', 'Historical, current-session and under-review records', 'Advisory similarity evidence', 'Lecturer-controlled decision'].forEach((stage) => expect(screen.getByText(stage)).toBeInTheDocument());
+    ['Voyage (voyage-4-large) semantic similarity', 'Structured topic context', 'Advisory evidence'].forEach((point) => expect(screen.getByRole('heading', { name: point })).toBeInTheDocument());
+    ['Proposed topic', 'Voyage semantic similarity', 'Historical, current-session and under-review records', 'Advisory similarity evidence', 'Lecturer-controlled decision'].forEach((stage) => expect(screen.getByText(stage)).toBeInTheDocument());
     ['Topic submission', 'Similarity checking', 'Lecturer review', 'Decision record'].forEach((stage) => expect(screen.getByRole('heading', { name: stage })).toBeInTheDocument());
     ['Revision requested', 'Student submits a revised topic', 'Lecturer reviews again'].forEach((stage) => expect(screen.getByText(stage)).toBeInTheDocument());
+    expect(document.body.textContent).not.toMatch(/\b(?:Jaccard|TF-IDF|SBERT)\b/i);
   });
 
   it('renders repository, comparison and supported governance content', () => {
@@ -108,11 +109,11 @@ describe('LandingPage', () => {
     const user = userEvent.setup();
     renderLanding();
 
-    const methodology = screen.getByText('How the methods complement one another').closest('details');
+    const methodology = screen.getByText('How Voyage semantic comparison supports review').closest('details');
     const architecture = screen.getByText('View technical architecture').closest('details');
     expect(methodology).not.toHaveAttribute('open');
     expect(architecture).not.toHaveAttribute('open');
-    await user.click(screen.getByText('How the methods complement one another'));
+    await user.click(screen.getByText('How Voyage semantic comparison supports review'));
     await user.click(screen.getByText('View technical architecture'));
     expect(methodology).toHaveAttribute('open');
     expect(architecture).toHaveAttribute('open');

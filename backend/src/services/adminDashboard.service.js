@@ -227,9 +227,11 @@ function createAdminDashboardService({ prismaClient = prisma, log = logger } = {
               ? 'Database counts were read from existing tables.'
               : 'One or more database-backed dashboard sections could not be read.'
           },
-          sbert: {
+          semanticProvider: {
             status: 'unknown',
-            message: 'SBERT health is not checked by this dashboard endpoint yet.'
+            provider: 'voyage',
+            model: 'voyage-4-large',
+            message: 'Voyage semantic provider (voyage-4-large) health is not checked by this dashboard endpoint yet.'
           }
         },
         warnings

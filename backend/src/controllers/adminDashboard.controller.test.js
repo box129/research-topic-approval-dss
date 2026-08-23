@@ -65,7 +65,12 @@ const dashboardSummary = {
     serviceHealth: {
       api: { status: 'available', message: 'API process responded.' },
       database: { status: 'available', message: 'Database counts were read.' },
-      sbert: { status: 'unknown', message: 'SBERT health is not checked by this dashboard endpoint yet.' }
+      semanticProvider: {
+        status: 'unknown',
+        provider: 'voyage',
+        model: 'voyage-4-large',
+        message: 'Voyage semantic provider (voyage-4-large) health is not checked by this dashboard endpoint yet.'
+      }
     },
     warnings: []
   },

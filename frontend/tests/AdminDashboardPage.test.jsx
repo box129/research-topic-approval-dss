@@ -70,9 +70,11 @@ const summaryResponse = {
         status: 'available',
         message: 'Database counts were read from existing tables.'
       },
-      sbert: {
+      semanticProvider: {
         status: 'unknown',
-        message: 'SBERT health is not checked by this dashboard endpoint yet.'
+        provider: 'voyage',
+        model: 'voyage-4-large',
+        message: 'Voyage semantic provider (voyage-4-large) health is not checked by this dashboard endpoint yet.'
       }
     },
     warnings: []
@@ -120,7 +122,7 @@ describe('AdminDashboardPage', () => {
     expect(screen.getByText(/1 high-risk, 2 medium-risk, 4 low-risk stored snapshots/i)).toBeInTheDocument();
   });
 
-  it('shows API, database, and SBERT health without inventing SBERT status', async () => {
+  it('shows API, database, and Voyage semantic-provider health without inventing a provider status', async () => {
     render(<AdminDashboardPage />);
 
     await waitFor(() => {
@@ -128,8 +130,8 @@ describe('AdminDashboardPage', () => {
     });
 
     expect(screen.getByText(/^Database$/i)).toBeInTheDocument();
-    expect(screen.getByText(/^SBERT$/i)).toBeInTheDocument();
-    expect(screen.getByText(/SBERT health is not checked by this dashboard endpoint yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/^Voyage semantic provider$/i)).toBeInTheDocument();
+    expect(screen.getByText(/Voyage semantic provider \(voyage-4-large\) health is not checked by this dashboard endpoint yet/i)).toBeInTheDocument();
     expect(screen.queryByText(/^Healthy$/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/^Online$/i)).not.toBeInTheDocument();
   });

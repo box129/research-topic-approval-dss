@@ -1,9 +1,10 @@
-version: '3.8'
-
 services:
   sbert-service:
     build: .
     container_name: sbert-service
+    # Historical research/evaluation only. The Voyage production topology uses
+    # the root Compose contract and must never start this service implicitly.
+    profiles: ["legacy-sbert"]
     ports:
       - "8000:8000"
     environment:

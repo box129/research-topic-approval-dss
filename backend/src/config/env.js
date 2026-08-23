@@ -16,6 +16,18 @@ function envValue(source, key) {
   return normalized;
 }
 
+function normalizeNodeEnvironment(value) {
+  const configured = envValue({ NODE_ENV: value }, 'NODE_ENV') || 'development';
+  const environment = configured.toLowerCase();
+  const supportedEnvironments = new Set(['development', 'test', 'production']);
+
+  if (!supportedEnvironments.has(environment)) {
+    throw new Error('NODE_ENV must be one of: development, test, production.');
+  }
+
+  return environment;
+}
+
 function effectiveCorsOrigin(source) {
   return envValue(source, 'FRONTEND_URL') || envValue(source, 'CORS_ORIGIN');
 }
@@ -46,6 +58,24 @@ function normalizeOrigin(value, key) {
   }
 
   return parsed.origin;
+}
+
+function validateDatabaseUrl(value) {
+  const normalized = envValue({ DATABASE_URL: value }, 'DATABASE_URL');
+  if (normalized === undefined) {
+    return;
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(normalized);
+  } catch {
+    throw new Error('DATABASE_URL must be a valid PostgreSQL connection URL.');
+  }
+
+  if (!['postgres:', 'postgresql:'].includes(parsed.protocol) || !parsed.hostname) {
+    throw new Error('DATABASE_URL must be a valid PostgreSQL connection URL.');
+  }
 }
 
 function isValidIpOrCidr(value) {
@@ -166,18 +196,22 @@ function parseSecurityLimit(source, key, defaultValue, { min = 1, max = 1000000 
  * Validate required environment variables
  */
 function validateEnv(source = process.env) {
+  const environment = normalizeNodeEnvironment(source.NODE_ENV);
+  const isProduction = environment === 'production';
   const required = ['DATABASE_URL'];
-  if (source.NODE_ENV === 'production') {
+  if (isProduction) {
     required.push('JWT_SECRET');
     required.push('EMAIL_PROVIDER');
-    if (!effectiveCorsOrigin(source)) {
-      required.push('FRONTEND_URL or CORS_ORIGIN');
+    required.push('VOYAGE_API_KEY');
+    required.push('TRUST_PROXY');
+    if (!envValue(source, 'FRONTEND_URL')) {
+      required.push('FRONTEND_URL');
     }
   }
 
   const missing = required.filter(key => {
-    if (key === 'FRONTEND_URL or CORS_ORIGIN') {
-      return !effectiveCorsOrigin(source);
+    if (key === 'FRONTEND_URL') {
+      return !envValue(source, 'FRONTEND_URL');
     }
 
     return !envValue(source, key);
@@ -187,7 +221,21 @@ function validateEnv(source = process.env) {
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
   }
 
-  if (source.NODE_ENV === 'production') {
+  validateDatabaseUrl(source.DATABASE_URL);
+
+  // Validate both values independently. FRONTEND_URL is the preferred
+  // same-origin value, but an unused malformed or wildcard CORS_ORIGIN must
+  // never be allowed to hide behind it in a production deployment.
+  const configuredFrontendOrigin = envValue(source, 'FRONTEND_URL');
+  const configuredCorsOrigin = envValue(source, 'CORS_ORIGIN');
+  const normalizedFrontendOrigin = configuredFrontendOrigin
+    ? normalizeOrigin(configuredFrontendOrigin, 'FRONTEND_URL')
+    : undefined;
+  const normalizedCorsOrigin = configuredCorsOrigin
+    ? normalizeOrigin(configuredCorsOrigin, 'CORS_ORIGIN')
+    : undefined;
+
+  if (isProduction) {
     const jwtSecret = envValue(source, 'JWT_SECRET') || '';
     const unsafeJwtSecrets = new Set([
       'local-dev-auth-secret-change-before-production',
@@ -203,24 +251,23 @@ function validateEnv(source = process.env) {
       throw new Error('JWT_SECRET must be a strong production secret with at least 32 characters.');
     }
 
-    const corsOrigin = normalizeOrigin(effectiveCorsOrigin(source), 'FRONTEND_URL or CORS_ORIGIN') || '';
-    if (!corsOrigin) {
+    const browserOrigin = normalizedFrontendOrigin || normalizedCorsOrigin || '';
+    if (!browserOrigin) {
       throw new Error('Production CORS origin must be an explicit trusted origin.');
     }
 
-    if (!corsOrigin.startsWith('https://')) {
+    if (!browserOrigin.startsWith('https://')) {
       throw new Error('Production CORS origin must use https://.');
+    }
+
+    if (normalizedFrontendOrigin && normalizedCorsOrigin && normalizedFrontendOrigin !== normalizedCorsOrigin) {
+      throw new Error('CORS_ORIGIN must match FRONTEND_URL when both are configured in production.');
     }
   }
 
   // Parse early so invalid proxy topology is rejected at startup rather than
   // silently trusting spoofable forwarding headers at runtime.
   parseTrustProxy(source.TRUST_PROXY);
-
-  const configuredOrigin = effectiveCorsOrigin(source);
-  if (configuredOrigin) {
-    normalizeOrigin(configuredOrigin, 'FRONTEND_URL or CORS_ORIGIN');
-  }
 
   parseSecurityLimit(source, 'RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000, { min: 1000, max: 24 * 60 * 60 * 1000 });
   parseSecurityLimit(source, 'RATE_LIMIT_MAX', 10000, { min: 10 });
@@ -236,17 +283,47 @@ function validateEnv(source = process.env) {
   parseSecurityLimit(source, 'ADMIN_ACCOUNT_ACTION_RATE_LIMIT_MAX', 30, { min: 1, max: 10000 });
   parseSecurityLimit(source, 'ADMIN_BULK_INVITATION_RATE_LIMIT_MAX', 10, { min: 1, max: 10000 });
   parseSecurityLimit(source, 'ADMIN_TOPIC_IMPORT_RATE_LIMIT_MAX', 5, { min: 1, max: 10000 });
+  // Worker-pool size affects the measured long-running bulk onboarding path.
+  // Reject malformed or unsafe explicit overrides at startup; when omitted,
+  // the hashing service chooses its documented CPU-derived bounded default.
+  if (envValue(source, 'BULK_HASH_CONCURRENCY') !== undefined) {
+    parseSecurityLimit(source, 'BULK_HASH_CONCURRENCY', 1, { min: 1, max: 8 });
+  }
   parseSecurityLimit(source, 'JSON_BODY_LIMIT_BYTES', 100 * 1024, { min: 1024, max: 5 * 1024 * 1024 });
-  parseSecurityLimit(source, 'IMPORT_UPLOAD_LIMIT_BYTES', 5 * 1024 * 1024, { min: 1024, max: 50 * 1024 * 1024 });
-  const importUploadMaxFields = parseSecurityLimit(source, 'IMPORT_UPLOAD_MAX_FIELDS', 10, { min: 1, max: 100 });
-  const importUploadMaxParts = parseSecurityLimit(source, 'IMPORT_UPLOAD_MAX_PARTS', 12, { min: 2, max: 200 });
+  // Keep every accepted multipart configuration within the standard 6 MiB
+  // Nginx envelope: 5 MiB file + at most ten 16 KiB fields + boundaries.
+  parseSecurityLimit(source, 'IMPORT_UPLOAD_LIMIT_BYTES', 5 * 1024 * 1024, { min: 1024, max: 5 * 1024 * 1024 });
+  const importUploadMaxFields = parseSecurityLimit(source, 'IMPORT_UPLOAD_MAX_FIELDS', 10, { min: 1, max: 10 });
+  const importUploadMaxParts = parseSecurityLimit(source, 'IMPORT_UPLOAD_MAX_PARTS', 12, { min: 2, max: 12 });
   if (importUploadMaxParts < importUploadMaxFields + 1) {
     throw new Error('IMPORT_UPLOAD_MAX_PARTS must allow the configured fields plus one file part.');
   }
-  parseSecurityLimit(source, 'IMPORT_UPLOAD_FIELD_SIZE_BYTES', 16 * 1024, { min: 1024, max: 1024 * 1024 });
+  parseSecurityLimit(source, 'IMPORT_UPLOAD_FIELD_SIZE_BYTES', 16 * 1024, { min: 1024, max: 16 * 1024 });
   parseSecurityLimit(source, 'RATE_LIMIT_IPV6_SUBNET_PREFIX', 56, { min: 32, max: 64 });
   parseSecurityLimit(source, 'VOYAGE_REQUEST_TIMEOUT_MS', 10000, { min: 1000, max: 60000 });
   parseSecurityLimit(source, 'VOYAGE_READINESS_PROBE_CACHE_MS', 5 * 60 * 1000, { min: 10000, max: 60 * 60 * 1000 });
+  parseBoundedPositiveInteger(source.PORT, 'PORT', {
+    defaultValue: 3000,
+    min: 1,
+    max: 65535
+  });
+  parseBoundedPositiveInteger(source.RESET_TOKEN_EXPIRES_MINUTES, 'RESET_TOKEN_EXPIRES_MINUTES', {
+    defaultValue: 30,
+    min: 1,
+    max: 24 * 60
+  });
+  parseBoundedPositiveInteger(source.SMTP_TIMEOUT_MS, 'SMTP_TIMEOUT_MS', {
+    defaultValue: 10000,
+    min: 1000,
+    max: 60000
+  });
+  // The known bulk onboarding operation takes approximately 142 seconds on
+  // development hardware. Production must not configure a shorter shutdown
+  // drain window than that operation without an explicit application redesign.
+  parseSecurityLimit(source, 'SHUTDOWN_GRACE_PERIOD_MS', 5 * 60 * 1000, {
+    min: 3 * 60 * 1000,
+    max: 5 * 60 * 1000
+  });
 
   const emailProvider = (source.EMAIL_PROVIDER || '').trim().toLowerCase();
   const allowedEmailProviders = new Set(['', 'mock', 'disabled', 'smtp']);
@@ -254,7 +331,7 @@ function validateEnv(source = process.env) {
     throw new Error('EMAIL_PROVIDER must be one of: mock, disabled, smtp.');
   }
 
-  if (source.NODE_ENV === 'production' && emailProvider === 'mock') {
+  if (isProduction && emailProvider === 'mock') {
     throw new Error('EMAIL_PROVIDER=mock is not allowed in production.');
   }
 
@@ -280,10 +357,10 @@ function validateEnv(source = process.env) {
 
     // Emailed invitation/reset links are built from the public frontend URL;
     // in production those links must never be plain http.
-    if (source.NODE_ENV === 'production') {
-      const linkBase = effectiveCorsOrigin(source) || '';
+    if (isProduction) {
+      const linkBase = envValue(source, 'FRONTEND_URL') || '';
       if (!/^https:\/\//i.test(linkBase)) {
-        throw new Error('FRONTEND_URL (or CORS_ORIGIN) must be an https:// URL in production when EMAIL_PROVIDER=smtp, because emailed links are built from it.');
+        throw new Error('FRONTEND_URL must be an https:// URL in production when EMAIL_PROVIDER=smtp, because emailed links are built from it.');
       }
     }
   }
@@ -296,7 +373,7 @@ function validateEnv(source = process.env) {
 
   const auditPurgeMinAgeDays = parseBoundedPositiveInteger(source.AUDIT_LOG_PURGE_MIN_AGE_DAYS, 'AUDIT_LOG_PURGE_MIN_AGE_DAYS', {
     defaultValue: 90,
-    min: source.NODE_ENV === 'production' ? 1 : 1,
+    min: 1,
     max: 3650
   });
   parseBoundedPositiveInteger(source.AUDIT_LOG_RETENTION_DAYS, 'AUDIT_LOG_RETENTION_DAYS', {
@@ -312,13 +389,19 @@ function validateEnv(source = process.env) {
 }
 
 /**
- * Build configuration with all application settings.
- * FRONTEND_URL is the preferred browser origin; CORS_ORIGIN is the fallback.
+ * Build configuration with all application settings. Production requires
+ * FRONTEND_URL; CORS_ORIGIN is a compatible local/non-production fallback.
  */
 function buildConfig(source = process.env) {
   validateEnv(source);
+  const environment = normalizeNodeEnvironment(source.NODE_ENV);
+  const isProduction = environment === 'production';
 
   const browserOrigin = normalizeOrigin(effectiveCorsOrigin(source), 'FRONTEND_URL or CORS_ORIGIN') || 'http://localhost:5173';
+  const configuredCorsCredentials = envValue(source, 'CORS_CREDENTIALS');
+  const corsCredentials = configuredCorsCredentials === undefined
+    ? true
+    : parseBooleanEnv(source.CORS_CREDENTIALS, 'CORS_CREDENTIALS');
   const generalRateLimitWindowMs = parseSecurityLimit(source, 'RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000, {
     min: 1000,
     max: 24 * 60 * 60 * 1000
@@ -333,19 +416,27 @@ function buildConfig(source = process.env) {
   });
   const importUploadMaxFields = parseSecurityLimit(source, 'IMPORT_UPLOAD_MAX_FIELDS', 10, {
     min: 1,
-    max: 100
+    max: 10
   });
   const importUploadMaxParts = parseSecurityLimit(source, 'IMPORT_UPLOAD_MAX_PARTS', 12, {
     min: 2,
-    max: 200
+    max: 12
   });
 
   return {
     // Application environment
-    env: source.NODE_ENV || 'development',
+    env: environment,
 
     // Server configuration
-    port: parseInt(source.PORT, 10) || 3000,
+    port: parseBoundedPositiveInteger(source.PORT, 'PORT', {
+      defaultValue: 3000,
+      min: 1,
+      max: 65535
+    }),
+    shutdownGracePeriodMs: parseSecurityLimit(source, 'SHUTDOWN_GRACE_PERIOD_MS', 5 * 60 * 1000, {
+      min: 3 * 60 * 1000,
+      max: 5 * 60 * 1000
+    }),
 
     // API version
     apiVersion: source.API_VERSION || 'v1',
@@ -394,13 +485,13 @@ function buildConfig(source = process.env) {
       }),
       importUploadBytes: parseSecurityLimit(source, 'IMPORT_UPLOAD_LIMIT_BYTES', 5 * 1024 * 1024, {
         min: 1024,
-        max: 50 * 1024 * 1024
+        max: 5 * 1024 * 1024
       }),
       importUploadMaxFields,
       importUploadMaxParts,
       importUploadFieldSizeBytes: parseSecurityLimit(source, 'IMPORT_UPLOAD_FIELD_SIZE_BYTES', 16 * 1024, {
         min: 1024,
-        max: 1024 * 1024
+        max: 16 * 1024
       })
     },
 
@@ -408,14 +499,14 @@ function buildConfig(source = process.env) {
     cors: {
       origin: browserOrigin,
       allowedOrigins: [browserOrigin],
-      credentials: source.CORS_CREDENTIALS !== 'false'
+      credentials: corsCredentials
     },
 
     csrf: {
       // Browsers send Origin for SPA mutations. In production, missing
       // Origin/Referer is rejected when a session cookie is present; local
       // non-browser tooling can continue to operate outside production.
-      requireOrigin: source.NODE_ENV === 'production',
+      requireOrigin: isProduction,
       allowedOrigins: [browserOrigin]
     },
 
@@ -435,8 +526,12 @@ function buildConfig(source = process.env) {
       jwtSecret: source.JWT_SECRET || 'local-dev-auth-secret-change-before-production',
       jwtExpiresIn: source.JWT_EXPIRES_IN || '24h',
       cookieName: source.AUTH_COOKIE_NAME || 'rtadss_session',
-      cookieSecure: source.NODE_ENV === 'production',
-      resetTokenExpiresMinutes: parseInt(source.RESET_TOKEN_EXPIRES_MINUTES, 10) || 30,
+      cookieSecure: isProduction,
+      resetTokenExpiresMinutes: parseBoundedPositiveInteger(source.RESET_TOKEN_EXPIRES_MINUTES, 'RESET_TOKEN_EXPIRES_MINUTES', {
+        defaultValue: 30,
+        min: 1,
+        max: 24 * 60
+      }),
       // Departmental invitations tolerate a longer window than password
       // resets: 7 days by default, bounded 1 hour to 30 days.
       invitationExpiresHours: parseBoundedPositiveInteger(source.INVITATION_EXPIRES_HOURS, 'INVITATION_EXPIRES_HOURS', {
@@ -449,7 +544,7 @@ function buildConfig(source = process.env) {
 
     // Email delivery configuration
     email: {
-      provider: (source.EMAIL_PROVIDER || (source.NODE_ENV === 'production' ? 'disabled' : 'mock')).toLowerCase(),
+      provider: (source.EMAIL_PROVIDER || (isProduction ? 'disabled' : 'mock')).toLowerCase(),
       from: envValue(source, 'EMAIL_FROM') || 'no-reply@localhost',
       smtp: {
         host: envValue(source, 'SMTP_HOST'),
@@ -458,7 +553,11 @@ function buildConfig(source = process.env) {
         user: envValue(source, 'SMTP_USER'),
         password: envValue(source, 'SMTP_PASSWORD'),
         passwordConfigured: Boolean(envValue(source, 'SMTP_PASSWORD')),
-        timeoutMs: parseOptionalInteger(source.SMTP_TIMEOUT_MS, 'SMTP_TIMEOUT_MS') || 10000
+        timeoutMs: parseBoundedPositiveInteger(source.SMTP_TIMEOUT_MS, 'SMTP_TIMEOUT_MS', {
+          defaultValue: 10000,
+          min: 1000,
+          max: 60000
+        })
       }
     },
 
@@ -509,6 +608,7 @@ Object.defineProperties(module.exports, {
   parseBoundedPositiveInteger: { value: parseBoundedPositiveInteger },
   parseTrustProxy: { value: parseTrustProxy },
   normalizeOrigin: { value: normalizeOrigin },
+  validateDatabaseUrl: { value: validateDatabaseUrl },
   validateEnv: { value: validateEnv },
   effectiveCorsOrigin: { value: effectiveCorsOrigin }
 });

@@ -15,7 +15,6 @@ import {
   listAdminUsers,
   previewAdminUserImport,
   resetAdminUserCredential,
-  sendAdminBulkInvitations,
   updateAdminUserStatus
 } from '../src/api/admin';
 

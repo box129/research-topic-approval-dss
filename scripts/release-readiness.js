@@ -18,6 +18,8 @@ const generatedEvidencePaths = [
 const isWindows = process.platform === 'win32';
 const allowDirty = process.env.RELEASE_CHECK_ALLOW_DIRTY === '1';
 const runSmoke = process.env.RELEASE_CHECK_SMOKE === '1';
+const runLegacySbert = process.env.RELEASE_CHECK_LEGACY_SBERT === '1';
+const prismaCli = path.join(backendDir, 'node_modules', '.bin', isWindows ? 'prisma.cmd' : 'prisma');
 
 const results = [];
 
@@ -166,12 +168,25 @@ function checkDockerAvailability() {
   console.log('\n=== Docker/Compose verification ===');
   if (result.status === 0) {
     console.log((result.stdout || '').trim());
-    console.log('Skipped heavy Docker/Compose verification in the release gate. Run docker compose config/build/up and npm run docker:smoke for PR-level container validation.');
+    const daemon = spawnSync(commandLine('docker', ['info']), {
+      cwd: root,
+      encoding: 'utf8',
+      shell: true
+    });
+
+    if (daemon.status !== 0) {
+      const reason = (daemon.stderr || daemon.stdout || 'Docker daemon is unavailable.').trim();
+      console.log(`IMAGE BUILD NOT VERIFIED. Docker daemon is unavailable: ${reason}`);
+      results.push({ label: 'Docker/Compose verification', status: 'skipped-daemon-unavailable', required: false });
+      return;
+    }
+
+    console.log('IMAGE BUILD NOT VERIFIED. Docker daemon is available, but this release gate intentionally skips image build/run. Run docker compose config/build/up and npm run docker:smoke for PR-level container validation.');
     results.push({ label: 'Docker/Compose verification', status: 'skipped-manual-pr-check-required', required: false });
     return;
   }
 
-  console.log('Skipped / NOT VERIFIED. Docker CLI is unavailable in this shell.');
+  console.log('IMAGE BUILD NOT VERIFIED. Docker CLI is unavailable in this shell.');
   results.push({ label: 'Docker/Compose verification', status: 'skipped-not-verified', required: false });
 }
 
@@ -191,27 +206,34 @@ function main() {
   console.log(`Repository: ${root}`);
   console.log(`Dirty worktree allowed: ${allowDirty ? 'yes' : 'no'}`);
   console.log(`Credentialed smoke enabled: ${runSmoke ? 'yes' : 'no'}`);
+  console.log(`Legacy SBERT evaluation enabled: ${runLegacySbert ? 'yes' : 'no'}`);
 
   checkGitState();
 
   run('Node version', 'node', ['--version']);
   run('npm version', 'npm', ['--version']);
   run('Backend dependency tree available', 'npm', ['--prefix', 'backend', 'ls', '--depth=0']);
-  run('Prisma schema validation', 'npx', ['prisma', 'validate'], { cwd: backendDir });
-  run('Prisma migration status', 'npx', ['prisma', 'migrate', 'status'], { cwd: backendDir });
+  run('Prisma schema validation', prismaCli, ['validate'], { cwd: backendDir });
+  run('Prisma migration status', prismaCli, ['migrate', 'status'], { cwd: backendDir });
   run('Backend test suite', 'npm', ['test', '--', '--runInBand'], { cwd: backendDir });
 
-  const python = findPython();
-  run('SBERT quick test', python, ['quick_test.py'], { cwd: sbertDir });
-  run('SBERT service test', python, ['test_service.py'], {
-    cwd: sbertDir,
-    env: { PYTHONIOENCODING: 'utf-8' }
-  });
+  if (runLegacySbert) {
+    const python = findPython();
+    run('Legacy SBERT quick test', python, ['quick_test.py'], { cwd: sbertDir });
+    run('Legacy SBERT service test', python, ['test_service.py'], {
+      cwd: sbertDir,
+      env: { PYTHONIOENCODING: 'utf-8' }
+    });
+    run('Legacy SBERT topic evaluation', 'npm', ['run', 'evaluate:topics'], {
+      cwd: backendDir,
+      preserveGeneratedEvidence: true
+    });
+  } else {
+    results.push({ label: 'Legacy SBERT research checks', status: 'skipped', required: false });
+    console.log('\n=== Legacy SBERT research checks ===');
+    console.log('Skipped. Set RELEASE_CHECK_LEGACY_SBERT=1 to run the historical Python/SBERT evaluation suite.');
+  }
 
-  run('Topic evaluation', 'npm', ['run', 'evaluate:topics'], {
-    cwd: backendDir,
-    preserveGeneratedEvidence: true
-  });
   run('Data-quality audit', 'npm', ['run', 'audit:data-quality'], {
     cwd: backendDir,
     preserveGeneratedEvidence: true
@@ -219,6 +241,7 @@ function main() {
 
   run('Frontend build', 'npm', ['run', 'build'], { cwd: frontendDir });
   run('Frontend test suite', 'npm', ['test', '--', '--run', '--maxWorkers=1', '--minWorkers=1'], { cwd: frontendDir });
+  run('Deployment contract verification', 'npm', ['run', 'verify:deployment-contract']);
 
   if (runSmoke) {
     const missing = missingSmokeCredentials();

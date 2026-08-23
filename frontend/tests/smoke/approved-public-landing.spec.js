@@ -5,7 +5,7 @@ import path from 'node:path';
 const evidenceDir = path.resolve('test-results/approved-public-landing');
 const workflowStages = [
   'Proposed topic',
-  'Jaccard, TF-IDF/Cosine and SBERT',
+  'Voyage semantic similarity',
   'Historical, current-session and under-review records',
   'Advisory similarity evidence',
   'Lecturer-controlled decision'
@@ -90,7 +90,7 @@ test('approved public landing page matches required responsive states', async ({
   expect(governanceOutline.style).not.toBe('none');
   expect(governanceOutline.width).toBeGreaterThan(0);
 
-  const methodology = page.getByText('How the methods complement one another');
+  const methodology = page.getByText('How Voyage semantic comparison supports review');
   await methodology.click();
   await expect(methodology.locator('..')).toHaveAttribute('open', '');
   await methodology.click();

@@ -7,6 +7,10 @@
 
 const logger = require('../config/logger');
 
+function normalizedNodeEnvironment() {
+  return String(process.env.NODE_ENV || 'development').trim().toLowerCase();
+}
+
 /**
  * Custom error class for application errors
  */
@@ -28,6 +32,9 @@ class AppError extends Error {
  * @param {Function} next - Express next middleware function
  */
 const errorHandler = (err, req, res, next) => {
+  const environment = normalizedNodeEnvironment();
+  const isProduction = environment === 'production';
+  const isDevelopment = environment === 'development';
   // Default error values
   let statusCode = err.statusCode || 500;
   let errorCode = err.code || 'INTERNAL_SERVER_ERROR';
@@ -109,7 +116,7 @@ const errorHandler = (err, req, res, next) => {
     errorCode = 'DATABASE_ERROR';
     message = 'Database operation failed';
     // Don't expose database details in production
-    if (process.env.NODE_ENV !== 'production') {
+    if (!isProduction) {
       details = { code: err.code, meta: err.meta };
     }
   } else if (err.name === 'PrismaClientValidationError') {
@@ -119,7 +126,7 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Sanitize error message in production
-  if (process.env.NODE_ENV === 'production' && statusCode === 500) {
+  if (isProduction && statusCode === 500) {
     message = 'An unexpected error occurred';
     details = null;
   }
@@ -144,12 +151,12 @@ const errorHandler = (err, req, res, next) => {
   };
 
   // Add details if available and not in production for 500 errors
-  if (details && !(process.env.NODE_ENV === 'production' && statusCode === 500)) {
+  if (details && !(isProduction && statusCode === 500)) {
     errorResponse.error.details = details;
   }
 
   // Add stack trace in development
-  if (process.env.NODE_ENV === 'development' && err.stack) {
+  if (isDevelopment && err.stack) {
     errorResponse.error.stack = err.stack;
   }
 

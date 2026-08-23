@@ -10,11 +10,24 @@ const healthStyles = {
   loading: 'border-l-feedback-info'
 };
 const formatCount = (value) => Number.isFinite(value) ? value.toLocaleString() : 'Unavailable';
+const serviceDefinitions = [
+  { key: 'api', label: 'API' },
+  { key: 'database', label: 'Database' },
+  { key: 'semanticProvider', label: 'Voyage semantic provider' }
+];
 
 function serviceItems(summary, state) {
-  if (state === 'loading') return ['API', 'Database', 'SBERT'].map((label) => ({ label, status: 'loading', value: 'Loading' }));
-  if (state === 'error' || !summary) return [{ label: 'API', status: 'unavailable', value: 'Unavailable' }, { label: 'Database', status: 'unavailable', value: 'Unavailable' }, { label: 'SBERT', status: 'unknown', value: 'Unknown' }];
-  return ['api', 'database', 'sbert'].map((key) => ({ label: key === 'api' ? 'API' : key === 'sbert' ? 'SBERT' : 'Database', status: summary.serviceHealth?.[key]?.status || 'unknown', value: summary.serviceHealth?.[key]?.status === 'available' ? 'Available' : summary.serviceHealth?.[key]?.status === 'unavailable' ? 'Unavailable' : 'Unknown', helper: summary.serviceHealth?.[key]?.message }));
+  if (state === 'loading') return serviceDefinitions.map(({ label }) => ({ label, status: 'loading', value: 'Loading' }));
+  if (state === 'error' || !summary) return serviceDefinitions.map(({ label, key }) => ({ label, status: key === 'semanticProvider' ? 'unknown' : 'unavailable', value: key === 'semanticProvider' ? 'Unknown' : 'Unavailable' }));
+  return serviceDefinitions.map(({ key, label }) => {
+    const health = summary.serviceHealth?.[key];
+    return {
+      label,
+      status: health?.status || 'unknown',
+      value: health?.status === 'available' ? 'Available' : health?.status === 'unavailable' ? 'Unavailable' : 'Unknown',
+      helper: health?.message
+    };
+  });
 }
 
 function metricItems(summary, state) {

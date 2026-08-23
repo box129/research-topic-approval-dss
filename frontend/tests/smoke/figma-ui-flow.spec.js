@@ -235,11 +235,11 @@ test('admin Figma UI route renders honest dashboard shell', async ({ page, conte
     await expectRenderedRoute(page, '/admin/dashboard', /admin dashboard/i);
     await expect(page.getByText(/^API$/i)).toBeVisible();
     await expect(page.getByText(/^Database$/i)).toBeVisible();
-    await expect(page.getByText(/^SBERT$/i)).toBeVisible();
+    await expect(page.getByText(/^Voyage semantic provider$/i)).toBeVisible();
 
     await expect(page.getByText(/admin metrics use a read-only summary endpoint/i)).toBeVisible();
     await expect(page.getByText(/No fake values/i)).toBeVisible();
-    await expect(page.getByText(/SBERT health is not checked by this dashboard endpoint yet/i)).toBeVisible();
+    await expect(page.getByText(/Voyage semantic provider \(voyage-4-large\) health is not checked by this dashboard endpoint yet/i)).toBeVisible();
     await expect(page.getByText(/recent activity is not displayed on this dashboard yet/i)).toBeVisible();
 
     const bodyText = await page.locator('body').innerText();

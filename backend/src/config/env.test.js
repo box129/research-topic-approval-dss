@@ -30,6 +30,8 @@ function productionEnv(overrides = {}) {
     JWT_SECRET: STRONG_JWT_SECRET,
     FRONTEND_URL: 'https://example.edu',
     EMAIL_PROVIDER: 'disabled',
+    VOYAGE_API_KEY: 'test-voyage-key',
+    TRUST_PROXY: '1',
     ...overrides
   };
 }
@@ -154,6 +156,29 @@ describe('env email configuration', () => {
     expect(config.email.smtp.password).toBe('smtp-secret-password');
   });
 
+  test('validates bounded port, reset-token, and SMTP timeout values', () => {
+    const config = buildConfigWith(productionEnv({
+      PORT: '3100',
+      RESET_TOKEN_EXPIRES_MINUTES: '45',
+      SMTP_TIMEOUT_MS: '15000'
+    }));
+
+    expect(config.port).toBe(3100);
+    expect(config.auth.resetTokenExpiresMinutes).toBe(45);
+    expect(config.email.smtp.timeoutMs).toBe(15000);
+
+    expect(() => buildConfigWith(productionEnv({ PORT: '0' }))).toThrow(/PORT must be a positive integer/);
+    expect(() => buildConfigWith(productionEnv({ PORT: '65536' }))).toThrow(/PORT must be less than or equal to 65535/);
+    expect(() => buildConfigWith(productionEnv({ PORT: 'not-a-port' }))).toThrow(/PORT must be a valid integer/);
+
+    expect(() => buildConfigWith(productionEnv({ RESET_TOKEN_EXPIRES_MINUTES: '0' }))).toThrow(/RESET_TOKEN_EXPIRES_MINUTES must be a positive integer/);
+    expect(() => buildConfigWith(productionEnv({ RESET_TOKEN_EXPIRES_MINUTES: '1441' }))).toThrow(/RESET_TOKEN_EXPIRES_MINUTES must be less than or equal to 1440/);
+
+    expect(() => buildConfigWith(productionEnv({ SMTP_TIMEOUT_MS: '999' }))).toThrow(/SMTP_TIMEOUT_MS must be a positive integer greater than or equal to 1000/);
+    expect(() => buildConfigWith(productionEnv({ SMTP_TIMEOUT_MS: '60001' }))).toThrow(/SMTP_TIMEOUT_MS must be less than or equal to 60000/);
+    expect(() => buildConfigWith(productionEnv({ SMTP_TIMEOUT_MS: 'not-a-timeout' }))).toThrow(/SMTP_TIMEOUT_MS must be a valid integer/);
+  });
+
   test('production rejects weak or placeholder JWT secrets', () => {
     expect(() => buildConfigWith(productionEnv({
       JWT_SECRET: 'replace_with_a_long_random_secret_before_production'
@@ -164,24 +189,56 @@ describe('env email configuration', () => {
     }))).toThrow(/JWT_SECRET must be a strong production secret/);
   });
 
+  test('production fails clearly when VOYAGE_API_KEY is missing', () => {
+    expect(() => buildConfigWith(productionEnv({
+      VOYAGE_API_KEY: undefined
+    }))).toThrow(/Missing required environment variables: VOYAGE_API_KEY/);
+  });
+
+  test('production requires an explicit reviewed TRUST_PROXY topology', () => {
+    expect(() => buildConfigWith(productionEnv({
+      TRUST_PROXY: undefined
+    }))).toThrow(/Missing required environment variables: TRUST_PROXY/);
+  });
+
   test('production rejects the unsafe Compose default JWT secret', () => {
     expect(() => buildConfigWith(productionEnv({
       JWT_SECRET: 'local-compose-jwt-secret-change-before-any-shared-environment'
     }))).toThrow(/JWT_SECRET must be a strong production secret/);
   });
 
-  test('production with neither trusted origin variable throws', () => {
+  test('production requires FRONTEND_URL even when CORS_ORIGIN is supplied', () => {
     expect(() => buildConfigWith(productionEnv({
       FRONTEND_URL: undefined,
-      CORS_ORIGIN: undefined
-    }))).toThrow(/Missing required environment variables: FRONTEND_URL or CORS_ORIGIN/);
+      CORS_ORIGIN: 'https://cors.example.edu'
+    }))).toThrow(/Missing required environment variables: FRONTEND_URL/);
   });
 
-  test('production with effective wildcard origin throws', () => {
+  test('production cannot use CORS_ORIGIN as a substitute for FRONTEND_URL', () => {
     expect(() => buildConfigWith(productionEnv({
       FRONTEND_URL: undefined,
       CORS_ORIGIN: '*'
-    }))).toThrow(/must not be wildcard/);
+    }))).toThrow(/Missing required environment variables: FRONTEND_URL/);
+  });
+
+  test('production rejects a supplied wildcard or malformed CORS_ORIGIN even when FRONTEND_URL is valid', () => {
+    expect(() => buildConfigWith(productionEnv({
+      CORS_ORIGIN: '*'
+    }))).toThrow(/CORS_ORIGIN must not be wildcard/);
+
+    expect(() => buildConfigWith(productionEnv({
+      CORS_ORIGIN: 'not-an-origin'
+    }))).toThrow(/CORS_ORIGIN must be a valid absolute URL/);
+  });
+
+  test.each([
+    'not-a-database-url',
+    'mysql://database.example/topic_similarity',
+    'postgresql:///topic_similarity'
+  ])('rejects malformed or non-PostgreSQL DATABASE_URL values', (databaseUrl) => {
+    expect(() => buildConfigWith(productionEnv({
+      DATABASE_URL: databaseUrl
+    }))).toThrow(/DATABASE_URL must be a valid PostgreSQL connection URL/);
   });
 
   test('development also rejects a wildcard CORS origin instead of silently denying browser callers', () => {
@@ -202,27 +259,42 @@ describe('env email configuration', () => {
     expect(config.auth.frontendUrl).toBe('https://frontend.example.edu');
   });
 
-  test('production with explicit trusted CORS_ORIGIN passes', () => {
-    const config = buildConfigWith(productionEnv({
-      FRONTEND_URL: undefined,
-      CORS_ORIGIN: 'https://cors.example.edu'
-    }));
-
-    expect(config.cors.origin).toBe('https://cors.example.edu');
-    expect(config.auth.frontendUrl).toBe('https://cors.example.edu');
-  });
-
-  test('FRONTEND_URL takes precedence over CORS_ORIGIN when both are supplied', () => {
-    const config = buildConfigWith(productionEnv({
+  test('production requires CORS_ORIGIN to match FRONTEND_URL when both are supplied', () => {
+    expect(() => buildConfigWith(productionEnv({
       FRONTEND_URL: 'https://frontend.example.edu',
       CORS_ORIGIN: 'https://cors.example.edu'
-    }));
+    }))).toThrow(/CORS_ORIGIN must match FRONTEND_URL/);
+  });
 
+  test('production accepts equal explicit FRONTEND_URL and CORS_ORIGIN values', () => {
+    const config = buildConfigWith(productionEnv({
+      FRONTEND_URL: 'https://frontend.example.edu',
+      CORS_ORIGIN: 'https://frontend.example.edu'
+    }));
     expect(config.cors.origin).toBe('https://frontend.example.edu');
     expect(config.auth.frontendUrl).toBe('https://frontend.example.edu');
   });
 
-  test('CI ambient environment cannot alter wildcard rejection', () => {
+  test('normalizes production NODE_ENV and rejects unsupported runtime modes', () => {
+    const config = buildConfigWith(productionEnv({
+      NODE_ENV: ' Production '
+    }));
+
+    expect(config.env).toBe('production');
+    expect(config.auth.cookieSecure).toBe(true);
+    expect(() => buildConfigWith(productionEnv({
+      NODE_ENV: 'staging'
+    }))).toThrow(/NODE_ENV must be one of: development, test, production/);
+  });
+
+  test('CORS_CREDENTIALS is a strict boolean', () => {
+    expect(buildConfigWith(productionEnv({ CORS_CREDENTIALS: 'false' })).cors.credentials).toBe(false);
+    expect(() => buildConfigWith(productionEnv({
+      CORS_CREDENTIALS: 'sometimes'
+    }))).toThrow(/CORS_CREDENTIALS must be either true or false/);
+  });
+
+  test('CI ambient environment cannot alter the FRONTEND_URL production requirement', () => {
     jest.resetModules();
     process.env = {
       ...MODULE_BOOT_ENV,
@@ -235,7 +307,7 @@ describe('env email configuration', () => {
     expect(() => buildConfig(productionEnv({
       FRONTEND_URL: undefined,
       CORS_ORIGIN: '*'
-    }))).toThrow(/must not be wildcard/);
+    }))).toThrow(/Missing required environment variables: FRONTEND_URL/);
   });
 
   test.each([
@@ -268,7 +340,7 @@ describe('env email configuration', () => {
   test.each([
     ['malformed origin', { FRONTEND_URL: 'not-an-origin' }, /must be a valid absolute URL/],
     ['path-bearing origin', { FRONTEND_URL: 'https://frontend.example.edu/app' }, /must be an http\(s\) origin without a path/],
-    ['non-HTTPS CORS fallback', { FRONTEND_URL: undefined, CORS_ORIGIN: 'http://frontend.example.edu' }, /Production CORS origin must use https/]
+    ['non-HTTPS CORS origin', { CORS_ORIGIN: 'http://frontend.example.edu' }, /CORS_ORIGIN must match FRONTEND_URL/]
   ])('rejects a production %s', (_description, overrides, expectedError) => {
     expect(() => buildConfigWith(productionEnv(overrides))).toThrow(expectedError);
   });
@@ -279,12 +351,14 @@ describe('env email configuration', () => {
       RATE_LIMIT_MAX: '321',
       RATE_LIMIT_IPV6_SUBNET_PREFIX: '64',
       ADMIN_TOPIC_IMPORT_RATE_LIMIT_MAX: '6',
+      BULK_HASH_CONCURRENCY: '2',
       JSON_BODY_LIMIT_BYTES: '65536',
       IMPORT_UPLOAD_MAX_FIELDS: '8',
       IMPORT_UPLOAD_MAX_PARTS: '9',
       IMPORT_UPLOAD_FIELD_SIZE_BYTES: '8192',
       VOYAGE_REQUEST_TIMEOUT_MS: '12000',
-      VOYAGE_READINESS_PROBE_CACHE_MS: '60000'
+      VOYAGE_READINESS_PROBE_CACHE_MS: '60000',
+      SHUTDOWN_GRACE_PERIOD_MS: '240000'
     }));
 
     expect(config.rateLimit).toMatchObject({
@@ -303,6 +377,23 @@ describe('env email configuration', () => {
       requestTimeoutMs: 12000,
       readinessProbeCacheMs: 60000
     });
+    expect(config.shutdownGracePeriodMs).toBe(240000);
+  });
+
+  test('uses a five-minute shutdown drain by default and rejects unsafe shutdown windows', () => {
+    expect(buildConfigWith(productionEnv()).shutdownGracePeriodMs).toBe(300000);
+
+    expect(() => buildConfigWith(productionEnv({
+      SHUTDOWN_GRACE_PERIOD_MS: '179999'
+    }))).toThrow(/SHUTDOWN_GRACE_PERIOD_MS must be a positive integer greater than or equal to 180000/);
+
+    expect(() => buildConfigWith(productionEnv({
+      SHUTDOWN_GRACE_PERIOD_MS: '300001'
+    }))).toThrow(/SHUTDOWN_GRACE_PERIOD_MS must be less than or equal to 300000/);
+
+    expect(() => buildConfigWith(productionEnv({
+      SHUTDOWN_GRACE_PERIOD_MS: 'not-a-number'
+    }))).toThrow(/SHUTDOWN_GRACE_PERIOD_MS must be a valid integer/);
   });
 
   test('rejects multipart limits that cannot accommodate the configured fields and workbook', () => {
@@ -310,6 +401,36 @@ describe('env email configuration', () => {
       IMPORT_UPLOAD_MAX_FIELDS: '10',
       IMPORT_UPLOAD_MAX_PARTS: '10'
     }))).toThrow(/IMPORT_UPLOAD_MAX_PARTS must allow/);
+  });
+
+  test('validates bounded bulk hashing and import-upload deployment limits', () => {
+    expect(() => buildConfigWith(productionEnv({
+      BULK_HASH_CONCURRENCY: undefined
+    }))).not.toThrow();
+
+    expect(() => buildConfigWith(productionEnv({
+      BULK_HASH_CONCURRENCY: '0'
+    }))).toThrow(/BULK_HASH_CONCURRENCY must be a positive integer/);
+
+    expect(() => buildConfigWith(productionEnv({
+      BULK_HASH_CONCURRENCY: '9'
+    }))).toThrow(/BULK_HASH_CONCURRENCY must be less than or equal to 8/);
+
+    expect(() => buildConfigWith(productionEnv({
+      BULK_HASH_CONCURRENCY: 'not-a-number'
+    }))).toThrow(/BULK_HASH_CONCURRENCY must be a valid integer/);
+
+    expect(() => buildConfigWith(productionEnv({
+      IMPORT_UPLOAD_LIMIT_BYTES: '5242881'
+    }))).toThrow(/IMPORT_UPLOAD_LIMIT_BYTES must be less than or equal to 5242880/);
+
+    expect(() => buildConfigWith(productionEnv({
+      IMPORT_UPLOAD_MAX_FIELDS: '11'
+    }))).toThrow(/IMPORT_UPLOAD_MAX_FIELDS must be less than or equal to 10/);
+
+    expect(() => buildConfigWith(productionEnv({
+      IMPORT_UPLOAD_FIELD_SIZE_BYTES: '16385'
+    }))).toThrow(/IMPORT_UPLOAD_FIELD_SIZE_BYTES must be less than or equal to 16384/);
   });
 
   test('audit retention config accepts explicit bounded values', () => {

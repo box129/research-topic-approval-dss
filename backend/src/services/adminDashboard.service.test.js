@@ -93,7 +93,12 @@ describe('adminDashboard.service', () => {
     expect(result.data.serviceHealth).toEqual({
       api: expect.objectContaining({ status: 'available' }),
       database: expect.objectContaining({ status: 'available' }),
-      sbert: expect.objectContaining({ status: 'unknown' })
+      semanticProvider: {
+        status: 'unknown',
+        provider: 'voyage',
+        model: 'voyage-4-large',
+        message: 'Voyage semantic provider (voyage-4-large) health is not checked by this dashboard endpoint yet.'
+      }
     });
     expect(result.data.warnings).toEqual([]);
     expect(result.meta).toEqual({

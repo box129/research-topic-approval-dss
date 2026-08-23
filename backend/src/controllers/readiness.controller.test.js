@@ -20,7 +20,7 @@ describe('Readiness API route', () => {
         checks: {
           api: 'available',
           database: 'available',
-          sbert: 'available'
+          semanticProvider: 'available'
         },
         meta: {
           generatedAt: '2026-06-19T12:00:00.000Z'
@@ -37,7 +37,7 @@ describe('Readiness API route', () => {
       checks: {
         api: 'available',
         database: 'available',
-        sbert: 'available'
+        semanticProvider: 'available'
       },
       meta: {
         generatedAt: '2026-06-19T12:00:00.000Z'
@@ -54,12 +54,12 @@ describe('Readiness API route', () => {
         checks: {
           api: 'available',
           database: 'available',
-          sbert: 'unavailable'
+          semanticProvider: 'unavailable'
         },
         details: {
-          sbert: {
+          semanticProvider: {
             status: 'unavailable',
-            message: 'SBERT health check failed; similarity requests may use degraded lexical fallback.'
+            message: 'Voyage provider is unavailable; similarity requests fail closed.'
           }
         }
       }
@@ -74,7 +74,7 @@ describe('Readiness API route', () => {
       checks: {
         api: 'available',
         database: 'available',
-        sbert: 'unavailable'
+        semanticProvider: 'unavailable'
       }
     });
     expect(JSON.stringify(response.body)).not.toMatch(/DATABASE_URL|JWT_SECRET|password/i);
