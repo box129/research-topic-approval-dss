@@ -29,6 +29,21 @@ Properties:
 
 Plaintext temporary credentials are never written to the database, audit logs, application logs, or analytics.
 
+## Bulk Departmental Onboarding
+
+Bulk onboarding applies the exact individual-provisioning contract to a departmental `.xlsx` spreadsheet (columns `name`, `email`, `role`, optional `matric_number`; a downloadable template is available at `GET /api/v1/admin/users/import/template`). The flow is strictly upload → preview → commit, admin-only on every step:
+
+- **Preview** (`POST /api/v1/admin/users/import/preview`) classifies every row against the live directory without creating anything: `valid_new`, `already_exists` (safe replay, no new credential), `duplicate_in_file`, `conflict` (any material disagreement with an existing account or inside the file — never repaired silently), or `invalid` (failed field validation; `admin` is never an accepted role).
+- **Commit** (`POST /api/v1/admin/users/import/commit`) takes the same file again and re-validates everything server-side — client-side preview state is never trusted. Temporary credentials are generated and bcrypt-hashed (cost 12, bounded worker-thread pool, `BULK_HASH_CONCURRENCY` override) before a single database transaction re-checks conflicts and inserts the accepted cohort atomically. Any identity that appeared concurrently aborts the whole batch with `409 BULK_IMPORT_STATE_CHANGED`; nothing is partially created.
+- **One-time credential manifest**: the commit response (served with `Cache-Control: no-store`) embeds an `.xlsx` manifest of the newly created accounts and their temporary passwords, generated in memory only — it is not stored server-side and cannot be re-downloaded. All manifest cells are literal strings, so formula-looking names stay inert. If the manifest is lost, the per-user admin credential reset is the recovery path.
+- **Existing accounts are never modified by an import**: exact matches are skipped, disagreements are reported as conflicts, and passwords of existing users are never reset by re-importing a spreadsheet.
+- Audit events `BULK_USER_IMPORT_PREVIEWED` / `BULK_USER_IMPORT_COMMITTED` record counts, batch id and source filename (never credentials), plus one `USER_PROVISIONED` event per created account tagged `source: bulk-import`.
+- File safety: `.xlsx` only, 5 MB upload limit, at most 2000 data rows per import, malformed/empty workbooks rejected, temporary upload files removed after each request.
+
+## Admin Identity Correction
+
+`PATCH /api/v1/admin/users/:id/identity` lets an administrator correct the stored `name`, `email`, and (students only) `matricNumber` of provisioned student/lecturer accounts, using the same canonicalization and uniqueness rules as provisioning. Role and status are explicitly rejected here (status stays with suspend/reactivate), administrator accounts cannot be targeted, and passwords are untouched. Changing the email bumps `credentialVersion` (invalidating existing sessions) and clears any pending reset token. Changes are audited as `USER_IDENTITY_CORRECTED` with before/after values of the changed fields.
+
 ## Local Demo Users (development only)
 
 Demo users are local-only and unsafe for production. They are intended only for development and manual testing. The seed refuses to run with `NODE_ENV=production`; production initialization always uses `npm run bootstrap:admin`.
