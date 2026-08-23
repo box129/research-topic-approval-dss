@@ -35,3 +35,7 @@ build/
 
 # Local generated import fixtures and upload temp files
 /tmp/
+
+# Database backup artifacts (never commit dumps)
+backups/
+*.dump

@@ -14,6 +14,8 @@
     "backfill:voyage-embeddings": "node scripts/backfill-topic-embeddings.js",
     "validate:lecturer-benchmark": "node scripts/validate-lecturer-benchmark.js",
     "bootstrap:admin": "node scripts/bootstrap-admin.js",
+    "db:backup": "node scripts/db-backup.js",
+    "db:restore": "node scripts/db-restore.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
