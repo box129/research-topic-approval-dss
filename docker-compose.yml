@@ -5,9 +5,9 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-topic_similarity}
       POSTGRES_USER: ${POSTGRES_USER:-topic_similarity}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-topic_similarity_local_only_password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in a local .env file before starting Compose}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${COMPOSE_BIND_HOST:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -24,7 +24,7 @@ services:
     environment:
       LOG_LEVEL: ${SBERT_LOG_LEVEL:-INFO}
     ports:
-      - "${SBERT_PORT:-8000}:8000"
+      - "${COMPOSE_BIND_HOST:-127.0.0.1}:${SBERT_PORT:-8000}:8000"
     volumes:
       - sbert-model-cache:/root/.cache/huggingface
     healthcheck:
@@ -42,11 +42,16 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 3000
       API_VERSION: ${API_VERSION:-v1}
-      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-topic_similarity}:${POSTGRES_PASSWORD:-topic_similarity_local_only_password}@postgres:5432/${POSTGRES_DB:-topic_similarity}?schema=public}
-      JWT_SECRET: ${JWT_SECRET:-local-compose-jwt-secret-change-before-any-shared-environment}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-topic_similarity}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in a local .env file before starting Compose}@postgres:5432/${POSTGRES_DB:-topic_similarity}?schema=public}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in a local .env file or deployment secret store before starting Compose}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
       CORS_CREDENTIALS: ${CORS_CREDENTIALS:-true}
+      # A blank key intentionally yields degraded local readiness; deployment
+      # environments must inject the real value through their secret store.
+      VOYAGE_API_KEY: ${VOYAGE_API_KEY:-}
+      VOYAGE_REQUEST_TIMEOUT_MS: ${VOYAGE_REQUEST_TIMEOUT_MS:-10000}
+      VOYAGE_READINESS_PROBE_CACHE_MS: ${VOYAGE_READINESS_PROBE_CACHE_MS:-300000}
       SBERT_SERVICE_URL: ${SBERT_SERVICE_URL:-http://sbert-service:8000}
       SBERT_TIMEOUT: ${SBERT_TIMEOUT:-30000}
       SBERT_RETRY_ATTEMPTS: ${SBERT_RETRY_ATTEMPTS:-3}
@@ -57,7 +62,7 @@ services:
       AUDIT_LOG_PURGE_MAX_BATCH: ${AUDIT_LOG_PURGE_MAX_BATCH:-1000}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     ports:
-      - "${BACKEND_PORT:-3000}:3000"
+      - "${COMPOSE_BIND_HOST:-127.0.0.1}:${BACKEND_PORT:-3000}:3000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -70,12 +75,25 @@ services:
       retries: 5
       start_period: 30s
 
+  backend-migrate:
+    build:
+      context: ./backend
+      target: migration
+    container_name: topic-similarity-backend-migrate
+    profiles: ["maintenance"]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-topic_similarity}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in a local .env file before starting Compose}@postgres:5432/${POSTGRES_DB:-topic_similarity}?schema=public}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   frontend:
     build:
       context: ./frontend
     container_name: topic-similarity-frontend
     ports:
-      - "${FRONTEND_PORT:-8080}:80"
+      - "${COMPOSE_BIND_HOST:-127.0.0.1}:${FRONTEND_PORT:-8080}:80"
     depends_on:
       backend:
         condition: service_started

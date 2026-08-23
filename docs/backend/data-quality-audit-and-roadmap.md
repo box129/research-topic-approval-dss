@@ -7,9 +7,9 @@
 - Implemented behavior: student proposals live in `Submission`, with required `title`, optional free-text `category` and `keywords`, status, decision reason, decision actor, and timestamp fields.
 - Implemented behavior: lecturer-run similarity evidence is stored in `SimilarityCheckSnapshot` and is tied to a submission and checking lecturer.
 - Implemented behavior: `.xlsx` import preview and commit endpoints parse worksheet rows, normalize records, preserve raw rows, produce reports, and persist accepted records by lifecycle bucket.
-- Implemented behavior: the public similarity flow queries all historical topics, all current-session topics, and under-review topics from the last 48 hours, then runs Jaccard, TF-IDF, and SBERT when available.
-- Implemented behavior: if SBERT is unavailable, similarity returns `partial_success` and uses lexical results rather than faking semantic scores.
-- Implemented behavior: the lecturer submission similarity flow delegates to the public similarity controller using the stored submission title and keywords, then stores a snapshot of the similarity response.
+- Implemented behavior: the authenticated direct similarity flow queries the eligible resident historical, current-session, and under-review corpus through the required Voyage semantic provider. It fails closed when the provider is unavailable; see `docs/api/direct-similarity-security-contract.md`.
+- Historical context: the predecessor SBERT/Jaccard/TF-IDF route could return `partial_success` with lexical results. That is not the contract of the current protected Voyage direct route.
+- Implemented behavior: the lecturer submission similarity flow delegates to the protected similarity controller using the stored submission title; stored keywords are not part of the current direct similarity input. It then stores a snapshot of the similarity response.
 - Implemented behavior: lecturer decisions update only submission status, decision reason, decision actor, and decision timestamp.
 
 ## Current data-quality risks
@@ -23,9 +23,9 @@
 - Newly approved submissions are not automatically promoted into current-session topic records in the inspected flow.
 - CSV seeding and `.xlsx` import are separate workflows and may apply different data-quality behavior.
 - Synthetic/demo/evaluation data exists and should remain clearly marked by `sourceType`, `sourceFilename`, or `importBatchId` so it is not mistaken for departmental production data.
-- Import endpoints are documented as not yet protected by admin authorization, which is a data-governance risk for future operational use.
-- Production similarity currently compares title plus keywords and does not use `population`, `location`, or `studyFocus` context fields for scoring.
-- Embeddings are nullable and imported records do not currently generate embeddings during import, so SBERT coverage depends on later embedding work.
+- Topic-import preview and commit endpoints are authenticated admin-only and audited; deployment still needs appropriate administrator-account governance and monitoring of the paid embedding commit path.
+- The current protected direct similarity route serializes the title plus any supplied `population`, `location`, and `studyFocus` context; direct-request keywords are ignored.
+- Embeddings remain nullable for legacy rows, but an accepted import now receives a validated Voyage embedding before persistence. A provider failure aborts that import commit rather than creating unembedded accepted records.
 
 ## Required data-quality rules
 
@@ -77,7 +77,7 @@
 - Do not silently overwrite existing topic records.
 - Do not infer missing metadata from title text without a reviewed rule and visible warning.
 - Do not generate or store fake embeddings.
-- Do not change similarity scoring, thresholds, ranking, or SBERT fallback behavior without a scoped evaluation-backed PR.
+- Do not change current similarity scoring, thresholds, ranking, or the required Voyage fail-closed behavior without a scoped evaluation-backed PR.
 - Do not change current frontend/API contracts unless a future PR explicitly scopes and documents that change.
 - Do not add a schema migration unless a later PR proves the migration is required and includes compatibility notes.
 - Keep lecturer decisions lecturer-controlled and similarity advisory.

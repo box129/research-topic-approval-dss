@@ -11,6 +11,7 @@ The root `docker-compose.yml` defines:
 | `postgres` | PostgreSQL database for Prisma | `5432` |
 | `sbert-service` | FastAPI embedding service | `8000` |
 | `backend` | Express API | `3000` |
+| `backend-migrate` | Explicit Prisma migration maintenance target | None (profile only) |
 | `frontend` | Static Vite build served by Nginx | `8080` |
 
 The frontend container proxies `/api/*` to the backend container so the existing relative `/api/v1` frontend API client works without baking an environment-specific API URL into the build.
@@ -34,7 +35,10 @@ Then edit `.env` locally. Keep `.env` uncommitted. The checked-in example uses p
 Important defaults:
 
 - `EMAIL_PROVIDER=disabled` avoids sending real email.
+- `JWT_SECRET` and `POSTGRES_PASSWORD` are required; Compose will not supply a predictable fallback for either value.
+- `COMPOSE_BIND_HOST=127.0.0.1` keeps the PostgreSQL, SBERT, backend, and frontend ports local to the machine by default.
 - `FRONTEND_URL` and `CORS_ORIGIN` default to `http://localhost:8080`.
+- `VOYAGE_API_KEY`, `VOYAGE_REQUEST_TIMEOUT_MS`, and `VOYAGE_READINESS_PROBE_CACHE_MS` are passed directly to the backend. A blank key is only suitable for deliberately degraded local verification; semantic similarity and full readiness require a deployment-owned key.
 - `SBERT_SERVICE_URL` points to `http://sbert-service:8000` inside Compose.
 - PostgreSQL credentials are local placeholders and must be replaced for any shared environment.
 
@@ -50,11 +54,17 @@ docker compose up -d
 
 ## Migrations
 
-Compose startup does not run migrations automatically. Apply existing Prisma migrations explicitly:
+Compose startup does not run migrations automatically. The serving image is
+built from a pruned dependency target; the profile-only `backend-migrate`
+target explicitly retains the pinned Prisma CLI and runs migrations without
+downloading packages at runtime:
 
 ```powershell
-docker compose run --rm backend npx prisma migrate deploy
+docker compose --profile maintenance run --rm backend-migrate
 ```
+
+The maintenance target has no published port, runs as the non-root `app` user,
+and is not started by an ordinary `docker compose up`.
 
 Optional local demo seed commands remain explicit and should not be used with real departmental data unless approved:
 
@@ -137,3 +147,5 @@ This Compose setup does not prove:
 - Departmental data import or real-user smoke.
 
 For public production, keep PostgreSQL and SBERT private, provide real secrets through the deployment environment, enforce HTTPS at the edge, run migrations intentionally, and complete backup/monitoring/incident-response evidence.
+
+Do not set `COMPOSE_BIND_HOST=0.0.0.0` as a shortcut for a public deployment. This Compose file is a local/staging-style verification path, not a replacement for a reviewed private network and HTTPS edge configuration.

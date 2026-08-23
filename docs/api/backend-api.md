@@ -1,10 +1,10 @@
 # Topic Similarity API Documentation
 
-This is the current living API reference for the implemented backend contract.
+This document retains the current import contract and historical API context. For the current protected Voyage direct-similarity contract, use [direct-similarity-security-contract.md](direct-similarity-security-contract.md) first.
 
 ## Overview
 
-The Topic Similarity API checks a submitted research topic against historical, current-session, and under-review topic records. The backend runs Jaccard, TF-IDF, and SBERT when available. If SBERT is unavailable, the endpoint returns a partial-success response using lexical similarity only.
+The direct similarity routes compare a submitted research topic against the resident historical, current-session, and eligible under-review corpus through Voyage semantic embeddings. They are authenticated routes and fail closed when the semantic provider is unavailable.
 
 **Base URL:** `http://localhost:3000`  
 **Default Content-Type:** `application/json`  
@@ -33,21 +33,31 @@ The Topic Similarity API checks a submitted research topic against historical, c
 
 Architecture alias: `POST /api/v1/check-similarity`
 
+**Authentication:** Required. The caller must hold an active `student` or `lecturer` cookie session. See [the direct-similarity security contract](direct-similarity-security-contract.md) for authorization, request limits, response shapes, CORS/CSRF requirements, and provider failure behavior.
+
 **Request Body:**
 
 ```json
 {
   "topic": "Knowledge of malaria prevention among children under five",
-  "keywords": "malaria, prevention, children"
+  "population": "Children under five",
+  "location": "Osogbo",
+  "studyFocus": "Prevention knowledge"
 }
 ```
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
 | `topic` | string | Yes | Must be a non-empty string. |
-| `keywords` | string | No | Optional; currently appended to the comparison text. |
+| `population` | string | No | Optional semantic context. |
+| `location` | string | No | Optional semantic context. |
+| `studyFocus` | string | No | Optional semantic context. |
 
-## Normal Success Response
+## Historical Direct-Similarity Response Material
+
+The examples and SBERT/lexical fallback descriptions in this section are retained only as historical context. They are not the current direct-route response contract; use [direct-similarity-security-contract.md](direct-similarity-security-contract.md).
+
+## Historical Normal Success Response
 
 Normal success uses `status: "success"` and a top-level `data` object.
 
@@ -278,7 +288,7 @@ Architecture alias: `POST /api/v1/import/topics/commit`
 
 **Content-Type:** `multipart/form-data`
 
-Commit parses, normalizes, and persists accepted `.xlsx` records by lifecycle bucket. It does not generate embeddings or run similarity scoring.
+Commit parses and normalizes accepted `.xlsx` records by lifecycle bucket, then generates a validated Voyage document embedding for each new record before persistence. If embedding generation fails, the commit is aborted before any records are persisted. It does not run a similarity check.
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
@@ -352,17 +362,20 @@ Reconciled error responses use this shape:
 
 See [errors.md](errors.md) for the current reconciled error paths and paths that still need verification.
 
-## Rate Limiting
+## Current Rate Limiting
 
 Current documented response body for rate limiting:
 
 ```json
 {
   "status": "error",
-  "message": "Rate limit exceeded. Please try again in 5 minutes.",
+  "message": "Too many requests. Please try again later.",
   "details": {
-    "retry_after": 300,
-    "limit": "100 requests per hour"
+    "error_code": "RATE_LIMIT_EXCEEDED",
+    "limiter": "similarity",
+    "retry_after": 123,
+    "limit": "30 requests per 15 minutes",
+    "window_seconds": 900
   }
 }
 ```
@@ -370,10 +383,10 @@ Current documented response body for rate limiting:
 The response includes:
 
 ```http
-Retry-After: 300
+Retry-After: <seconds-until-reset>
 ```
 
-The exact enforcement window should be checked against environment configuration before changing rate-limit policy.
+The values are environment-configurable. The direct semantic limit is user-keyed after authentication, while the broad guard is user-keyed for valid sessions and IP-keyed for public traffic. See [the direct-similarity security contract](direct-similarity-security-contract.md) and [the environment matrix](../deployment/environment-matrix.md).
 
 ## Notes
 

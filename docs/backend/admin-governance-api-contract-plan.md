@@ -491,7 +491,9 @@ Still deferred after PR #106:
 - Admin report export generation.
 - Audit log export/purge/delete workflows.
 
-### Implementation Status After PR #107
+### Historical Implementation Status After PR #107
+
+This subsection records the PR #107 state. Its SBERT readiness and lexical-fallback statements are historical; the current protected Voyage direct-route and readiness contract is documented in `docs/api/direct-similarity-security-contract.md`.
 
 PR #107 implements the deployment-readiness and release-candidate slice from this plan:
 
@@ -532,10 +534,10 @@ Still deferred after PR #107:
 | Role protection | `requireAuth` validates the session cookie; `requireRole` enforces client roles such as `student`, `lecturer`, and `admin`. | `backend/src/middleware/auth.middleware.js` |
 | Student submissions | Student can create and list submissions through authenticated student endpoints. | `GET /api/v1/submissions`, `POST /api/v1/submissions`, `submission.controller.js`, `submission.service.js` |
 | Lecturer review workflow | Lecturer can list pending submissions, open detail, run submission similarity checks, read snapshots, and update status. | `/api/v1/lecturer/submissions...` routes |
-| Public similarity checker | Public similarity endpoint exists at legacy and v1 paths. | `POST /api/similarity/check`, `POST /api/v1/check-similarity` |
-| Similarity stack | Jaccard, TF-IDF, SBERT service integration/fallback, approved weighted scoring contract, tiered results, risk classification, and partial success behavior exist. | `backend/src/config/similarityScoring.config.js`, `similarity.controller.js`, `jaccard.service.js`, `tfidf.service.js`, `sbert.service.js` |
+| Direct similarity checker | Protected student/lecturer semantic endpoint exists at legacy and v1 paths. | `POST /api/similarity/check`, `POST /api/v1/check-similarity`; see `docs/api/direct-similarity-security-contract.md` |
+| Similarity stack | Historical PR #106 evaluation/scoring material covers Jaccard, TF-IDF, and SBERT fallback behavior. It is not the contract of the current protected Voyage direct checker. | `backend/src/config/similarityScoring.config.js`, `jaccard.service.js`, `tfidf.service.js`, `sbert.service.js`, `docs/api/direct-similarity-security-contract.md` |
 | Topic import | Spreadsheet preview/commit endpoints exist and call import file, normalization, and persistence services. | `/api/import/topics/*`, `/api/v1/import/topics/*`, `topicImport*.service.js` |
-| Health/readiness | Basic liveness endpoints exist and a dependency readiness endpoint reports API, database, and SBERT availability without sensitive details. | `/health`, `/api/v1/health`, `/api/v1/readiness` |
+| Health/readiness | Basic liveness endpoints exist and a dependency readiness endpoint reports API, database, and safe Voyage provider status without sensitive details. | `/health`, `/api/v1/health`, `/api/v1/readiness`, `docs/api/direct-similarity-security-contract.md` |
 | Email | Password reset email uses explicit provider modes: local/test-safe `mock`, fail-closed `disabled`, and provider-ready `smtp` with SMTP transport deferred. Production rejects missing provider configuration and `mock`. | `backend/src/services/email.service.js`, `backend/src/config/env.js`, `docs/setup/auth-foundation.md`, `docs/setup/email-notification-foundation.md` |
 | Notifications | Authenticated own-user notification backend foundation exists with list, mark-read, and mark-all-read endpoints. Event hooks and frontend UI remain deferred. | `backend/prisma/schema.prisma`, `backend/src/services/notification.service.js`, `backend/src/controllers/notification.controller.js`, `backend/src/server.js` |
 | Evaluation evidence | Reproducible pilot LOW/MEDIUM/HIGH evaluation reports exist, including SBERT health, full tri-algorithm coverage, operational fallback coverage, counterfactual offline fallback-policy evaluation, scoring-contract comparison, and per-method metrics. The latest generated report used a healthy local SBERT service with 16/16 SBERT-success cases, 100% full tri-algorithm coverage, and the corrected PR #106 scoring contract. | `backend/scripts/run-topic-evaluation.js`, `backend/evaluation/results/topic-similarity-evaluation.json`, `docs/testing/topic-similarity-evaluation-report.md` |
