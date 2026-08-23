@@ -331,6 +331,153 @@ describe('resetUserCredential', () => {
   });
 });
 
+describe('correctUserIdentity', () => {
+  const student = {
+    id: 5,
+    name: 'Misspelled Name',
+    email: 'wrong.address@uniosun.edu.ng',
+    passwordHash: 'stored-hash',
+    role: 'STUDENT',
+    status: 'ACTIVE',
+    credentialVersion: 3,
+    mustChangePassword: false,
+    matricNumber: 'CSC/21/0451'
+  };
+
+  const lecturer = {
+    ...student,
+    id: 6,
+    email: 'lecturer@uniosun.edu.ng',
+    role: 'LECTURER',
+    matricNumber: null
+  };
+
+  test('corrects name, canonicalizes email, and invalidates sessions on email change', async () => {
+    const prismaMock = createPrismaMock({ users: [{ ...student }] });
+    const audit = { createAuditLogSafely: jest.fn().mockResolvedValue(null) };
+    const service = createService(prismaMock, { audit });
+
+    const result = await service.correctUserIdentity({
+      id: '5',
+      input: { name: '  Correct   Name ', email: 'Right.Address@UNIOSUN.edu.ng' },
+      actor: { id: 1, role: 'admin' }
+    });
+
+    expect(result.user).toMatchObject({
+      name: 'Correct Name',
+      email: 'right.address@uniosun.edu.ng'
+    });
+    expect(result.changedFields.sort()).toEqual(['email', 'name']);
+    expect(result.sessionsInvalidated).toBe(true);
+
+    const updateData = prismaMock.user.update.mock.calls[0][0].data;
+    expect(updateData.credentialVersion).toEqual({ increment: 1 });
+    expect(updateData.resetTokenHash).toBeNull();
+    expect(updateData.passwordHash).toBeUndefined();
+
+    const auditEvent = audit.createAuditLogSafely.mock.calls[0][0];
+    expect(auditEvent.eventType).toBe('USER_IDENTITY_CORRECTED');
+    expect(auditEvent.metadata.changedFields.sort()).toEqual(['email', 'name']);
+    expect(auditEvent.metadata.previous.email).toBe('wrong.address@uniosun.edu.ng');
+    expect(auditEvent.metadata.next.email).toBe('right.address@uniosun.edu.ng');
+    expect(auditEvent.metadata.priorSessionsInvalidated).toBe(true);
+    expect(JSON.stringify(auditEvent)).not.toContain('stored-hash');
+  });
+
+  test('validates and normalizes matric corrections without touching sessions', async () => {
+    const prismaMock = createPrismaMock({ users: [{ ...student }] });
+    const service = createService(prismaMock);
+
+    const result = await service.correctUserIdentity({
+      id: 5,
+      input: { matricNumber: ' csc/21/0999 ' },
+      actor: { id: 1 }
+    });
+
+    expect(result.user.matricNumber).toBe('CSC/21/0999');
+    expect(result.sessionsInvalidated).toBe(false);
+    const updateData = prismaMock.user.update.mock.calls[0][0].data;
+    expect(updateData.credentialVersion).toBeUndefined();
+
+    await expect(service.correctUserIdentity({
+      id: 5,
+      input: { matricNumber: '!!bad!!' }
+    })).rejects.toMatchObject({ code: 'USER_PROVISION_MATRIC_INVALID' });
+
+    await expect(service.correctUserIdentity({
+      id: 5,
+      input: { email: 'not-an-email' }
+    })).rejects.toMatchObject({ code: 'USER_PROVISION_EMAIL_INVALID' });
+  });
+
+  test('allows clearing a student matric but refuses matric values on lecturers', async () => {
+    const prismaMock = createPrismaMock({ users: [{ ...student }, { ...lecturer }] });
+    const service = createService(prismaMock);
+
+    const cleared = await service.correctUserIdentity({ id: 5, input: { matricNumber: '' } });
+    expect(cleared.user.matricNumber).toBeNull();
+
+    await expect(service.correctUserIdentity({
+      id: 6,
+      input: { matricNumber: 'CSC/21/0002' }
+    })).rejects.toMatchObject({ code: 'USER_PROVISION_MATRIC_ROLE_MISMATCH' });
+  });
+
+  test('role and status can never be changed through identity correction', async () => {
+    const service = createService(createPrismaMock({ users: [{ ...student }] }));
+
+    await expect(service.correctUserIdentity({
+      id: 5,
+      input: { role: 'admin', name: 'X' }
+    })).rejects.toMatchObject({ code: 'USER_IDENTITY_ROLE_NOT_EDITABLE' });
+
+    await expect(service.correctUserIdentity({
+      id: 5,
+      input: { status: 'SUSPENDED' }
+    })).rejects.toMatchObject({ code: 'USER_IDENTITY_STATUS_NOT_EDITABLE' });
+  });
+
+  test('rejects collisions with other accounts', async () => {
+    const other = { ...student, id: 9, email: 'taken@uniosun.edu.ng', matricNumber: 'CSC/21/0002' };
+    const service = createService(createPrismaMock({ users: [{ ...student }, other] }));
+
+    await expect(service.correctUserIdentity({
+      id: 5,
+      input: { email: 'TAKEN@uniosun.edu.ng' }
+    })).rejects.toMatchObject({ statusCode: 409, code: 'USER_PROVISION_EMAIL_EXISTS' });
+
+    await expect(service.correctUserIdentity({
+      id: 5,
+      input: { matricNumber: 'csc/21/0002' }
+    })).rejects.toMatchObject({ statusCode: 409, code: 'USER_PROVISION_MATRIC_EXISTS' });
+  });
+
+  test('refuses admin targets, reports missing users, and requires fields', async () => {
+    const service = createService(createPrismaMock({ users: [{ ...existingAdmin }, { ...student }] }));
+
+    await expect(service.correctUserIdentity({ id: 1, input: { name: 'New' } }))
+      .rejects.toMatchObject({ statusCode: 403, code: 'USER_IDENTITY_ADMIN_TARGET_FORBIDDEN' });
+    await expect(service.correctUserIdentity({ id: 99, input: { name: 'New' } })).resolves.toBeNull();
+    await expect(service.correctUserIdentity({ id: 5, input: {} }))
+      .rejects.toMatchObject({ code: 'USER_IDENTITY_NO_FIELDS' });
+  });
+
+  test('identical values are a no-op without a database write or audit event', async () => {
+    const prismaMock = createPrismaMock({ users: [{ ...student }] });
+    const audit = { createAuditLogSafely: jest.fn().mockResolvedValue(null) };
+    const service = createService(prismaMock, { audit });
+
+    const result = await service.correctUserIdentity({
+      id: 5,
+      input: { name: student.name, email: student.email.toUpperCase() }
+    });
+
+    expect(result.changedFields).toEqual([]);
+    expect(prismaMock.user.update).not.toHaveBeenCalled();
+    expect(audit.createAuditLogSafely).not.toHaveBeenCalled();
+  });
+});
+
 describe('bootstrapFirstAdmin', () => {
   test('creates the first administrator on an empty database', async () => {
     const prismaMock = createPrismaMock();

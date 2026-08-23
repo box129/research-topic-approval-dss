@@ -18,6 +18,7 @@ let adminAuditLogController;
 let adminDashboardController;
 let adminTopicRepositoryController;
 let adminUserController;
+let userBulkImportController;
 let adminSettingsController;
 let adminReportsController;
 let lecturerResearchTrendsController;
@@ -187,6 +188,13 @@ const getAdminUserController = () => {
   return adminUserController;
 };
 
+const getUserBulkImportController = () => {
+  if (!userBulkImportController) {
+    userBulkImportController = require('./controllers/userBulkImport.controller');
+  }
+  return userBulkImportController;
+};
+
 const getAdminSettingsController = () => {
   if (!adminSettingsController) {
     adminSettingsController = require('./controllers/adminSettings.controller');
@@ -322,6 +330,25 @@ app.get('/api/v1/admin/users', requireAuth, requireRole('admin'), (req, res, nex
 
 app.post('/api/v1/admin/users', requireAuth, requireRole('admin'), (req, res, next) => {
   getAdminUserController().createUser(req, res, next);
+});
+
+// Bulk departmental onboarding: preview classifies the uploaded workbook
+// without creating anything; commit re-validates the same workbook against
+// live directory state and creates only still-valid new accounts.
+app.post('/api/v1/admin/users/import/preview', requireAuth, requireRole('admin'), importUploadMiddleware, (req, res, next) => {
+  getUserBulkImportController().previewBulkUserImport(req, res, next);
+});
+
+app.post('/api/v1/admin/users/import/commit', requireAuth, requireRole('admin'), importUploadMiddleware, (req, res, next) => {
+  getUserBulkImportController().commitBulkUserImport(req, res, next);
+});
+
+app.get('/api/v1/admin/users/import/template', requireAuth, requireRole('admin'), (req, res, next) => {
+  getUserBulkImportController().downloadUserImportTemplate(req, res, next);
+});
+
+app.patch('/api/v1/admin/users/:id/identity', requireAuth, requireRole('admin'), (req, res, next) => {
+  getAdminUserController().correctUserIdentity(req, res, next);
 });
 
 app.post('/api/v1/admin/users/:id/credential-reset', requireAuth, requireRole('admin'), (req, res, next) => {

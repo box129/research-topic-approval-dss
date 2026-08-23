@@ -298,6 +298,141 @@ function createUserProvisioningService({
     };
   };
 
+  // Admin-only correction of provisioned identity data (name, email, student
+  // matric number). Role and status are deliberately not editable here: role
+  // changes are an institutional decision outside operational corrections and
+  // status is managed by the existing suspend/reactivate action. Fields are
+  // picked explicitly so nothing else can be mass-assigned.
+  const correctUserIdentity = async ({ id: idValue, input = {}, actor, req } = {}) => {
+    const id = parsePositiveId(idValue, 'id');
+
+    if (Object.prototype.hasOwnProperty.call(input, 'role')) {
+      throw new UserProvisioningError('Role cannot be changed through identity correction.', {
+        code: 'USER_IDENTITY_ROLE_NOT_EDITABLE',
+        field: 'role'
+      });
+    }
+
+    if (Object.prototype.hasOwnProperty.call(input, 'status')) {
+      throw new UserProvisioningError('Status is managed through the suspend/reactivate action, not identity correction.', {
+        code: 'USER_IDENTITY_STATUS_NOT_EDITABLE',
+        field: 'status'
+      });
+    }
+
+    const target = await prismaClient.user.findUnique({ where: { id } });
+    if (!target) {
+      return null;
+    }
+
+    if (target.role === 'ADMIN') {
+      throw new UserProvisioningError('Administrator identities cannot be edited through this endpoint.', {
+        code: 'USER_IDENTITY_ADMIN_TARGET_FORBIDDEN',
+        statusCode: 403
+      });
+    }
+
+    const changes = {};
+    if (Object.prototype.hasOwnProperty.call(input, 'name')) {
+      changes.name = normalizeName(input.name);
+    }
+    if (Object.prototype.hasOwnProperty.call(input, 'email')) {
+      changes.email = normalizeCanonicalEmail(input.email);
+    }
+    if (Object.prototype.hasOwnProperty.call(input, 'matricNumber')) {
+      const matricNumber = normalizeMatricNumber(input.matricNumber);
+      if (matricNumber && target.role !== 'STUDENT') {
+        throw new UserProvisioningError('Matric numbers only apply to student accounts.', {
+          code: 'USER_PROVISION_MATRIC_ROLE_MISMATCH',
+          field: 'matricNumber'
+        });
+      }
+      changes.matricNumber = matricNumber;
+    }
+
+    if (Object.keys(changes).length === 0) {
+      throw new UserProvisioningError('Provide at least one of name, email or matricNumber.', {
+        code: 'USER_IDENTITY_NO_FIELDS'
+      });
+    }
+
+    const changedFields = Object.keys(changes).filter((field) => changes[field] !== target[field]);
+    if (changedFields.length === 0) {
+      return {
+        user: serializeUser(target),
+        changedFields: [],
+        sessionsInvalidated: false
+      };
+    }
+
+    const previousValues = changedFields.reduce((values, field) => {
+      values[field] = target[field] ?? null;
+      return values;
+    }, {});
+
+    // A changed email changes the login identity itself, so sessions issued
+    // for the previous identity (and any pending reset token) stop working.
+    const emailChanged = changedFields.includes('email');
+
+    let updated;
+    try {
+      updated = await prismaClient.$transaction(async (tx) => {
+        await assertNoDuplicates(tx, {
+          email: emailChanged ? changes.email : target.email,
+          matricNumber: changedFields.includes('matricNumber') ? changes.matricNumber : null,
+          excludeId: id
+        });
+
+        return tx.user.update({
+          where: { id },
+          data: {
+            ...changes,
+            ...(emailChanged
+              ? {
+                credentialVersion: { increment: 1 },
+                resetTokenHash: null,
+                resetTokenExpiresAt: null
+              }
+              : {})
+          }
+        });
+      });
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        throw new UserProvisioningError('An account with this email or matric number already exists.', {
+          code: 'USER_PROVISION_DUPLICATE',
+          statusCode: 409
+        });
+      }
+      throw error;
+    }
+
+    await audit.createAuditLogSafely({
+      eventType: AUDIT_EVENT_TYPES.USER_IDENTITY_CORRECTED,
+      ...buildAuditContextFromRequest(req),
+      targetType: 'User',
+      targetId: String(id),
+      metadata: {
+        targetUserId: target.id,
+        targetUserRole: target.role,
+        changedFields,
+        previous: previousValues,
+        next: changedFields.reduce((values, field) => {
+          values[field] = changes[field] ?? null;
+          return values;
+        }, {}),
+        priorSessionsInvalidated: emailChanged,
+        correctedByAdminId: actor?.id ?? null
+      }
+    });
+
+    return {
+      user: serializeUser(updated),
+      changedFields,
+      sessionsInvalidated: emailChanged
+    };
+  };
+
   // Operator-invoked production initialization. Never runs automatically,
   // never uses a fixed password, and refuses ambiguous bootstrap state.
   const bootstrapFirstAdmin = async ({ email: emailValue, name: nameValue } = {}) => {
@@ -397,6 +532,7 @@ function createUserProvisioningService({
   return {
     provisionUser,
     resetUserCredential,
+    correctUserIdentity,
     bootstrapFirstAdmin
   };
 }
@@ -406,6 +542,9 @@ module.exports = {
   createUserProvisioningService,
   UserProvisioningError,
   generateTemporaryPassword,
+  normalizeName,
+  normalizeCanonicalEmail,
+  normalizeProvisionRole,
   normalizeMatricNumber,
   PROVISIONABLE_ROLES
 };

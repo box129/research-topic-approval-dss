@@ -60,8 +60,9 @@ function buildEmptyReport() {
 function parseWorksheetRows(worksheet) {
   let headers = null;
   const rows = [];
+  const rowNumbers = [];
 
-  worksheet.eachRow((row) => {
+  worksheet.eachRow((row, rowNumber) => {
     const values = getRowValues(row);
 
     if (!isNonEmptyRow(values)) {
@@ -91,10 +92,11 @@ function parseWorksheetRows(worksheet) {
 
     if (hasValue) {
       rows.push(parsedRow);
+      rowNumbers.push(rowNumber);
     }
   });
 
-  return { headers: headers || [], rows };
+  return { headers: headers || [], rows, rowNumbers };
 }
 
 async function normalizeTopicImportFile(filePath, options = {}) {
@@ -141,5 +143,6 @@ async function normalizeTopicImportFile(filePath, options = {}) {
 }
 
 module.exports = {
-  normalizeTopicImportFile
+  normalizeTopicImportFile,
+  parseWorksheetRows
 };

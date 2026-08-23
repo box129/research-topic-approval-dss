@@ -249,6 +249,7 @@ module.exports = {
   previewTopicImport,
   commitTopicImport,
   cleanupUploadedFile,
+  validateUploadedFile,
   buildImportErrorResponse,
   buildPreviewAuditMetadata,
   buildCommitAuditMetadata

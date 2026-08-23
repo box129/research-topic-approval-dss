@@ -1,5 +1,6 @@
 const adminUserService = require('../services/adminUser.service');
 const userProvisioningService = require('../services/userProvisioning.service');
+const { setNoStoreHeaders } = require('../utils/httpCache');
 
 const SERVICE_ERROR_NAMES = new Set(['AdminUserServiceError', 'UserProvisioningError']);
 
@@ -109,6 +110,7 @@ async function createUser(req, res, next) {
       req
     });
 
+    setNoStoreHeaders(res);
     return res.status(201).json({
       success: true,
       data: {
@@ -149,6 +151,7 @@ async function resetUserCredential(req, res, next) {
       });
     }
 
+    setNoStoreHeaders(res);
     return res.status(200).json({
       success: true,
       data: {
@@ -169,10 +172,53 @@ async function resetUserCredential(req, res, next) {
   }
 }
 
+async function correctUserIdentity(req, res, next) {
+  try {
+    const result = await userProvisioningService.correctUserIdentity({
+      id: req.params.id,
+      input: req.body || {},
+      actor: req.user,
+      req
+    });
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'ADMIN_USER_NOT_FOUND',
+          message: 'User record not found.'
+        }
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        item: result.user,
+        changedFields: result.changedFields,
+        sessionsInvalidated: result.sessionsInvalidated
+      },
+      meta: {
+        auditEventType: 'USER_IDENTITY_CORRECTED',
+        ...(result.sessionsInvalidated
+          ? { notice: 'The login email changed, so all existing sessions for this account were invalidated. The password is unchanged.' }
+          : {})
+      }
+    });
+  } catch (error) {
+    if (SERVICE_ERROR_NAMES.has(error.name)) {
+      return sendServiceError(res, error);
+    }
+
+    return next(error);
+  }
+}
+
 module.exports = {
   createUser,
   listUsers,
   getUserById,
   resetUserCredential,
-  updateUserStatus
+  updateUserStatus,
+  correctUserIdentity
 };
