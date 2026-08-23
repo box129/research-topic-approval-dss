@@ -48,6 +48,54 @@ export async function resetAdminUserCredential(id) {
   };
 }
 
+export async function correctAdminUserIdentity(id, payload) {
+  const response = await apiClient.patch(`/admin/users/${id}/identity`, payload);
+  return {
+    data: response.data?.data,
+    meta: response.data?.meta
+  };
+}
+
+function buildUserImportFormData(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  return formData;
+}
+
+export async function previewAdminUserImport(file) {
+  const response = await apiClient.post('/admin/users/import/preview', buildUserImportFormData(file));
+  return {
+    data: response.data?.data,
+    meta: response.data?.meta
+  };
+}
+
+// Commit performs server-side credential hashing for the whole cohort, which
+// can take minutes at departmental scale; no client timeout is applied.
+export async function commitAdminUserImport(file) {
+  const response = await apiClient.post('/admin/users/import/commit', buildUserImportFormData(file), {
+    timeout: 0
+  });
+  return {
+    data: response.data?.data,
+    meta: response.data?.meta
+  };
+}
+
+export async function downloadAdminUserImportTemplate() {
+  const response = await apiClient.get('/admin/users/import/template', {
+    responseType: 'blob'
+  });
+
+  return {
+    blob: response.data,
+    filename: getFilenameFromDisposition(
+      response.headers?.['content-disposition'],
+      'user-onboarding-template.xlsx'
+    )
+  };
+}
+
 export async function listAdminSuperviseeAssignments(params = {}) {
   const response = await apiClient.get('/admin/supervisee-assignments', { params });
   return {

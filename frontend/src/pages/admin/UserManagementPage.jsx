@@ -6,11 +6,15 @@ import PageHeader from '../../components/ui/PageHeader';
 import ConfirmActionModal from '../../components/ui/ConfirmActionModal';
 import { useAuth } from '../../auth/useAuth';
 import {
+  commitAdminUserImport,
+  correctAdminUserIdentity,
   createAdminSuperviseeAssignment,
   createAdminUser,
+  downloadAdminUserImportTemplate,
   endAdminSuperviseeAssignment,
   listAdminSuperviseeAssignments,
   listAdminUsers,
+  previewAdminUserImport,
   resetAdminUserCredential,
   updateAdminUserStatus
 } from '../../api/admin';
@@ -76,6 +80,377 @@ const provisionRoleOptions = [
   { value: 'student', label: 'Student' },
   { value: 'lecturer', label: 'Lecturer' }
 ];
+
+const importStatusPresentation = {
+  valid_new: { label: 'Will be created', className: 'bg-emerald-50 text-emerald-800' },
+  already_exists: { label: 'Already exists', className: 'bg-sky-50 text-sky-800' },
+  duplicate_in_file: { label: 'Duplicate in file', className: 'bg-slate-100 text-slate-700' },
+  conflict: { label: 'Conflict', className: 'bg-rose-50 text-rose-800' },
+  invalid: { label: 'Invalid', className: 'bg-amber-50 text-amber-800' }
+};
+
+function triggerBrowserDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function downloadBase64Workbook({ content_base64: contentBase64, filename, mime_type: mimeType }) {
+  const binary = atob(contentBase64);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  triggerBrowserDownload(new Blob([bytes], { type: mimeType }), filename);
+}
+
+function ImportStatusBadge({ status }) {
+  const presentation = importStatusPresentation[status] || {
+    label: status || 'Unknown',
+    className: 'bg-slate-100 text-slate-700'
+  };
+  return (
+    <span className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${presentation.className}`}>
+      {presentation.label}
+    </span>
+  );
+}
+
+function ImportSummaryTiles({ summary }) {
+  const tiles = [
+    { label: 'Total rows', value: summary.total_rows, accent: 'border-l-slate-400' },
+    { label: 'Will be created', value: summary.valid_new, accent: 'border-l-emerald-600' },
+    { label: 'Already exist', value: summary.already_exists, accent: 'border-l-sky-500' },
+    { label: 'Duplicates in file', value: summary.duplicate_in_file, accent: 'border-l-slate-400' },
+    { label: 'Conflicts', value: summary.conflict, accent: 'border-l-rose-500' },
+    { label: 'Invalid', value: summary.invalid, accent: 'border-l-amber-500' }
+  ];
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-6">
+      {tiles.map((tile) => (
+        <article key={tile.label} className={`rounded-lg border border-border-subtle border-l-[3px] ${tile.accent} bg-white p-3`}>
+          <p className="text-xs font-bold uppercase tracking-[0.12em] text-text-muted">{tile.label}</p>
+          <p className="mt-1 text-xl font-semibold text-text-primary">{formatCount(tile.value)}</p>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function ImportRowsTable({ rows, showAll, onToggleShowAll }) {
+  const attentionRows = rows.filter((row) => row.status !== 'valid_new' || row.warnings.length > 0);
+  const visibleRows = showAll ? rows : attentionRows;
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-semibold text-text-primary">
+          Row-by-row result ({formatCount(visibleRows.length)} shown)
+        </p>
+        <label className="flex items-center gap-2 text-sm text-text-secondary">
+          <input checked={showAll} onChange={onToggleShowAll} type="checkbox" />
+          Show all rows (including valid new accounts)
+        </label>
+      </div>
+      {visibleRows.length === 0 ? (
+        <p className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+          Every row is a valid new account. Nothing needs attention.
+        </p>
+      ) : (
+        <div className="mt-2 max-h-96 overflow-auto rounded-lg border border-border-subtle">
+          <table className="w-full min-w-[44rem] border-collapse text-left text-sm">
+            <thead className="sticky top-0 bg-surface-muted">
+              <tr>
+                <th className="px-3 py-2 font-semibold text-text-muted">Row</th>
+                <th className="px-3 py-2 font-semibold text-text-muted">Name</th>
+                <th className="px-3 py-2 font-semibold text-text-muted">Email</th>
+                <th className="px-3 py-2 font-semibold text-text-muted">Role</th>
+                <th className="px-3 py-2 font-semibold text-text-muted">Matric</th>
+                <th className="px-3 py-2 font-semibold text-text-muted">Status</th>
+                <th className="px-3 py-2 font-semibold text-text-muted">Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibleRows.map((row) => (
+                <tr className="border-t border-border-subtle align-top" key={row.row_number}>
+                  <td className="px-3 py-2 text-text-secondary">{row.row_number}</td>
+                  <td className="px-3 py-2 text-text-primary">{row.name || '—'}</td>
+                  <td className="break-all px-3 py-2 text-text-secondary">{row.email || '—'}</td>
+                  <td className="px-3 py-2 text-text-secondary">{row.role || '—'}</td>
+                  <td className="px-3 py-2 text-text-secondary">{row.matric_number || '—'}</td>
+                  <td className="px-3 py-2"><ImportStatusBadge status={row.status} /></td>
+                  <td className="px-3 py-2 text-text-secondary">
+                    {[...row.messages, ...row.warnings].map((message) => (
+                      <p key={message}>{message}</p>
+                    ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CredentialManifestPanel({ commitResult, onDismiss }) {
+  const manifest = commitResult.credential_manifest;
+
+  return (
+    <section
+      aria-label="One-time credential manifest"
+      className="rounded-[10px] border-2 border-amber-300 bg-amber-50 p-5"
+    >
+      <h3 className="text-lg font-semibold text-amber-900">One-time credential manifest</h3>
+      <p className="mt-1 text-sm leading-6 text-amber-900">
+        This download is the <strong>only copy</strong> of the {formatCount(manifest.rows)} temporary
+        password{manifest.rows === 1 ? '' : 's'} for the newly created accounts. The system stores only
+        secure hashes and cannot show them again. Transfer each credential through a secure channel;
+        every user must change it at first login. Protect the file and delete it once distribution is
+        complete. If a credential is lost later, use the per-user &quot;Reset credential&quot; action.
+      </p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          className="rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-900"
+          onClick={() => downloadBase64Workbook(manifest)}
+          type="button"
+        >
+          Download credential manifest (.xlsx)
+        </button>
+        <button
+          className="rounded-xl border border-amber-400 bg-white px-4 py-2 text-sm font-semibold text-amber-900 transition hover:bg-amber-100"
+          onClick={onDismiss}
+          type="button"
+        >
+          I have downloaded it — dismiss
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function BulkImportUsersSection({ onCohortCreated }) {
+  const [importFile, setImportFile] = useState(null);
+  const [fileInputKey, setFileInputKey] = useState(0);
+  const [previewState, setPreviewState] = useState('idle');
+  const [previewError, setPreviewError] = useState('');
+  const [previewData, setPreviewData] = useState(null);
+  const [commitState, setCommitState] = useState('idle');
+  const [commitError, setCommitError] = useState('');
+  // Commit results (including the base64 manifest) live only in this
+  // component's memory and are discarded on dismiss/reload.
+  const [commitResult, setCommitResult] = useState(null);
+  const [showAllRows, setShowAllRows] = useState(false);
+  const [showCommitConfirm, setShowCommitConfirm] = useState(false);
+  const [templateError, setTemplateError] = useState('');
+
+  function resetResults() {
+    setPreviewState('idle');
+    setPreviewError('');
+    setPreviewData(null);
+    setCommitState('idle');
+    setCommitError('');
+    setCommitResult(null);
+  }
+
+  function handleFileChange(event) {
+    setImportFile(event.target.files?.[0] || null);
+    resetResults();
+  }
+
+  async function handleDownloadTemplate() {
+    setTemplateError('');
+    try {
+      const { blob, filename } = await downloadAdminUserImportTemplate();
+      triggerBrowserDownload(blob, filename);
+    } catch {
+      setTemplateError('The template could not be downloaded.');
+    }
+  }
+
+  async function handlePreview() {
+    if (!importFile) {
+      return;
+    }
+    setPreviewState('loading');
+    setPreviewError('');
+    setPreviewData(null);
+    setCommitState('idle');
+    setCommitError('');
+    setCommitResult(null);
+    try {
+      const result = await previewAdminUserImport(importFile);
+      setPreviewData(result.data);
+      setPreviewState('success');
+    } catch (error) {
+      setPreviewError(error?.response?.data?.error?.message || 'Import preview failed.');
+      setPreviewState('error');
+    }
+  }
+
+  async function handleCommit() {
+    setShowCommitConfirm(false);
+    setCommitState('loading');
+    setCommitError('');
+    try {
+      const result = await commitAdminUserImport(importFile);
+      setCommitResult(result.data);
+      setCommitState('success');
+      setPreviewData(null);
+      setPreviewState('idle');
+      setImportFile(null);
+      setFileInputKey((current) => current + 1);
+      if ((result.data?.created_users || []).length > 0) {
+        onCohortCreated();
+      }
+    } catch (error) {
+      const apiError = error?.response?.data?.error;
+      if (apiError?.code === 'BULK_IMPORT_STATE_CHANGED') {
+        setCommitError(`${apiError.message} The preview below is stale; run it again.`);
+      } else {
+        setCommitError(apiError?.message || 'Import commit failed. No accounts were created unless a success summary is shown.');
+      }
+      setCommitState('error');
+    }
+  }
+
+  const summary = previewData?.summary;
+  const canCommit = previewState === 'success' && summary?.valid_new > 0 && commitState !== 'loading';
+
+  return (
+    <section className="rounded-[10px] border border-border-subtle bg-white p-5 shadow-sm">
+      <div className="flex flex-col gap-3 border-b border-border-subtle pb-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-text-primary">Bulk import users</h2>
+          <p className="mt-1 max-w-3xl text-sm leading-6 text-text-secondary">
+            Onboard a departmental cohort from an .xlsx spreadsheet (columns: name, email, role,
+            optional matric_number). Upload a file, review the preview — nothing is created yet —
+            then commit the valid new accounts. Existing accounts are never modified, and
+            re-importing the same file is safe.
+          </p>
+        </div>
+        <button
+          className="w-fit rounded-xl border border-emerald-900/20 bg-white px-3 py-2 text-sm font-semibold text-emerald-900 transition hover:bg-emerald-50"
+          onClick={handleDownloadTemplate}
+          type="button"
+        >
+          Download template
+        </button>
+      </div>
+
+      {templateError ? (
+        <InfoCallout className="mt-4" message={templateError} title="Template download failed" variant="warning" />
+      ) : null}
+
+      <div className="mt-4 flex flex-wrap items-end gap-3">
+        <label className="text-sm font-semibold text-text-primary">
+          Spreadsheet (.xlsx)
+          <input
+            accept=".xlsx"
+            className="mt-1 block w-full max-w-md rounded-xl border border-border-subtle px-3 py-2 text-sm outline-none transition file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1 file:text-sm file:font-semibold file:text-emerald-900 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+            key={fileInputKey}
+            onChange={handleFileChange}
+            type="file"
+          />
+        </label>
+        <button
+          className="rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-900 disabled:cursor-not-allowed disabled:bg-slate-400"
+          disabled={!importFile || previewState === 'loading' || commitState === 'loading'}
+          onClick={handlePreview}
+          type="button"
+        >
+          {previewState === 'loading' ? 'Previewing...' : 'Preview import'}
+        </button>
+        <button
+          className="rounded-xl bg-emerald-950 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-900 disabled:cursor-not-allowed disabled:bg-slate-400"
+          disabled={!canCommit}
+          onClick={() => setShowCommitConfirm(true)}
+          type="button"
+        >
+          {commitState === 'loading' ? 'Creating accounts...' : 'Commit valid new accounts'}
+        </button>
+      </div>
+
+      {previewError ? (
+        <InfoCallout className="mt-4" role="alert" message={previewError} title="Import preview failed" variant="warning" />
+      ) : null}
+
+      {commitError ? (
+        <InfoCallout className="mt-4" role="alert" message={commitError} title="Import commit not completed" variant="warning" />
+      ) : null}
+
+      {commitState === 'loading' ? (
+        <InfoCallout
+          className="mt-4"
+          message="Accounts and secure credentials are being created on the server. For a full departmental cohort this can take a few minutes — keep this page open."
+          title="Creating accounts..."
+          variant="success"
+        />
+      ) : null}
+
+      {previewData && commitState !== 'success' ? (
+        <div className="mt-5 space-y-4">
+          <InfoCallout
+            message={`Preview only — no accounts have been created. ${formatCount(summary.valid_new)} row(s) would become new accounts; ${formatCount(summary.total_rows - summary.valid_new)} row(s) will be skipped or need attention. Commit re-checks everything against the live directory.`}
+            title="Previewed, not created"
+            variant="success"
+          />
+          <ImportSummaryTiles summary={summary} />
+          <ImportRowsTable
+            onToggleShowAll={() => setShowAllRows((current) => !current)}
+            rows={previewData.rows}
+            showAll={showAllRows}
+          />
+        </div>
+      ) : null}
+
+      {commitResult ? (
+        <div className="mt-5 space-y-4">
+          <InfoCallout
+            message={`${formatCount((commitResult.created_users || []).length)} account(s) were actually created. ${formatCount(commitResult.summary.already_exists)} already existed, ${formatCount(commitResult.summary.duplicate_in_file)} duplicate row(s), ${formatCount(commitResult.summary.conflict)} conflict(s) and ${formatCount(commitResult.summary.invalid)} invalid row(s) were NOT provisioned.`}
+            title="Import committed"
+            variant="success"
+          />
+          <ImportSummaryTiles summary={commitResult.summary} />
+          {commitResult.credential_manifest ? (
+            <CredentialManifestPanel
+              commitResult={commitResult}
+              onDismiss={() => setCommitResult(null)}
+            />
+          ) : (
+            <InfoCallout
+              message="No new accounts were created by this commit, so there is no credential manifest. Existing users keep their current passwords."
+              title="Nothing new to provision"
+              variant="success"
+            />
+          )}
+          <ImportRowsTable
+            onToggleShowAll={() => setShowAllRows((current) => !current)}
+            rows={commitResult.rows || []}
+            showAll={showAllRows}
+          />
+        </div>
+      ) : null}
+
+      <ConfirmActionModal
+        confirmLabel={`Create ${formatCount(summary?.valid_new || 0)} account(s)`}
+        isConfirming={commitState === 'loading'}
+        isOpen={showCommitConfirm}
+        message={summary ? `${formatCount(summary.valid_new)} new account(s) will be created with one-time temporary passwords. Rows marked as existing, duplicate, conflicting or invalid will NOT be provisioned. The server re-validates every row before creating anything.` : ''}
+        onCancel={() => setShowCommitConfirm(false)}
+        onConfirm={handleCommit}
+        title="Commit this import?"
+      />
+    </section>
+  );
+}
 
 const emptyProvisionForm = {
   role: 'student',
@@ -242,10 +617,11 @@ function UserStatusBadge({ status }) {
   );
 }
 
-function UserRow({ currentUserId, isResettingCredential, isUpdating, onCredentialReset, onStatusChange, user }) {
+function UserRow({ currentUserId, isResettingCredential, isUpdating, onCredentialReset, onEditIdentity, onStatusChange, user }) {
   const isCurrentUser = String(currentUserId || '') === String(user.id);
   const canUpdateStatus = user.role !== 'admin' && !isCurrentUser;
   const canResetCredential = user.role !== 'admin' && !isCurrentUser;
+  const canEditIdentity = user.role !== 'admin';
   const nextStatus = user.status === 'suspended' ? 'active' : 'suspended';
   const actionLabel = nextStatus === 'suspended' ? 'Suspend account' : 'Activate account';
 
@@ -310,6 +686,15 @@ function UserRow({ currentUserId, isResettingCredential, isUpdating, onCredentia
               type="button"
             >
               {isResettingCredential ? 'Resetting...' : 'Reset credential'}
+            </button>
+          ) : null}
+          {canEditIdentity ? (
+            <button
+              className="rounded-xl border border-border-subtle bg-white px-3 py-2 text-sm font-semibold text-text-primary transition hover:bg-surface-muted"
+              onClick={() => onEditIdentity(user)}
+              type="button"
+            >
+              Edit identity
             </button>
           ) : null}
         </div>
@@ -523,6 +908,10 @@ function UserManagementPage() {
   const [oneTimeCredential, setOneTimeCredential] = useState(null);
   const [resettingCredentialUserId, setResettingCredentialUserId] = useState(null);
   const [pendingCredentialReset, setPendingCredentialReset] = useState(null);
+  const [editingUser, setEditingUser] = useState(null);
+  const [editForm, setEditForm] = useState({ name: '', email: '', matricNumber: '' });
+  const [editError, setEditError] = useState('');
+  const [savingIdentity, setSavingIdentity] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -762,6 +1151,57 @@ function UserManagementPage() {
     setPendingCredentialReset(targetUser);
   }
 
+  function reloadUsers() {
+    setFilters((current) => ({ ...current }));
+  }
+
+  function handleEditIdentity(targetUser) {
+    setEditError('');
+    setEditForm({
+      name: targetUser.name || '',
+      email: targetUser.email || '',
+      matricNumber: targetUser.matricNumber || ''
+    });
+    setEditingUser(targetUser);
+  }
+
+  function handleEditFieldChange(event) {
+    const { name, value } = event.target;
+    setEditForm((current) => ({
+      ...current,
+      [name]: value
+    }));
+  }
+
+  async function confirmIdentityCorrection() {
+    if (!editingUser) return;
+    setSavingIdentity(true);
+    setEditError('');
+    try {
+      // Only identity fields are sent; role and status are never editable here.
+      const result = await correctAdminUserIdentity(editingUser.id, {
+        name: editForm.name,
+        email: editForm.email,
+        ...(editingUser.role === 'student' ? { matricNumber: editForm.matricNumber } : {})
+      });
+      const updatedUser = result.data?.item;
+      if (updatedUser) {
+        setUsers((current) => current.map((item) => (
+          item.id === updatedUser.id ? updatedUser : item
+        )));
+      }
+      const changed = result.data?.changedFields || [];
+      setStatusMessage(changed.length
+        ? `Identity updated for ${updatedUser?.email || editingUser.email} (${changed.join(', ')}).${result.data?.sessionsInvalidated ? ' The login email changed, so their existing sessions were signed out.' : ''}`
+        : 'No identity fields were changed.');
+      setEditingUser(null);
+    } catch (error) {
+      setEditError(error?.response?.data?.error?.message || 'Identity could not be updated.');
+    } finally {
+      setSavingIdentity(false);
+    }
+  }
+
   async function confirmCredentialReset() {
     if (!pendingCredentialReset) return;
     const targetUser = pendingCredentialReset;
@@ -901,6 +1341,8 @@ function UserManagementPage() {
         />
       ) : null}
 
+      <BulkImportUsersSection onCohortCreated={reloadUsers} />
+
       <AssignmentManagementSection
         assignmentError={assignmentError}
         assignmentForm={assignmentForm}
@@ -1007,6 +1449,7 @@ function UserManagementPage() {
                   isUpdating={updatingUserId === item.id}
                   key={item.id}
                   onCredentialReset={handleCredentialReset}
+                  onEditIdentity={handleEditIdentity}
                   onStatusChange={handleStatusChange}
                   user={item}
                 />
@@ -1026,6 +1469,56 @@ function UserManagementPage() {
           </div>
         ) : null}
       </section>
+
+      <ConfirmActionModal
+        confirmLabel="Save identity corrections"
+        isConfirming={savingIdentity}
+        isOpen={Boolean(editingUser)}
+        message={editingUser ? `Correct the stored identity data for this ${roleLabels[editingUser.role] || 'user'} account. The role cannot be changed here, and the password is not affected. Changing the email signs the user out of existing sessions.` : ''}
+        onCancel={() => setEditingUser(null)}
+        onConfirm={confirmIdentityCorrection}
+        title="Edit account identity"
+      >
+        {editingUser ? (
+          <div className="grid gap-3">
+            {editError ? (
+              <InfoCallout role="alert" message={editError} title="Identity not updated" variant="warning" />
+            ) : null}
+            <label className="text-sm font-semibold text-text-primary">
+              Full name
+              <input
+                className="mt-1 w-full rounded-xl border border-border-subtle px-3 py-2 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                name="name"
+                onChange={handleEditFieldChange}
+                type="text"
+                value={editForm.name}
+              />
+            </label>
+            <label className="text-sm font-semibold text-text-primary">
+              University email
+              <input
+                className="mt-1 w-full rounded-xl border border-border-subtle px-3 py-2 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                name="email"
+                onChange={handleEditFieldChange}
+                type="email"
+                value={editForm.email}
+              />
+            </label>
+            {editingUser.role === 'student' ? (
+              <label className="text-sm font-semibold text-text-primary">
+                Matric number (leave blank to remove)
+                <input
+                  className="mt-1 w-full rounded-xl border border-border-subtle px-3 py-2 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                  name="matricNumber"
+                  onChange={handleEditFieldChange}
+                  type="text"
+                  value={editForm.matricNumber}
+                />
+              </label>
+            ) : null}
+          </div>
+        ) : null}
+      </ConfirmActionModal>
 
       <ConfirmActionModal
         confirmLabel="Issue new temporary password"

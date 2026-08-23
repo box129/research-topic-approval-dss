@@ -4,11 +4,15 @@ import AdminUserManagementPage from '../src/pages/admin/UserManagementPage';
 import apiClient from '../src/api/client';
 import axios from 'axios';
 import {
+  commitAdminUserImport,
+  correctAdminUserIdentity,
   createAdminSuperviseeAssignment,
   createAdminUser,
+  downloadAdminUserImportTemplate,
   endAdminSuperviseeAssignment,
   listAdminSuperviseeAssignments,
   listAdminUsers,
+  previewAdminUserImport,
   resetAdminUserCredential,
   updateAdminUserStatus
 } from '../src/api/admin';
@@ -32,11 +36,15 @@ vi.mock('../src/api/client', () => ({
 }));
 
 vi.mock('../src/api/admin', () => ({
+  commitAdminUserImport: vi.fn(),
+  correctAdminUserIdentity: vi.fn(),
   createAdminSuperviseeAssignment: vi.fn(),
   createAdminUser: vi.fn(),
+  downloadAdminUserImportTemplate: vi.fn(),
   endAdminSuperviseeAssignment: vi.fn(),
   listAdminSuperviseeAssignments: vi.fn(),
   listAdminUsers: vi.fn(),
+  previewAdminUserImport: vi.fn(),
   resetAdminUserCredential: vi.fn(),
   updateAdminUserStatus: vi.fn()
 }));
@@ -643,6 +651,212 @@ describe('AdminUserManagementPage', () => {
     // Three listed users: current admin (no reset), student and lecturer (reset).
     await waitFor(() => {
       expect(screen.getAllByRole('button', { name: /reset credential/i })).toHaveLength(2);
+    });
+  });
+
+  describe('bulk user import', () => {
+    const previewResponse = {
+      data: {
+        mode: 'preview',
+        metadata: { sheet_name: 'Users', total_parsed_rows: 3, ignored_columns: [], warnings: [] },
+        summary: { total_rows: 3, valid_new: 2, already_exists: 0, duplicate_in_file: 0, conflict: 1, invalid: 0, warnings: 0 },
+        rows: [
+          { row_number: 2, status: 'valid_new', name: 'New Student', email: 'new.student@example.edu', role: 'student', matric_number: 'CSC/21/0001', messages: [], warnings: [] },
+          { row_number: 3, status: 'valid_new', name: 'New Lecturer', email: 'new.lecturer@example.edu', role: 'lecturer', matric_number: null, messages: [], warnings: [] },
+          { row_number: 4, status: 'conflict', name: 'Clashing Person', email: 'student.one@example.edu', role: 'lecturer', matric_number: null, messages: ['Email student.one@example.edu already belongs to an existing student account, but this row says lecturer.'], warnings: [] }
+        ]
+      },
+      meta: {}
+    };
+
+    const commitResponse = {
+      data: {
+        mode: 'commit',
+        import_batch_id: 'user-import-20260822-abc123',
+        summary: previewResponse.data.summary,
+        rows: previewResponse.data.rows,
+        created_users: [
+          { id: 21, name: 'New Student', email: 'new.student@example.edu', role: 'student', status: 'active', matricNumber: 'CSC/21/0001', mustChangePassword: true },
+          { id: 22, name: 'New Lecturer', email: 'new.lecturer@example.edu', role: 'lecturer', status: 'active', matricNumber: null, mustChangePassword: true }
+        ],
+        credential_manifest: {
+          filename: 'user-onboarding-credentials-user-import-20260822-abc123.xlsx',
+          mime_type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          rows: 2,
+          content_base64: 'UEsDBA=='
+        },
+        timing: { hash_ms: 12, transaction_ms: 3 }
+      },
+      meta: { credentialNotice: 'shown once' }
+    };
+
+    function selectWorkbook() {
+      const file = new File(['workbook-bytes'], 'cohort.xlsx', {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const input = screen.getByLabelText(/Spreadsheet \(\.xlsx\)/i);
+      fireEvent.change(input, { target: { files: [file] } });
+      return file;
+    }
+
+    it('previews an uploaded workbook without creating anything', async () => {
+      previewAdminUserImport.mockResolvedValue(previewResponse);
+      render(<AdminUserManagementPage />);
+
+      const commitButton = screen.getByRole('button', { name: /commit valid new accounts/i });
+      expect(commitButton).toBeDisabled();
+
+      const file = selectWorkbook();
+      fireEvent.click(screen.getByRole('button', { name: /preview import/i }));
+
+      await waitFor(() => {
+        expect(previewAdminUserImport).toHaveBeenCalledWith(file);
+      });
+
+      expect(await screen.findByText(/Previewed, not created/i)).toBeInTheDocument();
+      expect(screen.getByText(/Preview only — no accounts have been created/i)).toBeInTheDocument();
+      expect(screen.getByText('Clashing Person')).toBeInTheDocument();
+      expect(screen.getByText(/already belongs to an existing student account/i)).toBeInTheDocument();
+      expect(commitAdminUserImport).not.toHaveBeenCalled();
+      expect(screen.getByRole('button', { name: /commit valid new accounts/i })).toBeEnabled();
+    });
+
+    it('commits only after confirmation and shows the one-time manifest exactly once', async () => {
+      previewAdminUserImport.mockResolvedValue(previewResponse);
+      commitAdminUserImport.mockResolvedValue(commitResponse);
+      render(<AdminUserManagementPage />);
+
+      const file = selectWorkbook();
+      fireEvent.click(screen.getByRole('button', { name: /preview import/i }));
+      await screen.findByText(/Previewed, not created/i);
+
+      const listCallsBeforeCommit = listAdminUsers.mock.calls.length;
+      fireEvent.click(screen.getByRole('button', { name: /commit valid new accounts/i }));
+      expect(commitAdminUserImport).not.toHaveBeenCalled();
+
+      const dialog = await screen.findByRole('dialog', { name: /commit this import\?/i });
+      expect(within(dialog).getByText(/will NOT be provisioned/i)).toBeInTheDocument();
+      fireEvent.click(within(dialog).getByRole('button', { name: /create 2 account/i }));
+
+      await waitFor(() => {
+        expect(commitAdminUserImport).toHaveBeenCalledWith(file);
+      });
+
+      expect(await screen.findByText(/Import committed/i)).toBeInTheDocument();
+      expect(screen.getByText(/2 account\(s\) were actually created/i)).toBeInTheDocument();
+      expect(screen.getByText(/1 conflict\(s\).*NOT provisioned/i)).toBeInTheDocument();
+
+      const manifestPanel = screen.getByLabelText(/one-time credential manifest/i);
+      expect(within(manifestPanel).getByText(/only copy/i)).toBeInTheDocument();
+      expect(within(manifestPanel).getByRole('button', { name: /download credential manifest/i })).toBeInTheDocument();
+
+      // The user list refreshes with the newly created cohort.
+      await waitFor(() => {
+        expect(listAdminUsers.mock.calls.length).toBeGreaterThan(listCallsBeforeCommit);
+      });
+
+      // Dismissing removes the manifest (and its credentials) from the page.
+      fireEvent.click(within(manifestPanel).getByRole('button', { name: /dismiss/i }));
+      expect(screen.queryByLabelText(/one-time credential manifest/i)).not.toBeInTheDocument();
+    });
+
+    it('reports a contested commit truthfully and keeps nothing as created', async () => {
+      previewAdminUserImport.mockResolvedValue(previewResponse);
+      commitAdminUserImport.mockRejectedValue({
+        response: {
+          data: {
+            error: {
+              code: 'BULK_IMPORT_STATE_CHANGED',
+              message: 'The user directory changed while this import was being committed. No accounts were created. Re-run the preview and commit again.'
+            }
+          }
+        }
+      });
+      render(<AdminUserManagementPage />);
+
+      selectWorkbook();
+      fireEvent.click(screen.getByRole('button', { name: /preview import/i }));
+      await screen.findByText(/Previewed, not created/i);
+
+      fireEvent.click(screen.getByRole('button', { name: /commit valid new accounts/i }));
+      const dialog = await screen.findByRole('dialog', { name: /commit this import\?/i });
+      fireEvent.click(within(dialog).getByRole('button', { name: /create 2 account/i }));
+
+      expect(await screen.findByText(/No accounts were created/i)).toBeInTheDocument();
+      expect(screen.queryByText(/Import committed/i)).not.toBeInTheDocument();
+      expect(screen.queryByLabelText(/one-time credential manifest/i)).not.toBeInTheDocument();
+    });
+
+    it('downloads the template through the admin endpoint', async () => {
+      downloadAdminUserImportTemplate.mockResolvedValue({
+        blob: new Blob(['template'], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+        filename: 'user-onboarding-template.xlsx'
+      });
+      vi.stubGlobal('URL', {
+        ...URL,
+        createObjectURL: vi.fn(() => 'blob:mock'),
+        revokeObjectURL: vi.fn()
+      });
+      render(<AdminUserManagementPage />);
+
+      fireEvent.click(screen.getByRole('button', { name: /download template/i }));
+
+      await waitFor(() => {
+        expect(downloadAdminUserImportTemplate).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('identity correction', () => {
+    it('is not offered for admin accounts', async () => {
+      render(<AdminUserManagementPage />);
+
+      await waitFor(() => {
+        expect(screen.getAllByRole('button', { name: /edit identity/i })).toHaveLength(2);
+      });
+    });
+
+    it('sends only identity fields and reports the changes', async () => {
+      correctAdminUserIdentity.mockResolvedValue({
+        data: {
+          item: {
+            ...listResponse.data.items[1],
+            email: 'corrected.student@example.edu',
+            matricNumber: 'CSC/21/0451'
+          },
+          changedFields: ['email', 'matricNumber'],
+          sessionsInvalidated: true
+        },
+        meta: {}
+      });
+      render(<AdminUserManagementPage />);
+
+      await waitFor(() => {
+        expect(screen.getAllByRole('button', { name: /edit identity/i }).length).toBeGreaterThan(0);
+      });
+
+      // The first editable row is Student One.
+      fireEvent.click(screen.getAllByRole('button', { name: /edit identity/i })[0]);
+
+      const dialog = await screen.findByRole('dialog', { name: /edit account identity/i });
+      expect(within(dialog).getByLabelText(/full name/i)).toHaveValue('Student One');
+      fireEvent.change(within(dialog).getByLabelText(/university email/i), {
+        target: { name: 'email', value: 'corrected.student@example.edu' }
+      });
+      fireEvent.change(within(dialog).getByLabelText(/matric number/i), {
+        target: { name: 'matricNumber', value: 'csc/21/0451' }
+      });
+      fireEvent.click(within(dialog).getByRole('button', { name: /save identity corrections/i }));
+
+      await waitFor(() => {
+        expect(correctAdminUserIdentity).toHaveBeenCalledWith(2, {
+          name: 'Student One',
+          email: 'corrected.student@example.edu',
+          matricNumber: 'csc/21/0451'
+        });
+      });
+      expect(await screen.findByText(/Identity updated for corrected.student@example.edu/i)).toBeInTheDocument();
+      expect(screen.getByText(/existing sessions were signed out/i)).toBeInTheDocument();
     });
   });
 });
