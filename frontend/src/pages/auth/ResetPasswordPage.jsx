@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../auth/useAuth';
 import InfoCallout from '../../components/ui/InfoCallout';
@@ -15,7 +15,18 @@ function ResetPasswordPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const token = searchParams.get('token') || '';
+  // The one-time reset token is captured once from the emailed link into
+  // component state; it is never written to localStorage/sessionStorage.
+  const [token] = useState(() => searchParams.get('token') || '');
+
+  // Remove the token from the address bar and browser history as soon as it
+  // has been captured, so it cannot leak via history, shoulder-surfing, or
+  // the Referer of subsequent navigation.
+  useEffect(() => {
+    if (window.location.search) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, []);
   const hasMinimumLength = password.length >= 8;
   const hasNumber = /\d/.test(password);
 

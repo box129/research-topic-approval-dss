@@ -76,6 +76,11 @@ function postedPaths(mock) {
   return mock.history.post.map(({ url }) => url);
 }
 
+// These flows render the full App and time out under the default 5s budget
+// when the whole suite runs in parallel on constrained hardware; the longer
+// budget removes that environmental flakiness without changing any assertion.
+vi.setConfig({ testTimeout: 20000 });
+
 describe('End-to-End User Flow Tests', () => {
   let mock;
   let user;

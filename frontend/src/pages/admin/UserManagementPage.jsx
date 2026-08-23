@@ -12,10 +12,12 @@ import {
   createAdminUser,
   downloadAdminUserImportTemplate,
   endAdminSuperviseeAssignment,
+  inviteAdminUser,
   listAdminSuperviseeAssignments,
   listAdminUsers,
   previewAdminUserImport,
   resetAdminUserCredential,
+  sendAdminBulkInvitations,
   updateAdminUserStatus
 } from '../../api/admin';
 
@@ -250,6 +252,10 @@ function BulkImportUsersSection({ onCohortCreated }) {
   const [showAllRows, setShowAllRows] = useState(false);
   const [showCommitConfirm, setShowCommitConfirm] = useState(false);
   const [templateError, setTemplateError] = useState('');
+  const [inviteState, setInviteState] = useState('idle');
+  const [inviteError, setInviteError] = useState('');
+  const [inviteResult, setInviteResult] = useState(null);
+  const [showInviteConfirm, setShowInviteConfirm] = useState(false);
 
   function resetResults() {
     setPreviewState('idle');
@@ -258,6 +264,9 @@ function BulkImportUsersSection({ onCohortCreated }) {
     setCommitState('idle');
     setCommitError('');
     setCommitResult(null);
+    setInviteState('idle');
+    setInviteError('');
+    setInviteResult(null);
   }
 
   function handleFileChange(event) {
@@ -321,8 +330,27 @@ function BulkImportUsersSection({ onCohortCreated }) {
     }
   }
 
+  async function handleBulkInvite() {
+    setShowInviteConfirm(false);
+    const createdIds = (commitResult?.created_users || []).map((user) => user.id);
+    if (createdIds.length === 0) {
+      return;
+    }
+    setInviteState('loading');
+    setInviteError('');
+    try {
+      const result = await sendAdminBulkInvitations(createdIds);
+      setInviteResult(result.data);
+      setInviteState('success');
+    } catch (error) {
+      setInviteError(error?.response?.data?.error?.message || 'Invitations could not be sent. No delivery is claimed for this batch; you can retry, or invite users individually.');
+      setInviteState('error');
+    }
+  }
+
   const summary = previewData?.summary;
   const canCommit = previewState === 'success' && summary?.valid_new > 0 && commitState !== 'loading';
+  const createdCount = (commitResult?.created_users || []).length;
 
   return (
     <section className="rounded-[10px] border border-border-subtle bg-white p-5 shadow-sm">
@@ -431,6 +459,57 @@ function BulkImportUsersSection({ onCohortCreated }) {
               variant="success"
             />
           )}
+
+          {createdCount > 0 ? (
+            <section className="rounded-[10px] border border-sky-200 bg-sky-50/50 p-5">
+              <h3 className="text-lg font-semibold text-text-primary">Email invitations (optional)</h3>
+              <p className="mt-1 text-sm leading-6 text-text-secondary">
+                Instead of (or in addition to) distributing the credential manifest manually, you can
+                email each newly created account a secure one-time activation link so the user chooses
+                their own password. Nothing is emailed until you press the button below. Accounts whose
+                email fails stay listed as failed and can be re-invited individually; the manifest
+                credentials remain a valid fallback until a user activates.
+              </p>
+              {inviteState === 'idle' || inviteState === 'error' ? (
+                <button
+                  className="mt-3 rounded-xl bg-sky-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-900"
+                  onClick={() => setShowInviteConfirm(true)}
+                  type="button"
+                >
+                  Send invitations to {formatCount(createdCount)} new account(s)
+                </button>
+              ) : null}
+              {inviteState === 'loading' ? (
+                <InfoCallout
+                  className="mt-3"
+                  message="Invitation emails are being sent one batch at a time (bounded concurrency). Keep this page open."
+                  title="Sending invitations..."
+                  variant="success"
+                />
+              ) : null}
+              {inviteError ? (
+                <InfoCallout className="mt-3" role="alert" message={inviteError} title="Bulk invitations not completed" variant="warning" />
+              ) : null}
+              {inviteResult ? (
+                <div className="mt-3 space-y-3">
+                  <InfoCallout
+                    message={`Sent: ${formatCount(inviteResult.summary.sent)} · Failed: ${formatCount(inviteResult.summary.failed)} · Skipped: ${formatCount(inviteResult.summary.skipped)} of ${formatCount(inviteResult.summary.requested)} requested. Failed or skipped accounts were NOT sent an email — they remain on the manual credential fallback and can be invited individually from the user list.`}
+                    title="Invitation delivery result"
+                    variant={inviteResult.summary.failed > 0 ? 'warning' : 'success'}
+                  />
+                  {inviteResult.results.some((entry) => entry.status !== 'sent') ? (
+                    <div className="max-h-48 overflow-auto rounded-lg border border-border-subtle bg-white p-3 text-sm text-text-secondary">
+                      {inviteResult.results.filter((entry) => entry.status !== 'sent').map((entry) => (
+                        <p key={entry.userId}>
+                          {entry.email || `User #${entry.userId}`} — {entry.status === 'failed' ? 'delivery failed' : 'skipped'} ({entry.reasonCode})
+                        </p>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+            </section>
+          ) : null}
           <ImportRowsTable
             onToggleShowAll={() => setShowAllRows((current) => !current)}
             rows={commitResult.rows || []}
@@ -438,6 +517,16 @@ function BulkImportUsersSection({ onCohortCreated }) {
           />
         </div>
       ) : null}
+
+      <ConfirmActionModal
+        confirmLabel={`Email ${formatCount(createdCount)} invitation(s)`}
+        isConfirming={inviteState === 'loading'}
+        isOpen={showInviteConfirm}
+        message={`${formatCount(createdCount)} newly created account(s) will each receive an email with a secure one-time activation link. Sending happens now, synchronously, with bounded concurrency; each account gets its own truthful sent/failed result.`}
+        onCancel={() => setShowInviteConfirm(false)}
+        onConfirm={handleBulkInvite}
+        title="Send email invitations to the new cohort?"
+      />
 
       <ConfirmActionModal
         confirmLabel={`Create ${formatCount(summary?.valid_new || 0)} account(s)`}
@@ -605,6 +694,25 @@ function ProvisionUserSection({
   );
 }
 
+const invitationStatusPresentation = {
+  pending: { label: 'Invited', className: 'bg-sky-50 text-sky-800' },
+  accepted: { label: 'Invitation accepted', className: 'bg-emerald-50 text-emerald-800' },
+  failed: { label: 'Invite failed', className: 'bg-rose-50 text-rose-800' },
+  expired: { label: 'Invite expired', className: 'bg-amber-50 text-amber-800' }
+};
+
+function InvitationStatusBadge({ invitation }) {
+  const presentation = invitationStatusPresentation[invitation?.status];
+  if (!presentation) {
+    return null;
+  }
+  return (
+    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${presentation.className}`}>
+      {presentation.label}
+    </span>
+  );
+}
+
 function UserStatusBadge({ status }) {
   const isSuspended = status === 'suspended';
   return (
@@ -617,11 +725,17 @@ function UserStatusBadge({ status }) {
   );
 }
 
-function UserRow({ currentUserId, isResettingCredential, isUpdating, onCredentialReset, onEditIdentity, onStatusChange, user }) {
+function UserRow({ currentUserId, isInviting, isResettingCredential, isUpdating, onCredentialReset, onEditIdentity, onInvite, onStatusChange, user }) {
   const isCurrentUser = String(currentUserId || '') === String(user.id);
   const canUpdateStatus = user.role !== 'admin' && !isCurrentUser;
   const canResetCredential = user.role !== 'admin' && !isCurrentUser;
   const canEditIdentity = user.role !== 'admin';
+  // Invitations only apply while the provisioned account still awaits its
+  // first private password; completed accounts use credential reset instead.
+  const canInvite = user.role !== 'admin' && user.status === 'active' && user.mustChangePassword;
+  const inviteLabel = ['pending', 'failed', 'expired'].includes(user.invitation?.status)
+    ? 'Resend invitation'
+    : 'Send invitation';
   const nextStatus = user.status === 'suspended' ? 'active' : 'suspended';
   const actionLabel = nextStatus === 'suspended' ? 'Suspend account' : 'Activate account';
 
@@ -639,6 +753,7 @@ function UserRow({ currentUserId, isResettingCredential, isUpdating, onCredentia
                 Awaiting first password
               </span>
             ) : null}
+            <InvitationStatusBadge invitation={user.invitation} />
           </div>
           <h2 className="mt-3 truncate text-base font-semibold leading-6 text-text-primary">{user.name}</h2>
           <p className="mt-1 break-all text-sm leading-5 text-text-secondary">{user.email}</p>
@@ -686,6 +801,16 @@ function UserRow({ currentUserId, isResettingCredential, isUpdating, onCredentia
               type="button"
             >
               {isResettingCredential ? 'Resetting...' : 'Reset credential'}
+            </button>
+          ) : null}
+          {canInvite ? (
+            <button
+              className="rounded-xl border border-sky-300 bg-white px-3 py-2 text-sm font-semibold text-sky-800 transition hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={isInviting}
+              onClick={() => onInvite(user)}
+              type="button"
+            >
+              {isInviting ? 'Sending...' : inviteLabel}
             </button>
           ) : null}
           {canEditIdentity ? (
@@ -912,6 +1037,8 @@ function UserManagementPage() {
   const [editForm, setEditForm] = useState({ name: '', email: '', matricNumber: '' });
   const [editError, setEditError] = useState('');
   const [savingIdentity, setSavingIdentity] = useState(false);
+  const [pendingInvite, setPendingInvite] = useState(null);
+  const [invitingUserId, setInvitingUserId] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -1149,6 +1276,38 @@ function UserManagementPage() {
 
   function handleCredentialReset(targetUser) {
     setPendingCredentialReset(targetUser);
+  }
+
+  function handleInvite(targetUser) {
+    setPendingInvite(targetUser);
+  }
+
+  async function confirmInvite() {
+    if (!pendingInvite) return;
+    const targetUser = pendingInvite;
+    setInvitingUserId(targetUser.id);
+    setStatusMessage('');
+    setErrorMessage('');
+    try {
+      const result = await inviteAdminUser(targetUser.id);
+      const updatedUser = result.data?.item;
+      if (updatedUser) {
+        setUsers((current) => current.map((item) => (
+          item.id === updatedUser.id ? updatedUser : item
+        )));
+      }
+      if (result.data?.delivery?.status === 'sent') {
+        setStatusMessage(`Invitation email sent to ${targetUser.email}. Any previous invitation link is now invalid.`);
+      } else {
+        setErrorMessage(`The invitation email to ${targetUser.email} could not be delivered (${result.data?.delivery?.reasonCode || 'delivery failed'}). The account is unchanged — retry later or use the manual credential fallback.`);
+      }
+      setPendingInvite(null);
+    } catch (error) {
+      setErrorMessage(error?.response?.data?.error?.message || 'Invitation could not be sent.');
+      setPendingInvite(null);
+    } finally {
+      setInvitingUserId(null);
+    }
   }
 
   function reloadUsers() {
@@ -1445,11 +1604,13 @@ function UserManagementPage() {
               {users.map((item) => (
                 <UserRow
                   currentUserId={currentUser?.id}
+                  isInviting={invitingUserId === item.id}
                   isResettingCredential={resettingCredentialUserId === item.id}
                   isUpdating={updatingUserId === item.id}
                   key={item.id}
                   onCredentialReset={handleCredentialReset}
                   onEditIdentity={handleEditIdentity}
+                  onInvite={handleInvite}
                   onStatusChange={handleStatusChange}
                   user={item}
                 />
@@ -1469,6 +1630,16 @@ function UserManagementPage() {
           </div>
         ) : null}
       </section>
+
+      <ConfirmActionModal
+        confirmLabel={pendingInvite && ['pending', 'failed', 'expired'].includes(pendingInvite.invitation?.status) ? 'Resend invitation' : 'Send invitation'}
+        isConfirming={Boolean(invitingUserId)}
+        isOpen={Boolean(pendingInvite)}
+        message={pendingInvite ? `${pendingInvite.email} will receive an email with a secure one-time activation link to choose their own password. ${pendingInvite.invitation?.status === 'pending' ? 'The previously sent invitation link will stop working.' : ''} The manual temporary-credential fallback remains available if email fails.` : ''}
+        onCancel={() => setPendingInvite(null)}
+        onConfirm={confirmInvite}
+        title="Send account invitation email?"
+      />
 
       <ConfirmActionModal
         confirmLabel="Save identity corrections"

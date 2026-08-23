@@ -10,10 +10,12 @@ import {
   createAdminUser,
   downloadAdminUserImportTemplate,
   endAdminSuperviseeAssignment,
+  inviteAdminUser,
   listAdminSuperviseeAssignments,
   listAdminUsers,
   previewAdminUserImport,
   resetAdminUserCredential,
+  sendAdminBulkInvitations,
   updateAdminUserStatus
 } from '../src/api/admin';
 
@@ -42,10 +44,12 @@ vi.mock('../src/api/admin', () => ({
   createAdminUser: vi.fn(),
   downloadAdminUserImportTemplate: vi.fn(),
   endAdminSuperviseeAssignment: vi.fn(),
+  inviteAdminUser: vi.fn(),
   listAdminSuperviseeAssignments: vi.fn(),
   listAdminUsers: vi.fn(),
   previewAdminUserImport: vi.fn(),
   resetAdminUserCredential: vi.fn(),
+  sendAdminBulkInvitations: vi.fn(),
   updateAdminUserStatus: vi.fn()
 }));
 
@@ -804,6 +808,97 @@ describe('AdminUserManagementPage', () => {
       await waitFor(() => {
         expect(downloadAdminUserImportTemplate).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('email invitations', () => {
+    const invitableStudent = {
+      id: 9,
+      name: 'Provisioned Student',
+      email: 'provisioned.student@example.edu',
+      role: 'student',
+      status: 'active',
+      matricNumber: 'CSC/26/0001',
+      mustChangePassword: true,
+      invitation: { status: 'not_invited', lastAttemptAt: null, lastSentAt: null, acceptedAt: null, expiresAt: null, lastError: null },
+      createdAt: '2026-08-20T10:00:00.000Z',
+      updatedAt: '2026-08-20T10:00:00.000Z'
+    };
+
+    function mockListWithInvitable() {
+      listAdminUsers.mockImplementation((params = {}) => {
+        if (params.role === 'lecturer') {
+          return Promise.resolve(lecturerOptionsResponse);
+        }
+        if (params.role === 'student') {
+          return Promise.resolve(studentOptionsResponse);
+        }
+        return Promise.resolve({
+          ...listResponse,
+          data: { items: [...listResponse.data.items, invitableStudent] }
+        });
+      });
+    }
+
+    it('sends an individual invitation only after confirmation and reports the outcome', async () => {
+      mockListWithInvitable();
+      inviteAdminUser.mockResolvedValue({
+        data: {
+          item: {
+            ...invitableStudent,
+            invitation: { ...invitableStudent.invitation, status: 'pending', lastSentAt: '2026-08-23T10:00:00.000Z' }
+          },
+          delivery: { status: 'sent', provider: 'smtp' }
+        },
+        meta: {}
+      });
+      render(<AdminUserManagementPage />);
+
+      const inviteButton = await screen.findByRole('button', { name: /^send invitation$/i });
+      fireEvent.click(inviteButton);
+      expect(inviteAdminUser).not.toHaveBeenCalled();
+
+      const dialog = await screen.findByRole('dialog', { name: /send account invitation email\?/i });
+      fireEvent.click(within(dialog).getByRole('button', { name: /^send invitation$/i }));
+
+      await waitFor(() => {
+        expect(inviteAdminUser).toHaveBeenCalledWith(9);
+      });
+      expect(await screen.findByText(/Invitation email sent to provisioned.student@example.edu/i)).toBeInTheDocument();
+      expect(screen.getByText(/^Invited$/)).toBeInTheDocument();
+    });
+
+    it('reports failed delivery truthfully with the manual fallback hint', async () => {
+      mockListWithInvitable();
+      inviteAdminUser.mockResolvedValue({
+        data: {
+          item: {
+            ...invitableStudent,
+            invitation: { ...invitableStudent.invitation, status: 'failed', lastError: 'smtp-connect-failed' }
+          },
+          delivery: { status: 'failed', reasonCode: 'smtp-connect-failed' }
+        },
+        meta: {}
+      });
+      render(<AdminUserManagementPage />);
+
+      fireEvent.click(await screen.findByRole('button', { name: /^send invitation$/i }));
+      const dialog = await screen.findByRole('dialog', { name: /send account invitation email\?/i });
+      fireEvent.click(within(dialog).getByRole('button', { name: /^send invitation$/i }));
+
+      expect(await screen.findByText(/could not be delivered \(smtp-connect-failed\)/i)).toBeInTheDocument();
+      expect(screen.getByText(/manual credential fallback/i)).toBeInTheDocument();
+      expect(screen.getByText(/Invite failed/)).toBeInTheDocument();
+    });
+
+    it('never offers invitations for accounts that already completed setup', async () => {
+      render(<AdminUserManagementPage />);
+
+      await waitFor(() => {
+        expect(screen.getAllByRole('button', { name: /edit identity/i }).length).toBeGreaterThan(0);
+      });
+      // Fixture users all have mustChangePassword=false.
+      expect(screen.queryByRole('button', { name: /send invitation/i })).not.toBeInTheDocument();
     });
   });
 

@@ -56,6 +56,23 @@ export async function correctAdminUserIdentity(id, payload) {
   };
 }
 
+export async function inviteAdminUser(id) {
+  const response = await apiClient.post(`/admin/users/${id}/invite`);
+  return {
+    data: response.data?.data,
+    meta: response.data?.meta
+  };
+}
+
+// Synchronous bounded-concurrency batch; can take a while for large cohorts.
+export async function sendAdminBulkInvitations(userIds) {
+  const response = await apiClient.post('/admin/users/invitations/bulk', { userIds }, { timeout: 0 });
+  return {
+    data: response.data?.data,
+    meta: response.data?.meta
+  };
+}
+
 function buildUserImportFormData(file) {
   const formData = new FormData();
   formData.append('file', file);

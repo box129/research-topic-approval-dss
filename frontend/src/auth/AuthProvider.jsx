@@ -59,7 +59,24 @@ export function AuthProvider({ children }) {
     return response.data;
   }, []);
 
+  // Invitation tokens live only in memory for the duration of these calls;
+  // they are never written to storage.
+  const validateInvitation = useCallback(async ({ token }) => {
+    const response = await apiClient.post('/auth/invitation/validate', { token });
+    return response.data;
+  }, []);
+
+  const acceptInvitation = useCallback(async ({ token, password }) => {
+    const response = await apiClient.post('/auth/invitation/accept', { token, password });
+    const nextUser = response.data?.data?.user || null;
+    if (nextUser) {
+      setUser(nextUser);
+    }
+    return response.data;
+  }, []);
+
   const value = useMemo(() => ({
+    acceptInvitation,
     changePassword,
     forgotPassword,
     isAuthenticated: Boolean(user),
@@ -68,8 +85,9 @@ export function AuthProvider({ children }) {
     logout,
     refreshUser,
     resetPassword,
-    user
-  }), [changePassword, forgotPassword, isLoading, login, logout, refreshUser, resetPassword, user]);
+    user,
+    validateInvitation
+  }), [acceptInvitation, changePassword, forgotPassword, isLoading, login, logout, refreshUser, resetPassword, user, validateInvitation]);
 
   return (
     <AuthContext.Provider value={value}>

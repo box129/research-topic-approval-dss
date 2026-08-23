@@ -32,7 +32,7 @@ This matrix documents the environment variables actually used by the repository 
 | `JWT_EXPIRES_IN` | Optional | No | `24h` | JWT session lifetime. |
 | `AUTH_COOKIE_NAME` | Optional | No | `rtadss_session` | Session cookie name. |
 | `RESET_TOKEN_EXPIRES_MINUTES` | Optional | No | `30` | Password reset token expiry. |
-| `FRONTEND_URL` | Required in production | No | `http://localhost:5173` outside production | Used for CORS and password-reset links. Preferred over `CORS_ORIGIN` when both are set. |
+| `FRONTEND_URL` | Required in production | No | `http://localhost:5173` outside production | Used for CORS and for building emailed invitation/password-reset links (the effective public application URL). Preferred over `CORS_ORIGIN` when both are set. Must be `https://` in production when `EMAIL_PROVIDER=smtp`. |
 | `CORS_ORIGIN` | Required in production if `FRONTEND_URL` unset | No | `FRONTEND_URL` fallback | Fallback origin when `FRONTEND_URL` is unset. Production rejects missing effective origin and effective `*`. |
 | `CORS_CREDENTIALS` | Optional | No | `true` | Must remain compatible with cookie auth. |
 | `SBERT_SERVICE_URL` | Optional | No | `http://localhost:8000` | Backend URL for SBERT `/health` and `/embed`. |
@@ -49,6 +49,7 @@ This matrix documents the environment variables actually used by the repository 
 | `SMTP_PASSWORD` | Optional | Yes | None | SMTP password if provider requires authentication. Must be paired with `SMTP_USER`; never log or commit it. |
 | `SMTP_TIMEOUT_MS` | Optional | No | `10000` | SMTP connection/greeting/socket timeout in milliseconds. |
 | `SMTP_SMOKE_TO` | Manual smoke only | No | None | Controlled recipient for `npm run smoke:smtp`. Required only for provider smoke verification. |
+| `INVITATION_EXPIRES_HOURS` | Optional | No | `168` (7 days) | Account-invitation link lifetime in hours (1–720). Reset links keep their own `RESET_TOKEN_EXPIRES_MINUTES` policy. |
 | `AUDIT_LOG_RETENTION_DAYS` | Optional governance setting | No | `365` | Default audit retention period used when purge requests do not provide a cutoff. Must be a positive integer and at least the purge minimum age. |
 | `AUDIT_LOG_PURGE_MIN_AGE_DAYS` | Optional governance setting | No | `90` | Minimum age for audit purge eligibility. Zero is rejected. |
 | `AUDIT_LOG_PURGE_MAX_BATCH` | Optional governance setting | No | `1000` | Maximum audit rows deleted by one purge request. Bounded by backend validation. |
