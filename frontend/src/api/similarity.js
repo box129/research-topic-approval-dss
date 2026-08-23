@@ -84,7 +84,13 @@ async function normalizeSemanticUnavailable(request) {
 }
 
 export async function runSimilarityCheck(payload, { signal } = {}) {
-  return normalizeSemanticUnavailable(() => axios.post('/api/similarity/check', payload, { signal }));
+  return normalizeSemanticUnavailable(() => axios.post('/api/similarity/check', payload, {
+    signal,
+    // The production checker is authenticated. This is explicit even though
+    // same-origin browsers include cookies by default, and keeps the caller
+    // correct when a configured reverse proxy presents the API separately.
+    withCredentials: true
+  }));
 }
 
 export async function runLecturerSubmissionSimilarityCheck(submissionId) {

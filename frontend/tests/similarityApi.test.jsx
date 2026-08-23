@@ -37,6 +37,23 @@ const successful = {
 describe('similarity API adapter', () => {
   beforeEach(() => vi.clearAllMocks());
 
+  it('sends the legacy direct similarity request with credentials without changing its endpoint or payload', async () => {
+    const payload = {
+      topic: 'Community health communication strategies',
+      population: 'Undergraduate students',
+      location: 'Osogbo'
+    };
+    mocks.apiPost.mockResolvedValue({ data: successful });
+
+    await runSimilarityCheck(payload);
+
+    expect(mocks.apiPost).toHaveBeenCalledWith(
+      '/api/similarity/check',
+      payload,
+      expect.objectContaining({ withCredentials: true })
+    );
+  });
+
   it('normalizes only the explicit Axios 503 semantic-unavailable envelope', async () => {
     mocks.apiPost.mockRejectedValue({ response: { status: 503, data: unavailable } });
 
