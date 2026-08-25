@@ -185,6 +185,33 @@ as records.
 when intentionally discarding local, non-production state; it is not a
 deployment rollback mechanism.
 
+## Local container-acceptance overlay (verification only)
+
+`docker-compose.acceptance.yml` is a verification-only overlay. It is **not** part
+of the supported production topology and a plain `docker compose up` never reads
+it. It exists because production startup validation correctly refuses a non-HTTPS
+browser origin and issues `Secure` cookies, so proving the real production
+contract locally requires real local TLS rather than a relaxed setting.
+
+```powershell
+docker compose -f docker-compose.yml -f docker-compose.acceptance.yml up -d
+```
+
+| Overlay service | Purpose |
+| --- | --- |
+| `tls-edge` | Self-signed HTTPS terminator reproducing the documented public chain `browser -> HTTPS edge -> frontend Nginx -> private backend`. Requires `TRUST_PROXY=2` for that two-hop chain. |
+| `mailsink` | Local SMTP capture so invitation and recovery mail is proven without a provider or a real recipient. |
+
+Generate the local certificate into the git-ignored
+`deploy/local-acceptance-tls/certs/` directory before first use; never commit
+TLS private keys. Like the production frontend, the edge re-resolves its upstream
+through Docker DNS — an Nginx tier with a static `proxy_pass` pins the IP it
+resolved at startup and returns 502 after the upstream container is recreated.
+
+An executed run of this path, including the acceptance matrix and the risks it
+surfaced, is recorded in
+[container runtime acceptance evidence](./container-runtime-acceptance.md).
+
 ## Boundaries
 
 This Compose path does not prove public HTTPS, a provider-level SMTP delivery,

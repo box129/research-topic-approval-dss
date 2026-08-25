@@ -1,0 +1,50 @@
+# Local container-acceptance overlay. NOT a production topology.
+#
+# Compose it on top of the production file only for local verification:
+#   docker compose -f docker-compose.yml -f docker-compose.acceptance.yml ...
+#
+# A plain `docker compose up` never reads this file, so the supported
+# production topology is unchanged by its presence.
+#
+# It adds exactly two verification-only services:
+#
+#   tls-edge  A self-signed HTTPS terminator that reproduces the documented
+#             public chain (browser -> HTTPS edge -> frontend Nginx -> backend).
+#             Without it the stack cannot be exercised under the real
+#             production contract, because production startup validation
+#             requires an https:// browser origin and Secure cookies. The
+#             correct response to that rule is to supply real local TLS, not
+#             to relax the rule.
+#
+#   mailsink  A local SMTP capture service. Invitation and password-reset
+#             mail is proven end to end without contracting an external
+#             provider or sending mail to any real address.
+#
+# Neither service handles real data, and neither is published beyond
+# ${COMPOSE_BIND_HOST:-127.0.0.1}.
+
+services:
+  tls-edge:
+    image: nginx:1.27-alpine
+    container_name: topic-similarity-acceptance-tls-edge
+    volumes:
+      - ./deploy/local-acceptance-tls/edge-nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./deploy/local-acceptance-tls/certs:/etc/nginx/acceptance-certs:ro
+    ports:
+      - "${COMPOSE_BIND_HOST:-127.0.0.1}:${ACCEPTANCE_TLS_PORT:-8443}:8443"
+    depends_on:
+      frontend:
+        condition: service_started
+    restart: unless-stopped
+
+  mailsink:
+    image: axllent/mailpit:v1.21
+    container_name: topic-similarity-acceptance-mailsink
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: "true"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "true"
+    ports:
+      # Capture UI/API only; the SMTP port stays private to the Compose network
+      # so nothing on the host can relay mail through it.
+      - "${COMPOSE_BIND_HOST:-127.0.0.1}:${ACCEPTANCE_MAILSINK_HTTP_PORT:-8025}:8025"
+    restart: unless-stopped

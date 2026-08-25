@@ -54,3 +54,6 @@ Thumbs.db
 
 # Reference-only visual prototypes
 reference/prototypeFyp/
+
+# Local acceptance-only TLS material. Never commit private keys or certs.
+deploy/local-acceptance-tls/certs/
