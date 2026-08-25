@@ -296,6 +296,18 @@ synthetic credential and a deliberately short cache (10 s) and grace (5 s):
 
 A sustained outage is never hidden, and recovery is automatic.
 
+The bound was also confirmed accidentally, which is the most convincing kind. The
+readiness endpoint was left completely idle for over six minutes after a probe at
+18:43:33. Cache expired at 18:48:33, grace at 18:49:33, and the next read at
+18:49:49 — sixteen seconds past the window — correctly returned **503**, started
+a probe, and returned 200 from the following read. No provider failure occurred
+(no `unavailable` transition was ever logged). Last-known-good really does
+expire.
+
+In a real deployment this state is hard to reach, because the platform polls
+readiness continuously and every poll refreshes the cache long before the grace
+runs out. It appears here only because the endpoint was left entirely untouched.
+
 ## Issue C — Voyage 429 assessment
 
 **Verdict: PROVIDER CAPACITY / ENVIRONMENT REQUIREMENT, not an application
