@@ -140,6 +140,18 @@ traffic only after same-origin `GET /api/v1/readiness` reports HTTP 200 with
 `ready`; it requires database and safe Voyage availability. A transient Voyage
 readiness failure must not cause a container restart or an SBERT fallback.
 
+Provider verification uses one de-duplicated bounded probe per
+`VOYAGE_READINESS_PROBE_CACHE_MS` window; concurrent readiness requests at
+expiry share a single paid probe. When that cache expires, a provider whose last
+verification **succeeded** keeps reporting `available` with `revalidating: true`
+for up to `VOYAGE_READINESS_STALE_GRACE_MS` while its replacement probe runs, so
+routine refresh never withdraws a healthy instance from traffic. That grace is
+deliberately finite and cannot mask a real outage:
+
+- a failed probe ends it immediately and readiness reports `degraded`;
+- a provider that has never verified can never use it;
+- past `probe cache + grace` readiness reports `stale` and fails.
+
 Nginx has a 6 MiB multipart request envelope so a backend-allowed 5 MiB file
 can include multipart boundaries and form fields; the backend remains the
 authoritative 5 MiB file enforcer. It also has 300-second client/send and

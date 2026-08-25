@@ -302,6 +302,11 @@ function validateEnv(source = process.env) {
   parseSecurityLimit(source, 'RATE_LIMIT_IPV6_SUBNET_PREFIX', 56, { min: 32, max: 64 });
   parseSecurityLimit(source, 'VOYAGE_REQUEST_TIMEOUT_MS', 10000, { min: 1000, max: 60000 });
   parseSecurityLimit(source, 'VOYAGE_READINESS_PROBE_CACHE_MS', 5 * 60 * 1000, { min: 10000, max: 60 * 60 * 1000 });
+  // Bounded stale-while-revalidate window. A recently verified provider keeps
+  // reporting available while its replacement probe runs, so routine cache
+  // refresh cannot withdraw a healthy instance from traffic. It is deliberately
+  // finite: last-known-good never survives beyond cache + grace.
+  parseSecurityLimit(source, 'VOYAGE_READINESS_STALE_GRACE_MS', 60 * 1000, { min: 1000, max: 5 * 60 * 1000 });
   parseBoundedPositiveInteger(source.PORT, 'PORT', {
     defaultValue: 3000,
     min: 1,
@@ -518,6 +523,10 @@ function buildConfig(source = process.env) {
       readinessProbeCacheMs: parseSecurityLimit(source, 'VOYAGE_READINESS_PROBE_CACHE_MS', 5 * 60 * 1000, {
         min: 10000,
         max: 60 * 60 * 1000
+      }),
+      readinessStaleGraceMs: parseSecurityLimit(source, 'VOYAGE_READINESS_STALE_GRACE_MS', 60 * 1000, {
+        min: 1000,
+        max: 5 * 60 * 1000
       })
     },
 

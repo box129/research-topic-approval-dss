@@ -45,18 +45,25 @@ function createRequestContextMiddleware({ log = logger, now = () => Date.now() }
     req.requestId = requestId;
     res.setHeader('X-Request-Id', requestId);
 
+    let logged = false;
+    const buildEntry = () => ({
+      requestId,
+      method: req.method,
+      path: req.originalUrl ? String(req.originalUrl).split('?')[0] : req.path,
+      statusCode: res.statusCode,
+      durationMs: now() - startedAt,
+      // Populated by the auth middleware for authenticated requests; safe
+      // identity context only, never credentials.
+      userId: req.user?.id ?? null,
+      ip: req.ip || null
+    });
+
     res.on('finish', () => {
-      const entry = {
-        requestId,
-        method: req.method,
-        path: req.originalUrl ? String(req.originalUrl).split('?')[0] : req.path,
-        statusCode: res.statusCode,
-        durationMs: now() - startedAt,
-        // Populated by the auth middleware for authenticated requests; safe
-        // identity context only, never credentials.
-        userId: req.user?.id ?? null,
-        ip: req.ip || null
-      };
+      if (logged) {
+        return;
+      }
+      logged = true;
+      const entry = buildEntry();
 
       // Server-side failures are always visible; routine traffic logs at the
       // opt-in http level so default operation is not spammed.
@@ -65,6 +72,22 @@ function createRequestContextMiddleware({ log = logger, now = () => Date.now() }
       } else {
         emit('http', 'Request completed', entry);
       }
+    });
+
+    // A long administrative operation can outlive its client: an edge or proxy
+    // that gives up first destroys the socket, so 'finish' never fires and the
+    // request would otherwise leave no HTTP record at all — even though the
+    // backend keeps working and may still commit. Emit exactly one line for
+    // that case so the true duration and the abandonment are both visible.
+    res.on('close', () => {
+      if (logged) {
+        return;
+      }
+      logged = true;
+      emit('warn', 'Request abandoned by client before the response was sent', {
+        ...buildEntry(),
+        clientAborted: true
+      });
     });
 
     next();

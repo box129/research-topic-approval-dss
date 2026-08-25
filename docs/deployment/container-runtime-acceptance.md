@@ -1,5 +1,11 @@
 # Container Runtime Acceptance Evidence
 
+> **Follow-up:** the two operational risks this run exposed — bulk-onboarding
+> duration and the readiness cache-boundary flap — were investigated and
+> corrected in
+> [runtime acceptance corrections](./runtime-acceptance-corrections.md).
+> Read that document alongside this one; risks 1 and 2 below are superseded by it.
+
 > **Status: local container runtime PROVEN with synthetic data only.**
 > This document records an executed acceptance run against actual Docker images
 > and a running Compose stack. It is evidence of local runtime behaviour, not

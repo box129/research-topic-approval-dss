@@ -1,4 +1,5 @@
 const os = require('os');
+const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
@@ -12,13 +13,108 @@ const PRODUCTION_BCRYPT_COST = 12;
 const MAX_POOL_SIZE = 8;
 const WORKER_SCRIPT = path.join(__dirname, 'credentialHashing.worker.js');
 
-function resolvePoolSize(requested) {
-  const fromEnv = Number.parseInt(process.env.BULK_HASH_CONCURRENCY || '', 10);
+/**
+ * Counts distinct physical cores from the Linux CPU topology.
+ *
+ * bcrypt is CPU- and memory-hard, so hyperthread siblings contend for the same
+ * execution units instead of adding throughput. `os.cpus()` reports LOGICAL
+ * processors, so sizing the pool from it oversubscribes a hyperthreaded host.
+ * Measured on a 4-core/8-thread container host at cost 12, throughput peaked at
+ * one worker per physical core and fell about 24% at 6 workers and 30% at 8.
+ *
+ * Returns null when the topology is unavailable (non-Linux, or a kernel that
+ * does not publish the fields), so the caller can fall back safely.
+ */
+function readPhysicalCoreCount(readFileSync = fs.readFileSync) {
+  try {
+    const blocks = String(readFileSync('/proc/cpuinfo', 'utf8')).split(/\n\s*\n/);
+    const cores = new Set();
+    for (const block of blocks) {
+      const physicalId = (block.match(/^physical id\s*:\s*(\S+)/m) || [])[1];
+      const coreId = (block.match(/^core id\s*:\s*(\S+)/m) || [])[1];
+      if (physicalId !== undefined && coreId !== undefined) {
+        cores.add(`${physicalId}/${coreId}`);
+      }
+    }
+    return cores.size > 0 ? cores.size : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Reads the container's effective CPU quota in whole CPUs.
+ *
+ * The CPU topology describes the HOST. A hosted platform commonly caps a
+ * container well below that, and starting one bcrypt worker per host core
+ * inside a one-CPU container simply thrashes. Returns null when the cgroup
+ * reports no quota.
+ */
+function readCpuQuota(readFileSync = fs.readFileSync) {
+  const toWholeCpus = (quota, period) => {
+    const cpus = Number(quota) / Number(period);
+    if (!Number.isFinite(cpus) || cpus <= 0) {
+      return null;
+    }
+    // A fractional allowance (hosted platforms commonly grant 0.5 CPU) still
+    // means one worker, never the host's core count.
+    return Math.max(1, Math.floor(cpus));
+  };
+
+  try {
+    const [quota, period] = String(readFileSync('/sys/fs/cgroup/cpu.max', 'utf8')).trim().split(/\s+/);
+    if (quota && quota !== 'max' && period) {
+      return toWholeCpus(quota, period);
+    }
+    return null;
+  } catch {
+    // Not cgroup v2; fall through to the v1 layout.
+  }
+
+  try {
+    const quota = String(readFileSync('/sys/fs/cgroup/cpu/cpu.cfs_quota_us', 'utf8')).trim();
+    const period = String(readFileSync('/sys/fs/cgroup/cpu/cpu.cfs_period_us', 'utf8')).trim();
+    if (Number(quota) > 0 && Number(period) > 0) {
+      return toWholeCpus(quota, period);
+    }
+  } catch {
+    // No readable CPU quota.
+  }
+
+  return null;
+}
+
+function defaultPoolSize({ cpuCount, physicalCores, cpuQuota }) {
+  const logical = Math.max(1, cpuCount());
+  const physical = physicalCores();
+  // When topology is unavailable, assume the common hyperthreaded ratio rather
+  // than treating every logical processor as an independent core.
+  const cores = Number.isInteger(physical) && physical > 0
+    ? physical
+    : Math.max(1, Math.floor(logical / 2));
+  const quota = cpuQuota();
+  const budget = Number.isInteger(quota) && quota > 0 ? Math.min(cores, quota) : cores;
+  return Math.max(1, Math.min(budget, MAX_POOL_SIZE));
+}
+
+function resolvePoolSize(requested, overrides = {}) {
+  const deps = {
+    cpuCount: () => os.cpus().length,
+    physicalCores: () => readPhysicalCoreCount(),
+    cpuQuota: () => readCpuQuota(),
+    env: process.env,
+    ...overrides
+  };
+
+  // An explicit caller argument, then the reviewed deployment setting, then the
+  // measured-hardware default. Deployments should still set
+  // BULK_HASH_CONCURRENCY explicitly once the target host has been measured.
+  const fromEnv = Number.parseInt(deps.env.BULK_HASH_CONCURRENCY || '', 10);
   const candidate = Number.isInteger(requested) && requested > 0
     ? requested
     : (Number.isInteger(fromEnv) && fromEnv > 0
       ? fromEnv
-      : Math.max(1, Math.min(os.cpus().length - 2, 6)));
+      : defaultPoolSize(deps));
 
   return Math.max(1, Math.min(candidate, MAX_POOL_SIZE));
 }
@@ -126,5 +222,8 @@ async function hashPasswordsBounded(passwords, { cost = PRODUCTION_BCRYPT_COST, 
 module.exports = {
   hashPasswordsBounded,
   resolvePoolSize,
-  PRODUCTION_BCRYPT_COST
+  readPhysicalCoreCount,
+  readCpuQuota,
+  PRODUCTION_BCRYPT_COST,
+  MAX_POOL_SIZE
 };

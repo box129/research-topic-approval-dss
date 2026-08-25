@@ -21,6 +21,33 @@ describe('Voyage semantic production contract', () => {
     });
   });
   test('normalizes a fetch transport rejection into VoyageProviderError without a vector', async () => { await expect(embedQuery(topic,{env:{VOYAGE_API_KEY:'test'},fetchImpl:async()=>{throw new TypeError('network reset');}})).rejects.toBeInstanceOf(require('./voyageEmbedding.service').VoyageProviderError); });
+  test('reports provider rate limiting with its own operational code, distinct from a generic provider fault', async () => {
+    // Provider capacity problems must be separable from provider faults in
+    // readiness and logs, so a quota decision can be evidence-based.
+    await expect(embedQuery(topic, {
+      env: { VOYAGE_API_KEY: 'test' },
+      fetchImpl: async () => response({ detail: 'rate limit exceeded' }, false, 429)
+    })).rejects.toMatchObject({
+      name: 'VoyageProviderError',
+      status: 429,
+      code: 'VOYAGE_RATE_LIMITED'
+    });
+
+    await expect(embedQuery(topic, {
+      env: { VOYAGE_API_KEY: 'test' },
+      fetchImpl: async () => response({ detail: 'boom' }, false, 500)
+    })).rejects.toMatchObject({
+      name: 'VoyageProviderError',
+      status: 500,
+      code: 'VOYAGE_PROVIDER_ERROR'
+    });
+
+    // The client-facing message must never carry provider internals.
+    await expect(embedQuery(topic, {
+      env: { VOYAGE_API_KEY: 'test' },
+      fetchImpl: async () => response({ detail: 'rate limit exceeded' }, false, 429)
+    })).rejects.toMatchObject({ message: 'Voyage embedding request failed (429).' });
+  });
   test('aborts a hung Voyage request and exposes only the semantic-unavailable timeout category', async () => {
     const fetchImpl = jest.fn((_, { signal }) => new Promise((resolve, reject) => {
       signal.addEventListener('abort', () => {

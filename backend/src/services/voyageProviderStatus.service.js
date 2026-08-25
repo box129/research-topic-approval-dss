@@ -18,7 +18,10 @@ function serializeState(state) {
     lastSuccessfulAt: state.lastSuccessfulAt,
     lastFailedAt: state.lastFailedAt,
     lastFailureCode: state.lastFailureCode,
-    cached: Boolean(state.cached)
+    cached: Boolean(state.cached),
+    // True when this answer comes from a recent successful verification while a
+    // replacement probe is still running.
+    revalidating: Boolean(state.revalidating)
   };
 }
 
@@ -26,6 +29,7 @@ function createVoyageProviderStatusService({
   embedQueryImpl = embedQuery,
   env = process.env,
   cacheMs = config.voyage.readinessProbeCacheMs,
+  staleGraceMs = config.voyage.readinessStaleGraceMs,
   now = () => new Date(),
   log = logger,
   autoProbe = String(env.NODE_ENV || '').trim().toLowerCase() !== 'test'
@@ -53,12 +57,24 @@ function createVoyageProviderStatusService({
     cached: false
   });
 
-  const isFresh = () => {
-    if (!state.lastCheckedAt) {
-      return false;
-    }
-    return now().getTime() - new Date(state.lastCheckedAt).getTime() < cacheMs;
-  };
+  const ageMs = (timestamp) => (
+    timestamp ? now().getTime() - new Date(timestamp).getTime() : Number.POSITIVE_INFINITY
+  );
+
+  const isFresh = () => ageMs(state.lastCheckedAt) < cacheMs;
+
+  // Bounded stale-while-revalidate. Routine cache expiry must not withdraw a
+  // healthy instance from traffic just because its replacement probe has not
+  // finished yet, but last-known-good is never open-ended:
+  //   - the previous verification must have SUCCEEDED (a failed probe already
+  //     moved the provider to unavailable, and that must stand);
+  //   - a provider that has never verified can never borrow this grace;
+  //   - the successful verification must still be inside cacheMs + staleGraceMs.
+  const canServeLastKnownGood = () => (
+    state.status === PROVIDER_STATUS.AVAILABLE
+    && Boolean(state.lastSuccessfulAt)
+    && ageMs(state.lastSuccessfulAt) < cacheMs + staleGraceMs
+  );
 
   const probe = async () => {
     if (!isConfigured()) {
@@ -147,20 +163,35 @@ function createVoyageProviderStatusService({
     }
 
     if (!isFresh()) {
+      // Start the replacement probe first; `probe()` de-duplicates, so many
+      // concurrent readiness calls at expiry still cost exactly one paid probe.
       if (autoProbe) {
         void probe();
       }
+
+      if (canServeLastKnownGood()) {
+        return serializeState({
+          ...state,
+          status: PROVIDER_STATUS.AVAILABLE,
+          message: 'Voyage provider verification is being refreshed; serving the recent successful verification within the bounded grace window.',
+          cached: true,
+          revalidating: true
+        });
+      }
+
       return serializeState({
         ...state,
         status: PROVIDER_STATUS.STALE,
-        message: 'Voyage provider status is stale while a bounded refresh is running.',
-        cached: false
+        message: 'Voyage provider verification is older than the allowed cache and grace window and has not been re-verified.',
+        cached: false,
+        revalidating: Boolean(inFlightProbe)
       });
     }
 
     return serializeState({
       ...state,
-      cached: true
+      cached: true,
+      revalidating: false
     });
   };
 

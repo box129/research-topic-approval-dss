@@ -105,7 +105,7 @@ async function getReadiness() {
       },
       meta: {
         generatedAt: new Date().toISOString(),
-        readinessPolicy: 'Database availability and a recently verified Voyage provider are required for full readiness. Voyage verification uses one bounded minimal query probe per cache window; a configured but not-yet-verified, stale, or unavailable provider is reported as degraded. Email delivery is informational: "configured" means EMAIL READY; "disabled" means EMAIL CAPABILITY DISABLED.'
+        readinessPolicy: 'Database availability and a recently verified Voyage provider are required for full readiness. Voyage verification uses one de-duplicated bounded minimal query probe per cache window. When that cache expires, a provider whose last verification SUCCEEDED keeps reporting available while its replacement probe runs (revalidating), so routine refresh never withdraws a healthy instance from traffic; that grace is bounded by cache + grace and a provider that has never verified can never use it. A failed probe, or a successful verification older than cache + grace, is reported as degraded. Email delivery is informational: "configured" means EMAIL READY; "disabled" means EMAIL CAPABILITY DISABLED.'
       }
     }
   };

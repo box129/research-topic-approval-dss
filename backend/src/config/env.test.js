@@ -358,6 +358,7 @@ describe('env email configuration', () => {
       IMPORT_UPLOAD_FIELD_SIZE_BYTES: '8192',
       VOYAGE_REQUEST_TIMEOUT_MS: '12000',
       VOYAGE_READINESS_PROBE_CACHE_MS: '60000',
+      VOYAGE_READINESS_STALE_GRACE_MS: '45000',
       SHUTDOWN_GRACE_PERIOD_MS: '240000'
     }));
 
@@ -375,9 +376,22 @@ describe('env email configuration', () => {
     });
     expect(config.voyage).toEqual({
       requestTimeoutMs: 12000,
-      readinessProbeCacheMs: 60000
+      readinessProbeCacheMs: 60000,
+      readinessStaleGraceMs: 45000
     });
     expect(config.shutdownGracePeriodMs).toBe(240000);
+  });
+
+  test('bounds the Voyage readiness stale-grace window and never allows an open-ended one', () => {
+    // Default keeps last-known-good short relative to the probe cache.
+    expect(buildConfigWith(productionEnv()).voyage.readinessStaleGraceMs).toBe(60000);
+
+    expect(() => buildConfigWith(productionEnv({ VOYAGE_READINESS_STALE_GRACE_MS: '0' })))
+      .toThrow(/VOYAGE_READINESS_STALE_GRACE_MS/);
+    expect(() => buildConfigWith(productionEnv({ VOYAGE_READINESS_STALE_GRACE_MS: '999999999' })))
+      .toThrow(/VOYAGE_READINESS_STALE_GRACE_MS/);
+    expect(() => buildConfigWith(productionEnv({ VOYAGE_READINESS_STALE_GRACE_MS: 'forever' })))
+      .toThrow(/VOYAGE_READINESS_STALE_GRACE_MS/);
   });
 
   test('uses a five-minute shutdown drain by default and rejects unsafe shutdown windows', () => {

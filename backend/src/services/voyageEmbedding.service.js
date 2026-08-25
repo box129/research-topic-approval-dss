@@ -58,7 +58,11 @@ async function embed(topic, inputType, {
     }
     body = null;
   }
-  if (!response.ok) throw new VoyageProviderError(`Voyage embedding request failed (${response.status}).`, response.status);
+  // A provider rate limit is an operational capacity signal, not a generic
+  // provider fault. Give it a distinct code so throttling is visible in
+  // readiness and operational logs. Retry/backoff keys on the HTTP status, so
+  // this changes no retry behaviour.
+  if (!response.ok) throw new VoyageProviderError(`Voyage embedding request failed (${response.status}).`, response.status, response.status === 429 ? 'VOYAGE_RATE_LIMITED' : 'VOYAGE_PROVIDER_ERROR');
   const embeddings = body?.data;
   const vector = embeddings?.[0]?.embedding;
   if (!Array.isArray(embeddings) || !validVector(vector) || embeddings.length !== 1) {

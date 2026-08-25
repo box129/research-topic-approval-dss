@@ -11,7 +11,8 @@ function createMockResponse() {
     headers: {},
     setHeader(name, value) { this.headers[name] = value; },
     on(event, handler) { listeners[event] = handler; },
-    emitFinish() { listeners.finish?.(); }
+    emitFinish() { listeners.finish?.(); },
+    emitClose() { listeners.close?.(); }
   };
 }
 
@@ -85,6 +86,36 @@ describe('request context middleware', () => {
     expect(serialized).not.toContain('super-secret-jwt');
     expect(serialized).not.toContain('secret-cookie');
     expect(serialized).not.toContain('next=1');
+  });
+
+  test('records a request whose client gave up before the response was sent', () => {
+    // A long administrative operation can outlive its proxy budget. The socket
+    // is destroyed, 'finish' never fires, and without this the request would
+    // leave no HTTP record even though the backend kept working.
+    const log = silentLog();
+    const { req, res } = runMiddleware({ log, user: { id: 7, role: 'admin' } });
+    res.emitClose();
+
+    expect(log.warn).toHaveBeenCalledTimes(1);
+    const [message, entry] = log.warn.mock.calls[0];
+    expect(message).toMatch(/abandoned by client/i);
+    expect(entry).toMatchObject({
+      requestId: req.requestId,
+      clientAborted: true,
+      userId: 7
+    });
+    expect(entry.durationMs).toBeGreaterThan(0);
+    expect(log.http).not.toHaveBeenCalled();
+  });
+
+  test('emits exactly one completion entry when finish is followed by close', () => {
+    const log = silentLog();
+    const { res } = runMiddleware({ log });
+    res.emitFinish();
+    res.emitClose();
+
+    expect(log.http).toHaveBeenCalledTimes(1);
+    expect(log.warn).not.toHaveBeenCalled();
   });
 
   test('server-side failures log at error level', () => {
