@@ -34,6 +34,13 @@ backend container recreation does not leave the frontend proxy pinned to a
 stale container IP. A non-Docker platform must supply equivalent service-DNS
 refreshing or reload/restart the frontend proxy after a backend recreation.
 
+The frontend server config is rendered at container start from
+`frontend/nginx.conf.template`, so the backend address is deployment
+configuration rather than an image constant. The Compose defaults baked into the
+image (`BACKEND_UPSTREAM=backend:3000`, resolver auto-detected from
+`/etc/resolv.conf`, `PROXY_TIMEOUT=660s`) reproduce the previously proven
+behaviour, so `docker compose up` needs no extra configuration.
+
 | Service | Standard startup | Purpose |
 | --- | --- | --- |
 | `postgres` | Yes | Private persistent PostgreSQL, with a named `postgres-data` volume. |

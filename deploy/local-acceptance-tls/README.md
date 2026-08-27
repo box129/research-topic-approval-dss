@@ -54,6 +54,8 @@ disabling certificate verification.
 `edge-nginx.conf` re-resolves `frontend` through Docker's embedded DNS using a
 `resolver` directive and a variable upstream. Without that, Nginx pins the IP it
 resolved at startup and returns 502 once the frontend container is recreated. The
-production `frontend/nginx.conf` uses the same technique for the backend, and the
-Compose contract notes that a non-Docker platform must supply an equivalent
-service resolver.
+production `frontend/nginx.conf.template` uses the same technique for the
+backend, and the Compose contract notes that a non-Docker platform must supply
+an equivalent service resolver. That template now detects the resolver from the
+container's own `/etc/resolv.conf`, so it works unchanged on Docker and on a
+hosted platform's internal DNS.

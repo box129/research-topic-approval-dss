@@ -248,6 +248,24 @@ only. It must use:
 Never migrate the defence database into staging, import real departmental data,
 or create real departmental accounts during this phase.
 
+### Selected hosted staging host
+
+Hosted staging targets **Render**. The provider-specific procedure — Blueprint,
+region, frontend-to-private-backend wiring, pre-deploy migrations, `TRUST_PROXY`
+determination, request budget, shutdown lockout rule, SMTP, Voyage, bootstrap,
+backup and restore — lives in the
+[Render staging runbook](./render-staging-runbook.md).
+
+That runbook is an adapter, not an architectural dependency: this document and
+the [Compose contract](./docker-compose.md) remain provider-neutral, and the
+application must stay runnable on any platform offering HTTPS, private
+networking and managed PostgreSQL.
+
+**Hosted staging has not been performed.** The Render Blueprint and frontend
+provider adapter exist and are covered by the deployment contract test, but no
+Render deployment, SMTP provider smoke, hosted bulk run, or hosted backup/restore
+drill has been executed. Treat every hosted acceptance item as unproven.
+
 ## Logging and temporary files
 
 Containers must emit useful, redacted application logs to stdout/stderr; that is

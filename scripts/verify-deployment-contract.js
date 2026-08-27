@@ -27,7 +27,7 @@ function assertNoPublishedPorts(block, serviceName) {
 
 try {
   const compose = read('docker-compose.yml');
-  const nginx = read('frontend/nginx.conf');
+  const nginx = read('frontend/nginx.conf.template');
   const frontendDockerfile = read('frontend/Dockerfile');
   const backendDockerfile = read('backend/Dockerfile');
   const frontendDockerignore = read('frontend/.dockerignore');
@@ -41,6 +41,7 @@ try {
   const landingPage = read('frontend/src/pages/LandingPage.jsx');
   const releaseGate = read('scripts/release-readiness.js');
   const smoke = read('scripts/smoke/fullstack-compose-smoke.js');
+  const renderBlueprint = read('render.yaml');
 
   const postgres = serviceBlock(compose, 'postgres');
   const backend = serviceBlock(compose, 'backend');
@@ -76,13 +77,13 @@ try {
   assert.match(bootstrap, /TRUST_PROXY:\s*\$\{TRUST_PROXY:\?/, 'bootstrap must receive the same explicit production trust-proxy contract it validates.');
 
   assert.match(nginx, /listen\s+8080;/, 'frontend Nginx must use the unprivileged port.');
-  assert.match(nginx, /resolver 127\.0\.0\.11 valid=10s ipv6=off;/, 'Compose Nginx must dynamically resolve a recreated backend container.');
+  assert.match(nginx, /resolver \$\{NGINX_LOCAL_RESOLVERS\} valid=10s/, 'frontend Nginx must dynamically resolve a recreated backend through the platform resolver detected at start.');
   assert.match(nginx, /location \/api\//, 'frontend Nginx must proxy same-origin API calls.');
   assert.match(nginx, /proxy_pass \$backend_upstream\$request_uri;/, 'frontend API proxy must preserve the request URI while resolving its backend dynamically.');
   assert.match(nginx, /try_files \$uri \$uri\/ \/index\.html;/, 'frontend Nginx must preserve SPA route fallback.');
   assert.match(nginx, /client_max_body_size\s+6m;/, 'frontend Nginx must leave multipart envelope room above the backend 5 MiB file limit.');
-  assert.match(nginx, /proxy_send_timeout\s+300s;/, 'frontend Nginx must allow long-running administrative requests.');
-  assert.match(nginx, /proxy_read_timeout\s+300s;/, 'frontend Nginx must allow long-running administrative responses.');
+  assert.match(nginx, /proxy_send_timeout\s+\$\{PROXY_TIMEOUT\};/, 'frontend Nginx must take its long-request send timeout from deployment configuration.');
+  assert.match(nginx, /proxy_read_timeout\s+\$\{PROXY_TIMEOUT\};/, 'frontend Nginx must take its long-request read timeout from deployment configuration.');
   assert.match(nginx, /X-Forwarded-Proto \$public_forwarded_proto/, 'frontend Nginx must preserve the trusted upstream HTTPS protocol signal.');
   assert.match(nginx, /location \^~ \/assets\//, 'frontend Nginx must cache hashed static assets separately from HTML.');
   assert.match(nginx, /Cache-Control "no-store"/, 'frontend Nginx must prevent API and HTML caching.');
@@ -92,6 +93,68 @@ try {
   assert.match(frontendDockerfile, /EXPOSE 8080/, 'frontend image port must match Compose.');
   assert.match(frontendDockerignore, /^\.env$/m, 'frontend build context must exclude .env.');
   assert.match(frontendDockerignore, /^\.env\.\*$/m, 'frontend build context must exclude environment variants.');
+
+  // ---------------------------------------------------------------------------
+  // Provider adapter: the frontend must reach its backend through deployment
+  // configuration, never through a hostname baked into the image.
+  // ---------------------------------------------------------------------------
+  assert.match(nginx, /set \$backend_upstream http:\/\/\$\{BACKEND_UPSTREAM\};/, 'frontend Nginx upstream must be environment-driven.');
+  assert.match(frontendDockerfile, /COPY nginx\.conf\.template \/etc\/nginx\/templates\/default\.conf\.template/, 'frontend image must render its server config from a template at start.');
+  assert.match(frontendDockerfile, /ENV NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1/, 'frontend image must detect the platform resolver so a replaced backend is re-resolved.');
+  assert.match(frontendDockerfile, /ENV NGINX_ENVSUBST_FILTER=/, 'frontend image must restrict substitution so Nginx runtime variables survive templating.');
+  assert.match(frontendDockerfile, /ENV BACKEND_UPSTREAM=backend:3000/, 'frontend image default upstream must keep local Compose acceptance working unchanged.');
+
+  const envsubstFilter = frontendDockerfile.match(/ENV NGINX_ENVSUBST_FILTER="([^"]+)"/);
+  assert.ok(envsubstFilter, 'the envsubst filter must be explicitly defined.');
+  for (const required of ['BACKEND_UPSTREAM', 'NGINX_LOCAL_RESOLVERS', 'PROXY_TIMEOUT', 'BACKEND_RESOLVER_FLAGS']) {
+    assert.ok(envsubstFilter[1].includes(required), `envsubst filter must substitute ${required}.`);
+  }
+
+  // Every hop must tolerate the measured long administrative request. Runtime
+  // acceptance established 600 seconds as the floor, so assert the floor rather
+  // than a specific string that could silently regress.
+  const HOSTED_REQUEST_BUDGET_SECONDS = 600;
+  const proxyTimeout = frontendDockerfile.match(/ENV PROXY_TIMEOUT=(\d+)s/);
+  assert.ok(proxyTimeout, 'the frontend image must define a default proxy timeout in seconds.');
+  assert.ok(
+    Number(proxyTimeout[1]) >= HOSTED_REQUEST_BUDGET_SECONDS,
+    `frontend proxy timeout must be at least ${HOSTED_REQUEST_BUDGET_SECONDS}s for the measured bulk-onboarding request; found ${proxyTimeout[1]}s.`
+  );
+
+  // No platform-generated hostname may be baked into the image, the template,
+  // Compose, or the Blueprint.
+  for (const [label, content] of [
+    ['frontend Nginx template', nginx],
+    ['frontend Dockerfile', frontendDockerfile],
+    ['Compose', compose],
+    ['Render Blueprint', renderBlueprint]
+  ]) {
+    assert.doesNotMatch(content, /[a-z0-9-]+\.onrender\.com/i, `${label} must not hardcode a generated Render hostname.`);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Render Blueprint contract.
+  // ---------------------------------------------------------------------------
+  assert.match(renderBlueprint, /type:\s*pserv\s*\n\s*name:\s*rtadss-staging-backend/, 'the backend must be declared as a Render private service with no public URL.');
+  assert.doesNotMatch(renderBlueprint, /type:\s*web\s*\n\s*name:\s*rtadss-staging-backend/, 'the backend must never be declared as a public web service.');
+  assert.match(renderBlueprint, /fromDatabase:\s*\n\s*name:\s*rtadss-staging-db\s*\n\s*property:\s*connectionString/, 'DATABASE_URL must come from the managed database internal connection string.');
+  assert.match(renderBlueprint, /fromService:\s*\n\s*name:\s*rtadss-staging-backend\s*\n\s*type:\s*pserv\s*\n\s*property:\s*hostport/, 'the frontend upstream must use a service reference, not a discovery name.');
+  assert.match(renderBlueprint, /preDeployCommand:\s*npm run prisma:migrate:deploy/, 'hosted migrations must use the pinned migrate deploy command.');
+  assert.doesNotMatch(renderBlueprint, /db push|migrate dev/, 'hosted migrations must never use db push or migrate dev.');
+  assert.match(renderBlueprint, /healthCheckPath:\s*\/api\/v1\/health/, 'Render restart gating must use liveness, not the Voyage-dependent readiness endpoint.');
+  assert.doesNotMatch(renderBlueprint, /healthCheckPath:\s*\/api\/v1\/readiness/, 'readiness must not be used as the platform restart probe.');
+  assert.match(renderBlueprint, /autoDeploy:\s*false/, 'auto deploy must stay disabled while long synchronous admin operations can outlive the shutdown window.');
+  assert.doesNotMatch(renderBlueprint, /sbert|SBERT|fastapi|FastAPI/, 'hosted staging must carry no SBERT or FastAPI semantic dependency.');
+  assert.match(renderBlueprint, /ipAllowList:\s*\[\]/, 'the staging database must not accept public ingress.');
+
+  // The Blueprint must name its secrets without ever carrying their values.
+  for (const secretKey of ['VOYAGE_API_KEY', 'SMTP_PASSWORD', 'TRUST_PROXY', 'FRONTEND_URL']) {
+    const declaration = new RegExp(`key:\\s*${secretKey}\\s*\\n\\s*sync:\\s*false`);
+    assert.match(renderBlueprint, declaration, `${secretKey} must be declared as a value supplied outside Git.`);
+  }
+  assert.match(renderBlueprint, /key:\s*JWT_SECRET\s*\n\s*generateValue:\s*true/, 'the staging JWT secret must be generated by the platform, not committed.');
+  assert.doesNotMatch(renderBlueprint, /\bpa-[A-Za-z0-9_-]{20,}/, 'the Blueprint must never contain a Voyage credential.');
+  assert.doesNotMatch(renderBlueprint, /postgres(?:ql)?:\/\/[^\s]*:[^\s@]+@/, 'the Blueprint must never contain a database URL with a password.');
   assert.match(frontendClient, /baseURL:\s*['"]\/api\/v1['"]/, 'frontend API client must keep a relative same-origin base URL.');
   assert.match(frontendSimilarity, /axios\.post\(['"]\/api\/similarity\/check['"]/, 'direct similarity must keep a relative same-origin endpoint.');
   assert.doesNotMatch(frontendClient, /localhost|https?:\/\//, 'frontend production client must not embed a backend host.');

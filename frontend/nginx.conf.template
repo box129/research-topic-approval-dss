@@ -1,3 +1,21 @@
+# Rendered at container start by the Nginx image's envsubst entrypoint into
+# /etc/nginx/conf.d/default.conf. Only the variables named in
+# NGINX_ENVSUBST_FILTER are substituted, so Nginx's own runtime variables
+# ($host, $remote_addr, $request_uri, ...) survive untouched.
+#
+# Three values are provider-driven; every default is set in the Dockerfile so a
+# plain `docker compose up` behaves exactly as before this template existed:
+#
+#   BACKEND_UPSTREAM         host:port of the private backend
+#                            (Compose: backend:3000; a hosted platform supplies
+#                            its own internal address — never hardcode a
+#                            generated hostname here or in the image)
+#   NGINX_LOCAL_RESOLVERS    detected from /etc/resolv.conf by the image's
+#                            15-local-resolvers entrypoint script, so upstream
+#                            re-resolution works on any platform's service DNS
+#   PROXY_TIMEOUT            upstream/client timeout for long administrative
+#                            operations
+
 # The external HTTPS edge must sanitize X-Forwarded-Proto before it reaches
 # this container. The container-to-container hop is intentionally HTTP, so
 # preserve that trusted public HTTPS signal rather than overwriting it with
@@ -12,11 +30,14 @@ server {
     server_name _;
     server_tokens off;
 
-    # Docker's embedded DNS lets the frontend follow a recreated backend
-    # container rather than retaining the IP resolved during Nginx startup.
-    # A non-Docker platform must provide an equivalent service resolver.
-    resolver 127.0.0.11 valid=10s ipv6=off;
-    set $backend_upstream http://backend:3000;
+    # Re-resolve the backend through the platform's own service DNS rather than
+    # pinning the address resolved at startup: an Nginx tier with a static
+    # upstream returns 502 after the backend container is replaced. The
+    # resolver address is detected from the container's /etc/resolv.conf, so
+    # this works for Docker's embedded DNS and for a hosted platform's internal
+    # DNS without naming either.
+    resolver ${NGINX_LOCAL_RESOLVERS} valid=10s ${BACKEND_RESOLVER_FLAGS};
+    set $backend_upstream http://${BACKEND_UPSTREAM};
 
     root /usr/share/nginx/html;
     index index.html;
@@ -24,8 +45,8 @@ server {
     # boundaries and form fields so an otherwise valid maximum-size workbook
     # reaches that authoritative check.
     client_max_body_size 6m;
-    client_body_timeout 300s;
-    send_timeout 300s;
+    client_body_timeout ${PROXY_TIMEOUT};
+    send_timeout ${PROXY_TIMEOUT};
 
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-Frame-Options "DENY" always;
@@ -36,8 +57,14 @@ server {
         proxy_pass $backend_upstream$request_uri;
         proxy_http_version 1.1;
         proxy_connect_timeout 10s;
-        proxy_send_timeout 300s;
-        proxy_read_timeout 300s;
+        # Bulk departmental onboarding is a single synchronous request that has
+        # been measured at roughly 324 seconds for 650 accounts, and the backend
+        # sends no bytes at all until it finishes — so this "inactivity" timeout
+        # is in practice a total deadline for that request. It must stay at or
+        # above the 600-second hosted requirement established by runtime
+        # acceptance, with margin.
+        proxy_send_timeout ${PROXY_TIMEOUT};
+        proxy_read_timeout ${PROXY_TIMEOUT};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
