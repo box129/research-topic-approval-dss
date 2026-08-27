@@ -10,9 +10,9 @@ const {
   UserProvisioningError,
   generateTemporaryPassword,
   normalizeName,
-  normalizeCanonicalEmail,
   normalizeProvisionRole,
-  normalizeMatricNumber
+  normalizeMatricNumber,
+  resolveRoleIdentity
 } = require('./userProvisioning.service');
 const { hashPasswordsBounded } = require('./credentialHashing.service');
 const { serializeUser } = require('./adminUser.service');
@@ -48,7 +48,10 @@ const HEADER_FIELD_ALIASES = Object.freeze({
   matricNumber: ['matric number', 'matric', 'matric no', 'matricnumber', 'matriculation number']
 });
 
-const REQUIRED_FIELDS = ['name', 'email', 'role'];
+// Column-level requirements. Which IDENTIFIER a row needs depends on its
+// role, so email/matric_number presence is validated per row rather than by
+// demanding a column that part of the cohort would leave blank.
+const REQUIRED_FIELDS = ['name', 'role'];
 
 const TEMPLATE_HEADERS = ['name', 'email', 'role', 'matric_number'];
 
@@ -116,7 +119,7 @@ function buildHeaderMapping(headers) {
   const missing = REQUIRED_FIELDS.filter((field) => !fieldToHeader[field]);
   if (missing.length > 0) {
     throw new UserBulkImportError(
-      `The spreadsheet is missing required column(s): ${missing.join(', ')}. Expected columns: name, email, role and optionally matric_number. Download the template for the supported layout.`,
+      `The spreadsheet is missing required column(s): ${missing.join(', ')}. Expected columns: name, role, matric_number (required for students) and email (required for lecturers, optional for students). Download the template for the supported layout.`,
       { code: 'IMPORT_TEMPLATE_UNRECOGNIZED', field: 'file' }
     );
   }
@@ -197,16 +200,14 @@ async function parseUserImportWorkbook(filePath) {
 
 function normalizeRowIdentity(values) {
   const name = normalizeName(values.name);
-  const email = normalizeCanonicalEmail(values.email);
   const role = normalizeProvisionRole(values.role);
-  const matricNumber = normalizeMatricNumber(values.matricNumber);
-
-  if (matricNumber && role !== 'STUDENT') {
-    throw new UserProvisioningError('Matric numbers only apply to student accounts.', {
-      code: 'USER_PROVISION_MATRIC_ROLE_MISMATCH',
-      field: 'matricNumber'
-    });
-  }
+  // Exactly the individual-provisioning rule: a student row needs a matric
+  // number and may omit email; a lecturer row needs an email and no matric.
+  const { email, matricNumber } = resolveRoleIdentity({
+    role,
+    email: values.email,
+    matricNumber: normalizeMatricNumber(values.matricNumber)
+  });
 
   return { name, email, role, matricNumber };
 }
@@ -300,8 +301,13 @@ function createUserBulkImportService({
     const validRows = rows.filter((row) => row.identity);
 
     // Step 2: duplicates and contradictions inside the file itself.
+    // Only rows that actually carry an address participate. Two students who
+    // both have no email are two different people, never a duplicate pair.
     const byEmail = new Map();
     for (const row of validRows) {
+      if (!row.identity.email) {
+        continue;
+      }
       const group = byEmail.get(row.identity.email) || [];
       group.push(row);
       byEmail.set(row.identity.email, group);
@@ -343,21 +349,35 @@ function createUserBulkImportService({
     }
 
     for (const [matricNumber, group] of byMatric.entries()) {
-      const distinctEmails = new Set(group.map((row) => row.identity.email));
-      if (distinctEmails.size < 2) {
+      if (group.length < 2) {
         continue;
       }
+
+      const [first, ...rest] = group;
       const rowNumbers = group.map((row) => row.row_number).join(', ');
-      for (const row of group) {
-        row.status = USER_IMPORT_ROW_STATUS.CONFLICT;
-        row.messages.push(`Matric number ${matricNumber} is assigned to different accounts in rows ${rowNumbers}.`);
+      const contradictory = rest.some((row) => (
+        row.identity.role !== first.identity.role
+        || (row.identity.email || null) !== (first.identity.email || null)
+        || !sameNormalizedName(row.identity.name, first.identity.name)
+      ));
+
+      if (contradictory) {
+        for (const row of group) {
+          row.status = USER_IMPORT_ROW_STATUS.CONFLICT;
+          row.messages.push(`Matric number ${matricNumber} appears in rows ${rowNumbers} with different identity details. Fix the spreadsheet; nothing was decided automatically.`);
+        }
+      } else {
+        for (const row of rest) {
+          row.status = USER_IMPORT_ROW_STATUS.DUPLICATE_IN_FILE;
+          row.messages.push(`Duplicate of row ${first.row_number} (same account). Only the first occurrence is considered.`);
+        }
       }
     }
 
     // Step 3: authoritative database comparison, batched to avoid per-row
     // queries at the ~650-user departmental scale.
     const undecided = validRows.filter((row) => !row.status);
-    const emails = [...new Set(undecided.map((row) => row.identity.email))];
+    const emails = [...new Set(undecided.map((row) => row.identity.email).filter(Boolean))];
     const matrics = [...new Set(undecided.map((row) => row.identity.matricNumber).filter(Boolean))];
 
     const [existingByEmailRows, existingByMatricRows] = await Promise.all([
@@ -411,8 +431,33 @@ function createUserBulkImportService({
       }
 
       if (matricOwner) {
-        row.status = USER_IMPORT_ROW_STATUS.CONFLICT;
-        row.messages.push(`Matric number ${matricNumber} already belongs to existing account ${matricOwner.email}.`);
+        // Matric is the student's primary identity, so an existing matric is a
+        // safe replay when the rest of the identity agrees — this is what keeps
+        // re-importing the same cohort idempotent for students who have no
+        // email to match on. Any real disagreement is still a conflict.
+        const roleMatches = matricOwner.role === role;
+        const emailMatches = (matricOwner.email || null) === (email || null);
+
+        if (!roleMatches) {
+          row.status = USER_IMPORT_ROW_STATUS.CONFLICT;
+          row.messages.push(`Matric number ${matricNumber} already belongs to an existing ${toClientRole(matricOwner.role)} account, but this row says ${toClientRole(role)}.`);
+          continue;
+        }
+
+        if (!emailMatches) {
+          row.status = USER_IMPORT_ROW_STATUS.CONFLICT;
+          row.messages.push(`Matric number ${matricNumber} already belongs to an existing account with a different email address on record. Imports never modify existing accounts; use identity correction instead.`);
+          continue;
+        }
+
+        row.status = USER_IMPORT_ROW_STATUS.ALREADY_EXISTS;
+        row.messages.push('An account with this identity already exists. It is skipped; no new credential is generated.');
+        if (!sameNormalizedName(matricOwner.name, name)) {
+          row.warnings.push(`Name differs from the existing record ("${matricOwner.name}"). The existing name is kept.`);
+        }
+        if (matricOwner.status === 'SUSPENDED') {
+          row.warnings.push('The existing account is currently suspended.');
+        }
         continue;
       }
 
@@ -490,7 +535,9 @@ function createUserBulkImportService({
     const passwordHashes = await hashPasswords(credentials);
     const hashDurationMs = Date.now() - hashStartedAt;
 
-    const emails = toCreate.map((row) => row.identity.email);
+    // A student may have no email, so neither identifier alone can address the
+    // whole cohort: revalidation and read-back use both.
+    const emails = toCreate.map((row) => row.identity.email).filter(Boolean);
     const matrics = toCreate.map((row) => row.identity.matricNumber).filter(Boolean);
 
     const transactionStartedAt = Date.now();
@@ -501,7 +548,9 @@ function createUserBulkImportService({
         // that now exists (created by another administrator in the preview ->
         // commit window) contests the batch.
         const [emailClashes, matricClashes] = await Promise.all([
-          tx.user.findMany({ where: { email: { in: emails } } }),
+          emails.length
+            ? tx.user.findMany({ where: { email: { in: emails } } })
+            : Promise.resolve([]),
           matrics.length
             ? tx.user.findMany({ where: { matricNumber: { in: matrics } } })
             : Promise.resolve([])
@@ -526,7 +575,14 @@ function createUserBulkImportService({
           }))
         });
 
-        return tx.user.findMany({ where: { email: { in: emails } } });
+        return tx.user.findMany({
+          where: {
+            OR: [
+              ...(emails.length ? [{ email: { in: emails } }] : []),
+              ...(matrics.length ? [{ matricNumber: { in: matrics } }] : [])
+            ]
+          }
+        });
       }, { timeout: 60000, maxWait: 10000 });
     } catch (error) {
       if (error instanceof BulkImportStateChangedError) {
@@ -541,11 +597,19 @@ function createUserBulkImportService({
     }
     const transactionDurationMs = Date.now() - transactionStartedAt;
 
-    const createdByEmail = new Map(createdRecords.map((user) => [user.email, user]));
+    const createdByEmail = new Map(
+      createdRecords.filter((user) => user.email).map((user) => [user.email, user])
+    );
+    const createdByMatric = new Map(
+      createdRecords.filter((user) => user.matricNumber).map((user) => [user.matricNumber, user])
+    );
     const createdUsers = [];
     const credentialRows = [];
     for (const [index, row] of toCreate.entries()) {
-      const created = createdByEmail.get(row.identity.email);
+      // Match on the identifier this row actually carries: a student without an
+      // email is found by matric number.
+      const created = (row.identity.email && createdByEmail.get(row.identity.email))
+        || (row.identity.matricNumber && createdByMatric.get(row.identity.matricNumber));
       row.createdUserId = created.id;
       createdUsers.push(serializeUser(created));
       // Plaintext temporary credentials exist only in this in-memory response
@@ -643,6 +707,7 @@ async function buildCredentialManifestWorkbookBuffer(credentialRows) {
     'ONE-TIME CREDENTIAL MANIFEST — HANDLE AS CONFIDENTIAL',
     '',
     'This file is the only copy of these temporary passwords. The system stores only bcrypt hashes and cannot show them again.',
+    'Students are identified by matric number, which is always present. The Email column is blank for any student who has no email address on record; identify and reach those students by matric number.',
     'Transfer each credential to its owner through a secure channel. Do not email or post this file in shared folders.',
     'Every listed user must sign in and change the temporary password before any other access is allowed.',
     'If a credential is lost, an administrator can issue a new one with the per-user "Reset credential" action.',

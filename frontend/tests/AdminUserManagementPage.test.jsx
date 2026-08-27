@@ -604,6 +604,11 @@ describe('AdminUserManagementPage', () => {
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'student.one@example.edu' }
     });
+    // A student row now requires a matric number, so the form cannot submit
+    // without one.
+    fireEvent.change(screen.getByLabelText(/matric number/i), {
+      target: { value: 'PHS/22/0001' }
+    });
     fireEvent.click(screen.getByRole('button', { name: /create account/i }));
 
     expect(await screen.findByText(/an account with this email already exists/i)).toBeInTheDocument();

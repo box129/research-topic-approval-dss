@@ -358,10 +358,11 @@ function BulkImportUsersSection({ onCohortCreated }) {
         <div>
           <h2 className="text-lg font-semibold text-text-primary">Bulk import users</h2>
           <p className="mt-1 max-w-3xl text-sm leading-6 text-text-secondary">
-            Onboard a departmental cohort from an .xlsx spreadsheet (columns: name, email, role,
-            optional matric_number). Upload a file, review the preview — nothing is created yet —
-            then commit the valid new accounts. Existing accounts are never modified, and
-            re-importing the same file is safe.
+            Onboard a departmental cohort from an .xlsx spreadsheet (columns: name, role,
+            matric_number for students, and email — required for lecturers, optional for
+            students). Upload a file, review the preview — nothing is created yet — then commit
+            the valid new accounts. Existing accounts are never modified, and re-importing the
+            same file is safe.
           </p>
         </div>
         <button
@@ -573,7 +574,16 @@ function OneTimeCredentialPanel({ credential, onDismiss }) {
       <dl className="mt-4 grid gap-2 text-sm text-amber-950">
         <div className="flex flex-wrap gap-2">
           <dt className="font-bold">Account:</dt>
-          <dd className="break-all">{credential.name} ({credential.email})</dd>
+          <dd className="break-all">
+            {credential.name}
+            {credential.matricNumber ? ` (${credential.matricNumber})` : ''}
+          </dd>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <dt className="font-bold">Email:</dt>
+          <dd className="break-all">
+            {credential.email || 'No email on record — hand this credential over directly.'}
+          </dd>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <dt className="font-bold">Temporary password:</dt>
@@ -655,32 +665,45 @@ function ProvisionUserSection({
           />
         </label>
 
-        <label className="text-sm font-semibold text-text-primary">
-          Email address
-          <input
-            className="mt-1 w-full rounded-xl border border-border-subtle px-3 py-2 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
-            name="email"
-            onChange={onFieldChange}
-            placeholder="name@example.com"
-            required
-            type="email"
-            value={form.email}
-          />
-        </label>
-
+        {/* Students are identified by matric number and may have no email at
+            all; lecturers sign in with their email, so it stays required. */}
         {isStudent ? (
           <label className="text-sm font-semibold text-text-primary">
-            Matric number (optional)
+            Matric number
             <input
               className="mt-1 w-full rounded-xl border border-border-subtle px-3 py-2 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
               name="matricNumber"
               onChange={onFieldChange}
               placeholder="e.g. CSC/21/0451"
+              required
               type="text"
               value={form.matricNumber}
             />
           </label>
         ) : <span className="hidden lg:block" />}
+
+        <div>
+          <label className="text-sm font-semibold text-text-primary" htmlFor="provision-email">
+            {isStudent ? 'Email address (optional)' : 'Email address'}
+          </label>
+          <input
+            aria-describedby={isStudent ? 'provision-email-help' : undefined}
+            className="mt-1 w-full rounded-xl border border-border-subtle px-3 py-2 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+            id="provision-email"
+            name="email"
+            onChange={onFieldChange}
+            placeholder="name@example.com"
+            required={!isStudent}
+            type="email"
+            value={form.email}
+          />
+          {isStudent && (
+            <p className="mt-1 text-xs font-normal text-text-muted" id="provision-email-help">
+              Used for invitations and self-service password reset. Leave blank if there is no
+              email address; an administrator can still issue the credential directly.
+            </p>
+          )}
+        </div>
 
         <button
           className="rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-900 disabled:cursor-not-allowed disabled:bg-slate-400"
@@ -1263,7 +1286,8 @@ function UserManagementPage() {
       }
       setOneTimeCredential({
         name: createdUser?.name || provisionForm.name,
-        email: createdUser?.email || provisionForm.email,
+        email: createdUser?.email || null,
+        matricNumber: createdUser?.matricNumber || provisionForm.matricNumber || null,
         temporaryPassword: result.data?.temporaryPassword || ''
       });
       setProvisionForm(emptyProvisionForm);

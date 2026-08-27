@@ -225,6 +225,26 @@ SMTP; do not run the sending backend on a free instance. Record the plan used.
 Mark delivery `VERIFIED AGAINST REAL PROVIDER` only if an external provider
 actually accepted and delivered the messages.
 
+### What the student identity model changes here
+
+Students are identified by matric number and may have no email address, so
+**student onboarding no longer depends on email delivery at all**: an
+administrator provisions the account, hands over the one-time credential, and
+the student signs in by matric number. A total SMTP outage cannot block a
+departmental intake.
+
+Email delivery is still required, and still has to be proven against a real
+provider, for:
+
+- lecturer and administrator invitations, since email is their login identity;
+- self-service password reset for anyone who has an address;
+- invitations to students who do have an address.
+
+So SMTP remains a mandatory Phase-8B acceptance item, but it is no longer a
+single point of failure for onboarding. Exercise both paths during staging: a
+student created with an email (invitation plus reset) and a student created
+without one (credential handover plus admin credential reset).
+
 ## Voyage
 
 Quota is an explicit acceptance gate. Under a synthetic burst (historical

@@ -185,6 +185,155 @@ describe('auth.service', () => {
     expect(eventsJson).not.toContain(loginResult.token);
   });
 
+  // Students are identified by matric number, so one field must resolve either
+  // identifier without ever revealing which lookup was used.
+  describe('identifier-based login', () => {
+    const student = {
+      id: 9,
+      name: 'Matric Student',
+      email: null,
+      matricNumber: 'PHS/22/0042',
+      passwordHash: '',
+      role: 'STUDENT',
+      status: 'ACTIVE',
+      credentialVersion: 3,
+      mustChangePassword: false
+    };
+
+    const buildMock = (users) => {
+      const store = users.map((user) => ({ ...user }));
+      return createPrismaMock({
+        user: {
+          findUnique: jest.fn(({ where }) => Promise.resolve(
+            store.find((user) => (
+              (where.email !== undefined && user.email === where.email)
+              || (where.matricNumber !== undefined && user.matricNumber === where.matricNumber)
+            )) || null
+          ))
+        }
+      });
+    };
+
+    let hashed;
+    beforeAll(async () => {
+      hashed = await bcrypt.hash('CorrectHorse1', 4);
+    });
+
+    test('a student with no email signs in with their matric number', async () => {
+      const prismaMock = buildMock([{ ...student, passwordHash: hashed }]);
+      const service = createAuthService({ prismaClient: prismaMock, authConfig, audit: { createAuditLogSafely: jest.fn() } });
+
+      const result = await service.login({ identifier: 'PHS/22/0042', password: 'CorrectHorse1' });
+
+      expect(result.user.id).toBe(9);
+      expect(result.user.email).toBeNull();
+      expect(result.user.matricNumber).toBe('PHS/22/0042');
+      // The session carries the same role and credential version as any login.
+      const payload = jwt.verify(result.token, authConfig.jwtSecret);
+      expect(payload).toMatchObject({ sub: '9', role: 'student', cv: 3 });
+    });
+
+    test('matric login is case- and whitespace-insensitive', async () => {
+      const prismaMock = buildMock([{ ...student, passwordHash: hashed }]);
+      const service = createAuthService({ prismaClient: prismaMock, authConfig, audit: { createAuditLogSafely: jest.fn() } });
+
+      for (const typed of ['phs/22/0042', '  PHS/22/0042  ', 'Phs/22/0042']) {
+        await expect(service.login({ identifier: typed, password: 'CorrectHorse1' }))
+          .resolves.toMatchObject({ user: { id: 9 } });
+      }
+    });
+
+    test('a student who has an email can sign in with either identifier', async () => {
+      const withEmail = { ...student, id: 10, email: 'personal@example.com', matricNumber: 'PHS/22/0043', passwordHash: hashed };
+      const prismaMock = buildMock([withEmail]);
+      const service = createAuthService({ prismaClient: prismaMock, authConfig, audit: { createAuditLogSafely: jest.fn() } });
+
+      await expect(service.login({ identifier: 'PHS/22/0043', password: 'CorrectHorse1' }))
+        .resolves.toMatchObject({ user: { id: 10 } });
+      await expect(service.login({ identifier: 'Personal@Example.com', password: 'CorrectHorse1' }))
+        .resolves.toMatchObject({ user: { id: 10 } });
+    });
+
+    test('lecturers and administrators still sign in with their email', async () => {
+      const lecturer = { ...student, id: 11, email: 'lect@example.com', matricNumber: null, role: 'LECTURER', passwordHash: hashed };
+      const admin = { ...student, id: 12, email: 'admin@example.com', matricNumber: null, role: 'ADMIN', passwordHash: hashed };
+      const prismaMock = buildMock([lecturer, admin]);
+      const service = createAuthService({ prismaClient: prismaMock, authConfig, audit: { createAuditLogSafely: jest.fn() } });
+
+      await expect(service.login({ identifier: 'lect@example.com', password: 'CorrectHorse1' }))
+        .resolves.toMatchObject({ user: { id: 11, role: 'lecturer' } });
+      await expect(service.login({ identifier: 'admin@example.com', password: 'CorrectHorse1' }))
+        .resolves.toMatchObject({ user: { id: 12, role: 'admin' } });
+    });
+
+    test('every failure is indistinguishable and never reveals the identifier type', async () => {
+      const prismaMock = buildMock([{ ...student, passwordHash: hashed }]);
+      const service = createAuthService({ prismaClient: prismaMock, authConfig, audit: { createAuditLogSafely: jest.fn() } });
+
+      const attempts = [
+        { identifier: 'PHS/22/0042', password: 'WrongPassword1' },   // real matric, wrong password
+        { identifier: 'PHS/99/9999', password: 'CorrectHorse1' },    // matric that does not exist
+        { identifier: 'nobody@example.com', password: 'CorrectHorse1' }, // email that does not exist
+        { identifier: 'not-an-identifier', password: 'CorrectHorse1' }   // neither shape
+      ];
+
+      const failures = [];
+      for (const attempt of attempts) {
+        await service.login(attempt).catch((error) => failures.push(error));
+      }
+
+      expect(failures).toHaveLength(4);
+      const distinct = new Set(failures.map((error) => `${error.statusCode}|${error.code}|${error.message}`));
+      expect(distinct.size).toBe(1);
+      expect([...distinct][0]).toBe('401|INVALID_CREDENTIALS|Invalid credentials.');
+      // Nothing in the message hints at which identifier space was consulted.
+      expect([...distinct][0]).not.toMatch(/matric|email/i);
+    });
+
+    test('a suspended student cannot sign in by matric number', async () => {
+      const prismaMock = buildMock([{ ...student, status: 'SUSPENDED', passwordHash: hashed }]);
+      const service = createAuthService({ prismaClient: prismaMock, authConfig, audit: { createAuditLogSafely: jest.fn() } });
+
+      await expect(service.login({ identifier: 'PHS/22/0042', password: 'CorrectHorse1' }))
+        .rejects.toMatchObject({ statusCode: 403, code: 'ACCOUNT_INACTIVE' });
+    });
+
+    test('a matric-login student pending a forced change is signalled, not blocked at login', async () => {
+      const prismaMock = buildMock([{ ...student, mustChangePassword: true, passwordHash: hashed }]);
+      const service = createAuthService({ prismaClient: prismaMock, authConfig, audit: { createAuditLogSafely: jest.fn() } });
+
+      const result = await service.login({ identifier: 'PHS/22/0042', password: 'CorrectHorse1' });
+      expect(result.user.mustChangePassword).toBe(true);
+    });
+
+    test('a failed matric login audits only a safe hashed identifier', async () => {
+      const createAuditLogSafely = jest.fn();
+      const prismaMock = buildMock([{ ...student, passwordHash: hashed }]);
+      const service = createAuthService({ prismaClient: prismaMock, authConfig, audit: { createAuditLogSafely } });
+
+      await service.login({ identifier: 'PHS/22/0042', password: 'WrongPassword1' }).catch(() => {});
+
+      const event = createAuditLogSafely.mock.calls[0][0];
+      const serialized = JSON.stringify(event);
+      // The matric number is personally identifying and must not be written out.
+      expect(serialized).not.toContain('PHS/22/0042');
+      expect(serialized).not.toContain('WrongPassword1');
+      expect(event.metadata.attemptedEmailHash).toMatch(/^[a-f0-9]{24}$/);
+      // The same account always produces the same digest however it was typed.
+      expect(hashLoginIdentifier('phs/22/0042')).toBe(hashLoginIdentifier('PHS/22/0042'));
+      expect(hashLoginIdentifier('  PHS/22/0042 ')).toBe(hashLoginIdentifier('PHS/22/0042'));
+    });
+
+    test('the legacy email field is still accepted so older clients keep working', async () => {
+      const withEmail = { ...student, id: 13, email: 'legacy@example.com', matricNumber: null, role: 'LECTURER', passwordHash: hashed };
+      const prismaMock = buildMock([withEmail]);
+      const service = createAuthService({ prismaClient: prismaMock, authConfig, audit: { createAuditLogSafely: jest.fn() } });
+
+      await expect(service.login({ email: 'legacy@example.com', password: 'CorrectHorse1' }))
+        .resolves.toMatchObject({ user: { id: 13 } });
+    });
+  });
+
   test('authenticateToken accepts tokens matching the stored credential version', async () => {
     const user = {
       id: 7,

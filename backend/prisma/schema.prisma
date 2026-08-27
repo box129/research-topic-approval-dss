@@ -32,10 +32,20 @@ enum SubmissionStatus {
 model User {
   id                       Int                       @id @default(autoincrement())
   name                     String                    @db.VarChar(200)
-  email                    String                    @unique @db.VarChar(200)
+  // Optional at the database level because students at the target institution
+  // are not issued university email addresses. PostgreSQL treats NULLs as
+  // distinct in a unique index, so many students may have no email while any
+  // supplied address stays unique. Lecturers and administrators still require
+  // an email: that invariant is role-specific and is enforced at the service
+  // boundary, since one nullable column cannot express it.
+  email                    String?                   @unique @db.VarChar(200)
   passwordHash             String                    @map("password_hash") @db.Text
   role                     Role
   status                   UserStatus                @default(ACTIVE)
+  // The student's primary institutional identifier and a supported login
+  // identifier. Nullable at the database level because lecturers and
+  // administrators legitimately have none; "students must have one" is
+  // enforced at the service boundary.
   matricNumber             String?                   @unique @map("matric_number") @db.VarChar(50)
   mustChangePassword       Boolean                   @default(false) @map("must_change_password")
   credentialVersion        Int                       @default(1) @map("credential_version")

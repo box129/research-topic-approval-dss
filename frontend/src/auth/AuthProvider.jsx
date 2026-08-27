@@ -25,8 +25,10 @@ export function AuthProvider({ children }) {
     refreshUser();
   }, [refreshUser]);
 
-  const login = useCallback(async ({ email, password }) => {
-    const response = await apiClient.post('/auth/login', { email, password });
+  // One field carries either an email address or a student matric number; the
+  // backend decides how to resolve it and never reveals which path it took.
+  const login = useCallback(async ({ identifier, password }) => {
+    const response = await apiClient.post('/auth/login', { identifier, password });
     const nextUser = response.data?.data?.user || null;
     setUser(nextUser);
     return nextUser;

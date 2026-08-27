@@ -16,7 +16,7 @@ function LoginPage() {
   const { login } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,7 +27,7 @@ function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      const user = await login({ email, password });
+      const user = await login({ identifier, password });
       if (user?.mustChangePassword) {
         // Temporary credential: the account must establish a private password
         // before any normal navigation. The backend blocks other APIs too.
@@ -66,12 +66,15 @@ function LoginPage() {
 
       <form className="mt-[1.375rem] space-y-4" onSubmit={handleSubmit}>
         <TextInput
-          id="login-email"
-          label="Email Address"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          autoComplete="email"
+          id="login-identifier"
+          label="Email Address or Matric Number"
+          // Deliberately not type="email": a matric number is a valid entry
+          // here and browser email validation would reject it outright.
+          type="text"
+          value={identifier}
+          onChange={(event) => setIdentifier(event.target.value)}
+          autoComplete="username"
+          helperText="Students can sign in with their matric number. Lecturers and administrators use their email address."
           required
           disabled={isSubmitting}
           className={error ? 'border-feedback-danger focus:border-feedback-danger focus:ring-feedback-danger/20' : ''}

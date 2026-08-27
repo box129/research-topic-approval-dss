@@ -126,6 +126,16 @@ const student = (rowNumber, overrides = {}) => parsedRow(rowNumber, {
   ...overrides
 });
 
+// Students at the target institution may have no email at all, so the row that
+// omits it is a first-class case rather than an edge case.
+const studentNoEmail = (rowNumber, overrides = {}) => parsedRow(rowNumber, {
+  name: 'No Email Student',
+  email: '',
+  role: 'student',
+  matricNumber: `PHS/22/${String(rowNumber).padStart(4, '0')}`,
+  ...overrides
+});
+
 const existingStudent = {
   id: 10,
   name: 'Existing Student',
@@ -275,7 +285,7 @@ describe('classifyUserImportRows', () => {
     const service = createService(createPrismaMock());
     const result = await service.classifyUserImportRows([
       parsedRow(2, { email: 'x@uniosun.edu.ng', role: 'student' }),
-      parsedRow(3, { name: 'B', email: 'not-an-email', role: 'student' }),
+      parsedRow(3, { name: 'B', email: 'not-an-email', role: 'student', matricNumber: 'CSC/21/0008' }),
       parsedRow(4, { name: 'C', email: 'c@uniosun.edu.ng', role: 'registrar' }),
       parsedRow(5, { name: 'D', email: 'd@uniosun.edu.ng', role: 'student', matricNumber: '!!' }),
       parsedRow(6, { name: 'E', email: 'e@uniosun.edu.ng', role: 'lecturer', matricNumber: 'CSC/21/0009' })
@@ -331,7 +341,7 @@ describe('classifyUserImportRows', () => {
     expect(cleanDuplicates.summary).toMatchObject({ valid_new: 1, duplicate_in_file: 1 });
   });
 
-  test('marks the same matric under different emails in the file as CONFLICT', async () => {
+  test('marks the same matric with contradictory identity details in the file as CONFLICT', async () => {
     const service = createService(createPrismaMock());
     const result = await service.classifyUserImportRows([
       student(2, { email: 'one@uniosun.edu.ng', matricNumber: 'CSC/21/0042' }),
@@ -342,7 +352,126 @@ describe('classifyUserImportRows', () => {
       USER_IMPORT_ROW_STATUS.CONFLICT,
       USER_IMPORT_ROW_STATUS.CONFLICT
     ]);
-    expect(result.rows[0].messages[0]).toMatch(/assigned to different accounts/);
+    expect(result.rows[0].messages[0]).toMatch(/appears in rows 2, 3 with different identity details/);
+  });
+
+  describe('role-aware identity requirements', () => {
+    test('a student row with a blank email is VALID_NEW', async () => {
+      const service = createService(createPrismaMock());
+      const result = await service.classifyUserImportRows([
+        studentNoEmail(2),
+        studentNoEmail(3),
+        studentNoEmail(4)
+      ]);
+
+      expect(result.rows.map((row) => row.status)).toEqual(
+        Array(3).fill(USER_IMPORT_ROW_STATUS.VALID_NEW)
+      );
+      // Three students who all lack an email are three different people, never
+      // duplicates of one another.
+      expect(result.summary.duplicate_in_file).toBe(0);
+      expect(result.summary.valid_new).toBe(3);
+      expect(result.rows.every((row) => row.email === null)).toBe(true);
+    });
+
+    test('a student row with no matric number is INVALID', async () => {
+      const service = createService(createPrismaMock());
+      const result = await service.classifyUserImportRows([
+        parsedRow(2, { name: 'No Matric', email: 'has.email@example.com', role: 'student' }),
+        parsedRow(3, { name: 'Nothing', email: '', role: 'student' })
+      ]);
+
+      expect(result.rows.map((row) => row.status)).toEqual([
+        USER_IMPORT_ROW_STATUS.INVALID,
+        USER_IMPORT_ROW_STATUS.INVALID
+      ]);
+      expect(result.rows[0].messages[0]).toMatch(/Matric number is required for a student account/);
+    });
+
+    test('a lecturer row with a blank email is INVALID', async () => {
+      const service = createService(createPrismaMock());
+      const result = await service.classifyUserImportRows([
+        parsedRow(2, { name: 'Dr Blank', email: '', role: 'lecturer' })
+      ]);
+
+      expect(result.rows[0].status).toBe(USER_IMPORT_ROW_STATUS.INVALID);
+      expect(result.rows[0].messages[0]).toMatch(/Email is required/);
+    });
+
+    test('a repeated matric with identical identity is DUPLICATE_IN_FILE', async () => {
+      const service = createService(createPrismaMock());
+      const result = await service.classifyUserImportRows([
+        studentNoEmail(2, { matricNumber: 'PHS/22/0500' }),
+        studentNoEmail(3, { matricNumber: 'phs/22/0500' })
+      ]);
+
+      expect(result.rows.map((row) => row.status)).toEqual([
+        USER_IMPORT_ROW_STATUS.VALID_NEW,
+        USER_IMPORT_ROW_STATUS.DUPLICATE_IN_FILE
+      ]);
+    });
+
+    test('a matric already held by an existing account is CONFLICT', async () => {
+      const prismaMock = createPrismaMock({ users: [existingStudent] });
+      const service = createService(prismaMock);
+      const result = await service.classifyUserImportRows([
+        studentNoEmail(2, { name: 'Someone Else', matricNumber: existingStudent.matricNumber })
+      ]);
+
+      expect(result.rows[0].status).toBe(USER_IMPORT_ROW_STATUS.CONFLICT);
+    });
+
+    test('an optional email already owned by another account is still CONFLICT', async () => {
+      const prismaMock = createPrismaMock({ users: [existingStudent] });
+      const service = createService(prismaMock);
+      const result = await service.classifyUserImportRows([
+        parsedRow(2, {
+          name: 'New Person',
+          email: existingStudent.email,
+          role: 'student',
+          matricNumber: 'PHS/22/0600'
+        })
+      ]);
+
+      expect(result.rows[0].status).toBe(USER_IMPORT_ROW_STATUS.CONFLICT);
+    });
+
+    test('commits a mixed cohort and identifies no-email students by matric in the manifest', async () => {
+      const prismaMock = createPrismaMock();
+      const service = createService(prismaMock);
+
+      const rows = [
+        studentNoEmail(2, { name: 'No Email A', matricNumber: 'PHS/22/0701' }),
+        student(3, { name: 'With Email B', email: 'b@example.com', matricNumber: 'PHS/22/0702' }),
+        parsedRow(4, { name: 'Dr Lecturer', email: 'lect@example.com', role: 'lecturer' })
+      ];
+
+      const classification = await service.classifyUserImportRows(rows);
+      expect(classification.summary.valid_new).toBe(3);
+
+      const committed = await service.commitUserImport({ classification, actor: { id: 1, role: 'admin' } });
+      expect(committed.createdUsers).toHaveLength(3);
+      expect(committed.credentialRows).toHaveLength(3);
+
+      const noEmailRow = committed.credentialRows.find((row) => row.name === 'No Email A');
+      expect(noEmailRow.matricNumber).toBe('PHS/22/0701');
+      expect(noEmailRow.email).toBeNull();
+      expect(noEmailRow.temporaryPassword).toEqual(expect.any(String));
+      // No placeholder address may be invented to fill the column.
+      expect(JSON.stringify(committed.createdUsers)).not.toMatch(/placeholder|noreply|no-reply|@example\.invalid/i);
+
+      const stored = prismaMock.__store.find((user) => user.matricNumber === 'PHS/22/0701');
+      expect(stored.email).toBeNull();
+
+      // Replay: the same file creates nothing further and yields no credentials.
+      const replayClassification = await service.classifyUserImportRows(rows);
+      expect(replayClassification.summary.valid_new).toBe(0);
+      expect(replayClassification.summary.already_exists).toBe(3);
+
+      const replay = await service.commitUserImport({ classification: replayClassification, actor: { id: 1, role: 'admin' } });
+      expect(replay.createdUsers).toHaveLength(0);
+      expect(replay.credentialRows).toHaveLength(0);
+    });
   });
 
   test('marks an exact existing account as ALREADY_EXISTS without touching it', async () => {
@@ -396,7 +525,7 @@ describe('classifyUserImportRows', () => {
     expect(result.rows[0].status).toBe(USER_IMPORT_ROW_STATUS.CONFLICT);
     expect(result.rows[0].messages[0]).toMatch(/has matric number CSC\/20\/0100/);
     expect(result.rows[1].status).toBe(USER_IMPORT_ROW_STATUS.CONFLICT);
-    expect(result.rows[1].messages[0]).toMatch(/already belongs to existing account existing\.student/);
+    expect(result.rows[1].messages[0]).toMatch(/already belongs to an existing account with a different email address on record/);
   });
 
   test('marks adding a matric to an account that has none as CONFLICT (never a silent update)', async () => {

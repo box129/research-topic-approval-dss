@@ -167,6 +167,47 @@ describe('issueInvitation', () => {
     });
   });
 
+  // Students are not required to have an email address, so "cannot invite" is
+  // an ordinary outcome for them rather than a fault.
+  test('a student with no email cannot be invited and the provider is never called', async () => {
+    const noEmailStudent = { ...invitableStudent, id: 7, email: null, matricNumber: 'PHS/22/0007' };
+    const prismaMock = createPrismaMock({ users: [noEmailStudent] });
+    const emailProvider = { sendInvitationEmail: jest.fn() };
+    const { service } = createService(prismaMock, { emailProvider });
+
+    await expect(service.issueInvitation({ id: 7, actor: { id: 1, role: 'admin' } }))
+      .rejects.toMatchObject({ code: 'USER_INVITATION_NO_EMAIL', statusCode: 409 });
+
+    expect(emailProvider.sendInvitationEmail).not.toHaveBeenCalled();
+    // No placeholder address may be invented, and no invitation state is left
+    // behind on the account.
+    const stored = prismaMock.__store.find((user) => user.id === 7);
+    expect(stored.email).toBeNull();
+    expect(stored.invitationTokenHash).toBeNull();
+  });
+
+  test('bulk invitation sends to eligible accounts and reports no-email accounts as skipped', async () => {
+    const withEmail = { ...invitableStudent, id: 5 };
+    const withoutEmail = { ...invitableStudent, id: 7, email: null, matricNumber: 'PHS/22/0007' };
+    const prismaMock = createPrismaMock({ users: [withEmail, withoutEmail, { ...invitableLecturer }] });
+    const emailProvider = {
+      sendInvitationEmail: jest.fn().mockResolvedValue({ provider: 'mock', status: 'sent', delivered: true })
+    };
+    const { service } = createService(prismaMock, { emailProvider });
+
+    const result = await service.sendBulkInvitations({
+      userIds: [5, 7, 6],
+      actor: { id: 1, role: 'admin' }
+    });
+
+    expect(result.summary).toMatchObject({ requested: 3, sent: 2, skipped: 1, failed: 0 });
+    // Exactly the two accounts that have an address were contacted.
+    expect(emailProvider.sendInvitationEmail).toHaveBeenCalledTimes(2);
+
+    const skipped = result.results.find((entry) => entry.userId === 7);
+    expect(skipped).toMatchObject({ status: 'skipped', reasonCode: 'USER_INVITATION_NO_EMAIL' });
+  });
+
   test('suspended and already-completed accounts cannot be invited; missing users return null', async () => {
     const suspended = { ...invitableStudent, id: 7, status: 'SUSPENDED' };
     const completed = { ...invitableStudent, id: 8, mustChangePassword: false };

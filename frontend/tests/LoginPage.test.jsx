@@ -45,18 +45,39 @@ describe('LoginPage', () => {
     expect(screen.queryByText(/department administrator/i)).not.toBeInTheDocument();
   });
 
-  it('submits email and password to login', async () => {
+  it('accepts a matric number in the same field as an email address', async () => {
     const user = userEvent.setup();
-    const login = vi.fn().mockResolvedValue({ role: 'lecturer' });
+    const login = vi.fn().mockResolvedValue({ role: 'student' });
     renderLoginPage({ login });
 
-    await user.type(screen.getByLabelText(/email/i), 'lecturer@example.edu');
+    const field = screen.getByLabelText(/email address or matric number/i);
+    // A matric number is a valid entry, so the control must not be type="email".
+    expect(field).toHaveAttribute('type', 'text');
+
+    await user.type(field, 'PHS/22/0042');
     await user.type(screen.getByLabelText(/password/i), 'password123');
     await user.click(screen.getByRole('button', { name: /sign in/i }));
 
     await waitFor(() => {
       expect(login).toHaveBeenCalledWith({
-        email: 'lecturer@example.edu',
+        identifier: 'PHS/22/0042',
+        password: 'password123'
+      });
+    });
+  });
+
+  it('submits the identifier and password to login', async () => {
+    const user = userEvent.setup();
+    const login = vi.fn().mockResolvedValue({ role: 'lecturer' });
+    renderLoginPage({ login });
+
+    await user.type(screen.getByLabelText(/email address or matric number/i), 'lecturer@example.edu');
+    await user.type(screen.getByLabelText(/password/i), 'password123');
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
+
+    await waitFor(() => {
+      expect(login).toHaveBeenCalledWith({
+        identifier: 'lecturer@example.edu',
         password: 'password123'
       });
     });

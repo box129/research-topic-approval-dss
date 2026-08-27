@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const { isIP } = require('net');
 const rateLimit = require('express-rate-limit');
+const { canonicalizeIdentifierForKey } = require('../utils/identity');
 
 const DEFAULT_IPV6_SUBNET_PREFIX = 56;
 
@@ -83,21 +84,28 @@ function authenticatedUserKey(req, options) {
     : ipKey(req, options);
 }
 
-function normalizedEmail(value) {
-  return String(value || '').trim().toLowerCase();
-}
-
+/**
+ * Per-identifier login throttling key.
+ *
+ * A login identifier may be an email address or a student matric number, so the
+ * value is canonicalized by type before hashing: "csc/21/0001" and
+ * "CSC/21/0001" must consume the same bucket, exactly as mixed-case emails do,
+ * or case variation would be a trivial way to multiply the allowance. Input
+ * that matches neither shape is still canonicalized and throttled rather than
+ * being waved through.
+ */
 function identifierDigest(value) {
-  const normalized = normalizedEmail(value);
-  if (!normalized) {
+  const canonical = canonicalizeIdentifierForKey(value);
+  if (!canonical) {
     return 'missing';
   }
 
-  return crypto.createHash('sha256').update(normalized).digest('hex').slice(0, 24);
+  return crypto.createHash('sha256').update(canonical).digest('hex').slice(0, 24);
 }
 
 function loginIdentifierKey(req, options) {
-  return `${ipKey(req, options)}:login:${identifierDigest(req.body?.email)}`;
+  const submitted = req.body?.identifier ?? req.body?.email;
+  return `${ipKey(req, options)}:login:${identifierDigest(submitted)}`;
 }
 
 function formatWindow(windowMs) {

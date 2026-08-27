@@ -166,6 +166,94 @@ describe('provisionUser', () => {
     expect(JSON.stringify(auditEvent)).not.toContain(createdRow.passwordHash);
   });
 
+  // The central change: a student is identified by matric number, and students
+  // at the target institution may have no email address at all.
+  test('creates a student with a matric number and NO email', async () => {
+    const prismaMock = createPrismaMock();
+    const service = createService(prismaMock);
+
+    const result = await service.provisionUser({
+      input: { name: 'No Email Student', role: 'student', matricNumber: 'phs/22/0101' },
+      actor: { id: 1, role: 'admin' }
+    });
+
+    const createdRow = prismaMock.user.create.mock.calls[0][0].data;
+    expect(createdRow.email).toBeNull();
+    expect(createdRow.matricNumber).toBe('PHS/22/0101');
+    expect(createdRow.mustChangePassword).toBe(true);
+    // The one-time credential is issued exactly as it is for any other account,
+    // because it is the only way this student can sign in first.
+    expect(validatePasswordPolicy(result.temporaryPassword)).toBe(true);
+    expect(await bcrypt.compare(result.temporaryPassword, createdRow.passwordHash)).toBe(true);
+    // No placeholder address may ever be fabricated to fill the column.
+    expect(JSON.stringify(createdRow)).not.toMatch(/@/);
+  });
+
+  test('treats blank and whitespace-only student email as absent rather than invalid', async () => {
+    for (const [index, email] of [undefined, null, '', '   '].entries()) {
+      const prismaMock = createPrismaMock();
+      const service = createService(prismaMock);
+
+      await service.provisionUser({
+        input: { name: 'Blank Email', email, role: 'student', matricNumber: `PHS/22/${String(index + 200).padStart(4, '0')}` },
+        actor: { id: 1, role: 'admin' }
+      });
+
+      expect(prismaMock.user.create.mock.calls[0][0].data.email).toBeNull();
+    }
+  });
+
+  test('rejects a student with no matric number', async () => {
+    const service = createService(createPrismaMock());
+
+    await expect(service.provisionUser({
+      input: { name: 'Nameless Identity', email: 'someone@example.com', role: 'student' }
+    })).rejects.toMatchObject({
+      code: 'USER_PROVISION_MATRIC_REQUIRED',
+      field: 'matricNumber'
+    });
+
+    // Neither identifier at all must also be refused: the database alone would
+    // accept such a row.
+    await expect(service.provisionUser({
+      input: { name: 'Nothing At All', role: 'student' }
+    })).rejects.toMatchObject({ code: 'USER_PROVISION_MATRIC_REQUIRED' });
+  });
+
+  test('rejects a lecturer with no email', async () => {
+    const service = createService(createPrismaMock());
+
+    for (const email of [undefined, null, '', '   ']) {
+      await expect(service.provisionUser({
+        input: { name: 'Emailless Lecturer', email, role: 'lecturer' }
+      })).rejects.toMatchObject({
+        code: 'USER_PROVISION_EMAIL_REQUIRED',
+        field: 'email'
+      });
+    }
+  });
+
+  test('many students may have no email while a supplied address stays unique', async () => {
+    const prismaMock = createPrismaMock();
+    const service = createService(prismaMock);
+
+    for (let index = 0; index < 3; index += 1) {
+      await service.provisionUser({
+        input: { name: `Student ${index}`, role: 'student', matricNumber: `PHS/22/${String(index + 300).padStart(4, '0')}` },
+        actor: { id: 1, role: 'admin' }
+      });
+    }
+    expect(prismaMock.__store.filter((user) => user.email === null)).toHaveLength(3);
+
+    await service.provisionUser({
+      input: { name: 'With Email', email: 'unique@example.com', role: 'student', matricNumber: 'PHS/22/0400' },
+      actor: { id: 1, role: 'admin' }
+    });
+    await expect(service.provisionUser({
+      input: { name: 'Clash', email: 'unique@example.com', role: 'student', matricNumber: 'PHS/22/0401' }
+    })).rejects.toMatchObject({ code: 'USER_PROVISION_EMAIL_EXISTS' });
+  });
+
   test('creates a lecturer without a matric number', async () => {
     const prismaMock = createPrismaMock();
     const service = createService(prismaMock);
@@ -218,11 +306,23 @@ describe('provisionUser', () => {
   test('rejects only genuinely malformed addresses, never a permitted domain list', async () => {
     const service = createService(createPrismaMock());
 
+    // A lecturer must supply an email, so every malformed value and the
+    // empty value are rejected on the email field.
     for (const email of ['not-an-email', 'missing@domain', 'two @spaces.com', '']) {
       await expect(service.provisionUser({
-        input: { name: 'X', email, role: 'student' }
+        input: { name: 'X', email, role: 'lecturer' }
       })).rejects.toMatchObject({
         code: expect.stringMatching(/USER_PROVISION_EMAIL/)
+      });
+    }
+
+    // A student's email is optional, so a malformed one is still rejected but
+    // an absent one is accepted.
+    for (const email of ['not-an-email', 'missing@domain', 'two @spaces.com']) {
+      await expect(service.provisionUser({
+        input: { name: 'X', email, role: 'student', matricNumber: 'CSC/21/0777' }
+      })).rejects.toMatchObject({
+        code: 'USER_PROVISION_EMAIL_INVALID'
       });
     }
   });
@@ -248,6 +348,7 @@ describe('provisionUser', () => {
         name: 'Sneaky Student',
         email: 'sneaky@uniosun.edu.ng',
         role: 'student',
+        matricNumber: 'CSC/21/0801',
         status: 'SUSPENDED',
         mustChangePassword: false,
         credentialVersion: 99,
@@ -269,7 +370,7 @@ describe('provisionUser', () => {
     const service = createService(prismaMock);
 
     await expect(service.provisionUser({
-      input: { name: 'Dup', email: 'TAKEN@uniosun.edu.ng', role: 'student' }
+      input: { name: 'Dup', email: 'TAKEN@uniosun.edu.ng', role: 'student', matricNumber: 'CSC/21/0802' }
     })).rejects.toMatchObject({
       statusCode: 409,
       code: 'USER_PROVISION_EMAIL_EXISTS'
@@ -306,7 +407,7 @@ describe('provisionUser', () => {
     const service = createService(prismaMock);
 
     await expect(service.provisionUser({
-      input: { name: 'Race', email: 'race@uniosun.edu.ng', role: 'student' }
+      input: { name: 'Race', email: 'race@uniosun.edu.ng', role: 'student', matricNumber: 'CSC/21/0803' }
     })).rejects.toMatchObject({
       statusCode: 409,
       code: 'USER_PROVISION_DUPLICATE'
@@ -523,17 +624,68 @@ describe('correctUserIdentity', () => {
     })).rejects.toMatchObject({ code: 'USER_PROVISION_EMAIL_INVALID' });
   });
 
-  test('allows clearing a student matric but refuses matric values on lecturers', async () => {
+  // A student's matric number is now their institutional identity and a
+  // supported login identifier, so it may be corrected but never cleared.
+  test('refuses to clear a student matric and refuses matric values on lecturers', async () => {
     const prismaMock = createPrismaMock({ users: [{ ...student }, { ...lecturer }] });
     const service = createService(prismaMock);
 
-    const cleared = await service.correctUserIdentity({ id: 5, input: { matricNumber: '' } });
-    expect(cleared.user.matricNumber).toBeNull();
+    await expect(service.correctUserIdentity({
+      id: 5,
+      input: { matricNumber: '' }
+    })).rejects.toMatchObject({
+      code: 'USER_IDENTITY_MATRIC_REQUIRED_FOR_ROLE',
+      field: 'matricNumber'
+    });
+
+    const corrected = await service.correctUserIdentity({ id: 5, input: { matricNumber: 'csc/21/9999' } });
+    expect(corrected.user.matricNumber).toBe('CSC/21/9999');
 
     await expect(service.correctUserIdentity({
       id: 6,
       input: { matricNumber: 'CSC/21/0002' }
     })).rejects.toMatchObject({ code: 'USER_PROVISION_MATRIC_ROLE_MISMATCH' });
+  });
+
+  // Part J: a student's email is optional contact/recovery information.
+  test('a student email can be added, changed and removed without destroying the account', async () => {
+    const prismaMock = createPrismaMock({
+      users: [{ ...student, email: null, invitationTokenHash: 'pending', resetTokenHash: 'pending' }]
+    });
+    const service = createService(prismaMock);
+
+    const added = await service.correctUserIdentity({ id: 5, input: { email: 'Later.Address@Example.com' } });
+    expect(added.user.email).toBe('later.address@example.com');
+
+    const removed = await service.correctUserIdentity({ id: 5, input: { email: '' } });
+    expect(removed.user.email).toBeNull();
+
+    const stored = prismaMock.__store.find((user) => user.id === 5);
+    // The account survives intact: role, password and status are untouched.
+    expect(stored.role).toBe('STUDENT');
+    expect(stored.status).toBe('ACTIVE');
+    expect(stored.passwordHash).toBe(student.passwordHash);
+    // Pending email-delivered tokens must not survive the address they were
+    // sent to being removed.
+    expect(stored.invitationTokenHash).toBeNull();
+    expect(stored.resetTokenHash).toBeNull();
+  });
+
+  test('a lecturer email cannot be removed because it is their login identity', async () => {
+    const service = createService(createPrismaMock({ users: [{ ...lecturer }] }));
+
+    for (const email of ['', '   ', null]) {
+      await expect(service.correctUserIdentity({
+        id: 6,
+        input: { email }
+      })).rejects.toMatchObject({
+        code: 'USER_IDENTITY_EMAIL_REQUIRED_FOR_ROLE',
+        field: 'email'
+      });
+    }
+
+    const corrected = await service.correctUserIdentity({ id: 6, input: { email: 'new.lecturer@example.com' } });
+    expect(corrected.user.email).toBe('new.lecturer@example.com');
   });
 
   test('role and status can never be changed through identity correction', async () => {

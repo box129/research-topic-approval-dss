@@ -6,21 +6,19 @@ const {
   buildAuditContextFromRequest,
   createAuditLogSafely
 } = require('./auditLog.service');
-const { normalizeEmail } = require('./auth.service');
 const { serializeUser } = require('./adminUser.service');
+const {
+  EMAIL_FORMAT,
+  MATRIC_FORMAT,
+  normalizeEmail,
+  normalizeMatricNumber: canonicalizeMatricNumber
+} = require('../utils/identity');
 
 // Roles an administrator may provision through the individual-provisioning
 // API. Additional-administrator creation is intentionally excluded in this
 // phase; it remains an institutional-policy decision for a later phase.
 const PROVISIONABLE_ROLES = new Set(['STUDENT', 'LECTURER']);
 
-const EMAIL_FORMAT = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-// The repository documents matric numbers as a student-facing identifier in
-// the approved UI designs, but contains no official institutional format
-// specification. Normalization is therefore conservative: trim, uppercase,
-// and restrict to characters observed in institutional identifier styles.
-const MATRIC_FORMAT = /^[A-Z0-9][A-Z0-9/.-]{2,49}$/;
 
 const TEMP_PASSWORD_LENGTH = 16;
 // Unambiguous alphabet (no 0/O, 1/l/I) so operators can transcribe the
@@ -72,13 +70,17 @@ function normalizeName(value) {
   return name;
 }
 
-function normalizeCanonicalEmail(value) {
+/**
+ * Validates a supplied email without requiring one.
+ *
+ * Returns null when nothing was supplied, so a student with no address is
+ * represented honestly rather than with a fabricated placeholder. Any address
+ * that IS supplied must still be well formed; no domain is ever required.
+ */
+function normalizeOptionalEmail(value) {
   const email = normalizeEmail(value);
   if (!email) {
-    throw new UserProvisioningError('Email is required.', {
-      code: 'USER_PROVISION_EMAIL_REQUIRED',
-      field: 'email'
-    });
+    return null;
   }
 
   if (email.length > 200 || !EMAIL_FORMAT.test(email)) {
@@ -89,6 +91,47 @@ function normalizeCanonicalEmail(value) {
   }
 
   return email;
+}
+
+function normalizeCanonicalEmail(value) {
+  const email = normalizeOptionalEmail(value);
+  if (!email) {
+    throw new UserProvisioningError('Email is required.', {
+      code: 'USER_PROVISION_EMAIL_REQUIRED',
+      field: 'email'
+    });
+  }
+
+  return email;
+}
+
+/**
+ * Role-aware identity rules, enforced here because one nullable column cannot
+ * express them and the database alone would accept a student with neither
+ * identifier.
+ *
+ *   STUDENT          matric number required; email optional
+ *   LECTURER / ADMIN email required; matric number not accepted
+ */
+function resolveRoleIdentity({ role, email, matricNumber }) {
+  if (role === 'STUDENT') {
+    if (!matricNumber) {
+      throw new UserProvisioningError(
+        'Matric number is required for a student account. It is the institutional identifier students use to sign in.',
+        { code: 'USER_PROVISION_MATRIC_REQUIRED', field: 'matricNumber' }
+      );
+    }
+    return { email: normalizeOptionalEmail(email), matricNumber };
+  }
+
+  if (matricNumber) {
+    throw new UserProvisioningError('Matric numbers only apply to student accounts.', {
+      code: 'USER_PROVISION_MATRIC_ROLE_MISMATCH',
+      field: 'matricNumber'
+    });
+  }
+
+  return { email: normalizeCanonicalEmail(email), matricNumber: null };
 }
 
 function normalizeProvisionRole(value) {
@@ -115,7 +158,7 @@ function normalizeMatricNumber(value) {
     return null;
   }
 
-  const matricNumber = String(value).trim().replace(/\s+/g, '').toUpperCase();
+  const matricNumber = canonicalizeMatricNumber(value);
   if (!MATRIC_FORMAT.test(matricNumber)) {
     throw new UserProvisioningError(
       'Matric number must be 3-50 characters using letters, numbers, "/", "." or "-".',
@@ -152,7 +195,8 @@ function createUserProvisioningService({
   generatePassword = generateTemporaryPassword
 } = {}) {
   const assertNoDuplicates = async (tx, { email, matricNumber, excludeId }) => {
-    const existingEmail = await tx.user.findUnique({ where: { email } });
+    // A student may legitimately have no email; NULL is not a collision.
+    const existingEmail = email ? await tx.user.findUnique({ where: { email } }) : null;
     if (existingEmail && existingEmail.id !== excludeId) {
       throw new UserProvisioningError('An account with this email already exists.', {
         code: 'USER_PROVISION_EMAIL_EXISTS',
@@ -178,16 +222,13 @@ function createUserProvisioningService({
   // values outside the provisionable set.
   const provisionUser = async ({ input = {}, actor, req } = {}) => {
     const name = normalizeName(input.name);
-    const email = normalizeCanonicalEmail(input.email);
     const role = normalizeProvisionRole(input.role);
-    const matricNumber = normalizeMatricNumber(input.matricNumber);
-
-    if (matricNumber && role !== 'STUDENT') {
-      throw new UserProvisioningError('Matric numbers only apply to student accounts.', {
-        code: 'USER_PROVISION_MATRIC_ROLE_MISMATCH',
-        field: 'matricNumber'
-      });
-    }
+    // Role is resolved first: which identifiers are required depends on it.
+    const { email, matricNumber } = resolveRoleIdentity({
+      role,
+      email: input.email,
+      matricNumber: normalizeMatricNumber(input.matricNumber)
+    });
 
     const temporaryPassword = generatePassword();
     const passwordHash = await hashPassword(temporaryPassword);
@@ -342,7 +383,17 @@ function createUserProvisioningService({
       changes.name = normalizeName(input.name);
     }
     if (Object.prototype.hasOwnProperty.call(input, 'email')) {
-      changes.email = normalizeCanonicalEmail(input.email);
+      // A student's email is contact/recovery information, so an administrator
+      // may add, change or remove it. For a lecturer it IS the login identity,
+      // so it can be corrected but never cleared.
+      const email = normalizeOptionalEmail(input.email);
+      if (!email && target.role !== 'STUDENT') {
+        throw new UserProvisioningError(
+          'This account signs in with its email address, so the address cannot be removed. Correct it to a different address instead.',
+          { code: 'USER_IDENTITY_EMAIL_REQUIRED_FOR_ROLE', field: 'email' }
+        );
+      }
+      changes.email = email;
     }
     if (Object.prototype.hasOwnProperty.call(input, 'matricNumber')) {
       const matricNumber = normalizeMatricNumber(input.matricNumber);
@@ -351,6 +402,14 @@ function createUserProvisioningService({
           code: 'USER_PROVISION_MATRIC_ROLE_MISMATCH',
           field: 'matricNumber'
         });
+      }
+      // A student signs in with their matric number, so it may be corrected
+      // under the usual uniqueness checks but never cleared.
+      if (!matricNumber && target.role === 'STUDENT') {
+        throw new UserProvisioningError(
+          'A student signs in with their matric number, so it cannot be removed. Correct it to a different value instead.',
+          { code: 'USER_IDENTITY_MATRIC_REQUIRED_FOR_ROLE', field: 'matricNumber' }
+        );
       }
       changes.matricNumber = matricNumber;
     }
@@ -554,5 +613,7 @@ module.exports = {
   normalizeCanonicalEmail,
   normalizeProvisionRole,
   normalizeMatricNumber,
+  normalizeOptionalEmail,
+  resolveRoleIdentity,
   PROVISIONABLE_ROLES
 };

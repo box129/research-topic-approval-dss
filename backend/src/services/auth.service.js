@@ -6,6 +6,7 @@ const config = require('../config/env');
 const logger = require('../config/logger');
 const emailService = require('./email.service');
 const { createNotificationEventService } = require('./notificationEvent.service');
+const identity = require('../utils/identity');
 const {
   AUDIT_EVENT_TYPES,
   buildAuditContextFromRequest,
@@ -48,7 +49,7 @@ function serializeUser(user) {
 }
 
 function normalizeEmail(email) {
-  return String(email || '').trim().toLowerCase();
+  return identity.normalizeEmail(email) || '';
 }
 
 function validatePasswordPolicy(password) {
@@ -60,9 +61,18 @@ function hashResetToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
-function hashLoginIdentifier(email) {
+/**
+ * Safe audit fingerprint of an attempted login identifier.
+ *
+ * Failed-login auditing must be able to spot repeated attempts without storing
+ * the identifier itself. A matric number is personally identifying, so it is
+ * hashed exactly like an email rather than written to the audit record. The
+ * value is canonicalized first so the same account always yields one digest
+ * however the identifier was typed.
+ */
+function hashLoginIdentifier(value) {
   return crypto.createHash('sha256')
-    .update(normalizeEmail(email))
+    .update(identity.canonicalizeIdentifierForKey(value) || '')
     .digest('hex')
     .slice(0, 24);
 }
@@ -102,16 +112,32 @@ function createAuthService({
     { expiresIn: authConfig.jwtExpiresIn }
   );
 
-  const login = async ({ email, password, req } = {}) => {
-    const normalizedEmail = normalizeEmail(email);
+  /**
+   * Authenticates with a single generic identifier.
+   *
+   * Students are issued a matric number but not necessarily an email address,
+   * so one field accepts either. `identifier` is the current input; `email` is
+   * still accepted so older clients keep working unchanged.
+   *
+   * Anti-enumeration: the lookup path taken is never observable. An
+   * unrecognised identifier shape performs no lookup at all but still produces
+   * the same audit event and the same generic failure as a wrong password, so
+   * a caller cannot learn whether an identifier space or an account exists.
+   */
+  const login = async ({ identifier, email, password, req } = {}) => {
+    const submitted = identifier ?? email;
+    const attempt = identity.classifyLoginIdentifier(submitted);
 
-    if (!normalizedEmail || !password) {
-      throw new AuthServiceError('Email and password are required.', 400, 'AUTH_REQUIRED_FIELDS');
+    if (!String(submitted ?? '').trim() || !password) {
+      throw new AuthServiceError('An identifier and password are required.', 400, 'AUTH_REQUIRED_FIELDS');
     }
 
-    const user = await prismaClient.user.findUnique({
-      where: { email: normalizedEmail }
-    });
+    let user = null;
+    if (attempt.kind === identity.IDENTIFIER_KIND.EMAIL) {
+      user = await prismaClient.user.findUnique({ where: { email: attempt.value } });
+    } else if (attempt.kind === identity.IDENTIFIER_KIND.MATRIC) {
+      user = await prismaClient.user.findUnique({ where: { matricNumber: attempt.value } });
+    }
 
     const validPassword = user
       ? await bcrypt.compare(String(password), user.passwordHash)
@@ -125,10 +151,10 @@ function createAuthService({
         targetId: null,
         metadata: {
           reason: 'invalid-credentials',
-          attemptedEmailHash: hashLoginIdentifier(normalizedEmail)
+          attemptedEmailHash: hashLoginIdentifier(submitted)
         }
       });
-      throw new AuthServiceError('Invalid email or password.', 401, 'INVALID_CREDENTIALS');
+      throw new AuthServiceError('Invalid credentials.', 401, 'INVALID_CREDENTIALS');
     }
 
     if (user.status !== 'ACTIVE') {
@@ -139,7 +165,7 @@ function createAuthService({
         targetId: String(user.id),
         metadata: {
           reason: 'account-inactive',
-          attemptedEmailHash: hashLoginIdentifier(normalizedEmail)
+          attemptedEmailHash: hashLoginIdentifier(submitted)
         }
       });
       throw new AuthServiceError('This account is not active.', 403, 'ACCOUNT_INACTIVE');

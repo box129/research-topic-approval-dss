@@ -54,6 +54,26 @@ describe('security rate-limit middleware', () => {
     await request(app).post('/login').send({ email: 'other@example.test' }).expect(200);
   });
 
+  test('throttles matric-number login attempts and collapses case variants into one bucket', async () => {
+    const app = express();
+    app.use(express.json());
+    app.post('/login', createRateLimiter({
+      name: 'test-login-matric',
+      windowMs: 60_000,
+      max: 2,
+      keyGenerator: loginIdentifierKey
+    }), (req, res) => res.status(200).json({ status: 'accepted' }));
+
+    // Case and surrounding whitespace must not buy a fresh allowance, or
+    // throttling a student identifier would be trivial to evade.
+    await request(app).post('/login').send({ identifier: 'PHS/22/0042' }).expect(200);
+    await request(app).post('/login').send({ identifier: 'phs/22/0042' }).expect(200);
+    await request(app).post('/login').send({ identifier: '  PHS/22/0042  ' }).expect(429);
+
+    // A different student is throttled independently.
+    await request(app).post('/login').send({ identifier: 'PHS/22/0099' }).expect(200);
+  });
+
   test('groups IPv6 callers in the same /56 bucket while keeping a different subnet independent', async () => {
     const app = express();
     app.use((req, res, next) => {

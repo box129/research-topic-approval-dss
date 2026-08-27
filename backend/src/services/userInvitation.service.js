@@ -97,6 +97,20 @@ function createUserInvitationService({
       });
     }
 
+    // An invitation is an email. Students are not required to have an address,
+    // so this is an ordinary, expected outcome rather than a fault: state it
+    // plainly and point at the path that does work for them. No placeholder
+    // address is ever fabricated to make an invitation possible.
+    if (!user.email) {
+      throw new UserInvitationError(
+        'This account has no email address on record, so an invitation cannot be sent. Use the credential reset action and hand the temporary password over directly.',
+        {
+          code: 'USER_INVITATION_NO_EMAIL',
+          statusCode: 409
+        }
+      );
+    }
+
     if (user.status !== 'ACTIVE') {
       throw new UserInvitationError('Suspended accounts cannot be invited. Reactivate the account first.', {
         code: 'USER_INVITATION_ACCOUNT_SUSPENDED',
