@@ -128,6 +128,12 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
             ['Session', match.session_year, `session-${index}`]
           ];
 
+    const researchContext = [
+      ['Population', match.population, 'match-population'],
+      ['Location', match.location, 'match-location'],
+      ['Study focus', match.study_focus, 'match-study-focus']
+    ].filter(([, value]) => Boolean(value));
+
     return (
       <div
         key={matchKey}
@@ -163,6 +169,26 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
             </span>
           )}
         </div>
+
+        {/* Research context, when the stored record actually has it. This is
+            what turns a similarity verdict into something a reviewer can judge:
+            the same score means something different when the population and
+            location match than when only the wording does. Historical records
+            are uneven, so every field is skipped individually when absent and
+            the whole block disappears when none is present -- no "N/A" rows. */}
+        {researchContext.length > 0 && (
+          <dl
+            className="mb-3 grid gap-x-4 gap-y-1 text-sm text-gray-600 sm:grid-cols-2"
+            data-testid={`research-context-${index}`}
+          >
+            {researchContext.map(([label, value, testId]) => (
+              <div key={label} className="min-w-0">
+                <dt className="inline font-semibold">{label}:</dt>{' '}
+                <dd className="inline break-words" data-testid={`${testId}-${index}`}>{value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
 
         <button
           onClick={() => toggleDetails(matchKey)}
@@ -425,6 +451,13 @@ const MATCH_SHAPE = PropTypes.shape({
   topic_title: PropTypes.string.isRequired,
   supervisor_name: PropTypes.string,
   session_year: PropTypes.string,
+  // Research context from the stored record. Every one of these is optional:
+  // historical imports are uneven and submission-sourced under-review rows carry
+  // none of them, so the display skips each field individually when absent.
+  category: PropTypes.string,
+  population: PropTypes.string,
+  location: PropTypes.string,
+  study_focus: PropTypes.string,
   status: PropTypes.string,
   collection: PropTypes.oneOf(['HISTORICAL', 'CURRENT_SESSION', 'UNDER_REVIEW']).isRequired,
   semantic_score: PropTypes.number.isRequired,

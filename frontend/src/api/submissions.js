@@ -5,6 +5,11 @@ export async function createSubmission(payload) {
   return response.data?.data?.submission;
 }
 
+export async function createRevisionSubmission(submissionId, payload) {
+  const response = await apiClient.post(`/submissions/${submissionId}/revision`, payload);
+  return response.data?.data?.submission;
+}
+
 export async function listSubmissions() {
   const response = await apiClient.get('/submissions');
   return response.data?.data?.submissions || [];

@@ -36,6 +36,35 @@ function formatDate(value) {
   }).format(date);
 }
 
+// Mirrors the backend rule so the lecturer is told before the request is sent.
+// Both decisions that hand work back to the student must say why, and requesting
+// a revision most of all: that action asks the student to change something, so
+// sending it without feedback leaves them nothing to act on.
+const MIN_DECISION_REASON_LENGTH = 10;
+
+const REASON_REQUIRED_MESSAGES = {
+  rejected: 'Decision rationale is required when rejecting a submission.',
+  awaiting_revision: 'Revision feedback is required so the student knows what to change.'
+};
+
+function reasonValidationError(status, normalizedReason) {
+  const requiredMessage = REASON_REQUIRED_MESSAGES[status];
+
+  if (!requiredMessage) {
+    return '';
+  }
+
+  if (!normalizedReason) {
+    return requiredMessage;
+  }
+
+  if (normalizedReason.length < MIN_DECISION_REASON_LENGTH) {
+    return `Please give at least ${MIN_DECISION_REASON_LENGTH} characters so the student knows what to change.`;
+  }
+
+  return '';
+}
+
 function DetailItem({ label, value }) {
   return (
     <div className="rounded-[8px] border border-border-subtle bg-surface-page p-3">
@@ -107,18 +136,18 @@ function SubmissionDetailPage() {
     }
   }, [topicId]);
 
-  const handleStatusUpdate = (status, confirmLabel, successLabel, { requireReason = false } = {}) => {
+  const handleStatusUpdate = (status, confirmLabel, successLabel) => {
     const normalizedReason = decisionReason.trim();
+    const validationError = reasonValidationError(status, normalizedReason);
 
-    if (requireReason && !normalizedReason) {
-      setDecisionReasonError('Decision rationale is required when rejecting a submission.');
+    if (validationError) {
+      setDecisionReasonError(validationError);
       requestAnimationFrame(() => document.getElementById('decision-rationale')?.focus());
       return;
     }
 
     setPendingDecision({
       confirmLabel,
-      requireReason,
       status,
       successLabel
     });
@@ -130,10 +159,12 @@ function SubmissionDetailPage() {
     }
 
     const normalizedReason = decisionReason.trim();
+    const validationError = reasonValidationError(pendingDecision.status, normalizedReason);
 
-    if (pendingDecision.requireReason && !normalizedReason) {
-      setDecisionReasonError('Decision rationale is required when rejecting a submission.');
+    if (validationError) {
+      setDecisionReasonError(validationError);
       setPendingDecision(null);
+      requestAnimationFrame(() => document.getElementById('decision-rationale')?.focus());
       return;
     }
 
@@ -243,7 +274,9 @@ function SubmissionDetailPage() {
           <section className="rounded-[10px] border border-border-subtle bg-white p-5 shadow-card sm:p-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">Submitted topic</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">
+                  {submission.revision_of ? 'Revised topic' : 'Submitted topic'}
+                </p>
                 <h2 className="mt-2 break-words text-xl font-bold leading-7 text-text-primary">{submission.title}</h2>
               </div>
               <div className="shrink-0"><StatusBadge status={submission.status} /></div>
@@ -252,14 +285,64 @@ function SubmissionDetailPage() {
               Similarity evidence is advisory. Final decisions remain lecturer-controlled.
             </p>
             <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <DetailItem label="Student name" value={submission.student_name} />
-              <DetailItem label="Student email" value={submission.student_email} />
+              <DetailItem label="Student" value={submission.student_name} />
+              <DetailItem label="Matric number" value={submission.student_matric_number} />
+              {submission.student_email && (
+                <DetailItem label="Personal email" value={submission.student_email} />
+              )}
               <DetailItem label="Academic session" value={submission.session_name} />
               <DetailItem label="Category" value={submission.category || 'Uncategorised'} />
               <DetailItem label="Keywords" value={submission.keywords} />
               <DetailItem label="Submitted" value={formatDate(submission.submitted_at)} />
             </dl>
           </section>
+
+          {submission.revision_of && (
+            <section
+              className="rounded-[10px] border border-status-revision-bg bg-white p-5 shadow-card sm:p-6"
+              aria-label="Revision context"
+              data-testid="lecturer-revision-context"
+            >
+              <h3 className="text-base font-bold text-text-primary">Revision context</h3>
+              <p className="mt-1 text-sm text-text-secondary">
+                This topic replaces an earlier submission by the same student.
+              </p>
+              <dl className="mt-4 space-y-4">
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-text-muted">Previously proposed</dt>
+                  <dd className="mt-1 break-words text-sm text-text-primary" data-testid="revision-previous-title">
+                    {submission.revision_of.title}
+                  </dd>
+                  {submission.revision_of.keywords && (
+                    <dd className="mt-1 break-words text-sm text-text-secondary">
+                      Keywords: {submission.revision_of.keywords}
+                    </dd>
+                  )}
+                  <dd className="mt-1 text-xs text-text-muted">
+                    Submitted {formatDate(submission.revision_of.submitted_at)}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-text-muted">Revision requested</dt>
+                  <dd
+                    className="mt-1 break-words text-sm leading-6 text-text-primary"
+                    data-testid="revision-previous-feedback"
+                  >
+                    {submission.revision_of.decision_reason || 'No feedback was recorded with this request.'}
+                  </dd>
+                  <dd className="mt-1 text-xs text-text-muted">
+                    {formatDate(submission.revision_of.decided_at)}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-text-muted">Now proposed</dt>
+                  <dd className="mt-1 break-words text-sm font-medium text-text-primary" data-testid="revision-current-title">
+                    {submission.title}
+                  </dd>
+                </div>
+              </dl>
+            </section>
+          )}
 
           <section className="overflow-hidden rounded-[10px] border border-border-subtle bg-white shadow-card">
             <div className="border-b border-border-subtle p-5">
@@ -441,7 +524,7 @@ function SubmissionDetailPage() {
                 value={decisionReason}
                 disabled={!canUpdateStatus || isUpdating}
                 error={decisionReasonError}
-                helperText="Required when rejecting a topic. Similarity evidence remains advisory."
+                helperText="Required when rejecting a topic or requesting a revision, so the student knows what to change. Similarity evidence remains advisory."
                 placeholder="Add the reason for this decision..."
                 onChange={(event) => {
                   setDecisionReason(event.target.value);
@@ -471,7 +554,7 @@ function SubmissionDetailPage() {
                   type="button"
                   disabled={!canUpdateStatus || isUpdating}
                   className="border-feedback-danger-border text-feedback-danger hover:bg-feedback-danger-bg"
-                  onClick={() => handleStatusUpdate('rejected', 'Reject', 'rejected', { requireReason: true })}
+                  onClick={() => handleStatusUpdate('rejected', 'Reject', 'rejected')}
                 >
                   Reject
                 </SecondaryButton>

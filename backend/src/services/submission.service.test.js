@@ -1,9 +1,11 @@
 const {
   createSubmissionService,
   countWords,
-  serializeSubmission
+  serializeSubmission,
+  validateDecisionReason,
+  MAX_DECISION_REASON_LENGTH
 } = require('./submission.service');
-const { documentMetadata, VoyageProviderError } = require('./voyageEmbedding.service');
+const { documentMetadata, VoyageProviderError, validStoredEmbedding } = require('./voyageEmbedding.service');
 const { buildSubmissionTopicShape } = require('./topicCorpusLifecycle.service');
 
 function createPrismaMock(overrides = {}) {
@@ -397,7 +399,9 @@ describe('submission.service', () => {
         submittedAt: 'desc'
       },
       include: {
-        session: true
+        session: true,
+        revisionOf: true,
+        revision: true
       }
     });
     expect(result).toEqual([
@@ -453,9 +457,11 @@ describe('submission.service', () => {
       },
       include: {
         session: true,
+        revisionOf: true,
         student: {
           select: {
             name: true,
+            matricNumber: true,
             email: true
           }
         }
@@ -749,9 +755,12 @@ describe('submission.service', () => {
             name: true
           }
         },
+        revisionOf: true,
+        revision: true,
         student: {
           select: {
             name: true,
+            matricNumber: true,
             email: true
           }
         }
@@ -818,7 +827,7 @@ describe('submission.service', () => {
   test.each([
     ['approved', 'APPROVED', undefined, null],
     ['rejected', 'REJECTED', '  Topic is too similar to approved work.  ', 'Topic is too similar to approved work.'],
-    ['awaiting_revision', 'AWAITING_REVISION', undefined, null]
+    ['awaiting_revision', 'AWAITING_REVISION', '  Narrow the population and state the study design.  ', 'Narrow the population and state the study design.']
   ])('lecturer can update pending submission to %s', async (clientStatus, prismaStatus, reason, expectedReason) => {
     const updatedAt = new Date('2026-05-19T12:00:00Z');
     const decidedAt = new Date('2026-05-19T12:05:00Z');
@@ -1286,6 +1295,405 @@ describe('submission.service', () => {
       student_name: 'Student Demo',
       student_email: 'student.demo@uniosun.edu.ng',
       submitted_at: '2026-05-19T10:00:00.000Z'
+    });
+  });
+});
+
+describe('submission revision lineage', () => {
+  const revisionInput = {
+    title: 'Revised knowledge of malaria prevention among undergraduate students',
+    category: 'Public Health',
+    keywords: 'malaria, prevention, revised'
+  };
+
+  function awaitingRevisionOriginal(overrides = {}) {
+    return {
+      id: 21,
+      studentId: studentUser.id,
+      status: 'AWAITING_REVISION',
+      title: validInput.title,
+      category: validInput.category,
+      keywords: validInput.keywords,
+      decisionReason: 'Narrow the population and state the study design.',
+      decidedAt: new Date('2026-05-19T12:05:00Z'),
+      submittedAt: new Date('2026-05-19T10:00:00Z'),
+      revision: null,
+      ...overrides
+    };
+  }
+
+  function revisionPrismaMock(original, createOverride) {
+    return createPrismaMock({
+      submission: {
+        findUnique: jest.fn().mockResolvedValue(original),
+        create: createOverride || jest.fn(async ({ data }) => ({
+          id: 22,
+          ...data,
+          session: { id: 3, name: '2025/2026' },
+          revisionOf: original,
+          submittedAt: new Date('2026-05-20T09:00:00Z'),
+          createdAt: new Date('2026-05-20T09:00:00Z'),
+          updatedAt: new Date('2026-05-20T09:00:00Z')
+        })),
+        update: jest.fn()
+      }
+    });
+  }
+
+  test('eligible student can resubmit a revision that references the original', async () => {
+    const prisma = revisionPrismaMock(awaitingRevisionOriginal());
+    const corpusLifecycle = createCorpusLifecycleMock();
+    const service = createSubmissionService({ prismaClient: prisma, corpusLifecycle });
+
+    const result = await service.createRevisionSubmission({
+      user: studentUser,
+      submissionId: 21,
+      input: revisionInput
+    });
+
+    expect(prisma.submission.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        studentId: studentUser.id,
+        title: revisionInput.title,
+        status: 'PENDING_REVIEW',
+        revisionOfId: 21
+      })
+    }));
+    expect(result).toMatchObject({
+      id: 22,
+      status: 'pending_review',
+      is_revision: true,
+      revision_of_id: 21
+    });
+    expect(result.revision_of).toMatchObject({
+      id: 21,
+      title: validInput.title,
+      status: 'awaiting_revision',
+      decision_reason: 'Narrow the population and state the study design.'
+    });
+  });
+
+  test('the original submission is never overwritten by a revision', async () => {
+    const prisma = revisionPrismaMock(awaitingRevisionOriginal());
+    const service = createSubmissionService({
+      prismaClient: prisma,
+      corpusLifecycle: createCorpusLifecycleMock()
+    });
+
+    await service.createRevisionSubmission({
+      user: studentUser,
+      submissionId: 21,
+      input: revisionInput
+    });
+
+    expect(prisma.submission.update).not.toHaveBeenCalled();
+  });
+
+  test('a revision receives its own valid stored embedding and under-review corpus entry', async () => {
+    const prisma = revisionPrismaMock(awaitingRevisionOriginal());
+    const corpusLifecycle = createCorpusLifecycleMock();
+    const service = createSubmissionService({ prismaClient: prisma, corpusLifecycle });
+
+    await service.createRevisionSubmission({
+      user: studentUser,
+      submissionId: 21,
+      input: revisionInput
+    });
+
+    expect(corpusLifecycle.prepareDocumentEmbedding).toHaveBeenCalledTimes(1);
+    expect(corpusLifecycle.prepareDocumentEmbedding).toHaveBeenCalledWith(
+      buildSubmissionTopicShape(revisionInput)
+    );
+
+    const underReviewRow = prisma.underReviewTopic.create.mock.calls[0][0].data;
+    expect(underReviewRow.submissionId).toBe(22);
+    expect(underReviewRow.title).toBe(revisionInput.title);
+    expect(validStoredEmbedding(underReviewRow)).toBe(true);
+  });
+
+  test('a student cannot revise a submission belonging to another student', async () => {
+    const prisma = revisionPrismaMock(awaitingRevisionOriginal({ studentId: 999 }));
+    const service = createSubmissionService({
+      prismaClient: prisma,
+      corpusLifecycle: createCorpusLifecycleMock()
+    });
+
+    // Reported as missing rather than forbidden: a student has no legitimate way
+    // to learn that another submission exists, so 403 would leak that fact.
+    await expect(service.createRevisionSubmission({
+      user: studentUser,
+      submissionId: 21,
+      input: revisionInput
+    })).rejects.toMatchObject({ statusCode: 404, code: 'SUBMISSION_NOT_FOUND' });
+
+    expect(prisma.submission.create).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ['PENDING_REVIEW'],
+    ['APPROVED'],
+    ['REJECTED']
+  ])('a %s submission cannot be revised', async (status) => {
+    const prisma = revisionPrismaMock(awaitingRevisionOriginal({ status }));
+    const service = createSubmissionService({
+      prismaClient: prisma,
+      corpusLifecycle: createCorpusLifecycleMock()
+    });
+
+    await expect(service.createRevisionSubmission({
+      user: studentUser,
+      submissionId: 21,
+      input: revisionInput
+    })).rejects.toMatchObject({
+      statusCode: 400,
+      code: 'SUBMISSION_NOT_AWAITING_REVISION'
+    });
+
+    expect(prisma.submission.create).not.toHaveBeenCalled();
+  });
+
+  // A revision is itself PENDING_REVIEW, so the rule above is also what makes a
+  // lineage cycle unrepresentable: nothing that already sits in the chain can be
+  // pointed back at, and revisionOfId is only ever written at creation.
+  test('a submission that already has a revision cannot be revised again', async () => {
+    const prisma = revisionPrismaMock(awaitingRevisionOriginal({
+      revision: { id: 22, title: revisionInput.title, status: 'PENDING_REVIEW' }
+    }));
+    const service = createSubmissionService({
+      prismaClient: prisma,
+      corpusLifecycle: createCorpusLifecycleMock()
+    });
+
+    await expect(service.createRevisionSubmission({
+      user: studentUser,
+      submissionId: 21,
+      input: revisionInput
+    })).rejects.toMatchObject({
+      statusCode: 409,
+      code: 'SUBMISSION_ALREADY_REVISED'
+    });
+
+    expect(prisma.submission.create).not.toHaveBeenCalled();
+  });
+
+  test('a racing duplicate resubmission loses at the unique index instead of creating a second revision', async () => {
+    // Both requests can pass the read-time check, so the database constraint is
+    // what actually prevents two competing revisions of one original.
+    const uniqueViolation = Object.assign(new Error('Unique constraint failed'), {
+      code: 'P2002',
+      meta: { target: ['revision_of_id'] }
+    });
+    const prisma = revisionPrismaMock(
+      awaitingRevisionOriginal(),
+      jest.fn().mockRejectedValue(uniqueViolation)
+    );
+    const service = createSubmissionService({
+      prismaClient: prisma,
+      corpusLifecycle: createCorpusLifecycleMock()
+    });
+
+    await expect(service.createRevisionSubmission({
+      user: studentUser,
+      submissionId: 21,
+      input: revisionInput
+    })).rejects.toMatchObject({
+      statusCode: 409,
+      code: 'SUBMISSION_ALREADY_REVISED'
+    });
+  });
+
+  test('a revision that cannot be embedded fails honestly and writes nothing', async () => {
+    const prisma = revisionPrismaMock(awaitingRevisionOriginal());
+    const corpusLifecycle = createCorpusLifecycleMock({
+      prepareDocumentEmbedding: jest.fn().mockRejectedValue(new VoyageProviderError('provider down'))
+    });
+    const service = createSubmissionService({ prismaClient: prisma, corpusLifecycle });
+
+    await expect(service.createRevisionSubmission({
+      user: studentUser,
+      submissionId: 21,
+      input: revisionInput
+    })).rejects.toMatchObject({
+      statusCode: 503,
+      code: 'SEMANTIC_SYNC_UNAVAILABLE'
+    });
+
+    expect(prisma.submission.create).not.toHaveBeenCalled();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  test('a revision is validated with the same title rules as a first submission', async () => {
+    const prisma = revisionPrismaMock(awaitingRevisionOriginal());
+    const service = createSubmissionService({
+      prismaClient: prisma,
+      corpusLifecycle: createCorpusLifecycleMock()
+    });
+
+    await expect(service.createRevisionSubmission({
+      user: studentUser,
+      submissionId: 21,
+      input: { ...revisionInput, title: 'Too short title' }
+    })).rejects.toMatchObject({ statusCode: 400, code: 'TITLE_TOO_SHORT' });
+  });
+});
+
+describe('revision feedback is mandatory', () => {
+  function pendingPrismaMock() {
+    return createPrismaMock({
+      submission: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 21,
+          status: 'PENDING_REVIEW',
+          studentId: studentUser.id,
+          title: validInput.title,
+          category: validInput.category,
+          keywords: validInput.keywords,
+          session: { id: 3, name: '2025/2026' }
+        }),
+        update: jest.fn()
+      }
+    });
+  }
+
+  test.each([
+    [undefined],
+    [''],
+    ['   ']
+  ])('requesting a revision without feedback is rejected (%p)', async (reason) => {
+    const prisma = pendingPrismaMock();
+    const service = createSubmissionService({
+      prismaClient: prisma,
+      corpusLifecycle: createCorpusLifecycleMock()
+    });
+
+    await expect(service.updateLecturerSubmissionStatus({
+      user: lecturerUser,
+      submissionId: 21,
+      status: 'awaiting_revision',
+      reason
+    })).rejects.toMatchObject({
+      statusCode: 400,
+      code: 'DECISION_REASON_REQUIRED'
+    });
+
+    expect(prisma.submission.update).not.toHaveBeenCalled();
+  });
+
+  test('token revision feedback is rejected as too short', async () => {
+    const prisma = pendingPrismaMock();
+    const service = createSubmissionService({
+      prismaClient: prisma,
+      corpusLifecycle: createCorpusLifecycleMock()
+    });
+
+    await expect(service.updateLecturerSubmissionStatus({
+      user: lecturerUser,
+      submissionId: 21,
+      status: 'awaiting_revision',
+      reason: 'no'
+    })).rejects.toMatchObject({
+      statusCode: 400,
+      code: 'DECISION_REASON_TOO_SHORT'
+    });
+
+    expect(prisma.submission.update).not.toHaveBeenCalled();
+  });
+
+  test('approval still needs no rationale', () => {
+    expect(validateDecisionReason({ status: 'APPROVED', reason: undefined })).toBeNull();
+  });
+
+  test('over-long rationale is rejected rather than silently stored', () => {
+    expect(() => validateDecisionReason({
+      status: 'REJECTED',
+      reason: 'x'.repeat(MAX_DECISION_REASON_LENGTH + 1)
+    })).toThrow(/cannot exceed/);
+  });
+});
+
+describe('review queue student identity', () => {
+  function queueMock(student) {
+    return createPrismaMock({
+      submission: {
+        findMany: jest.fn().mockResolvedValue([{
+          id: 21,
+          studentId: studentUser.id,
+          sessionId: 3,
+          session: { id: 3, name: '2025/2026' },
+          title: validInput.title,
+          category: validInput.category,
+          keywords: validInput.keywords,
+          status: 'PENDING_REVIEW',
+          student,
+          revisionOf: null,
+          submittedAt: new Date('2026-05-19T10:00:00Z'),
+          createdAt: new Date('2026-05-19T10:00:00Z'),
+          updatedAt: new Date('2026-05-19T10:00:00Z')
+        }])
+      }
+    });
+  }
+
+  test('a student with no email is still identified by matric number', async () => {
+    const prisma = queueMock({ name: 'Student Demo', matricNumber: 'PHS/22/0042', email: null });
+    const service = createSubmissionService({ prismaClient: prisma });
+
+    const [row] = await service.listLecturerPendingSubmissions({ user: lecturerUser });
+
+    expect(row.student_matric_number).toBe('PHS/22/0042');
+    expect(row.student_name).toBe('Student Demo');
+    expect(row.student_email).toBeNull();
+  });
+
+  test('an email, when present, is carried as secondary detail alongside matric', async () => {
+    const prisma = queueMock({
+      name: 'Student Demo',
+      matricNumber: 'PHS/22/0043',
+      email: 'personal.address@example.com'
+    });
+    const service = createSubmissionService({ prismaClient: prisma });
+
+    const [row] = await service.listLecturerPendingSubmissions({ user: lecturerUser });
+
+    expect(row.student_matric_number).toBe('PHS/22/0043');
+    expect(row.student_email).toBe('personal.address@example.com');
+  });
+
+  test('a revision arriving in the queue carries the feedback that produced it', async () => {
+    const prisma = createPrismaMock({
+      submission: {
+        findMany: jest.fn().mockResolvedValue([{
+          id: 22,
+          studentId: studentUser.id,
+          sessionId: 3,
+          session: { id: 3, name: '2025/2026' },
+          title: 'Revised topic title with enough words to pass validation',
+          status: 'PENDING_REVIEW',
+          revisionOfId: 21,
+          student: { name: 'Student Demo', matricNumber: 'PHS/22/0042', email: null },
+          revisionOf: {
+            id: 21,
+            title: validInput.title,
+            status: 'AWAITING_REVISION',
+            decisionReason: 'Narrow the population and state the study design.',
+            decidedAt: new Date('2026-05-19T12:05:00Z'),
+            submittedAt: new Date('2026-05-19T10:00:00Z')
+          },
+          submittedAt: new Date('2026-05-20T09:00:00Z'),
+          createdAt: new Date('2026-05-20T09:00:00Z'),
+          updatedAt: new Date('2026-05-20T09:00:00Z')
+        }])
+      }
+    });
+    const service = createSubmissionService({ prismaClient: prisma });
+
+    const [row] = await service.listLecturerPendingSubmissions({ user: lecturerUser });
+
+    expect(row.is_revision).toBe(true);
+    expect(row.revision_of).toMatchObject({
+      id: 21,
+      title: validInput.title,
+      decision_reason: 'Narrow the population and state the study design.'
     });
   });
 });

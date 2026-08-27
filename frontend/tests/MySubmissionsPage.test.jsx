@@ -182,7 +182,67 @@ describe('MySubmissionsPage', () => {
     expect(await screen.findByText(/safe feedback display topic/i)).toBeInTheDocument();
     expect(screen.getByText(/please tighten the title scope/i)).toBeInTheDocument();
     expect(screen.queryByText(/9999|dr\. hidden reviewer|hidden summary content/i)).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /edit|withdraw|delete|resubmit|appeal/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /edit|withdraw|delete|appeal/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /details/i })).not.toBeInTheDocument();
+  });
+
+  it('offers Revise and Resubmit only while a revision is actually outstanding', async () => {
+    listSubmissions.mockResolvedValue([{
+      id: 7,
+      title: 'Awaiting revision student topic',
+      status: 'awaiting_revision',
+      decision_reason: 'Please narrow the population and state the study design.',
+      has_revision: false,
+      submitted_at: '2026-05-20T10:00:00.000Z'
+    }]);
+    renderMySubmissionsPage();
+
+    expect(await screen.findByTestId('action-required-7')).toHaveTextContent(/action required/i);
+    expect(screen.getByRole('button', { name: /revise and resubmit/i })).toBeInTheDocument();
+    expect(screen.getByTestId('next-step-7')).toHaveTextContent(/revise and resubmit this topic/i);
+  });
+
+  it('withdraws the revise action once the revision has been submitted', async () => {
+    listSubmissions.mockResolvedValue([{
+      id: 8,
+      title: 'Already revised student topic',
+      status: 'awaiting_revision',
+      decision_reason: 'Please narrow the population.',
+      has_revision: true,
+      revision: { id: 9, title: 'The revised student topic', submitted_at: '2026-05-22T10:00:00.000Z' },
+      submitted_at: '2026-05-20T10:00:00.000Z'
+    }]);
+    renderMySubmissionsPage();
+
+    expect(await screen.findByText(/already revised student topic/i)).toBeInTheDocument();
+    expect(screen.queryByTestId('action-required-8')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /revise and resubmit/i })).not.toBeInTheDocument();
+    expect(screen.getByTestId('submission-state-8')).toHaveTextContent(/^Revised$/);
+    expect(screen.getByTestId('revision-history-8')).toHaveTextContent(/the revised student topic/i);
+  });
+
+  it('shows a revised submission with the feedback that produced it', async () => {
+    listSubmissions.mockResolvedValue([{
+      id: 9,
+      title: 'The revised student topic',
+      status: 'pending_review',
+      is_revision: true,
+      revision_of: {
+        id: 8,
+        title: 'Already revised student topic',
+        status: 'awaiting_revision',
+        decision_reason: 'Please narrow the population.',
+        decided_at: '2026-05-21T10:00:00.000Z',
+        submitted_at: '2026-05-20T10:00:00.000Z'
+      },
+      submitted_at: '2026-05-22T10:00:00.000Z'
+    }]);
+    renderMySubmissionsPage();
+
+    expect(await screen.findByTestId('submission-state-9')).toHaveTextContent(/Revised .* under review/);
+    const history = screen.getByTestId('revision-history-9');
+    expect(history).toHaveTextContent(/already revised student topic/i);
+    expect(history).toHaveTextContent(/please narrow the population/i);
+    expect(screen.queryByTestId('action-required-9')).not.toBeInTheDocument();
   });
 });

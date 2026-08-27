@@ -2,6 +2,17 @@ import { useNavigate } from 'react-router-dom';
 import PrimaryButton from '../../components/ui/PrimaryButton';
 import SecondaryButton from '../../components/ui/SecondaryButton';
 
+// DEFERRED PENDING PILOT FEEDBACK.
+//
+// This page is scaffolding, not a shipped feature: the controls below are
+// deliberately disabled and the copy says so plainly. Its navigation entry was
+// withheld for the pilot (see `deferredStudentNavigation` in
+// ../../layouts/navigation.js) so the product does not advertise browsing it
+// cannot do, but the route is kept reachable and honest for anyone who has
+// bookmarked it or follows a stale link.
+//
+// Whether to build real approved-topic browsing is a pilot-feedback decision.
+// Do not re-add the navigation entry until this page actually lists topics.
 function ResearchExplorerPage() {
   const navigate = useNavigate();
   return (

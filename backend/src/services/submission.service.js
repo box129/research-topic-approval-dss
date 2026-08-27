@@ -5,6 +5,8 @@ const { validStoredEmbedding, VoyageProviderError } = require('./voyageEmbedding
 
 const MIN_TITLE_WORDS = 7;
 const MAX_TITLE_WORDS = 24;
+const MIN_DECISION_REASON_LENGTH = 10;
+const MAX_DECISION_REASON_LENGTH = 2000;
 const LECTURER_STATUS_UPDATES = {
   approved: 'APPROVED',
   rejected: 'REJECTED',
@@ -54,6 +56,27 @@ function normalizeDecisionReason(value) {
   return normalizeOptionalText(value);
 }
 
+// A lineage reference is intentionally small: enough for a reviewer to see what
+// the previous round proposed and why it came back, without duplicating a whole
+// submission record or leaking anything about the student beyond what the
+// containing payload already carries.
+function serializeLineageRef(submission) {
+  if (!submission) {
+    return null;
+  }
+
+  return {
+    id: submission.id,
+    title: submission.title,
+    category: submission.category ?? null,
+    keywords: submission.keywords ?? null,
+    status: String(submission.status || '').toLowerCase(),
+    decision_reason: submission.decisionReason || null,
+    decided_at: submission.decidedAt?.toISOString?.() || submission.decidedAt || null,
+    submitted_at: submission.submittedAt?.toISOString?.() || submission.submittedAt || null
+  };
+}
+
 function serializeSubmission(submission, {
   includeStudent = Boolean(submission?.student),
   includeDecision = false,
@@ -62,6 +85,11 @@ function serializeSubmission(submission, {
   if (!submission) {
     return null;
   }
+
+  // `revisionOf` / `revision` are only present when the caller asked Prisma for
+  // them, so lineage stays absent rather than falsely null on queries that did
+  // not load it.
+  const hasLineage = 'revisionOf' in submission || 'revision' in submission;
 
   return {
     id: submission.id,
@@ -82,7 +110,20 @@ function serializeSubmission(submission, {
     } : {}),
     ...(includeStudent ? {
       student_name: submission.student?.name || null,
+      // Matric number is the student's primary identifier; email is optional and
+      // legitimately absent for most students, so it is carried as secondary
+      // detail rather than as the thing that identifies them.
+      student_matric_number: submission.student?.matricNumber || null,
       student_email: submission.student?.email || null
+    } : {}),
+    // Lineage is flat and cheap so every list can render "revision of" without a
+    // second request.
+    is_revision: Boolean(submission.revisionOfId),
+    revision_of_id: submission.revisionOfId ?? null,
+    ...(hasLineage ? {
+      revision_of: serializeLineageRef(submission.revisionOf),
+      revision: serializeLineageRef(submission.revision),
+      has_revision: Boolean(submission.revision)
     } : {}),
     submitted_at: submission.submittedAt?.toISOString?.() || submission.submittedAt,
     created_at: submission.createdAt?.toISOString?.() || submission.createdAt,
@@ -217,14 +258,41 @@ function parseLecturerStatusUpdate(value) {
   return prismaStatus;
 }
 
+// Both decisions that hand work back to the student must say why. Requesting a
+// revision without feedback is the worst case of all: the action itself asks the
+// student to change something, so omitting the reason leaves them with nothing
+// to act on. The minimum length is deliberately small — enough to reject "no"
+// or ".", not enough to demand an essay.
+const DECISION_REASON_RULES = {
+  REJECTED: {
+    missing: 'Decision rationale is required when rejecting a submission.',
+    tooShort: `Decision rationale must be at least ${MIN_DECISION_REASON_LENGTH} characters.`
+  },
+  AWAITING_REVISION: {
+    missing: 'Revision feedback is required so the student knows what to change.',
+    tooShort: `Revision feedback must be at least ${MIN_DECISION_REASON_LENGTH} characters so the student knows what to change.`
+  }
+};
+
 function validateDecisionReason({ status, reason }) {
   const normalizedReason = normalizeDecisionReason(reason);
+  const rules = DECISION_REASON_RULES[status];
 
-  if (status === 'REJECTED' && !normalizedReason) {
+  if (rules) {
+    if (!normalizedReason) {
+      throw new SubmissionServiceError(rules.missing, 400, 'DECISION_REASON_REQUIRED', 'reason');
+    }
+
+    if (normalizedReason.length < MIN_DECISION_REASON_LENGTH) {
+      throw new SubmissionServiceError(rules.tooShort, 400, 'DECISION_REASON_TOO_SHORT', 'reason');
+    }
+  }
+
+  if (normalizedReason && normalizedReason.length > MAX_DECISION_REASON_LENGTH) {
     throw new SubmissionServiceError(
-      'Decision rationale is required when rejecting a submission.',
+      `Decision rationale cannot exceed ${MAX_DECISION_REASON_LENGTH} characters.`,
       400,
-      'DECISION_REASON_REQUIRED',
+      'DECISION_REASON_TOO_LONG',
       'reason'
     );
   }
@@ -410,6 +478,116 @@ function createSubmissionService({
     return serializeSubmission(submission);
   };
 
+  // Revising is deliberately a creation, not an edit: the original row keeps its
+  // title, its decision and the feedback that produced it, and the revision is a
+  // new submission that points back at it. That is what makes the history
+  // readable later, and it means a revision re-enters the corpus through exactly
+  // the same path as any other new submission.
+  const createRevisionSubmission = async ({ user, submissionId, input }) => {
+    assertStudentUser(user);
+    const originalId = parseSubmissionId(submissionId);
+
+    const original = await prismaClient.submission.findUnique({
+      where: { id: originalId },
+      include: { revision: true }
+    });
+
+    // A submission belonging to another student is reported as missing rather
+    // than forbidden: students have no legitimate way to learn that another
+    // student's submission exists, so 403 would itself leak that fact.
+    if (!original || original.studentId !== user.id) {
+      throw new SubmissionServiceError('Submission was not found.', 404, 'SUBMISSION_NOT_FOUND');
+    }
+
+    if (original.status !== 'AWAITING_REVISION') {
+      throw new SubmissionServiceError(
+        'Only a submission with a revision request can be revised.',
+        400,
+        'SUBMISSION_NOT_AWAITING_REVISION',
+        'status'
+      );
+    }
+
+    if (original.revision) {
+      throw new SubmissionServiceError(
+        'This submission has already been revised.',
+        409,
+        'SUBMISSION_ALREADY_REVISED'
+      );
+    }
+
+    const title = validateSubmissionInput(input || {});
+    const category = normalizeOptionalText(input?.category);
+    const keywords = normalizeKeywords(input?.keywords);
+    const session = await getCurrentSession();
+    const sessionId = session?.id || null;
+
+    const topicShape = corpusLifecycle.buildSubmissionTopicShape({ title, category, keywords });
+    const embeddingData = await prepareDocumentEmbeddingOrFail(
+      topicShape,
+      'Your revision could not be submitted because semantic analysis is currently unavailable. Please try again shortly.'
+    );
+
+    let revision;
+
+    try {
+      revision = await prismaClient.$transaction(async (tx) => {
+        const created = await tx.submission.create({
+          data: {
+            studentId: user.id,
+            sessionId,
+            title,
+            category,
+            keywords,
+            status: 'PENDING_REVIEW',
+            revisionOfId: originalId
+          },
+          include: {
+            session: true,
+            revisionOf: true
+          }
+        });
+
+        await tx.underReviewTopic.create({
+          data: {
+            ...topicShape,
+            keywords: topicShape.keywords || '',
+            sessionYear: session?.name || '',
+            supervisorName: '',
+            sourceType: 'submission',
+            reviewStartedAt: created.submittedAt,
+            submissionId: created.id,
+            ...embeddingData
+          }
+        });
+
+        return created;
+      });
+    } catch (error) {
+      // The unique index on revision_of_id is the real race guard: a
+      // double-submitted resubmission loses here instead of creating a second
+      // competing revision of the same original.
+      if (error?.code === 'P2002') {
+        throw new SubmissionServiceError(
+          'This submission has already been revised.',
+          409,
+          'SUBMISSION_ALREADY_REVISED'
+        );
+      }
+
+      throw error;
+    }
+
+    await corpusLifecycle.refreshResidentCorpusSafely('submission revision');
+
+    await notificationEvents.notifyReviewersOfSubmissionCreatedSafely({
+      submission: revision,
+      actorUser: user
+    });
+
+    return serializeSubmission(revision);
+  };
+
   const listStudentSubmissions = async ({ user }) => {
     assertStudentUser(user);
 
@@ -421,7 +599,9 @@ function createSubmissionService({
         submittedAt: 'desc'
       },
       include: {
-        session: true
+        session: true,
+        revisionOf: true,
+        revision: true
       }
     });
 
@@ -443,16 +623,22 @@ function createSubmissionService({
       },
       include: {
         session: true,
+        // A revised topic arriving in the queue must be identifiable as a
+        // revision, with the feedback that produced it, without opening it.
+        revisionOf: true,
         student: {
           select: {
             name: true,
+            matricNumber: true,
             email: true
           }
         }
       }
     });
 
-    return submissions.map(serializeSubmission);
+    return submissions.map((submission) => serializeSubmission(submission, {
+      includeStudent: true
+    }));
   };
 
   const getLecturerSubmission = async ({ user, submissionId }) => {
@@ -468,9 +654,14 @@ function createSubmissionService({
             name: true
           }
         },
+        // Both directions of lineage: what this revises, and whether it has
+        // already been superseded by a later revision.
+        revisionOf: true,
+        revision: true,
         student: {
           select: {
             name: true,
+            matricNumber: true,
             email: true
           }
         }
@@ -482,6 +673,7 @@ function createSubmissionService({
     }
 
     return serializeSubmission(submission, {
+      includeStudent: true,
       includeDecision: true,
       includeDecisionActor: true
     });
@@ -690,6 +882,7 @@ function createSubmissionService({
 
   return {
     createSubmission,
+    createRevisionSubmission,
     listStudentSubmissions,
     listLecturerPendingSubmissions,
     getLecturerSubmission,
@@ -704,6 +897,8 @@ module.exports = {
   countWords,
   MAX_TITLE_WORDS,
   MIN_TITLE_WORDS,
+  MIN_DECISION_REASON_LENGTH,
+  MAX_DECISION_REASON_LENGTH,
   serializeSubmission,
   assertLecturerUser,
   LECTURER_STATUS_UPDATES,

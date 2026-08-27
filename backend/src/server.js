@@ -385,6 +385,12 @@ app.post('/api/v1/submissions', requireAuth, requireRole('student'), limiters.si
   getSubmissionController().createSubmission(req, res, next);
 });
 
+// Resubmitting a revision costs a Voyage document embedding exactly like a first
+// submission, so it carries the same limiter.
+app.post('/api/v1/submissions/:id/revision', requireAuth, requireRole('student'), limiters.similarity, (req, res, next) => {
+  getSubmissionController().createRevisionSubmission(req, res, next);
+});
+
 app.get('/api/v1/lecturer/submissions', requireAuth, requireRole('lecturer'), (req, res, next) => {
   getSubmissionController().listLecturerPendingSubmissions(req, res, next);
 });

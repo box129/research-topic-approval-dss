@@ -3,7 +3,43 @@ const { retrieve, classify } = require('../services/voyageSemanticSimilarity.ser
 const { residentCorpus } = require('../services/residentCorpus.service');
 const logger = require('../config/logger');
 const MAX_SIMILARITY_FIELD_LENGTH = 1000;
-function responseMatch(item) { return { id:item.topic.id, title:item.topic.title, category:item.topic.category || null, collection:item.topic.collection, semantic_score:item.score, similarity_class:classify(item.score) }; }
+// The resident corpus loads whole table rows, so a match object also carries the
+// embedding vector, its source hash and provider metadata, import provenance,
+// and — on current-session topics — a student id. Serialisation is therefore an
+// explicit allowlist of fields that are safe and useful to whoever is reading
+// the evidence, never a spread of the row. Nothing below is derived from the
+// embedding, and adding these fields does not change how similarity is scored,
+// ranked or classified.
+const SAFE_MATCH_CONTEXT = [
+  ['session_year', 'sessionYear'],
+  ['supervisor_name', 'supervisorName'],
+  ['population', 'population'],
+  ['location', 'location'],
+  ['study_focus', 'studyFocus']
+];
+
+// Corpus rows use '' for "not recorded" as often as null (submission-sourced
+// under-review rows store an empty supervisor name, for example). Both collapse
+// to null so the UI has exactly one absent case to skip, and never renders an
+// empty label or the string "null".
+function contextValue(value) {
+  const normalized = typeof value === 'string' ? value.trim() : value;
+  return normalized || null;
+}
+
+function responseMatch(item) {
+  const topic = item.topic;
+
+  return {
+    id: topic.id,
+    title: topic.title,
+    category: contextValue(topic.category),
+    collection: topic.collection,
+    ...Object.fromEntries(SAFE_MATCH_CONTEXT.map(([exposed, source]) => [exposed, contextValue(topic[source])])),
+    semantic_score: item.score,
+    similarity_class: classify(item.score)
+  };
+}
 async function checkSimilarity(req, res, next) {
   try {
     const { topic: title, population, location, studyFocus } = req.body || {};

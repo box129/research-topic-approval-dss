@@ -29,6 +29,25 @@ async function createSubmission(req, res) {
   }
 }
 
+async function createRevisionSubmission(req, res) {
+  try {
+    const submission = await submissionService.createRevisionSubmission({
+      user: req.user,
+      submissionId: req.params.id,
+      input: req.body || {}
+    });
+
+    return res.status(201).json({
+      status: 'success',
+      data: {
+        submission
+      }
+    });
+  } catch (error) {
+    return sendSubmissionError(res, error);
+  }
+}
+
 async function listSubmissions(req, res) {
   try {
     const submissions = await submissionService.listStudentSubmissions({
@@ -120,6 +139,7 @@ async function updateLecturerSubmissionStatus(req, res) {
 
 module.exports = {
   createSubmission,
+  createRevisionSubmission,
   listSubmissions,
   listLecturerPendingSubmissions,
   listLecturerDecisionHistory,

@@ -9,6 +9,28 @@ function isSemanticUnavailableError(error) {
   return error.response?.status === 503 && isSemanticUnavailablePayload(error.response.data);
 }
 
+// One mapper for all three tiers: they differ only by which collection they
+// select, so context fields cannot drift between them. The backend already
+// collapses blank context to null, and that null is carried through unchanged
+// so the display layer has exactly one absent case to skip.
+function matchesForCollection(data, collection) {
+  return (data.matches || [])
+    .filter(match => match.collection === collection)
+    .map(match => ({
+      id: match.id,
+      topic_title: match.title,
+      category: match.category ?? null,
+      collection: match.collection,
+      session_year: match.session_year ?? null,
+      supervisor_name: match.supervisor_name ?? null,
+      population: match.population ?? null,
+      location: match.location ?? null,
+      study_focus: match.study_focus ?? null,
+      semantic_score: match.semantic_score,
+      similarity_class: match.similarity_class
+    }));
+}
+
 function mapSimilarityResponse(responsePayload) {
   const data = responsePayload?.data;
 
@@ -36,27 +58,9 @@ function mapSimilarityResponse(responsePayload) {
     corpus_size: data.corpus_size ?? null,
     recommendation: data.recommendation,
     semantic_available: responsePayload.semanticAvailable === true,
-    tier1_matches: (data.matches || []).filter(match => match.collection === 'HISTORICAL').map(match => ({
-      id: match.id,
-      topic_title: match.title,
-      collection: match.collection,
-      semantic_score: match.semantic_score,
-      similarity_class: match.similarity_class
-    })),
-    tier2_matches: (data.matches || []).filter(match => match.collection === 'CURRENT_SESSION').map(match => ({
-      id: match.id,
-      topic_title: match.title,
-      collection: match.collection,
-      semantic_score: match.semantic_score,
-      similarity_class: match.similarity_class
-    })),
-    tier3_matches: (data.matches || []).filter(match => match.collection === 'UNDER_REVIEW').map(match => ({
-      id: match.id,
-      topic_title: match.title,
-      collection: match.collection,
-      semantic_score: match.semantic_score,
-      similarity_class: match.similarity_class
-    }))
+    tier1_matches: matchesForCollection(data, 'HISTORICAL'),
+    tier2_matches: matchesForCollection(data, 'CURRENT_SESSION'),
+    tier3_matches: matchesForCollection(data, 'UNDER_REVIEW')
   };
 }
 

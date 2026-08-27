@@ -11,6 +11,7 @@ import PrimaryButton from '../../components/ui/PrimaryButton';
 import SearchInput from '../../components/ui/SearchInput';
 import SecondaryButton from '../../components/ui/SecondaryButton';
 import StatusBadge from '../../components/ui/StatusBadge';
+import StudentIdentity from '../../components/ui/StudentIdentity';
 
 function formatDate(value) {
   if (!value) return 'Not submitted';
@@ -36,6 +37,7 @@ function matchesSearch(submission, query) {
   return [
     submission.title,
     submission.student_name,
+    submission.student_matric_number,
     submission.student_email,
     submission.category,
     submission.keywords,
@@ -212,9 +214,22 @@ function PendingReviewsPage() {
                       >
                         <div className="min-w-0">
                           <div className="lg:hidden"><StatusBadge status={submission.status} /></div>
+                          {submission.is_revision && (
+                            <p
+                              className="mt-2 inline-flex rounded-badge bg-status-revision-bg px-2 py-0.5 text-xs font-semibold text-status-revision lg:mt-0"
+                              data-testid={`queue-revision-marker-${submission.id}`}
+                            >
+                              Revised submission
+                            </p>
+                          )}
                           <h3 className="mt-2 break-words text-sm font-semibold leading-5 text-text-primary lg:mt-0">
                             {submission.title}
                           </h3>
+                          {submission.revision_of?.decision_reason && (
+                            <p className="mt-1 break-words text-xs leading-5 text-text-muted">
+                              <span className="font-semibold">Revision requested:</span> {submission.revision_of.decision_reason}
+                            </p>
+                          )}
                           {submission.keywords && (
                             <p className="mt-1 break-words text-sm text-text-secondary">Keywords: {submission.keywords}</p>
                           )}
@@ -224,12 +239,12 @@ function PendingReviewsPage() {
                         </div>
                         <div className="min-w-0">
                           <p className="text-xs font-semibold uppercase text-text-muted lg:hidden">Student</p>
-                          <p className="break-words text-sm font-medium text-text-primary">
-                            {submission.student_name || 'Unnamed student'}
-                          </p>
-                          <p className="mt-1 break-all text-sm text-text-secondary">
-                            {submission.student_email || 'No email available'}
-                          </p>
+                          <StudentIdentity
+                            name={submission.student_name}
+                            matricNumber={submission.student_matric_number}
+                            email={submission.student_email}
+                            testIdPrefix={`queue-student-${submission.id}`}
+                          />
                         </div>
                         <div>
                           <p className="text-xs font-semibold uppercase text-text-muted lg:hidden">Category</p>

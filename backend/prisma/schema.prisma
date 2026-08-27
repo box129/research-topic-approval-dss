@@ -147,6 +147,17 @@ model Submission {
   decidedById              Int?                      @map("decided_by_id")
   decidedBy                User?                     @relation("SubmissionDecisions", fields: [decidedById], references: [id], onDelete: Restrict)
   decidedAt                DateTime?                 @map("decided_at")
+  // Topic-level revision lineage. A revision is always a NEW row that points at
+  // the AWAITING_REVISION submission it supersedes; the original is never
+  // overwritten, so decision history stays intact. `revisionOfId` is unique, so
+  // one original can have at most one revision — that is what makes a
+  // double-submitted resubmission fail at the database rather than creating two
+  // competing revisions. It is written once at creation and never updated,
+  // which together with the "parent must be AWAITING_REVISION" rule and the
+  // self-reference CHECK constraint makes lineage cycles unrepresentable.
+  revisionOfId             Int?                      @unique @map("revision_of_id")
+  revisionOf               Submission?               @relation("SubmissionRevision", fields: [revisionOfId], references: [id], onDelete: Cascade)
+  revision                 Submission?               @relation("SubmissionRevision")
   similarityCheckSnapshots SimilarityCheckSnapshot[]
   underReviewTopic         UnderReviewTopic?
   currentSessionTopic      CurrentSessionTopic?

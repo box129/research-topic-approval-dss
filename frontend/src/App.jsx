@@ -57,6 +57,9 @@ function App() {
         <Route path="dashboard" element={<StudentDashboardPage />} />
         <Route path="submit-topic" element={<StudentSubmitTopicPage />} />
         <Route path="my-submissions" element={<StudentMySubmissionsPage />} />
+        {/* Revising reuses the submission form so both paths share the same
+            title rules, review-before-submit step and double-submit guard. */}
+        <Route path="my-submissions/:submissionId/revise" element={<StudentSubmitTopicPage />} />
         <Route path="check-my-topic" element={<StudentCheckMyTopicPage />} />
         <Route path="research-explorer" element={<StudentResearchExplorerPage />} />
       </Route>
