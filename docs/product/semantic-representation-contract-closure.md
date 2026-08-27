@@ -57,9 +57,18 @@ commit `f925a95` records benchmark SHA-256
 and `"representation": "structured-context-v1"` for **both** the query and
 document embedding sources.
 
-`backend/evaluation/datasets/expanded-semantic-benchmark.json`, normalised to
-LF line endings, hashes to exactly that value. It is the benchmark that produced
-T1/T2. Its query side (`submitted`):
+The frozen benchmark itself is the Git blob at commit `f7cd904`
+("test(evaluation): freeze expanded semantic benchmark", 2026-08-10), path
+`backend/evaluation/datasets/expanded-semantic-benchmark.json`, whose raw
+SHA-256 is exactly that value. It is tracked on the evaluation lineage
+(`experiment/expanded-semantic-benchmark` and
+`experiment/expanded-semantic-model-evaluation`, the latter materialised in the
+`topic-similarity-semantic-eval` worktree of this repository), together with
+its build script, review document and the calibration runner. The production
+lineage deliberately does not carry the evaluation artifacts and references
+them by immutable commit; recover the benchmark with
+`git show f7cd904:backend/evaluation/datasets/expanded-semantic-benchmark.json`.
+It is the benchmark that produced T1/T2. Its query side (`submitted`):
 
 | Measure | Count |
 | --- | ---: |
@@ -184,3 +193,15 @@ unchanged; there is no fallback.
 and `voyageEmbedding.service.js` are untouched. The evaluation datasets,
 results and `qa-audit/` evidence are untouched; the benchmark hash still matches
 the calibration artifact. The defence baseline tag is unchanged.
+
+## 9. Benchmark working-copy provenance
+
+During this closure an untracked copy of the benchmark was present in the
+production worktree. Its provenance was traced before anything was done with
+it: it was a CRLF-line-ending checkout of the exact frozen blob (LF-identical,
+120,551 bytes versus the blob's 117,303 — one carriage return per line), with
+no content of its own. The authoritative copy is the tracked blob at `f7cd904`
+on the evaluation lineage described in §3; the production lineage has never
+tracked it and no production script, test or gate consumes it. The redundant
+copy was therefore removed rather than committed, so the production tree stays
+clean without an ignore rule that could hide a genuinely required input.

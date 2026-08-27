@@ -16,9 +16,10 @@ and model never carried the fields).
 ## Why it mattered
 
 The frozen thresholds were calibrated on a benchmark whose query side carried
-structured context in 120/120 cases (LF-normalised SHA-256 of
-`expanded-semantic-benchmark.json` matches the calibration artifact at commit
-`f925a95`). Title-only submission therefore compared on a representation the
+structured context in 120/120 cases (the frozen benchmark blob at commit
+`f7cd904` on the evaluation lineage, SHA-256 `b8e295e5…`, as cited by the
+calibration artifact at commit `f925a95`). Title-only submission therefore
+compared on a representation the
 thresholds were never derived from, and a diagnostic probe showed seven
 classification changes and two ranking changes attributable solely to the
 discarded context.
