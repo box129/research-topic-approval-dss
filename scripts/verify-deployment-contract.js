@@ -42,6 +42,7 @@ try {
   const releaseGate = read('scripts/release-readiness.js');
   const smoke = read('scripts/smoke/fullstack-compose-smoke.js');
   const renderBlueprint = read('render.yaml');
+  const serverRoutes = read('backend/src/server.js');
 
   const postgres = serviceBlock(compose, 'postgres');
   const backend = serviceBlock(compose, 'backend');
@@ -141,9 +142,20 @@ try {
   assert.match(renderBlueprint, /fromService:\s*\n\s*name:\s*rtadss-staging-backend\s*\n\s*type:\s*pserv\s*\n\s*property:\s*hostport/, 'the frontend upstream must use a service reference, not a discovery name.');
   assert.match(renderBlueprint, /preDeployCommand:\s*npm run prisma:migrate:deploy/, 'hosted migrations must use the pinned migrate deploy command.');
   assert.doesNotMatch(renderBlueprint, /db push|migrate dev/, 'hosted migrations must never use db push or migrate dev.');
-  assert.match(renderBlueprint, /healthCheckPath:\s*\/api\/v1\/health/, 'Render restart gating must use liveness, not the Voyage-dependent readiness endpoint.');
+  // Render supports HTTP health checks on type:web only and rejects the field
+  // on a private service, which health-checks over TCP instead. The private
+  // backend must therefore declare no health check path at all — and readiness
+  // must never become a platform restart probe on any service.
+  const backendBlock = renderBlueprint.slice(renderBlueprint.indexOf('- type: pserv'), renderBlueprint.indexOf('- type: web'));
+  assert.doesNotMatch(backendBlock, /healthCheckPath:/, 'a Render private service must not declare a health check path.');
   assert.doesNotMatch(renderBlueprint, /healthCheckPath:\s*\/api\/v1\/readiness/, 'readiness must not be used as the platform restart probe.');
-  assert.match(renderBlueprint, /autoDeploy:\s*false/, 'auto deploy must stay disabled while long synchronous admin operations can outlive the shutdown window.');
+  assert.match(renderBlueprint, /autoDeployTrigger:\s*off/, 'auto deploy must stay disabled while long synchronous admin operations can outlive the shutdown window.');
+  assert.doesNotMatch(renderBlueprint, /^\s*autoDeploy:/m, 'the deprecated autoDeploy field must not be used.');
+
+  // Removing the platform HTTP probe must never remove the application's own
+  // liveness and readiness contract.
+  assert.match(serverRoutes, /app\.get\('\/api\/v1\/health'/, 'the application must retain its liveness endpoint.');
+  assert.match(serverRoutes, /app\.get\('\/api\/v1\/readiness'/, 'the application must retain its readiness endpoint.');
   assert.doesNotMatch(renderBlueprint, /sbert|SBERT|fastapi|FastAPI/, 'hosted staging must carry no SBERT or FastAPI semantic dependency.');
   assert.match(renderBlueprint, /ipAllowList:\s*\[\]/, 'the staging database must not accept public ingress.');
 

@@ -69,11 +69,24 @@ the public hostname at creation time and the Blueprint format cannot build
 immediately after the frontend service first exists, before bootstrapping any
 account — invitation and reset links are built from it.
 
-**The Blueprint has never been applied.** Plan identifiers
-(`basic-256mb`, `standard`, `starter`), `postgresMajorVersion`, and
-private-service `healthCheckPath` support must be confirmed against Render's
-current Blueprint specification on first apply. If Render rejects a field,
-correct the field — do not weaken the architecture to satisfy it.
+**No Render resources have been provisioned from this Blueprint.** Field usage
+has been checked against Render's current Blueprint specification, and one round
+of real validator feedback has been applied:
+
+| Drift reported | Correction |
+| --- | --- |
+| `pserv service type cannot have a health check path` | `healthCheckPath` removed from the backend; it is a `type: web`-only field. The private backend now uses Render's default TCP health check. |
+| `autoDeploy` deprecated | Replaced with `autoDeployTrigger: off` on both services (allowed values: `commit`, `checksPass`, `off`). |
+
+Remaining fields verified against the published specification: `pserv`, service
+plans `standard`/`starter`, database plan `basic-256mb`, `region: frankfurt`,
+`maxShutdownDelaySeconds` (valid on web/pserv/worker, integer 1–300, so 300 is
+the maximum), `numInstances`, `preDeployCommand`, `fromDatabase` property
+`connectionString`, `fromService` property `hostport`, `postgresMajorVersion` as
+a string, `ipAllowList`, `generateValue`, and `sync: false`.
+
+If Render rejects a further field, correct the field narrowly — do not weaken
+the architecture to satisfy it.
 
 ## Frontend → private backend wiring
 
@@ -126,9 +139,28 @@ migrations, and that nothing seeds data or creates an administrator implicitly.
 
 ## Health and readiness
 
-- Render restart gating: **`/api/v1/health`** (liveness). Never readiness — a
-  Voyage blip must not cycle the container.
-- Traffic/dependency readiness: **`/api/v1/readiness`**, monitored separately.
+Render supports an HTTP `healthCheckPath` on **`type: web` only**; it rejects
+the field on a private service. The Blueprint therefore declares a health check
+path on the frontend and **none** on the backend.
+
+**Platform health for the private backend is TCP-based.** Render checks that the
+service accepts a connection on its listening port. That is a restart signal
+only, and it is deliberately weaker than the application contract: a TCP accept
+proves the socket is open, not that the process can answer a request, reach
+PostgreSQL, or reach Voyage.
+
+The application's own endpoints are unchanged and remain the authority:
+
+| Endpoint | Meaning | Who checks it |
+| --- | --- | --- |
+| `/api/v1/health` | Liveness — the Node process can answer | verified explicitly during acceptance |
+| `/api/v1/readiness` | Database + Voyage + truthful email capability | monitored continuously during acceptance |
+
+Because the platform probe is only TCP, **both endpoints must be exercised
+explicitly through the public frontend origin during hosted acceptance** rather
+than assumed from a green platform indicator. Readiness must never be wired to a
+platform restart probe on any service — a Voyage blip must not cycle the
+container.
 
 Readiness uses a bounded stale-while-revalidate window:
 
