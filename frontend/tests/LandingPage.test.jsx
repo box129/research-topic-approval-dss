@@ -53,8 +53,8 @@ describe('LandingPage', () => {
     renderLanding();
 
     ['Student', 'Lecturer', 'Administrator'].forEach((role) => expect(screen.getByText(new RegExp(`/ ${role}$`))).toBeInTheDocument());
-    ['Voyage (voyage-4-large) semantic similarity', 'Structured topic context', 'Advisory evidence'].forEach((point) => expect(screen.getByRole('heading', { name: point })).toBeInTheDocument());
-    ['Proposed topic', 'Voyage semantic similarity', 'Historical, current-session and under-review records', 'Advisory similarity evidence', 'Lecturer-controlled decision'].forEach((stage) => expect(screen.getByText(stage)).toBeInTheDocument());
+    ['Semantic similarity analysis', 'Structured topic context', 'Advisory evidence'].forEach((point) => expect(screen.getByRole('heading', { name: point })).toBeInTheDocument());
+    ['Proposed topic', 'Semantic comparison', 'Historical, current-session and under-review records', 'Advisory similarity evidence', 'Lecturer-controlled decision'].forEach((stage) => expect(screen.getByText(stage)).toBeInTheDocument());
     ['Topic submission', 'Similarity checking', 'Lecturer review', 'Decision record'].forEach((stage) => expect(screen.getByRole('heading', { name: stage })).toBeInTheDocument());
     ['Revision requested', 'Student submits a revised topic', 'Lecturer reviews again'].forEach((stage) => expect(screen.getByText(stage)).toBeInTheDocument());
     expect(document.body.textContent).not.toMatch(/\b(?:Jaccard|TF-IDF|SBERT)\b/i);

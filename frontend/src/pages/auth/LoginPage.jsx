@@ -45,44 +45,6 @@ function LoginPage() {
     }
   };
 
-  /* const heroContent = (
-    <div className="flex h-full min-h-[420px] flex-col justify-between gap-12">
-      <div>
-        <p className="inline-flex rounded-full bg-white/10 px-3 py-1 text-[0.68rem] font-bold uppercase tracking-[0.16em] text-emerald-50">
-          UNIOSUN Public Health
-        </p>
-        <h1 className="mt-8 max-w-lg text-4xl font-bold leading-tight tracking-normal sm:text-5xl">
-          Research Topic{' '}
-          <span className="block font-serif italic text-brand-gold-light">Similarity</span>
-          Detection System
-        </h1>
-        <p className="mt-8 max-w-md text-base leading-7 text-emerald-100">
-          Preventing duplicate research topics across the Public Health Department through advanced
-          linguistic analysis and repository cross-referencing.
-        </p>
-      </div>
-
-      <div className="space-y-9">
-        <ul className="space-y-4 text-sm font-medium text-emerald-50">
-          <li className="flex gap-3">
-            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-gold-light" />
-            <span>Tri-algorithm similarity detection</span>
-          </li>
-          <li className="flex gap-3">
-            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-gold-light" />
-            <span>Three-tier historical comparison</span>
-          </li>
-          <li className="flex gap-3">
-            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-gold-light" />
-            <span>Role-based topic approval workflows</span>
-          </li>
-        </ul>
-        <p className="text-[0.68rem] font-medium uppercase tracking-[0.2em] text-emerald-100/70">
-          Osun State University &copy; 2026
-        </p>
-      </div>
-    </div>
-  ); */
 
   return (
     <PublicAuthLayout>
@@ -91,7 +53,7 @@ function LoginPage() {
       </p>
       <h1 className="mt-3 text-[1.625rem] font-bold text-text-primary">Welcome back</h1>
       <p className="mt-3 text-sm leading-6 text-text-secondary">
-        Sign in with your university account. Access follows your assigned role automatically.
+        Sign in with your account. Access follows your assigned role automatically.
       </p>
 
       {error && (
@@ -105,7 +67,7 @@ function LoginPage() {
       <form className="mt-[1.375rem] space-y-4" onSubmit={handleSubmit}>
         <TextInput
           id="login-email"
-          label="University Email Address"
+          label="Email Address"
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}

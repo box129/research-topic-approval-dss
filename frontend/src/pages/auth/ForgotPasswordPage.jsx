@@ -33,11 +33,11 @@ function ForgotPasswordPage() {
     <AuthRecoveryLayout
       eyebrow="Password recovery"
       title="Forgot your password?"
-      description="Enter your university email address and we will send a reset link if the account exists."
+      description="Enter your email address and we will send a reset link if the account exists."
     >
       <InfoCallout
         className="mt-6"
-        title="University account recovery"
+        title="Account recovery"
         message="For privacy, the response does not confirm whether an account exists for the email address you submit."
       />
 
@@ -47,7 +47,7 @@ function ForgotPasswordPage() {
       <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
         <TextInput
           id="forgot-password-email"
-          label="University Email Address"
+          label="Email Address"
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}

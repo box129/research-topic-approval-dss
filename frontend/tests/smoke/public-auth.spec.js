@@ -37,7 +37,7 @@ test('public authentication routes render their required states', async ({ page 
 
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/forgot-password');
-  await page.getByLabel('University Email Address *').fill('student@example.edu');
+  await page.getByLabel('Email Address *').fill('student@example.edu');
   await page.getByRole('button', { name: 'Send reset link' }).click();
   await expect(page.getByText(/if that email exists/i)).toBeVisible();
   await expectNoOverflow(page);

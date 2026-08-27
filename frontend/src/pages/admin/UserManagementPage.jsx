@@ -656,12 +656,12 @@ function ProvisionUserSection({
         </label>
 
         <label className="text-sm font-semibold text-text-primary">
-          University email
+          Email address
           <input
             className="mt-1 w-full rounded-xl border border-border-subtle px-3 py-2 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
             name="email"
             onChange={onFieldChange}
-            placeholder="name@uniosun.edu.ng"
+            placeholder="name@example.com"
             required
             type="email"
             value={form.email}
@@ -1666,7 +1666,7 @@ function UserManagementPage() {
               />
             </label>
             <label className="text-sm font-semibold text-text-primary">
-              University email
+              Email address
               <input
                 className="mt-1 w-full rounded-xl border border-border-subtle px-3 py-2 text-sm outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
                 name="email"

@@ -56,7 +56,7 @@ function ResetPasswordPage() {
     <AuthRecoveryLayout
       eyebrow="Password recovery"
       title="Set a new password"
-      description="Create a new password for your university account."
+      description="Create a new password for your account."
     >
       {!token && (
         <InfoCallout

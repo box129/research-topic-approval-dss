@@ -183,6 +183,50 @@ describe('provisionUser', () => {
     expect(result.user.matricNumber).toBeNull();
   });
 
+  // UNIOSUN students are not issued institution-assigned mailboxes, so
+  // provisioning must accept whatever working address a person actually has.
+  // Any domain restriction would make the departmental pilot impossible.
+  test('accepts ordinary personal email domains and imposes no institutional domain', async () => {
+    const personalAddresses = [
+      'ada.obi@gmail.com',
+      'ada_obi@yahoo.com',
+      'ada.obi@outlook.com',
+      'ada.obi@hotmail.co.uk',
+      'ada.obi@proton.me'
+    ];
+
+    for (const [index, email] of personalAddresses.entries()) {
+      const prismaMock = createPrismaMock();
+      const service = createService(prismaMock);
+
+      const result = await service.provisionUser({
+        input: {
+          name: 'Synthetic Student',
+          email,
+          role: 'student',
+          matricNumber: `CSC/21/${String(index + 1).padStart(4, '0')}`
+        },
+        actor: { id: 1, role: 'admin' }
+      });
+
+      expect(result.user.email).toBe(email.toLowerCase());
+      const createdRow = prismaMock.user.create.mock.calls[0][0].data;
+      expect(createdRow.email).toBe(email.toLowerCase());
+    }
+  });
+
+  test('rejects only genuinely malformed addresses, never a permitted domain list', async () => {
+    const service = createService(createPrismaMock());
+
+    for (const email of ['not-an-email', 'missing@domain', 'two @spaces.com', '']) {
+      await expect(service.provisionUser({
+        input: { name: 'X', email, role: 'student' }
+      })).rejects.toMatchObject({
+        code: expect.stringMatching(/USER_PROVISION_EMAIL/)
+      });
+    }
+  });
+
   test('rejects admin and unknown roles strictly', async () => {
     const service = createService(createPrismaMock());
 

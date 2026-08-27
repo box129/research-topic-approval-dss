@@ -502,7 +502,7 @@ describe('AdminUserManagementPage', () => {
     fireEvent.change(screen.getByLabelText(/full name/i), {
       target: { value: 'Synthetic Student' }
     });
-    fireEvent.change(screen.getByLabelText(/university email/i), {
+    fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'synthetic.student@example.edu' }
     });
     fireEvent.change(screen.getByLabelText(/matric number/i), {
@@ -565,7 +565,7 @@ describe('AdminUserManagementPage', () => {
     fireEvent.change(screen.getByLabelText(/full name/i), {
       target: { value: 'Synthetic Lecturer' }
     });
-    fireEvent.change(screen.getByLabelText(/university email/i), {
+    fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'synthetic.lecturer@example.edu' }
     });
     fireEvent.click(screen.getByRole('button', { name: /create account/i }));
@@ -601,7 +601,7 @@ describe('AdminUserManagementPage', () => {
     fireEvent.change(screen.getByLabelText(/full name/i), {
       target: { value: 'Duplicate Student' }
     });
-    fireEvent.change(screen.getByLabelText(/university email/i), {
+    fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'student.one@example.edu' }
     });
     fireEvent.click(screen.getByRole('button', { name: /create account/i }));
@@ -934,7 +934,7 @@ describe('AdminUserManagementPage', () => {
 
       const dialog = await screen.findByRole('dialog', { name: /edit account identity/i });
       expect(within(dialog).getByLabelText(/full name/i)).toHaveValue('Student One');
-      fireEvent.change(within(dialog).getByLabelText(/university email/i), {
+      fireEvent.change(within(dialog).getByLabelText(/email address/i), {
         target: { name: 'email', value: 'corrected.student@example.edu' }
       });
       fireEvent.change(within(dialog).getByLabelText(/matric number/i), {

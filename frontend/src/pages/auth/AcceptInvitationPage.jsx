@@ -76,7 +76,7 @@ function AcceptInvitationPage() {
     <AuthRecoveryLayout
       eyebrow="Account activation"
       title="Activate your account"
-      description="Choose a private password for your provisioned university account."
+      description="Choose a private password for your provisioned account."
     >
       {validation.state === 'missing' && (
         <InfoCallout

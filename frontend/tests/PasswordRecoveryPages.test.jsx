@@ -48,7 +48,7 @@ describe('password recovery pages', () => {
     expect(screen.getByRole('heading', { name: /forgot your password/i })).toBeInTheDocument();
     expect(screen.getByText(/response does not confirm whether an account exists/i)).toBeInTheDocument();
 
-    await user.type(screen.getByLabelText(/university email address/i), 'student@example.edu');
+    await user.type(screen.getByLabelText(/email address/i), 'student@example.edu');
     await user.click(screen.getByRole('button', { name: /send reset link/i }));
 
     await waitFor(() => {

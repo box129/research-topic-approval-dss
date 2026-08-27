@@ -112,7 +112,7 @@ describe('End-to-End User Flow Tests', () => {
     renderAppAt('/student/check-my-topic', buildAuthState(null));
 
     expect(await screen.findByRole('heading', { name: /welcome back/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/university email address/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
     expect(screen.queryByRole('combobox', { name: /role/i })).not.toBeInTheDocument();
   });
 

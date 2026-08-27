@@ -35,7 +35,7 @@ const roleJourneys = [
 ];
 
 const semanticEvidencePoints = [
-  ['V', 'Voyage (voyage-4-large) semantic similarity', 'Compares contextual meaning so related topics may still be recognised when wording differs.'],
+  ['S', 'Semantic similarity analysis', 'Compares contextual meaning so related topics may still be recognised when wording differs.'],
   ['C', 'Structured topic context', 'Uses the submitted title and any supplied population, location or study-focus context in one semantic representation.'],
   ['A', 'Advisory evidence', 'Returns relevant stored records for lecturer review; it does not make an academic decision.']
 ];
@@ -134,7 +134,7 @@ function PublicMasthead() {
       <div className="landing-container landing-masthead__inner">
         <Brand />
         <div className="landing-masthead__actions">
-          <span className="landing-environment">Staging demo</span>
+          <span className="landing-environment">Staging environment</span>
           <Link className="landing-button landing-button--compact landing-button--primary" to="/login">Sign In</Link>
           <button
             className="landing-menu-toggle"
@@ -173,7 +173,7 @@ function WorkflowFigure() {
           <span>Proposed topic</span>
         </div>
         <span className="landing-workflow__arrow" aria-hidden="true">→</span>
-        <div className="landing-workflow__node"><span>01</span><strong>Voyage semantic similarity</strong></div>
+        <div className="landing-workflow__node"><span>01</span><strong>Semantic comparison</strong></div>
         <span className="landing-workflow__arrow" aria-hidden="true">→</span>
         <div className="landing-workflow__node"><span>02</span><strong>Historical, current-session and under-review records</strong></div>
         <span className="landing-workflow__arrow" aria-hidden="true">→</span>
@@ -195,7 +195,7 @@ function LandingHero() {
         <div className="landing-hero__copy">
           <p className="landing-eyebrow">Research decision support</p>
           <h1 id="landing-title">Better research topics begin with better evidence.</h1>
-          <p className="landing-hero__lede">A role-based decision-support system that compares proposed undergraduate research topics with existing records using Voyage semantic similarity while keeping final approval under lecturer control.</p>
+          <p className="landing-hero__lede">A role-based decision-support system that compares proposed undergraduate research topics with existing records using semantic similarity analysis while keeping final approval under lecturer control.</p>
           <div className="landing-button-row">
             <Link className="landing-button landing-button--primary" to="/login">Sign In to your workspace</Link>
             <AnchorLink className="landing-button landing-button--secondary" id="approval">See how the process works</AnchorLink>
@@ -215,7 +215,7 @@ function WhyPlatformSection() {
         <div><p className="landing-eyebrow">Why it exists</p><h2 id="why-title">A clearer basis for discussing topic similarity.</h2></div>
         <div className="landing-prose">
           <p>Topic review can rely on stored titles and keyword-only checking. That can make synonyms, paraphrases and differently worded but related topics harder to identify consistently across academic sessions.</p>
-          <p>The platform is designed to bring related records and multiple comparison methods into one traceable evidence trail—without replacing academic judgement or guaranteeing originality.</p>
+          <p>The platform is designed to bring related records and their semantic comparison into one traceable evidence trail—without replacing academic judgement or guaranteeing originality.</p>
         </div>
       </div>
       <div className="landing-container landing-challenges" aria-label="Challenges the platform is designed to support">
@@ -255,7 +255,7 @@ function SimilarityEvidenceSection() {
         <div className="landing-heading landing-heading--light">
           <p className="landing-eyebrow">Similarity evidence</p>
           <h2 id="evidence-title">One semantic comparison, reviewed in context.</h2>
-          <p>The Voyage semantic result supports academic review. It does not automatically approve or reject a proposal.</p>
+          <p>The semantic similarity result supports academic review. It does not automatically approve or reject a proposal.</p>
         </div>
         <div className="landing-methods">
           {semanticEvidencePoints.map(([code, title, copy]) => (
@@ -309,7 +309,7 @@ function RepositoryLifecycleSection() {
   );
 }
 
-const evidenceFacts = [['Produced by', 'The checking workflow'], ['Identifies', 'Related stored records'], ['Uses', 'Voyage semantic comparison'], ['May support', 'Saved lecturer evidence snapshots']];
+const evidenceFacts = [['Produced by', 'The checking workflow'], ['Identifies', 'Related stored records'], ['Uses', 'A managed semantic provider'], ['May support', 'Saved lecturer evidence snapshots']];
 const decisionFacts = [['Made by', 'An authorised lecturer'], ['Considers', 'The proposal and academic context'], ['May record', 'Approve, reject or request revision'], ['Documents', 'Rationale where required']];
 
 function ComparisonRecord({ label, title, facts, decision = false }) {
@@ -388,7 +388,7 @@ function FinalSignInCTA() {
         <div><p className="landing-eyebrow">Continue to your workspace</p><h2 id="final-title">Continue to your research workspace</h2><p>Students, lecturers and administrators use the same secure sign-in and are directed to the workspace assigned to their account.</p></div>
         <Link className="landing-button landing-button--gold" to="/login">Sign In to the DSS</Link>
       </div>
-      <div className="landing-container landing-staging"><strong>Staging demo</strong><span>This staging experience does not offer self-registration.</span></div>
+      <div className="landing-container landing-staging"><strong>Staging environment</strong><span>Accounts are created by an administrator; this service does not offer self-registration.</span></div>
     </section>
   );
 }
