@@ -111,9 +111,39 @@ describe('Lecturer similarity wrapper route', () => {
       .expect(200);
 
     const delegatedRequest = similarityController.checkSimilarity.mock.calls[0][0];
-    expect(delegatedRequest.body).toEqual({
+    expect(delegatedRequest.body).toStrictEqual({
       topic: 'Assessment of antenatal care utilization among pregnant women in Osogbo',
       keywords: 'antenatal care, pregnant women, Osogbo'
+    });
+  });
+
+  test('wrapper forwards the stored structured context so the lecturer query matches the student pre-check representation', async () => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+    submissionService.getLecturerSubmission.mockResolvedValue({
+      id: 7,
+      title: 'Knowledge of malaria prevention among mothers in Osogbo',
+      keywords: 'malaria, prevention',
+      population: 'Mothers of children under five',
+      location: 'Osogbo',
+      study_focus: 'Malaria prevention knowledge',
+      status: 'pending_review'
+    });
+
+    await request(app)
+      .post('/api/v1/lecturer/submissions/7/similarity-check')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .expect(200);
+
+    const delegatedRequest = similarityController.checkSimilarity.mock.calls[0][0];
+    // These are exactly the fields similarity.controller hands to embedQuery, so
+    // a title-only body here would embed a different representation from the
+    // one the thresholds were calibrated on.
+    expect(delegatedRequest.body).toStrictEqual({
+      topic: 'Knowledge of malaria prevention among mothers in Osogbo',
+      population: 'Mothers of children under five',
+      location: 'Osogbo',
+      studyFocus: 'Malaria prevention knowledge',
+      keywords: 'malaria, prevention'
     });
   });
 
@@ -132,7 +162,7 @@ describe('Lecturer similarity wrapper route', () => {
       .expect(200);
 
     const delegatedRequest = similarityController.checkSimilarity.mock.calls[0][0];
-    expect(delegatedRequest.body).toEqual({
+    expect(delegatedRequest.body).toStrictEqual({
       topic: 'Knowledge of hand hygiene practices among health workers in Osogbo',
       keywords: ''
     });

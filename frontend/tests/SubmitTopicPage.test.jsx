@@ -124,9 +124,50 @@ describe('SubmitTopicPage', () => {
       expect(createSubmission).toHaveBeenCalledWith({
         title: validTitle,
         category: 'Education',
-        keywords: 'students, library, access'
+        keywords: 'students, library, access',
+        population: '',
+        location: '',
+        studyFocus: ''
       });
     });
+  });
+
+  it('collects population, location and study focus as optional research context', () => {
+    renderSubmitTopicPage();
+
+    expect(screen.getByLabelText(/^population/i)).not.toBeRequired();
+    expect(screen.getByLabelText(/^location/i)).not.toBeRequired();
+    expect(screen.getByLabelText(/^study focus/i)).not.toBeRequired();
+    expect(screen.getByText(/included in the similarity comparison when supplied/i)).toBeInTheDocument();
+  });
+
+  it('sends supplied research context so the submission embeds the same representation as a pre-check', async () => {
+    const user = userEvent.setup();
+    createSubmission.mockResolvedValue({ id: 1 });
+    renderSubmitTopicPage();
+    fillValidSubmission();
+    fireEvent.change(screen.getByLabelText(/^population/i), { target: { value: 'Mothers of children under five' } });
+    fireEvent.change(screen.getByLabelText(/^location/i), { target: { value: 'Osogbo' } });
+    fireEvent.change(screen.getByLabelText(/^study focus/i), { target: { value: 'Malaria prevention knowledge' } });
+    await openReview(user);
+
+    // The review step shows exactly what will be embedded. Scoped to the review
+    // region because the (disabled) inputs still hold the same values.
+    const review = screen.getByRole('region', { name: /before you submit/i });
+    expect(within(review).getByText('Mothers of children under five')).toBeInTheDocument();
+    expect(within(review).getByText('Osogbo')).toBeInTheDocument();
+    expect(within(review).getByText('Malaria prevention knowledge')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /confirm submission/i }));
+
+    await waitFor(() => expect(createSubmission).toHaveBeenCalledWith({
+      title: validTitle,
+      category: 'Education',
+      keywords: 'students, library, access',
+      population: 'Mothers of children under five',
+      location: 'Osogbo',
+      studyFocus: 'Malaria prevention knowledge'
+    }));
   });
 
   it('submits optional fields as empty strings without requiring them', async () => {
@@ -141,7 +182,10 @@ describe('SubmitTopicPage', () => {
     await waitFor(() => expect(createSubmission).toHaveBeenCalledWith({
       title: validTitle,
       category: '',
-      keywords: ''
+      keywords: '',
+      population: '',
+      location: '',
+      studyFocus: ''
     }));
   });
 

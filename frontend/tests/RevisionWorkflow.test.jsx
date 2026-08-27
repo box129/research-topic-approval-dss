@@ -35,6 +35,9 @@ const awaitingRevision = {
   status: 'awaiting_revision',
   category: 'Public Health',
   keywords: 'malaria, prevention',
+  population: 'Rural undergraduate students',
+  location: 'Osun State',
+  study_focus: 'Malaria prevention awareness',
   decision_reason: 'Narrow the population and state the study design.',
   decided_at: '2026-05-21T10:00:00.000Z',
   submitted_at: '2026-05-20T10:00:00.000Z',
@@ -69,6 +72,29 @@ describe('student revise and resubmit', () => {
     expect(screen.getByLabelText(/research topic title/i)).toHaveValue(awaitingRevision.title);
     expect(screen.getByLabelText(/category/i)).toHaveValue('Public Health');
     expect(screen.getByLabelText(/keywords/i)).toHaveValue('malaria, prevention');
+    // The context the original was embedded from is carried into the revision,
+    // so the student revises the whole representation, not just the title.
+    expect(screen.getByLabelText(/^population/i)).toHaveValue('Rural undergraduate students');
+    expect(screen.getByLabelText(/^location/i)).toHaveValue('Osun State');
+    expect(screen.getByLabelText(/^study focus/i)).toHaveValue('Malaria prevention awareness');
+  });
+
+  it('sends the revised context, not the original context, when the student changes it', async () => {
+    const user = userEvent.setup();
+    renderRevisePage();
+
+    const population = await screen.findByLabelText(/^population/i);
+    await user.clear(population);
+    await user.type(population, 'Secondary school adolescents');
+    await user.click(screen.getByRole('button', { name: /review and resubmit/i }));
+    await user.click(screen.getByRole('button', { name: /confirm revision/i }));
+
+    await waitFor(() => expect(createRevisionSubmission).toHaveBeenCalledTimes(1));
+    expect(createRevisionSubmission.mock.calls[0][1]).toMatchObject({
+      population: 'Secondary school adolescents',
+      location: 'Osun State',
+      studyFocus: 'Malaria prevention awareness'
+    });
   });
 
   it('submits a revision linked to the original and keeps the original intact', async () => {
@@ -85,7 +111,10 @@ describe('student revise and resubmit', () => {
     expect(createRevisionSubmission).toHaveBeenCalledWith('8', {
       title: 'Revised assessment of malaria prevention awareness in rural schools',
       category: 'Public Health',
-      keywords: 'malaria, prevention'
+      keywords: 'malaria, prevention',
+      population: 'Rural undergraduate students',
+      location: 'Osun State',
+      studyFocus: 'Malaria prevention awareness'
     });
     expect(await screen.findByTestId('submission-confirmation'))
       .toHaveTextContent(/your original submission is kept in your history/i);

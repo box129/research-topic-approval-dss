@@ -38,17 +38,26 @@ async function prepareDocumentEmbedding(topic, { embedImpl = embedDocument, slee
   return metadata;
 }
 
-// The semantic fields a student submission contributes to the corpus. Submissions
-// capture no population/location/study focus; the frozen structured-context-v1
-// representation treats those as optional.
+function optionalText(value) {
+  const normalized = typeof value === 'string' ? value.trim() : '';
+  return normalized || null;
+}
+
+// The semantic fields a student submission contributes to the corpus. This is
+// the same structured-context-v1 shape a direct similarity check embeds, so a
+// submission and a pre-check of the same topic serialise to identical canonical
+// text. "Optional" means a genuinely blank value is omitted from the
+// representation — never that a supplied value is discarded. Keywords and
+// category are carried for the corpus record but are not part of the semantic
+// text; the serializer ignores them.
 function buildSubmissionTopicShape(submission) {
   return {
     title: submission.title,
     keywords: submission.keywords || null,
     category: submission.category || null,
-    population: null,
-    location: null,
-    studyFocus: null
+    population: optionalText(submission.population),
+    location: optionalText(submission.location),
+    studyFocus: optionalText(submission.studyFocus ?? submission.study_focus)
   };
 }
 

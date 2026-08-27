@@ -1,98 +1,36 @@
-# OPEN SEMANTIC CONTRACT ISSUE
+# Semantic Contract Issue — Submission Representation
 
-**Status: OPEN. NOT FIXED. Requires a separate evaluation and an explicit
-decision before hosted staging.**
-
-Raised by the pre-pilot usability audit (`usability-audit.md`, §19) and
-deliberately left unresolved by the pre-pilot usability closure, which changed
-no scoring or embedding behaviour.
+**Status: CLOSED.** Resolved by
+[`semantic-representation-contract-closure.md`](./semantic-representation-contract-closure.md).
 
 ## What was found
 
-The frozen `structured-context-v1` representation serialises a topic as:
+Student submissions (and lecturer similarity checks on them) were embedded from
+the title alone, while a direct pre-check of the same topic embedded the full
+`structured-context-v1` text: title plus supplied population, location and
+study focus. The serializer was correct; the context was discarded before it
+reached the serializer (`buildSubmissionTopicShape` hard-coded the three fields
+to `null`, the lecturer check forwarded only the title, and the submission form
+and model never carried the fields).
 
-```
-Title: <title>
-Population: <population>      (omitted when absent)
-Location: <location>          (omitted when absent)
-Study focus: <study focus>    (omitted when absent)
-```
+## Why it mattered
 
-Corpus topics — historical imports and approved current-session topics — carry
-those three context fields, so they are embedded from the full structured
-context.
+The frozen thresholds were calibrated on a benchmark whose query side carried
+structured context in 120/120 cases (LF-normalised SHA-256 of
+`expanded-semantic-benchmark.json` matches the calibration artifact at commit
+`f925a95`). Title-only submission therefore compared on a representation the
+thresholds were never derived from, and a diagnostic probe showed seven
+classification changes and two ranking changes attributable solely to the
+discarded context.
 
-Student submissions do not. `buildSubmissionTopicShape` in
-`backend/src/services/topicCorpusLifecycle.service.js` explicitly passes:
+## Resolution
 
-```js
-population: null,
-location: null,
-studyFocus: null
-```
+**Decision 2 — restore the structured submission representation.** This was an
+implementation correction: submissions and revisions now persist and embed the
+supplied context through the same serializer as a direct check, and the
+lecturer check forwards it. No threshold, model, dimension, representation,
+weight, ranking rule or evaluation artifact was changed.
 
-**So a student submission is embedded from its title alone.**
-
-This is *not* a defect in the representation. The representation treats those
-fields as optional, the code comments the choice deliberately, and the behaviour
-is consistent and honest. Nothing is silently wrong today.
-
-## Why it still matters
-
-The similarity checker's own form (`TopicForm`) collects population, location
-and study focus. The submission form (`SubmitTopicPage`) collects only title,
-category and keywords.
-
-The consequence is a coherence gap rather than a correctness bug:
-
-- The pre-check a student runs is a **richer query** than the one the system
-  runs against their actual submission.
-- A student can therefore rehearse with structured context, then submit
-  something that is compared on title text alone.
-- Under-review topics contributed by submissions carry no context for other
-  students' checks to compare against either.
-
-## Why it was not fixed
-
-Collecting those fields at submission time would change the **text fed to the
-embedding** for submissions. That changes vectors, which changes cosine scores,
-which can change where results fall relative to the C1.5 T1/T2 thresholds and
-therefore the LOW/MEDIUM/HIGH classification.
-
-That crosses the line from lifecycle (when and how records receive embeddings)
-into scoring input (how similarity is calculated). It is out of scope for a
-usability change and must not be decided incidentally.
-
-## What a decision needs
-
-Before anything changes, this needs:
-
-1. A decision on whether submissions *should* carry structured context at all,
-   or whether title-only submission is the intended contract.
-2. If they should: a re-evaluation of score distributions and threshold
-   behaviour against the frozen benchmark, since existing corpus embeddings
-   would be compared against differently-constructed submission embeddings.
-3. A decision on what happens to submissions already embedded title-only —
-   whether they are re-embedded, and what that means for stored snapshots.
-4. Explicit sign-off that the validated research methodology is being changed
-   knowingly, with the evaluation evidence recorded.
-
-## Constraints that still hold
-
-Nothing below may be changed as a side effect of resolving this:
-
-- the Voyage provider, `voyage-4-large`, 1024 dimensions;
-- the `structured-context-v1` representation identifier and serialisation order;
-- the C1.5 T1/T2 thresholds and the LOW/MEDIUM/HIGH boundaries;
-- Jaccard/TF-IDF behaviour and algorithm weights;
-- ranking semantics;
-- the prohibition on fallback vectors — provider failure stays explicit.
-
-## Confirmation for the pre-pilot usability closure
-
-The pre-pilot usability closure made **no semantic change**. It widened what the
-similarity response *displays* alongside an already-computed score, and it
-routed revisions through the existing submission embedding path unchanged. The
-representation, model, dimensions, thresholds, weights, ranking and classifier
-are all untouched, and the synthetic end-to-end run recorded a HIGH
-classification at a cosine score of 0.6687 under the existing thresholds.
+The earlier working assumption recorded here — that the asymmetry was "not a
+defect" because the fields are optional — was incorrect. Optional means a blank
+value may be omitted, not that a supplied value may be dropped.

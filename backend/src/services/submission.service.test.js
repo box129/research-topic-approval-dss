@@ -134,6 +134,11 @@ describe('submission.service', () => {
         title: validInput.title,
         category: validInput.category,
         keywords: validInput.keywords,
+        // No context was supplied, so the semantic fields are persisted as
+        // genuinely absent and the representation stays title-only.
+        population: null,
+        location: null,
+        studyFocus: null,
         status: 'PENDING_REVIEW'
       },
       include: {

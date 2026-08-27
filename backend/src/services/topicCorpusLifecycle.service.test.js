@@ -123,8 +123,40 @@ describe('topicCorpusLifecycle service', () => {
     test('normalizes absent optional fields to null', () => {
       expect(buildSubmissionTopicShape({ title: 'Title only' })).toMatchObject({
         keywords: null,
-        category: null
+        category: null,
+        population: null,
+        location: null,
+        studyFocus: null
       });
+    });
+
+    test('preserves supplied structured context instead of discarding it', () => {
+      // "Optional" means a blank value is omitted, never that a supplied value
+      // is dropped: the submission must embed the same context a pre-check of
+      // the same topic would.
+      expect(buildSubmissionTopicShape({
+        title: 'Knowledge of malaria prevention among mothers in Osogbo',
+        population: '  Mothers of children under five ',
+        location: 'Osogbo',
+        studyFocus: 'Malaria prevention knowledge'
+      })).toMatchObject({
+        population: 'Mothers of children under five',
+        location: 'Osogbo',
+        studyFocus: 'Malaria prevention knowledge'
+      });
+    });
+
+    test('treats whitespace-only context as genuinely absent', () => {
+      expect(buildSubmissionTopicShape({
+        title: 'Title with blank context',
+        population: '   ',
+        location: '',
+        studyFocus: undefined
+      })).toMatchObject({ population: null, location: null, studyFocus: null });
+    });
+
+    test('accepts the persisted snake_case study focus alias', () => {
+      expect(buildSubmissionTopicShape({ title: 'T', study_focus: 'Awareness' }).studyFocus).toBe('Awareness');
     });
   });
 

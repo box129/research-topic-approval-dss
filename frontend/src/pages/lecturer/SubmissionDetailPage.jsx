@@ -294,6 +294,12 @@ function SubmissionDetailPage() {
               <DetailItem label="Category" value={submission.category || 'Uncategorised'} />
               <DetailItem label="Keywords" value={submission.keywords} />
               <DetailItem label="Submitted" value={formatDate(submission.submitted_at)} />
+              {/* The semantic context the similarity evidence was computed on.
+                  Shown only when supplied; an absent field is a genuinely
+                  absent field, not a gap in the record. */}
+              {submission.population && <DetailItem label="Population" value={submission.population} />}
+              {submission.location && <DetailItem label="Location" value={submission.location} />}
+              {submission.study_focus && <DetailItem label="Study focus" value={submission.study_focus} />}
             </dl>
           </section>
 
@@ -313,6 +319,15 @@ function SubmissionDetailPage() {
                   <dd className="mt-1 break-words text-sm text-text-primary" data-testid="revision-previous-title">
                     {submission.revision_of.title}
                   </dd>
+                  {[
+                    ['Population', submission.revision_of.population],
+                    ['Location', submission.revision_of.location],
+                    ['Study focus', submission.revision_of.study_focus]
+                  ].filter(([, value]) => value).map(([label, value]) => (
+                    <dd key={label} className="mt-1 break-words text-sm text-text-secondary" data-testid={`revision-previous-${label.toLowerCase().replace(' ', '-')}`}>
+                      {label}: {value}
+                    </dd>
+                  ))}
                   {submission.revision_of.keywords && (
                     <dd className="mt-1 break-words text-sm text-text-secondary">
                       Keywords: {submission.revision_of.keywords}

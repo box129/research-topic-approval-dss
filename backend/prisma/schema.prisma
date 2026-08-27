@@ -142,6 +142,15 @@ model Submission {
   title                    String                    @db.Text
   category                 String?                   @db.Text
   keywords                 String?                   @db.Text
+  // The structured-context-v1 semantic fields. A submission is embedded from
+  // exactly the same canonical text as a direct similarity check, so what the
+  // student supplied here must be retained; only genuinely blank values are
+  // omitted from the representation. Nullable so historical submissions that
+  // never captured context remain valid and serialise title-only, because for
+  // them the fields are genuinely absent.
+  population               String?                   @db.Text
+  location                 String?                   @db.Text
+  studyFocus               String?                   @map("study_focus") @db.Text
   status                   SubmissionStatus          @default(PENDING_REVIEW)
   decisionReason           String?                   @map("decision_reason") @db.Text
   decidedById              Int?                      @map("decided_by_id")

@@ -56,6 +56,42 @@ function normalizeDecisionReason(value) {
   return normalizeOptionalText(value);
 }
 
+// The structured-context-v1 fields a submission carries into its semantic
+// representation. Same trim-and-blank-to-null rule the direct similarity check
+// applies, and the same length ceiling, so a topic that passes a pre-check
+// cannot be rejected — or silently truncated — when it is actually submitted.
+const MAX_SEMANTIC_CONTEXT_LENGTH = 1000;
+const SEMANTIC_CONTEXT_FIELDS = [
+  ['population', 'population'],
+  ['location', 'location'],
+  ['studyFocus', 'studyFocus']
+];
+
+function normalizeSemanticContext(input) {
+  const context = {};
+
+  for (const [field, key] of SEMANTIC_CONTEXT_FIELDS) {
+    const raw = input?.[key] ?? (key === 'studyFocus' ? input?.study_focus : undefined);
+
+    if (raw != null && typeof raw !== 'string') {
+      throw new SubmissionServiceError(`${field} must be text.`, 400, 'INVALID_SEMANTIC_CONTEXT', field);
+    }
+
+    if (typeof raw === 'string' && raw.length > MAX_SEMANTIC_CONTEXT_LENGTH) {
+      throw new SubmissionServiceError(
+        `${field} cannot exceed ${MAX_SEMANTIC_CONTEXT_LENGTH} characters.`,
+        400,
+        'SEMANTIC_CONTEXT_TOO_LONG',
+        field
+      );
+    }
+
+    context[field] = normalizeOptionalText(raw);
+  }
+
+  return context;
+}
+
 // A lineage reference is intentionally small: enough for a reviewer to see what
 // the previous round proposed and why it came back, without duplicating a whole
 // submission record or leaking anything about the student beyond what the
@@ -70,6 +106,9 @@ function serializeLineageRef(submission) {
     title: submission.title,
     category: submission.category ?? null,
     keywords: submission.keywords ?? null,
+    population: submission.population ?? null,
+    location: submission.location ?? null,
+    study_focus: submission.studyFocus ?? null,
     status: String(submission.status || '').toLowerCase(),
     decision_reason: submission.decisionReason || null,
     decided_at: submission.decidedAt?.toISOString?.() || submission.decidedAt || null,
@@ -99,6 +138,12 @@ function serializeSubmission(submission, {
     title: submission.title,
     category: submission.category,
     keywords: submission.keywords,
+    // The semantic context this submission was embedded from. Exposed so the
+    // student can revise from what they actually supplied and the lecturer can
+    // see the same context the similarity evidence was computed on.
+    population: submission.population ?? null,
+    location: submission.location ?? null,
+    study_focus: submission.studyFocus ?? null,
     status: String(submission.status || '').toLowerCase(),
     ...(includeDecision ? {
       decision_reason: submission.decisionReason || null,
@@ -423,6 +468,7 @@ function createSubmissionService({
     const title = validateSubmissionInput(input || {});
     const category = normalizeOptionalText(input?.category);
     const keywords = normalizeKeywords(input?.keywords);
+    const semanticContext = normalizeSemanticContext(input);
     const session = await getCurrentSession();
     const sessionId = session?.id || null;
 
@@ -431,7 +477,9 @@ function createSubmissionService({
     // inside the transaction) and the submission plus its under-review corpus
     // record are committed atomically. If Voyage is unavailable the submission
     // fails honestly instead of entering review invisible to similarity checks.
-    const topicShape = corpusLifecycle.buildSubmissionTopicShape({ title, category, keywords });
+    // The shape carries the supplied context so the stored representation is the
+    // same structured-context-v1 text a pre-check of this topic would embed.
+    const topicShape = corpusLifecycle.buildSubmissionTopicShape({ title, category, keywords, ...semanticContext });
     const embeddingData = await prepareDocumentEmbeddingOrFail(
       topicShape,
       'Your topic could not be submitted because semantic analysis is currently unavailable. Please try again shortly.'
@@ -445,6 +493,7 @@ function createSubmissionService({
           title,
           category,
           keywords,
+          ...semanticContext,
           status: 'PENDING_REVIEW'
         },
         include: {
@@ -519,10 +568,15 @@ function createSubmissionService({
     const title = validateSubmissionInput(input || {});
     const category = normalizeOptionalText(input?.category);
     const keywords = normalizeKeywords(input?.keywords);
+    const semanticContext = normalizeSemanticContext(input);
     const session = await getCurrentSession();
     const sessionId = session?.id || null;
 
-    const topicShape = corpusLifecycle.buildSubmissionTopicShape({ title, category, keywords });
+    // A revision is embedded from its own supplied context, never from the
+    // original's: if the student changed the population, location or study
+    // focus, the canonical text and its source hash change with it and a fresh
+    // embedding is generated. Nothing from the superseded submission is reused.
+    const topicShape = corpusLifecycle.buildSubmissionTopicShape({ title, category, keywords, ...semanticContext });
     const embeddingData = await prepareDocumentEmbeddingOrFail(
       topicShape,
       'Your revision could not be submitted because semantic analysis is currently unavailable. Please try again shortly.'
@@ -539,6 +593,7 @@ function createSubmissionService({
             title,
             category,
             keywords,
+            ...semanticContext,
             status: 'PENDING_REVIEW',
             revisionOfId: originalId
           },
@@ -899,6 +954,8 @@ module.exports = {
   MIN_TITLE_WORDS,
   MIN_DECISION_REASON_LENGTH,
   MAX_DECISION_REASON_LENGTH,
+  MAX_SEMANTIC_CONTEXT_LENGTH,
+  normalizeSemanticContext,
   serializeSubmission,
   assertLecturerUser,
   LECTURER_STATUS_UPDATES,

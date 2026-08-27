@@ -236,6 +236,17 @@ function MySubmissionsPage() {
                       {' · '} Submitted {formatDate(submission.submitted_at || submission.created_at)}
                       {submission.keywords ? ` · Keywords: ${submission.keywords}` : ''}
                     </p>
+                    {/* The research context this submission is compared on. Each
+                        field is shown only when supplied, so a topic submitted
+                        without context shows nothing here rather than "Not
+                        provided" three times. */}
+                    {(submission.population || submission.location || submission.study_focus) && (
+                      <dl className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-text-secondary" data-testid={`submission-context-${submission.id}`}>
+                        {submission.population && <div className="min-w-0"><dt className="inline font-semibold">Population:</dt> <dd className="inline break-words">{submission.population}</dd></div>}
+                        {submission.location && <div className="min-w-0"><dt className="inline font-semibold">Location:</dt> <dd className="inline break-words">{submission.location}</dd></div>}
+                        {submission.study_focus && <div className="min-w-0"><dt className="inline font-semibold">Study focus:</dt> <dd className="inline break-words">{submission.study_focus}</dd></div>}
+                      </dl>
+                    )}
 
                     {DECIDED_STATUSES.has(status) && (
                       <div className="mt-4 border-t border-border-subtle pt-4">

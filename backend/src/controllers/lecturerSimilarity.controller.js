@@ -46,10 +46,18 @@ async function checkLecturerSubmissionSimilarity(req, res, next) {
       return res.json(similarityResponse);
     };
 
+    // The lecturer's check is a query embedding of the stored submission, and
+    // it must use the same structured-context-v1 text the student's own
+    // pre-check used: title plus whatever context the student supplied. Passing
+    // the title alone would compare a different representation from the one the
+    // thresholds were calibrated on.
     return similarityController.checkSimilarity({
       ...req,
       body: {
         topic: submission.title,
+        ...(submission.population ? { population: submission.population } : {}),
+        ...(submission.location ? { location: submission.location } : {}),
+        ...(submission.study_focus ? { studyFocus: submission.study_focus } : {}),
         keywords: submission.keywords || ''
       }
     }, snapshotResponse, next);
