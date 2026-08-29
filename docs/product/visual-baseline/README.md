@@ -8,7 +8,7 @@ fabricated (see `tooling/synthetic-dataset.mjs`).
 | | |
 | --- | --- |
 | **APPLICATION SOURCE BASELINE** | `e5e3fc18555fafde7fa409352b37357c0bb22c43` (branch `staging/render-acceptance`) |
-| **DOCUMENTATION COMMIT** | 4bb6643ba0357816194dfbdae56a6086f4bab939 |
+| **DOCUMENTATION COMMIT** | 80bcb88a3c17d714197d3e77c2f42eb7c2e96953 |
 | Capture date | 2026-08-29 |
 | Previous package | source `ff833cf0bc645bd4678bf480bb3c4070216f78cf`, documentation `4bb6643ba0357816194dfbdae56a6086f4bab939` (historically valid; superseded by this package) |
 | Refreshed at this baseline | screenshots 20, 30, 37, 38, 39 and 54 and all four videos (pre-pilot identity/visual polish); the other 41 screenshots show screens the polish did not change and are carried forward from the previous capture |
