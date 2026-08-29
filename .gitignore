@@ -57,3 +57,9 @@ reference/prototypeFyp/
 
 # Local acceptance-only TLS material. Never commit private keys or certs.
 deploy/local-acceptance-tls/certs/
+
+# Visual-baseline walkthrough videos are kept outside normal Git history
+# (see docs/product/visual-baseline/videos/MANIFEST.md); only the manifest is tracked.
+docs/product/visual-baseline/videos/*.mp4
+docs/product/visual-baseline/videos/*.webm
+docs/product/visual-baseline/tooling/last-capture-log.json
