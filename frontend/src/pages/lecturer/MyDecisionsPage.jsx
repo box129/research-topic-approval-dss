@@ -8,6 +8,7 @@ import PageHeader from '../../components/ui/PageHeader';
 import SearchInput from '../../components/ui/SearchInput';
 import SecondaryButton from '../../components/ui/SecondaryButton';
 import StatusBadge from '../../components/ui/StatusBadge';
+import StudentIdentity from '../../components/ui/StudentIdentity';
 import LecturerDashboardLayout from '../../layouts/LecturerDashboardLayout';
 import { listLecturerDecisions } from '../../api/submissions';
 
@@ -66,12 +67,12 @@ function DecisionRecord({ decision }) {
       </div>
       <div className="min-w-0">
         <p className="text-xs font-semibold uppercase text-text-muted lg:hidden">Student</p>
-        <p className="break-words text-sm font-medium text-text-primary">
-          {decision.studentName || 'Student not recorded'}
-        </p>
-        <p className="mt-1 break-all text-sm text-text-secondary">
-          {decision.studentEmail || 'No email available'}
-        </p>
+        <StudentIdentity
+          name={decision.studentName}
+          matricNumber={decision.studentMatricNumber}
+          email={decision.studentEmail}
+          testIdPrefix={`decision-${decision.id}-student`}
+        />
       </div>
       <div>
         <p className="text-xs font-semibold uppercase text-text-muted lg:hidden">Category</p>
@@ -189,7 +190,7 @@ function MyDecisionsPage() {
                 id="decision-history-search"
                 label="Search decisions"
                 name="search"
-                placeholder="Topic, student, category, or email"
+                placeholder="Topic, student, matric number, category, or email"
                 value={filters.search}
                 onChange={updateFilter}
               />

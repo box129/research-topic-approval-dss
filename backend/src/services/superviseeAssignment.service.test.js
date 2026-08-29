@@ -52,6 +52,7 @@ const studentRecord = {
   id: 3,
   name: 'Student One',
   email: 'student.one@example.edu',
+  matricNumber: 'PHS/22/0042',
   role: 'STUDENT',
   status: 'ACTIVE'
 };
@@ -247,6 +248,7 @@ describe('superviseeAssignment.service', () => {
       expect.objectContaining({
         student: expect.objectContaining({
           id: studentRecord.id,
+          matricNumber: 'PHS/22/0042',
           email: studentRecord.email
         }),
         latestSubmission: {
@@ -260,6 +262,13 @@ describe('superviseeAssignment.service', () => {
       })
     ]);
     expect(result.data.items[0].student).not.toHaveProperty('passwordHash');
+    // The matric number is selected for the student, and the lecturer keeps an
+    // email-based identity (their matricNumber is simply null).
+    expect(prisma.lecturerSuperviseeAssignment.findMany.mock.calls[0][0].include.student.select.matricNumber).toBe(true);
+    expect(result.data.items[0].lecturer).toEqual(expect.objectContaining({
+      email: lecturerRecord.email,
+      matricNumber: null
+    }));
   });
 
   test('lecturer cannot see another lecturer supervisees because query is scoped to actor id', async () => {

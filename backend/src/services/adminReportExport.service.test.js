@@ -184,7 +184,7 @@ describe('adminReportExport.service', () => {
         endedAt: null,
         notes: 'private internal note',
         lecturer: { id: 2, name: 'Lecturer One', email: 'lecturer@example.edu' },
-        student: { id: 3, name: 'Student One', email: 'student@example.edu' },
+        student: { id: 3, name: 'Student One', matricNumber: 'PHS/22/0042', email: 'student@example.edu' },
         assignedBy: { id: 1, name: 'Admin One', email: 'admin@example.edu' }
       }
     ]);
@@ -194,6 +194,11 @@ describe('adminReportExport.service', () => {
 
     expect(result.body).toContain('lecturerEmail,studentId');
     expect(result.body).toContain('student@example.edu');
+    // Students are identified by matric number; the column sits with the
+    // student identity and the email column is retained.
+    expect(result.body).toContain('studentName,studentMatricNumber,studentEmail');
+    expect(result.body).toContain('PHS/22/0042');
+    expect(prisma.lecturerSuperviseeAssignment.findMany.mock.calls[0][0].include.student.select.matricNumber).toBe(true);
     expect(result.body).not.toContain('notes');
     expect(result.body).not.toContain('private internal note');
   });

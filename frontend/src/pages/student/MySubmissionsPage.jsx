@@ -45,7 +45,8 @@ function describeSubmission(submission) {
         label: 'Revised',
         showLabel: true,
         actionRequired: false,
-        nextStep: 'You have submitted a revision of this topic. Its progress is shown on the revised submission below.'
+        // Order-independent: the list is newest-first, so the revision is not "below".
+        nextStep: 'You have submitted a revision of this topic. Its progress is shown on the revised submission in this list.'
       }
       : {
         label: 'Revision required',

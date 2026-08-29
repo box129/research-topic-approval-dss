@@ -165,3 +165,31 @@ describe('similarity context display', () => {
     expect(card.textContent).not.toMatch(/0\.66/);
   });
 });
+
+describe('research context layout', () => {
+  // The lecturer checker tiles its match cards inside a page that is already
+  // split form | results, so the cards are narrow at every desktop width. The
+  // context list must stack there; the full-width student checker and the
+  // default embedded view keep the two-column layout.
+  it('stacks the context fields one per row in the lecturer checker', () => {
+    render(<ResultsDisplay appearance="lecturer-checker" results={contextResults} />);
+
+    const context = screen.getByTestId('research-context-0');
+    expect(context).toHaveAttribute('data-layout', 'stacked');
+    expect(context).toHaveClass('grid-cols-1');
+    expect(context).not.toHaveClass('sm:grid-cols-2');
+    expect(within(context).getByTestId('match-population-0')).toHaveTextContent('Rural caregivers');
+    expect(within(context).getByTestId('match-location-0')).toHaveTextContent('Osun State');
+  });
+
+  it('keeps the two-column context layout for the full-width student checker and the default view', () => {
+    const { unmount } = render(<ResultsDisplay appearance="student-checker" results={contextResults} />);
+    expect(screen.getByTestId('research-context-0')).toHaveAttribute('data-layout', 'two-column');
+    expect(screen.getByTestId('research-context-0')).toHaveClass('sm:grid-cols-2');
+    unmount();
+
+    render(<ResultsDisplay results={contextResults} />);
+    expect(screen.getByTestId('research-context-0')).toHaveAttribute('data-layout', 'two-column');
+    expect(screen.getByTestId('research-context-0')).toHaveClass('sm:grid-cols-2');
+  });
+});

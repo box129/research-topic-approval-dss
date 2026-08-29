@@ -428,6 +428,27 @@ describe('AdminUserManagementPage', () => {
     expect(screen.queryByText(/fake assignment/i)).not.toBeInTheDocument();
   });
 
+  it('identifies the assigned student by matric number while the lecturer stays email-based', async () => {
+    const base = assignmentsResponse.data.items[0];
+    listAdminSuperviseeAssignments.mockResolvedValue({
+      ...assignmentsResponse,
+      data: {
+        items: [
+          { ...base, student: { ...base.student, matricNumber: 'PHS/22/0042' } },
+          { ...base, id: 11, student: { ...base.student, id: 5, name: 'Student Two', email: null, matricNumber: 'PHS/22/0077' } }
+        ]
+      }
+    });
+    render(<AdminUserManagementPage />);
+
+    expect(await screen.findByTestId('assignment-10-student-matric')).toHaveTextContent('PHS/22/0042');
+    expect(screen.getByTestId('assignment-10-student-email')).toHaveTextContent('student.one@example.edu');
+    expect(screen.getByTestId('assignment-11-student-matric')).toHaveTextContent('PHS/22/0077');
+    expect(screen.queryByTestId('assignment-11-student-email')).not.toBeInTheDocument();
+    expect(screen.queryByText(/email unavailable|no email available/i)).not.toBeInTheDocument();
+    expect(screen.getAllByText('lecturer.one@example.edu').length).toBeGreaterThan(0);
+  });
+
   it('creates an audited assignment from real selected users', async () => {
     render(<AdminUserManagementPage />);
 

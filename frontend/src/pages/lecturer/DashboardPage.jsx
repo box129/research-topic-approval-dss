@@ -97,10 +97,23 @@ function LecturerDashboardPage() {
                       <StatusBadge status={submission.status} />
                       <h3 className="mt-2 break-words text-base font-semibold leading-6">{submission.title}</h3>
                       <p className="mt-1 break-words text-sm text-text-secondary">
-                        {submission.student_name || 'Unnamed student'} - {submission.category || 'Uncategorised'} - Submitted {formatDate(submission.submitted_at || submission.created_at)}
+                        <span className="font-medium text-text-primary" data-testid={`preview-student-${submission.id}-name`}>
+                          {submission.student_name || 'Unnamed student'}
+                        </span>
+                        {submission.student_matric_number && (
+                          <>
+                            {' · '}
+                            <span className="font-mono" data-testid={`preview-student-${submission.id}-matric`}>
+                              {submission.student_matric_number}
+                            </span>
+                          </>
+                        )}
+                      </p>
+                      <p className="mt-1 break-words text-sm text-text-secondary">
+                        {submission.category || 'Uncategorised'} - Submitted {formatDate(submission.submitted_at || submission.created_at)}
                       </p>
                       {submission.student_email && (
-                        <p className="mt-1 break-all text-sm text-text-secondary">{submission.student_email}</p>
+                        <p className="mt-1 break-all text-sm text-text-muted" data-testid={`preview-student-${submission.id}-email`}>{submission.student_email}</p>
                       )}
                       {submission.keywords && (
                         <p className="mt-1 break-words text-sm text-text-secondary">Keywords: {submission.keywords}</p>

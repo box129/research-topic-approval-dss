@@ -76,6 +76,11 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
   const [expandedMatches, setExpandedMatches] = useState({});
   const isCheckerShell = ['student-checker', 'lecturer-checker'].includes(appearance);
   const isStudentChecker = appearance === 'student-checker';
+  // The lecturer checker tiles match cards inside a page that is already split
+  // form | results, so each card is narrow regardless of viewport width. The
+  // research-context list must therefore stack there instead of following the
+  // viewport breakpoint, which would collide the labels.
+  const isLecturerChecker = appearance === 'lecturer-checker';
 
   // Risk level configuration; a null risk level means the backend made no
   // classification (empty comparison corpus) and must not fall back to LOW.
@@ -178,8 +183,9 @@ const ResultsDisplay = ({ results, appearance = 'default' }) => {
             the whole block disappears when none is present -- no "N/A" rows. */}
         {researchContext.length > 0 && (
           <dl
-            className="mb-3 grid gap-x-4 gap-y-1 text-sm text-gray-600 sm:grid-cols-2"
+            className={`mb-3 grid gap-x-4 gap-y-1 text-sm text-gray-600 ${isLecturerChecker ? 'grid-cols-1' : 'sm:grid-cols-2'}`}
             data-testid={`research-context-${index}`}
+            data-layout={isLecturerChecker ? 'stacked' : 'two-column'}
           >
             {researchContext.map(([label, value, testId]) => (
               <div key={label} className="min-w-0">

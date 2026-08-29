@@ -400,6 +400,11 @@ function buildDecisionHistoryQuery({ user, query = {} }) {
         student: {
           email: { contains: search, mode: 'insensitive' }
         }
+      },
+      {
+        student: {
+          matricNumber: { contains: search, mode: 'insensitive' }
+        }
       }
     ];
   }
@@ -427,6 +432,9 @@ function serializeLecturerDecision(submission) {
     id: submission.id,
     title: submission.title,
     studentName: submission.student?.name || null,
+    // Matric number is the student's institutional identifier; email is an
+    // optional secondary contact and is kept for existing consumers.
+    studentMatricNumber: submission.student?.matricNumber || null,
     studentEmail: submission.student?.email || null,
     category: submission.category || null,
     status: String(submission.status || ''),
@@ -894,6 +902,7 @@ function createSubmissionService({
           student: {
             select: {
               name: true,
+              matricNumber: true,
               email: true
             }
           },

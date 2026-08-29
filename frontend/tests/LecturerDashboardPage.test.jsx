@@ -109,6 +109,7 @@ describe('LecturerDashboardPage', () => {
         category: 'Public Health',
         keywords: 'health, education',
         student_name: 'Ada Student',
+        student_matric_number: 'PHS/22/0042',
         student_email: 'ada.student@uniosun.edu.ng',
         session_name: '2025/2026',
         submitted_at: '2026-05-20T10:00:00.000Z'
@@ -120,10 +121,41 @@ describe('LecturerDashboardPage', () => {
     expect(screen.getByText(/public health/i)).toBeInTheDocument();
     expect(screen.getByText(/keywords: health, education/i)).toBeInTheDocument();
     expect(screen.getByText(/ada student/i)).toBeInTheDocument();
+    expect(screen.getByTestId('preview-student-3-matric')).toHaveTextContent('PHS/22/0042');
     expect(screen.getByText(/ada\.student@uniosun\.edu\.ng/i)).toBeInTheDocument();
     expect(screen.getByText(/2025\/2026/i)).toBeInTheDocument();
     expect(screen.getByText(/submitted may 20, 2026/i)).toBeInTheDocument();
     expect(screen.getAllByText(/pending review/i).length).toBeGreaterThan(0);
+  });
+
+  it('distinguishes same-name students by matric number and never reports a missing email', async () => {
+    listLecturerPendingSubmissions.mockResolvedValue([
+      {
+        id: 31,
+        title: 'First topic by a student called Ada',
+        status: 'pending_review',
+        student_name: 'Ada Student',
+        student_matric_number: 'PHS/22/0042',
+        student_email: null,
+        submitted_at: '2026-05-20T10:00:00.000Z'
+      },
+      {
+        id: 32,
+        title: 'Second topic by another student called Ada',
+        status: 'pending_review',
+        student_name: 'Ada Student',
+        student_matric_number: 'PHS/22/0077',
+        student_email: null,
+        submitted_at: '2026-05-21T10:00:00.000Z'
+      }
+    ]);
+    renderLecturerDashboard();
+
+    expect(await screen.findByTestId('preview-student-31-matric')).toHaveTextContent('PHS/22/0042');
+    expect(screen.getByTestId('preview-student-32-matric')).toHaveTextContent('PHS/22/0077');
+    expect(screen.getAllByText(/ada student/i)).toHaveLength(2);
+    expect(screen.queryByTestId('preview-student-31-email')).not.toBeInTheDocument();
+    expect(screen.queryByText(/no email available|email unavailable/i)).not.toBeInTheDocument();
   });
 
   it('links actions to existing lecturer routes', async () => {

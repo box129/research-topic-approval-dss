@@ -523,7 +523,7 @@ function createAdminReportExportService({
       },
       include: {
         lecturer: { select: { id: true, name: true, email: true } },
-        student: { select: { id: true, name: true, email: true } },
+        student: { select: { id: true, name: true, matricNumber: true, email: true } },
         assignedBy: { select: { id: true, name: true, email: true } }
       },
       orderBy: [
@@ -542,6 +542,7 @@ function createAdminReportExportService({
         'lecturerEmail',
         'studentId',
         'studentName',
+        'studentMatricNumber',
         'studentEmail',
         'assignedById',
         'assignedByName',
@@ -557,6 +558,7 @@ function createAdminReportExportService({
         lecturerEmail: assignment.lecturer?.email,
         studentId: assignment.student?.id,
         studentName: assignment.student?.name,
+        studentMatricNumber: assignment.student?.matricNumber || null,
         studentEmail: assignment.student?.email,
         assignedById: assignment.assignedBy?.id,
         assignedByName: assignment.assignedBy?.name,

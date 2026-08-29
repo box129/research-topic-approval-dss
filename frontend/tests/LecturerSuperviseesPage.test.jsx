@@ -22,6 +22,7 @@ const assignment = {
     id: 3,
     name: 'Student One',
     email: 'student.one@example.edu',
+    matricNumber: 'PHS/22/0042',
     role: 'student',
     status: 'active'
   },
@@ -53,6 +54,30 @@ describe('Lecturer SuperviseesPage', () => {
     renderPage();
 
     expect(screen.getByText(/loading supervisees/i)).toBeInTheDocument();
+  });
+
+  it('identifies each supervisee by matric number and never reports a missing email', async () => {
+    listLecturerSupervisees.mockResolvedValue({
+      data: {
+        items: [
+          assignment,
+          {
+            ...assignment,
+            id: 11,
+            student: { ...assignment.student, id: 4, matricNumber: 'PHS/22/0077', email: null },
+            latestSubmission: null
+          }
+        ]
+      },
+      meta: { assignmentSource: 'LecturerSuperviseeAssignment' }
+    });
+    renderPage();
+
+    expect(await screen.findByTestId('supervisee-10-student-matric')).toHaveTextContent('PHS/22/0042');
+    expect(screen.getByTestId('supervisee-10-student-email')).toHaveTextContent('student.one@example.edu');
+    expect(screen.getByTestId('supervisee-11-student-matric')).toHaveTextContent('PHS/22/0077');
+    expect(screen.queryByTestId('supervisee-11-student-email')).not.toBeInTheDocument();
+    expect(screen.queryByText(/email unavailable|no email available/i)).not.toBeInTheDocument();
   });
 
   it('renders real assigned supervisees from the endpoint', async () => {

@@ -22,6 +22,7 @@ const decisionsResponse = {
         id: 11,
         title: 'Knowledge of malaria prevention among undergraduate public health students',
         studentName: 'Ada Student',
+        studentMatricNumber: 'PHS/22/0042',
         studentEmail: 'ada.student@uniosun.edu.ng',
         category: 'Public Health',
         status: 'APPROVED',
@@ -89,6 +90,41 @@ describe('Lecturer MyDecisionsPage', () => {
     expect(screen.queryByText(/passwordHash/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/hidden/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/99/i)).not.toBeInTheDocument();
+  });
+
+  it('identifies a student who has no email by matric number', async () => {
+    listLecturerDecisions.mockResolvedValue({
+      ...decisionsResponse,
+      data: { items: [{ ...decisionsResponse.data.items[0], studentEmail: null }] }
+    });
+    renderPage();
+
+    expect(await screen.findByTestId('decision-11-student-matric')).toHaveTextContent('PHS/22/0042');
+    expect(screen.getByTestId('decision-11-student-name')).toHaveTextContent('Ada Student');
+    expect(screen.queryByTestId('decision-11-student-email')).not.toBeInTheDocument();
+    // A normal no-email student must never be rendered as a deficient record.
+    expect(screen.queryByText(/no email available/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/email unavailable/i)).not.toBeInTheDocument();
+  });
+
+  it('shows the email only as secondary detail after the matric number', async () => {
+    listLecturerDecisions.mockResolvedValue({
+      ...decisionsResponse,
+      data: { items: [{ ...decisionsResponse.data.items[0], studentEmail: 'personal.address@example.com' }] }
+    });
+    renderPage();
+
+    const matric = await screen.findByTestId('decision-11-student-matric');
+    const email = screen.getByTestId('decision-11-student-email');
+    expect(email).toHaveTextContent('personal.address@example.com');
+    expect(Boolean(matric.compareDocumentPosition(email) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+    expect(screen.queryByText(/no email available/i)).not.toBeInTheDocument();
+  });
+
+  it('offers the matric number as a search field', async () => {
+    renderPage();
+
+    expect(await screen.findByPlaceholderText(/matric number/i)).toBeInTheDocument();
   });
 
   it('passes supported filters and sorting to the endpoint', async () => {

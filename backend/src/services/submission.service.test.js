@@ -496,6 +496,28 @@ describe('submission.service', () => {
     });
   });
 
+  test('lecturer decision history search also matches the student matric number', async () => {
+    const prisma = createPrismaMock({
+      submission: {
+        count: jest.fn().mockResolvedValue(0),
+        findMany: jest.fn().mockResolvedValue([])
+      }
+    });
+    const service = createSubmissionService({ prismaClient: prisma });
+
+    await service.listLecturerDecisionHistory({
+      user: lecturerUser,
+      query: { search: 'PHS/22' }
+    });
+
+    const { where } = prisma.submission.findMany.mock.calls[0][0];
+    expect(where.OR).toEqual(expect.arrayContaining([
+      { student: { matricNumber: { contains: 'PHS/22', mode: 'insensitive' } } },
+      { student: { email: { contains: 'PHS/22', mode: 'insensitive' } } },
+      { student: { name: { contains: 'PHS/22', mode: 'insensitive' } } }
+    ]));
+  });
+
   test('lecturer decision history lists only decisions made by the authenticated lecturer', async () => {
     const submittedAt = new Date('2026-05-19T10:00:00Z');
     const decidedAt = new Date('2026-05-22T10:00:00Z');
@@ -514,6 +536,7 @@ describe('submission.service', () => {
             submittedAt,
             student: {
               name: 'Student Demo',
+              matricNumber: 'PHS/22/0042',
               email: 'student.demo@uniosun.edu.ng'
             },
             similarityCheckSnapshots: [
@@ -554,6 +577,7 @@ describe('submission.service', () => {
         student: {
           select: {
             name: true,
+            matricNumber: true,
             email: true
           }
         },
@@ -576,6 +600,7 @@ describe('submission.service', () => {
         id: 41,
         title: validInput.title,
         studentName: 'Student Demo',
+        studentMatricNumber: 'PHS/22/0042',
         studentEmail: 'student.demo@uniosun.edu.ng',
         category: validInput.category,
         status: 'APPROVED',

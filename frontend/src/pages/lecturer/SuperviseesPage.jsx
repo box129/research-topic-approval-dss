@@ -5,6 +5,7 @@ import ErrorState from '../../components/ui/ErrorState';
 import LoadingState from '../../components/ui/LoadingState';
 import PageHeader from '../../components/ui/PageHeader';
 import StatusBadge from '../../components/ui/StatusBadge';
+import StudentIdentity from '../../components/ui/StudentIdentity';
 import LecturerDashboardLayout from '../../layouts/LecturerDashboardLayout';
 import { listLecturerSupervisees } from '../../api/submissions';
 
@@ -38,12 +39,14 @@ function SuperviseeRecord({ assignment }) {
     <article className="grid gap-4 border-b border-border-subtle px-5 py-4 last:border-b-0 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.8fr)]">
       <div className="min-w-0">
         <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">Active assignment</p>
-        <h3 className="mt-2 break-words text-base font-semibold text-text-primary">
-          {assignment.student?.name || 'Unnamed student'}
-        </h3>
-        <p className="mt-1 break-all text-sm text-text-secondary">
-          {assignment.student?.email || 'Email unavailable'}
-        </p>
+        <div className="mt-2">
+          <StudentIdentity
+            name={assignment.student?.name}
+            matricNumber={assignment.student?.matricNumber}
+            email={assignment.student?.email}
+            testIdPrefix={`supervisee-${assignment.id}-student`}
+          />
+        </div>
         <p className="mt-2 text-sm text-text-muted">Assigned {formatDate(assignment.assignedAt)}</p>
       </div>
 

@@ -219,6 +219,10 @@ describe('MySubmissionsPage', () => {
     expect(screen.queryByRole('button', { name: /revise and resubmit/i })).not.toBeInTheDocument();
     expect(screen.getByTestId('submission-state-8')).toHaveTextContent(/^Revised$/);
     expect(screen.getByTestId('revision-history-8')).toHaveTextContent(/the revised student topic/i);
+    // The list is newest-first, so the revision sits above this card: the
+    // guidance must not depend on position.
+    expect(screen.getByTestId('next-step-8')).toHaveTextContent(/revised submission in this list/i);
+    expect(screen.getByTestId('next-step-8')).not.toHaveTextContent(/\b(below|above)\b/i);
   });
 
   it('shows a revised submission with the feedback that produced it', async () => {

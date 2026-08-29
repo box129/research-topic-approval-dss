@@ -4,6 +4,7 @@ import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import InfoCallout from '../../components/ui/InfoCallout';
 import PageHeader from '../../components/ui/PageHeader';
 import ConfirmActionModal from '../../components/ui/ConfirmActionModal';
+import StudentIdentity from '../../components/ui/StudentIdentity';
 import { useAuth } from '../../auth/useAuth';
 import {
   commitAdminUserImport,
@@ -995,10 +996,16 @@ function AssignmentManagementSection({
                       <h3 className="mt-1 text-sm font-semibold text-text-primary">{assignment.lecturer?.name || 'Unknown lecturer'}</h3>
                       <p className="mt-1 break-all text-xs text-text-secondary">{assignment.lecturer?.email || 'Email unavailable'}</p>
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">Student</p>
-                      <h3 className="mt-1 text-sm font-semibold text-text-primary">{assignment.student?.name || 'Unknown student'}</h3>
-                      <p className="mt-1 break-all text-xs text-text-secondary">{assignment.student?.email || 'Email unavailable'}</p>
+                      <div className="mt-1">
+                        <StudentIdentity
+                          name={assignment.student?.name}
+                          matricNumber={assignment.student?.matricNumber}
+                          email={assignment.student?.email}
+                          testIdPrefix={`assignment-${assignment.id}-student`}
+                        />
+                      </div>
                     </div>
                     <button
                       className="rounded-xl border border-rose-200 bg-white px-3 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"

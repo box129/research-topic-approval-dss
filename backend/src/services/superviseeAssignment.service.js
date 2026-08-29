@@ -12,6 +12,8 @@ const USER_SAFE_SELECT = {
   id: true,
   name: true,
   email: true,
+  // Students are identified by matric number; null for lecturers and admins.
+  matricNumber: true,
   role: true,
   status: true
 };
@@ -126,6 +128,7 @@ function serializeUser(user) {
     id: user.id,
     name: user.name,
     email: user.email,
+    matricNumber: user.matricNumber || null,
     role: toClientEnum(user.role),
     status: toClientEnum(user.status)
   };
