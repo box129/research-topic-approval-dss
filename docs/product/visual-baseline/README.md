@@ -8,7 +8,7 @@ fabricated (see `tooling/synthetic-dataset.mjs`).
 | | |
 | --- | --- |
 | **APPLICATION SOURCE BASELINE** | `ff833cf0bc645bd4678bf480bb3c4070216f78cf` (branch `staging/render-acceptance`) |
-| **DOCUMENTATION COMMIT** | (this documentation commit — recorded after commit) |
+| **DOCUMENTATION COMMIT** | fc19218c82098c63d22573b36d86a15a88eb42b5 |
 | Capture date | 2026-08-29 |
 | Desktop viewport | 1440×900 (PNG, unscaled) · Mobile 390×844 |
 | Videos | 1920×1080, H.264 MP4, silent with captions — kept outside Git, see `videos/MANIFEST.md` |
