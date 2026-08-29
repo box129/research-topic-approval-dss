@@ -31,7 +31,7 @@ caption — the frontend never fakes a transition.
 ## Video 2 — `02-student-walkthrough.mp4` (target 4–7 min)
 
 Preparation (API, before recording): administrator provisions a new student
-(`PHD/24/0107`, no email) and assigns them to lecturer L1.
+(no email; a fresh per-run matric such as `PHD/24/7271`) and assigns them to lecturer L1.
 
 | # | Role | Action | Page | Purpose | Caption | Expected state | ~s |
 | --- | --- | --- | --- | --- | --- | --- | --- |

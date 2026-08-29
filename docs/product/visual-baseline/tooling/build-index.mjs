@@ -37,23 +37,23 @@ const META = {
   '17-student-revise-prefilled.png': ['Student', 'Revise and Resubmit — pre-filled form with feedback', '/student/my-submissions/:id/revise', 'Original title and context pre-filled'],
   '18-student-revised-submission.png': ['Student', 'My Submissions — revised submission linked to original', '/student/my-submissions', 'Revision pending; original preserved with history'],
   '19-student-approved-submission.png': ['Student', 'My Submissions — approved', '/student/my-submissions', 'Revision approved'],
-  '20-student-my-submissions.png': ['Student', 'My Submissions — full page', '/student/my-submissions', 'Original + revision cards (full-page capture)'],
-  '30-lecturer-dashboard.png': ['Lecturer', 'Dashboard', '/lecturer/dashboard', 'Queue with several pending submissions'],
+  '20-student-my-submissions.png': ['Student', 'My Submissions — full page', '/student/my-submissions', 'Original + revision cards; order-independent revision guidance (refreshed at the polish baseline)'],
+  '30-lecturer-dashboard.png': ['Lecturer', 'Dashboard', '/lecturer/dashboard', 'Queue preview identifies the student by name and matric number; one pending submission in the demo queue (refreshed at the polish baseline)'],
   '31-lecturer-pending-reviews.png': ['Lecturer', 'Pending Reviews — student name, matric number, email only when available', '/lecturer/pending-reviews', 'Includes no-email students (e.g. PHD/24/0101, PHD/24/0103)'],
   '32-lecturer-review-detail.png': ['Lecturer', 'Review detail', '/lecturer/pending-reviews/:id', 'PHD/24/0101 first submission'],
   '33-lecturer-review-similarity-context.png': ['Lecturer', 'Similarity evidence on a submission with research context', '/lecturer/pending-reviews/:id', 'Run similarity check on the stored structured representation'],
   '34-lecturer-request-revision.png': ['Lecturer', 'Request Revision with rationale — confirmation', '/lecturer/pending-reviews/:id', 'Rationale typed; confirm dialog open'],
   '35-lecturer-revised-submission.png': ['Lecturer', 'Revised submission — revision context (previous/feedback/current)', '/lecturer/pending-reviews/:id', 'Revision of PHD/24/0101'],
   '36-lecturer-approve.png': ['Lecturer', 'Approve — confirmation', '/lecturer/pending-reviews/:id', 'Approving the revision'],
-  '37-lecturer-my-decisions.png': ['Lecturer', 'My Decisions', '/lecturer/my-decisions', 'Revision request and approval recorded'],
-  '38-lecturer-supervisees.png': ['Lecturer', 'Supervisees', '/lecturer/supervisees', 'Admin-assigned students'],
-  '39-lecturer-similarity-checker.png': ['Lecturer', 'Check Similarity — results', '/lecturer/check-similarity', 'Same proposal as the student pre-check'],
+  '37-lecturer-my-decisions.png': ['Lecturer', 'My Decisions', '/lecturer/my-decisions', 'Decisions with each student identified by name and matric number, email only when present (refreshed at the polish baseline)'],
+  '38-lecturer-supervisees.png': ['Lecturer', 'Supervisees', '/lecturer/supervisees', 'Admin-assigned students identified by name and matric number (refreshed at the polish baseline)'],
+  '39-lecturer-similarity-checker.png': ['Lecturer', 'Check Similarity — results', '/lecturer/check-similarity', 'Same proposal as the student pre-check; research context stacked one field per row inside the narrow cards (refreshed at the polish baseline)'],
   '40-lecturer-research-trends.png': ['Lecturer', 'Research Trends', '/lecturer/research-trends', 'Fictional corpus'],
   '50-admin-dashboard.png': ['Admin', 'Dashboard — service health and metrics', '/admin/dashboard', 'Populated demo database'],
   '51-admin-user-management.png': ['Admin', 'User Management — list', '/admin/user-management', 'Synthetic accounts'],
   '52-admin-create-student-no-email.png': ['Admin', 'Create student with matric and no email — one-time credential (masked)', '/admin/user-management', 'PHD/24/0101; credential text masked at capture time'],
   '53-admin-create-lecturer.png': ['Admin', 'Create lecturer — form (email required)', '/admin/user-management', 'Form filled before submission'],
-  '54-admin-bulk-import.png': ['Admin', 'Bulk onboarding — spreadsheet selected', '/admin/user-management', '6-row cohort (2 no-email students, 1 with email, 1 lecturer, 1 conflict, 1 invalid)'],
+  '54-admin-bulk-import.png': ['Admin', 'Bulk onboarding — spreadsheet selected', '/admin/user-management', '6-row cohort (2 no-email students, 1 with email, 1 lecturer, 1 conflict, 1 invalid); assignment cards identify students by name and matric number (refreshed at the polish baseline)'],
   '55-admin-bulk-preview.png': ['Admin', 'Bulk onboarding — preview (valid / conflict / invalid)', '/admin/user-management', 'Preview only — nothing created'],
   '56-admin-bulk-result.png': ['Admin', 'User Management immediately after the bulk commit (page top; the commit summary and manifest panel are in 57)', '/admin/user-management', 'Four accounts created, one already existed, one invalid'],
   '57-admin-credential-manifest-state.png': ['Admin', 'One-time credential manifest state (download only; no plaintext on screen)', '/admin/user-management', 'After commit'],
@@ -72,7 +72,7 @@ const META = {
 };
 const VIDEO_META = {
   '01-system-overview.mp4': ['All roles', 'Landing → student → lecturer → admin, briefly', '/, /login, dashboards, queues', 'Departmental demonstration'],
-  '02-student-walkthrough.mp4': ['Student', 'Matric login, forced change, Check My Topic, Submit, revision required, Revise and Resubmit, approved', '/student/*', 'New student PHD/24/0107; lecturer actions prepared between segments'],
+  '02-student-walkthrough.mp4': ['Student', 'Matric login, forced change, Check My Topic, Submit, revision required, Revise and Resubmit, approved', '/student/*', 'New student a fresh per-run matric (PHD/24/7271 in this recording); lecturer actions prepared between segments'],
   '03-lecturer-walkthrough.mp4': ['Lecturer', 'Queue with matric identity, review detail, similarity context, request revision, revised comparison, approve, decisions, checker, supervisees', '/lecturer/*', 'Student PHD/24/0102; student revision prepared between segments'],
   '04-admin-walkthrough.mp4': ['Admin', 'Provisioning (no-email student, lecturer), bulk preview/conflict/commit, invitation eligibility, credential reset, repository, audit, reports, settings', '/admin/*', 'Credentials masked live']
 };
@@ -122,6 +122,8 @@ fabricated (see \`tooling/synthetic-dataset.mjs\`).
 | **APPLICATION SOURCE BASELINE** | \`${SOURCE}\` (branch \`staging/render-acceptance\`) |
 | **DOCUMENTATION COMMIT** | ${DOCS} |
 | Capture date | ${today} |
+| Previous package | source \`ff833cf0bc645bd4678bf480bb3c4070216f78cf\`, documentation \`4bb6643ba0357816194dfbdae56a6086f4bab939\` (historically valid; superseded by this package) |
+| Refreshed at this baseline | screenshots 20, 30, 37, 38, 39 and 54 and all four videos (pre-pilot identity/visual polish); the other 41 screenshots show screens the polish did not change and are carried forward from the previous capture |
 | Desktop viewport | 1440×900 (PNG, unscaled) · Mobile 390×844 |
 | Videos | 1920×1080, H.264 MP4, silent with captions — kept outside Git, see \`videos/MANIFEST.md\` |
 
@@ -172,7 +174,7 @@ process, because the local edge uses a self-signed certificate.
   \`/api/v1/readiness\`.
 - The audit log shows the actor address \`172.18.0.1\`, the demo stack's Docker
   bridge address, as rendered by the product's own audit view.
-- Defects observed during capture are recorded in \`observed-defects.md\`.
+- Defects observed during capture are recorded in \`observed-defects.md\`; VB-1, VB-3, VB-4 and VB-5 were fixed by the pre-pilot polish pass (this baseline) and their captures refreshed, and VB-2 is a hosted-acceptance observation, not an application defect.
 - Feature-to-media coverage against the feature inventory (28 FULL, 9 PARTIAL, 1 NOT CAPTURED, 7 N/A of 45 rows) is in \`coverage-audit.md\`; the PARTIAL and NOT CAPTURED rows are the remaining visual gaps.
 
 ## Safeguards applied to every capture

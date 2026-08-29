@@ -110,6 +110,16 @@ async function fillCheck(page, p) {
 }
 
 // The admin list filters on "Apply filters", not on keystrokes.
+// An account-records row is the element that carries the account actions.
+// Since the identity polish the lecturer-supervisee assignment cards also
+// show a student's matric number, so a text-only lookup could match a card
+// (which has no credential or invitation buttons) instead of the row.
+function accountRows(page) {
+  return page.locator('tr, article, li').filter({
+    has: page.getByRole('button', { name: /reset credential|send invitation|suspend account|reactivate/i })
+  });
+}
+
 async function searchUsers(page, term) {
   await typeSlowly(page, page.getByRole('searchbox').first(), term);
   await glideClick(page, page.getByRole('button', { name: /apply filters/i }), { after: 1200 });
@@ -403,12 +413,12 @@ async function adminWalk(page) {
   await glideClick(page, page.getByRole('button', { name: /dismiss/i }).first(), { after: 1000 });
 
   await searchUsers(page, 'Zainab');
-  const rowOk = page.locator('tr, article, li').filter({ hasText: `PHD/24/${TAG}2` }).first();
+  const rowOk = accountRows(page).filter({ hasText: `PHD/24/${TAG}2` }).first();
   await caption(page, 'Invitation: available for a new account that has an email', { hold: 2500 });
   await glideClick(page, rowOk.getByRole('button', { name: /invite|send invitation/i }).first(), { after: 1000 });
   await glideClick(page, page.getByRole('dialog').getByRole('button', { name: /send invitation|resend invitation/i }), { after: 2500 });
   await searchUsers(page, 'Temitope');
-  const rowNo = page.locator('tr, article, li').filter({ hasText: `PHD/24/${TAG}1` }).first();
+  const rowNo = accountRows(page).filter({ hasText: `PHD/24/${TAG}1` }).first();
   await caption(page, 'For a student without an email, the system refuses truthfully — the credential is handed over instead', { hold: 3000 });
   await glideClick(page, rowNo.getByRole('button', { name: /invite|send invitation/i }).first(), { after: 1000 });
   const dlg = page.getByRole('dialog');
@@ -416,7 +426,7 @@ async function adminWalk(page) {
   await sleep(2500);
 
   await searchUsers(page, S('S5').name.split(' ')[0]);
-  const rowReset = page.locator('tr, article, li').filter({ hasText: S('S5').matric }).first();
+  const rowReset = accountRows(page).filter({ hasText: S('S5').matric }).first();
   await caption(page, 'Credential reset: a lost credential is replaced with a new one-time password; previous sessions are signed out', { hold: 3500 });
   await glideClick(page, rowReset.getByRole('button', { name: /reset credential|new temporary password|reset/i }).first(), { after: 1000 });
   await glideClick(page, page.getByRole('dialog').getByRole('button', { name: /issue new temporary password/i }), { after: 2000 });

@@ -3,7 +3,10 @@
 Cross-check of every row in [`../current-feature-inventory.md`](../current-feature-inventory.md)
 against the screenshots in `screenshots/` and the walkthrough videos listed in
 `videos/MANIFEST.md`. Application source baseline
-`ff833cf0bc645bd4678bf480bb3c4070216f78cf`; capture and recording date 29 Aug 2026;
+`e5e3fc18555fafde7fa409352b37357c0bb22c43` (pre-pilot polish pass): screenshots 20, 30, 37, 38, 39 and 54
+and all four videos were refreshed at this commit on 29 Aug 2026; the other 41
+screenshots, captured at `ff833cf0bc645bd4678bf480bb3c4070216f78cf`, show screens the
+polish did not change;
 synthetic data only.
 
 Coverage levels:
@@ -41,9 +44,9 @@ Coverage levels:
 | Similarity evidence on a submission | IMPLEMENTED | `33-lecturer-review-similarity-context.png` | 03 | FULL |
 | Decision: Approve / Request Revision / Reject | IMPLEMENTED | `34-lecturer-request-revision.png`, `36-lecturer-approve.png` | 03 | PARTIAL — Request Revision and Approve are shown with their rationale dialogs; the Reject path was not exercised on camera |
 | Revision context | IMPLEMENTED | `35-lecturer-revised-submission.png` | 03 | FULL |
-| My Decisions | IMPLEMENTED | `37-lecturer-my-decisions.png` | 03 | FULL (see defect VB-4) |
-| Supervisees | IMPLEMENTED | `38-lecturer-supervisees.png` | 03 | FULL (see defect VB-5) |
-| Check Similarity | IMPLEMENTED | `39-lecturer-similarity-checker.png` | 03 | FULL (see defect VB-1) |
+| My Decisions | IMPLEMENTED | `37-lecturer-my-decisions.png` | 03 | FULL (VB-4 fixed in the polish pass; capture refreshed) |
+| Supervisees | IMPLEMENTED | `38-lecturer-supervisees.png` | 03 | FULL (VB-5 fixed in the polish pass; capture refreshed) |
+| Check Similarity | IMPLEMENTED | `39-lecturer-similarity-checker.png` | 03 | FULL (VB-1 fixed in the polish pass; capture refreshed) |
 | Research Trends | IMPLEMENTED | `40-lecturer-research-trends.png` | 03 | FULL |
 | Notifications | IMPLEMENTED | Header bell in every lecturer capture | 03 (header) | PARTIAL — panel not opened on camera |
 
@@ -93,5 +96,7 @@ Coverage levels:
 Every IMPLEMENTED feature except *Accept invitation* has at least an entry-point
 capture; the nine PARTIAL rows are secondary actions or states that were not exercised
 on camera and are listed as remaining visual gaps in the README. No capture was
-skipped because of a product defect; the defects noticed while capturing are recorded,
-unfixed, in [`observed-defects.md`](observed-defects.md).
+skipped because of a product defect; the defects noticed while capturing are recorded
+in [`observed-defects.md`](observed-defects.md); VB-1, VB-3, VB-4 and VB-5 were fixed by the
+pre-pilot polish pass and their captures refreshed, and VB-2 is a hosted-acceptance
+observation rather than an application defect.
