@@ -46,9 +46,7 @@ function mockSimilaritySuccess() {
       input_topic: req.body.topic,
       overall_risk: 'LOW',
       max_similarity: 0,
-      tier1_historical: [],
-      tier2_current: [],
-      tier3_under_review: [],
+      matches: [],
       recommendation: 'Topic appears unique. Proceed with approval.'
     }
   }));
@@ -287,14 +285,12 @@ describe('Lecturer similarity wrapper route', () => {
     });
     similarityController.checkSimilarity.mockImplementation((req, res) => res.status(200).json({
       status: 'partial_success',
-      message: 'SBERT semantic analysis unavailable. Showing lexical similarity only (Jaccard, TF-IDF).',
+      message: 'Similarity analysis completed with partial results.',
       data: {
         input_topic: req.body.topic,
         overall_risk: 'LOW',
         max_similarity: 0,
-        tier1_historical: [],
-        tier2_current: [],
-        tier3_under_review: []
+        matches: []
       }
     }));
 

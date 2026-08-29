@@ -3,6 +3,11 @@ const prisma = require('../config/database');
 const STORABLE_RESPONSE_STATUSES = new Set(['success', 'partial_success']);
 const MAX_TOP_MATCHES_PER_TIER = 3;
 const DEFAULT_SNAPSHOT_HISTORY_LIMIT = 10;
+const COLLECTION_TIER_BY_VALUE = Object.freeze({
+  HISTORICAL: 'historical',
+  CURRENT_SESSION: 'currentSession',
+  UNDER_REVIEW: 'underReview'
+});
 
 function asArray(value) {
   return Array.isArray(value) ? value : [];
@@ -18,19 +23,8 @@ function normalizeNullableNumber(value) {
   return Number.isFinite(numericValue) ? numericValue : null;
 }
 
-function getBestMatchScore(match) {
-  return [
-    match?.sbert,
-    match?.tfidf,
-    match?.jaccard
-  ].reduce((bestScore, value) => {
-    const numericValue = normalizeNullableNumber(value);
-    if (numericValue === null) {
-      return bestScore;
-    }
-
-    return bestScore === null ? numericValue : Math.max(bestScore, numericValue);
-  }, null);
+function getMatchScore(match) {
+  return normalizeNullableNumber(match?.semantic_score);
 }
 
 function summarizeTopMatches(matches) {
@@ -39,15 +33,17 @@ function summarizeTopMatches(matches) {
     .map((match) => ({
       id: match?.id ?? null,
       title: match?.title || null,
-      score: getBestMatchScore(match)
+      score: getMatchScore(match)
     }));
 }
 
 function buildResultSummary(similarityResponse) {
   const data = similarityResponse?.data || {};
-  const historicalMatches = asArray(data.tier1_historical);
-  const currentSessionMatches = asArray(data.tier2_current);
-  const underReviewMatches = asArray(data.tier3_under_review);
+  const matches = asArray(data.matches);
+  const matchesForTier = (tier) => matches.filter((match) => COLLECTION_TIER_BY_VALUE[match?.collection] === tier);
+  const historicalMatches = matchesForTier('historical');
+  const currentSessionMatches = matchesForTier('currentSession');
+  const underReviewMatches = matchesForTier('underReview');
 
   return {
     tierCounts: {
