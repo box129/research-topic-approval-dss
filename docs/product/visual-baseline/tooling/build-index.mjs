@@ -126,7 +126,7 @@ fabricated (see \`tooling/synthetic-dataset.mjs\`).
 | Videos | 1920×1080, H.264 MP4, silent with captions — kept outside Git, see \`videos/MANIFEST.md\` |
 
 Companion documents: [feature inventory](../current-feature-inventory.md) ·
-[navigation map](./navigation-map.md) · [walkthrough script](./walkthrough-script.md) ·
+[navigation map](./navigation-map.md) · [walkthrough script](./walkthrough-script.md) · [coverage audit](./coverage-audit.md) ·
 [hosting decision runbook](../../operations/hosting-decision-runbook.md).
 
 ## Screenshots (${shots.length} files, ${mb(totalShotBytes)})
@@ -173,6 +173,7 @@ process, because the local edge uses a self-signed certificate.
 - The audit log shows the actor address \`172.18.0.1\`, the demo stack's Docker
   bridge address, as rendered by the product's own audit view.
 - Defects observed during capture are recorded in \`observed-defects.md\`.
+- Feature-to-media coverage against the feature inventory (28 FULL, 9 PARTIAL, 1 NOT CAPTURED, 7 N/A of 45 rows) is in \`coverage-audit.md\`; the PARTIAL and NOT CAPTURED rows are the remaining visual gaps.
 
 ## Safeguards applied to every capture
 

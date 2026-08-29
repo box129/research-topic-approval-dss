@@ -8,13 +8,13 @@ fabricated (see `tooling/synthetic-dataset.mjs`).
 | | |
 | --- | --- |
 | **APPLICATION SOURCE BASELINE** | `ff833cf0bc645bd4678bf480bb3c4070216f78cf` (branch `staging/render-acceptance`) |
-| **DOCUMENTATION COMMIT** | fc19218c82098c63d22573b36d86a15a88eb42b5 |
+| **DOCUMENTATION COMMIT** | 56fa7ae8e6a0d571d347d4e75699566c7376303e |
 | Capture date | 2026-08-29 |
 | Desktop viewport | 1440×900 (PNG, unscaled) · Mobile 390×844 |
 | Videos | 1920×1080, H.264 MP4, silent with captions — kept outside Git, see `videos/MANIFEST.md` |
 
 Companion documents: [feature inventory](../current-feature-inventory.md) ·
-[navigation map](./navigation-map.md) · [walkthrough script](./walkthrough-script.md) ·
+[navigation map](./navigation-map.md) · [walkthrough script](./walkthrough-script.md) · [coverage audit](./coverage-audit.md) ·
 [hosting decision runbook](../../operations/hosting-decision-runbook.md).
 
 ## Screenshots (47 files, 3.86 MB)
@@ -110,6 +110,7 @@ process, because the local edge uses a self-signed certificate.
 - The audit log shows the actor address `172.18.0.1`, the demo stack's Docker
   bridge address, as rendered by the product's own audit view.
 - Defects observed during capture are recorded in `observed-defects.md`.
+- Feature-to-media coverage against the feature inventory (28 FULL, 9 PARTIAL, 1 NOT CAPTURED, 7 N/A of 45 rows) is in `coverage-audit.md`; the PARTIAL and NOT CAPTURED rows are the remaining visual gaps.
 
 ## Safeguards applied to every capture
 
