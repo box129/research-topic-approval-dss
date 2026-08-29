@@ -846,9 +846,34 @@ function createSubmissionService({
     }
 
     const updatedSubmission = await prismaClient.$transaction(async (tx) => {
-      const updated = await tx.submission.update({
+      // Atomic compare-and-set: the database decides which decision wins. The
+      // row is updated only while it is still PENDING_REVIEW, so a concurrent
+      // decision that lost the race — or a retry after a decision — matches
+      // zero rows. Throwing here rolls the whole transaction back before any
+      // corpus lifecycle write, and PostgreSQL's row lock makes the second
+      // UPDATE re-evaluate the status predicate against the committed row, so
+      // this holds across HTTP requests, processes and retries.
+      const transition = await tx.submission.updateMany({
+        where: { id, status: 'PENDING_REVIEW' },
+        data: decisionData
+      });
+
+      if (transition.count !== 1) {
+        const current = await tx.submission.findUnique({ where: { id }, select: { id: true } });
+        if (!current) {
+          throw new SubmissionServiceError('Submission was not found.', 404, 'SUBMISSION_NOT_FOUND');
+        }
+
+        throw new SubmissionServiceError(
+          'Only pending review submissions can be updated.',
+          400,
+          'SUBMISSION_NOT_PENDING',
+          'status'
+        );
+      }
+
+      const updated = await tx.submission.findUnique({
         where: { id },
-        data: decisionData,
         include: decisionInclude
       });
 

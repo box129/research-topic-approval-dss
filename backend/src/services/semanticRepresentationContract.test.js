@@ -71,7 +71,8 @@ function minimalPrisma(overrides = {}) {
     submission: {
       create: jest.fn(async ({ data }) => ({ id: 22, ...data, session: { id: 3, name: '2025/2026' }, revisionOf: null, submittedAt: new Date(), createdAt: new Date(), updatedAt: new Date() })),
       findUnique: jest.fn(),
-      update: jest.fn()
+      update: jest.fn(),
+      updateMany: jest.fn().mockResolvedValue({ count: 1 })
     },
     underReviewTopic: {
       create: jest.fn().mockResolvedValue({ id: 501 }),
@@ -289,7 +290,7 @@ describe('17. corpus lifecycle carries the canonical fields', () => {
       submission: {
         findUnique: jest.fn().mockResolvedValue(submissionRow),
         create: jest.fn(),
-        update: jest.fn().mockResolvedValue({ ...submissionRow, status: 'APPROVED', student: { name: 'S', matricNumber: 'M', email: null }, decidedBy: { name: 'L' }, decidedAt: new Date(), submittedAt: new Date(), createdAt: new Date(), updatedAt: new Date() })
+        updateMany: jest.fn().mockResolvedValue({ count: 1 })
       }
     });
     const corpusLifecycle = lifecycleSpy();

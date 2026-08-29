@@ -20,6 +20,7 @@ function createPrismaMock(overrides = {}) {
       findUnique: jest.fn(),
       findMany: jest.fn(),
       update: jest.fn(),
+      updateMany: jest.fn().mockResolvedValue({ count: 1 }),
       ...overrides.submission
     },
     underReviewTopic: {
@@ -869,7 +870,7 @@ describe('submission.service', () => {
         deleteMany: jest.fn().mockResolvedValue({ count: 1 })
       },
       submission: {
-        findUnique: jest.fn().mockResolvedValue({
+        findUnique: jest.fn().mockResolvedValueOnce({
           id: 21,
           status: 'PENDING_REVIEW',
           studentId: studentUser.id,
@@ -877,8 +878,7 @@ describe('submission.service', () => {
           category: validInput.category,
           keywords: validInput.keywords,
           session: { id: 3, name: '2025/2026' }
-        }),
-        update: jest.fn().mockResolvedValue({
+        }).mockResolvedValueOnce({
           id: 21,
           studentId: studentUser.id,
           sessionId: 3,
@@ -930,14 +930,20 @@ describe('submission.service', () => {
     } else {
       expect(prisma.currentSessionTopic.upsert).not.toHaveBeenCalled();
     }
-    expect(prisma.submission.update).toHaveBeenCalledWith({
-      where: { id: 21 },
+    // The transition is a database compare-and-set on the pending status;
+    // the decided row is then re-read inside the same transaction.
+    expect(prisma.submission.updateMany).toHaveBeenCalledWith({
+      where: { id: 21, status: 'PENDING_REVIEW' },
       data: {
         status: prismaStatus,
         decisionReason: expectedReason,
         decidedById: lecturerUser.id,
         decidedAt: expect.any(Date)
-      },
+      }
+    });
+    expect(prisma.submission.update).not.toHaveBeenCalled();
+    expect(prisma.submission.findUnique).toHaveBeenLastCalledWith({
+      where: { id: 21 },
       include: {
         session: true,
         decidedBy: {
@@ -992,24 +998,7 @@ describe('submission.service', () => {
           keywords: validInput.keywords,
           session: { id: 3, name: '2025/2026' }
         }),
-        update: jest.fn().mockResolvedValue({
-          id: 21,
-          studentId: studentUser.id,
-          sessionId: 3,
-          session: { id: 3, name: '2025/2026' },
-          student: { name: 'Student Demo', email: 'student.demo@uniosun.edu.ng' },
-          title: validInput.title,
-          category: validInput.category,
-          keywords: validInput.keywords,
-          status: 'APPROVED',
-          decisionReason: null,
-          decidedById: lecturerUser.id,
-          decidedBy: { name: 'Lecturer Demo' },
-          decidedAt,
-          submittedAt: decidedAt,
-          createdAt: decidedAt,
-          updatedAt: decidedAt
-        })
+        updateMany: jest.fn().mockResolvedValue({ count: 1 })
       }
     });
   }
@@ -1112,7 +1101,7 @@ describe('submission.service', () => {
     });
 
     expect(prisma.$transaction).not.toHaveBeenCalled();
-    expect(prisma.submission.update).not.toHaveBeenCalled();
+    expect(prisma.submission.updateMany).not.toHaveBeenCalled();
     expect(prisma.currentSessionTopic.upsert).not.toHaveBeenCalled();
     expect(prisma.underReviewTopic.deleteMany).not.toHaveBeenCalled();
   });
@@ -1145,6 +1134,56 @@ describe('submission.service', () => {
     expect(corpusLifecycle.prepareDocumentEmbedding).not.toHaveBeenCalled();
   });
 
+  test('a decision that loses the database compare-and-set is refused before any lifecycle write', async () => {
+    // The pre-check saw a pending submission, but by the time the transaction
+    // ran another decision had already committed: updateMany matches no row.
+    const prisma = createDecisionPrismaMock({ underReviewRow: buildValidUnderReviewRow(21, buildSubmissionTopicShape(validInput)) });
+    prisma.submission.updateMany.mockResolvedValue({ count: 0 });
+    const notificationEvents = { notifyStudentOfSubmissionDecisionSafely: jest.fn().mockResolvedValue({ created: 1 }) };
+    const corpusLifecycle = createCorpusLifecycleMock();
+    const service = createSubmissionService({ prismaClient: prisma, notificationEvents, corpusLifecycle });
+
+    await expect(service.updateLecturerSubmissionStatus({
+      user: lecturerUser,
+      submissionId: 21,
+      status: 'approved'
+    })).rejects.toMatchObject({
+      statusCode: 400,
+      code: 'SUBMISSION_NOT_PENDING',
+      field: 'status'
+    });
+
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(prisma.submission.updateMany).toHaveBeenCalledWith({
+      where: { id: 21, status: 'PENDING_REVIEW' },
+      data: expect.objectContaining({ status: 'APPROVED', decidedById: lecturerUser.id })
+    });
+    expect(prisma.currentSessionTopic.upsert).not.toHaveBeenCalled();
+    expect(prisma.underReviewTopic.deleteMany).not.toHaveBeenCalled();
+    expect(notificationEvents.notifyStudentOfSubmissionDecisionSafely).not.toHaveBeenCalled();
+    expect(corpusLifecycle.refreshResidentCorpusSafely).not.toHaveBeenCalled();
+  });
+
+  test('a decision whose submission vanished during the transaction is reported as not found', async () => {
+    const prisma = createDecisionPrismaMock({ underReviewRow: null });
+    prisma.submission.updateMany.mockResolvedValue({ count: 0 });
+    prisma.submission.findUnique
+      .mockResolvedValueOnce({ id: 21, status: 'PENDING_REVIEW', studentId: studentUser.id, title: validInput.title, session: null })
+      .mockResolvedValueOnce(null);
+    const service = createSubmissionService({ prismaClient: prisma, corpusLifecycle: createCorpusLifecycleMock() });
+
+    await expect(service.updateLecturerSubmissionStatus({
+      user: lecturerUser,
+      submissionId: 21,
+      status: 'rejected',
+      reason: 'The proposal duplicates an approved study in scope and design.'
+    })).rejects.toMatchObject({
+      statusCode: 404,
+      code: 'SUBMISSION_NOT_FOUND'
+    });
+    expect(prisma.underReviewTopic.deleteMany).not.toHaveBeenCalled();
+  });
+
   test('rejects rejected status without a decision reason', async () => {
     const prisma = createPrismaMock({
       submission: {
@@ -1152,7 +1191,7 @@ describe('submission.service', () => {
           id: 21,
           status: 'PENDING_REVIEW'
         }),
-        update: jest.fn()
+        updateMany: jest.fn()
       }
     });
     const service = createSubmissionService({ prismaClient: prisma });
@@ -1167,7 +1206,7 @@ describe('submission.service', () => {
       code: 'DECISION_REASON_REQUIRED',
       field: 'reason'
     });
-    expect(prisma.submission.update).not.toHaveBeenCalled();
+    expect(prisma.submission.updateMany).not.toHaveBeenCalled();
   });
 
   test('does not expose decision fields unless requested', () => {
@@ -1268,7 +1307,7 @@ describe('submission.service', () => {
           id: 21,
           status: 'APPROVED'
         }),
-        update: jest.fn()
+        updateMany: jest.fn()
       }
     });
     const service = createSubmissionService({ prismaClient: prisma });
@@ -1282,7 +1321,7 @@ describe('submission.service', () => {
       code: 'SUBMISSION_NOT_PENDING',
       field: 'status'
     });
-    expect(prisma.submission.update).not.toHaveBeenCalled();
+    expect(prisma.submission.updateMany).not.toHaveBeenCalled();
   });
 
   test.each([
@@ -1365,7 +1404,7 @@ describe('submission revision lineage', () => {
           createdAt: new Date('2026-05-20T09:00:00Z'),
           updatedAt: new Date('2026-05-20T09:00:00Z')
         })),
-        update: jest.fn()
+        updateMany: jest.fn()
       }
     });
   }
@@ -1416,7 +1455,7 @@ describe('submission revision lineage', () => {
       input: revisionInput
     });
 
-    expect(prisma.submission.update).not.toHaveBeenCalled();
+    expect(prisma.submission.updateMany).not.toHaveBeenCalled();
   });
 
   test('a revision receives its own valid stored embedding and under-review corpus entry', async () => {
@@ -1580,7 +1619,7 @@ describe('revision feedback is mandatory', () => {
           keywords: validInput.keywords,
           session: { id: 3, name: '2025/2026' }
         }),
-        update: jest.fn()
+        updateMany: jest.fn()
       }
     });
   }
@@ -1606,7 +1645,7 @@ describe('revision feedback is mandatory', () => {
       code: 'DECISION_REASON_REQUIRED'
     });
 
-    expect(prisma.submission.update).not.toHaveBeenCalled();
+    expect(prisma.submission.updateMany).not.toHaveBeenCalled();
   });
 
   test('token revision feedback is rejected as too short', async () => {
@@ -1626,7 +1665,7 @@ describe('revision feedback is mandatory', () => {
       code: 'DECISION_REASON_TOO_SHORT'
     });
 
-    expect(prisma.submission.update).not.toHaveBeenCalled();
+    expect(prisma.submission.updateMany).not.toHaveBeenCalled();
   });
 
   test('approval still needs no rationale', () => {
