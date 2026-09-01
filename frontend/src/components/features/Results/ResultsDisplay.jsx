@@ -65,10 +65,10 @@ const formatScore = (score) => {
  * @param {Object} props - Component props
  * @param {Object} props.results - Results object from API
  * @param {string} props.results.risk_level - Risk level: LOW, MEDIUM, HIGH
- * @param {number} props.results.max_similarity - Maximum similarity score (0-100)
- * @param {Array} props.results.tier1_matches - Top 5 similar topics (historical)
- * @param {Array} props.results.tier2_matches - Current session matches (≥60%)
- * @param {Array} props.results.tier3_matches - Under review matches (≥60%)
+ * @param {number} props.results.max_similarity - Maximum raw cosine similarity returned by the check, displayed to three decimals
+ * @param {Array} props.results.tier1_matches - Historical-collection matches
+ * @param {Array} props.results.tier2_matches - Current-session-collection matches
+ * @param {Array} props.results.tier3_matches - Under-review-collection matches
  * @param {boolean} props.results.semantic_available - Whether semantic scores are available
  */
 const ResultsDisplay = ({ results, appearance = 'default' }) => {

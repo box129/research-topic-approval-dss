@@ -183,7 +183,7 @@ describe('Lecturer SubmissionDetailPage', () => {
     expect(screen.getByText(/no similarity checks have been saved/i)).toBeInTheDocument();
   });
 
-  it('renders snapshot history with risk, checked-by, date, max similarity, tier counts, and recommendation', async () => {
+  it('renders snapshot history with risk, checked-by, date, recorded score, tier counts, and recommendation', async () => {
     getLecturerSubmission.mockResolvedValue(pendingSubmission);
     listLecturerSubmissionSimilaritySnapshots.mockResolvedValue([snapshot]);
     renderDetailPage();
@@ -193,7 +193,20 @@ describe('Lecturer SubmissionDetailPage', () => {
     expect(screen.getByText(/checked by dr\. similarity/i)).toBeInTheDocument();
     expect(screen.getByText(/similarity@uniosun\.edu\.ng/i)).toBeInTheDocument();
     expect(screen.getByText(/may 21, 2026/i)).toBeInTheDocument();
-    expect(screen.getByText(/max similarity: 87\.5%/i)).toBeInTheDocument();
+    // The fixture carries no scoring-contract marker, so its stored value is
+    // shown as recorded — never as a percentage and never as current cosine.
+    const scoreCard = screen.getByTestId('snapshot-score-7');
+    expect(scoreCard).toHaveTextContent('Recorded score: 87.45');
+    expect(scoreCard).not.toHaveTextContent('%');
+    expect(scoreCard).not.toHaveTextContent('Max similarity');
+    expect(screen.getByTestId('snapshot-contract-note-7')).toHaveTextContent(
+      /historical scoring contract not recorded/i
+    );
+    // The stored classification is preserved but labelled as recorded
+    // historical metadata, not presented as a current classification.
+    expect(screen.getByTestId('snapshot-recorded-classification-7')).toHaveTextContent(
+      /recorded classification/i
+    );
     expect(screen.getByText(/historical: 2/i)).toBeInTheDocument();
     expect(screen.getByText(/current session: 1/i)).toBeInTheDocument();
     expect(screen.getByText(/under review: 3/i)).toBeInTheDocument();
