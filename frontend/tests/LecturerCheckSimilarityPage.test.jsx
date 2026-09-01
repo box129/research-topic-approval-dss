@@ -152,8 +152,8 @@ describe('Lecturer CheckSimilarityPage', () => {
     await submitTopic(user);
 
     expect(await screen.findByTestId('results-container')).toBeInTheDocument();
-    expect(screen.getByTestId('risk-title')).toHaveTextContent('Low Risk');
-    expect(screen.getByTestId('max-similarity')).toHaveTextContent('0.180');
+    expect(screen.getByTestId('similarity-classification')).toHaveTextContent('Lower similarity');
+    expect(screen.getByTestId('provenance-cosine')).toHaveTextContent('0.180');
     expect(screen.getByText(/machine learning in public health/i)).toBeInTheDocument();
   });
 
@@ -170,7 +170,7 @@ describe('Lecturer CheckSimilarityPage', () => {
     await submitTopic(user);
 
     expect(await screen.findByTestId('semantic-unavailable')).toBeInTheDocument();
-    expect(screen.queryByTestId('risk-banner')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('classification-block')).not.toBeInTheDocument();
     expect(screen.queryByText(/exact match|term weighting|sbert/i)).not.toBeInTheDocument();
   });
 
@@ -194,7 +194,7 @@ describe('Lecturer CheckSimilarityPage', () => {
     await submitTopic(user);
 
     expect(await screen.findByTestId('results-container')).toBeInTheDocument();
-    expect(screen.getByTestId('risk-title')).toHaveTextContent('High Risk');
+    expect(screen.getByTestId('similarity-classification')).toHaveTextContent('Higher similarity');
     expect(screen.queryByRole('button', { name: /approve/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /reject/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /block/i })).not.toBeInTheDocument();
