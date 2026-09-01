@@ -74,9 +74,32 @@ function DetailItem({ label, value }) {
   );
 }
 
-function formatScore(value) {
+// The scoring contract stamped on snapshots written by the current similarity
+// pipeline. Only rows carrying this exact marker may be presented as raw
+// cosine; rows without it were recorded before contract stamping existed, so
+// their scale is unknown and the stored number is shown without a scale claim.
+// Marker presence — never the numeric range of the value — decides which
+// presentation a row gets.
+const VOYAGE_RAW_COSINE_CONTRACT = 'voyage-raw-cosine-v1';
+
+function formatCosineScore(value) {
+  if (value === null || value === undefined) {
+    return 'N/A';
+  }
+
   const numericValue = Number(value);
-  return Number.isFinite(numericValue) ? `${numericValue.toFixed(1)}%` : 'N/A';
+  return Number.isFinite(numericValue) ? numericValue.toFixed(3) : 'N/A';
+}
+
+// Contract-unknown rows render exactly what was stored: no unit, no rescaling,
+// no reformatting that would imply a precision or scale the record never had.
+function formatStoredScore(value) {
+  if (value === null || value === undefined) {
+    return 'N/A';
+  }
+
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? String(numericValue) : 'N/A';
 }
 
 function SnapshotTierCount({ label, value }) {
@@ -409,13 +432,31 @@ function SubmissionDetailPage() {
               <div className="mt-5 space-y-3">
                 {snapshotHistory.map((snapshot) => {
                   const tierCounts = snapshot.result_summary?.tierCounts || {};
+                  const isCurrentContract = snapshot.scoring_contract === VOYAGE_RAW_COSINE_CONTRACT;
 
                   return (
                     <article key={snapshot.id} className="rounded-[8px] border border-border-subtle bg-surface-page p-4">
                       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
-                            <RiskBadge level={snapshot.overall_risk || 'NONE'} />
+                            {isCurrentContract ? (
+                              <RiskBadge level={snapshot.overall_risk || 'NONE'} />
+                            ) : (
+                              /* The stored classification is preserved exactly as
+                                 recorded, but its scoring contract is unknown, so
+                                 it is labelled as recorded metadata rather than
+                                 presented as a current classification. It is
+                                 never recomputed from the stored number. */
+                              <span
+                                className="inline-flex flex-wrap items-center gap-1.5"
+                                data-testid={`snapshot-recorded-classification-${snapshot.id}`}
+                              >
+                                <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                                  Recorded classification:
+                                </span>
+                                <RiskBadge level={snapshot.overall_risk || 'NONE'} />
+                              </span>
+                            )}
                             <span className="rounded-badge bg-white px-2.5 py-1 text-xs font-semibold uppercase text-text-muted ring-1 ring-inset ring-border-subtle">
                               {snapshot.response_status || 'N/A'}
                             </span>
@@ -428,9 +469,31 @@ function SubmissionDetailPage() {
                             {formatDate(snapshot.created_at)}
                           </p>
                         </div>
-                        <div className="rounded-card bg-white px-3 py-2 text-sm font-semibold text-text-primary shadow-card">
-                          Max similarity: {formatScore(snapshot.max_similarity)}
-                        </div>
+                        {isCurrentContract ? (
+                          <div
+                            className="rounded-card bg-white px-3 py-2 text-sm font-semibold text-text-primary shadow-card"
+                            data-testid={`snapshot-score-${snapshot.id}`}
+                          >
+                            Max similarity: {formatCosineScore(snapshot.max_similarity)}
+                          </div>
+                        ) : (
+                          <div
+                            className="max-w-xs rounded-card bg-white px-3 py-2 shadow-card"
+                            data-testid={`snapshot-score-${snapshot.id}`}
+                          >
+                            <p className="text-sm font-semibold text-text-primary">
+                              Recorded score: {formatStoredScore(snapshot.max_similarity)}
+                            </p>
+                            {snapshot.max_similarity != null && (
+                              <p
+                                className="mt-1 text-xs leading-5 text-text-muted"
+                                data-testid={`snapshot-contract-note-${snapshot.id}`}
+                              >
+                                Historical scoring contract not recorded. This value is shown as stored and is not directly comparable with current cosine scores.
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       <div className="mt-3 flex flex-wrap gap-2">

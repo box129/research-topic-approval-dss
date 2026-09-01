@@ -1,0 +1,13 @@
+-- Prospective scoring-contract marker for similarity check snapshots.
+--
+-- The similarity engine's numeric contract has changed over the product's
+-- history (percent-scaled lexical/SBERT scores, then raw Voyage cosine), and
+-- existing snapshot rows do not record which contract produced their numbers.
+-- New snapshots therefore stamp an explicit contract identifier at write time
+-- (currently "voyage-raw-cosine-v1"). Existing rows deliberately remain NULL:
+-- NULL means the scoring contract was never recorded, and the stored value is
+-- presented as-is rather than being retrospectively classified by heuristic.
+--
+-- Additive only. No existing row is updated and no existing migration is
+-- edited.
+ALTER TABLE similarity_check_snapshots ADD COLUMN IF NOT EXISTS scoring_contract VARCHAR(100);

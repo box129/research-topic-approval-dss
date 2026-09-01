@@ -1,6 +1,14 @@
 const prisma = require('../config/database');
 
 const STORABLE_RESPONSE_STATUSES = new Set(['success', 'partial_success']);
+// The scoring contract every snapshot written by this service records its
+// numbers under: Voyage voyage-4-large embeddings of the structured-context-v1
+// representation, scored as raw cosine and classified against the frozen
+// C1.5 thresholds. Stored rows keep the identifier they were stamped with, so
+// any change to that meaning must introduce a NEW identifier rather than
+// editing this one. Rows with a NULL scoring_contract predate stamping: their
+// contract was never recorded and must not be inferred from the stored values.
+const CURRENT_SCORING_CONTRACT = 'voyage-raw-cosine-v1';
 const MAX_TOP_MATCHES_PER_TIER = 3;
 const DEFAULT_SNAPSHOT_HISTORY_LIMIT = 10;
 const COLLECTION_TIER_BY_VALUE = Object.freeze({
@@ -78,6 +86,7 @@ function serializeSimilaritySnapshot(snapshot) {
     },
     response_status: snapshot.responseStatus,
     overall_risk: snapshot.overallRisk,
+    scoring_contract: snapshot.scoringContract ?? null,
     max_similarity: snapshot.maxSimilarity,
     recommendation: snapshot.recommendation,
     result_summary: snapshot.resultSummary,
@@ -103,6 +112,7 @@ function createSimilaritySnapshotService({ prismaClient = prisma } = {}) {
         checkedById,
         responseStatus: similarityResponse.status,
         overallRisk: normalizeNullableString(data.overall_risk),
+        scoringContract: CURRENT_SCORING_CONTRACT,
         maxSimilarity: normalizeNullableNumber(data.max_similarity),
         recommendation: normalizeNullableString(data.recommendation),
         resultSummary: buildResultSummary(similarityResponse)
@@ -148,6 +158,7 @@ module.exports = {
   buildResultSummary,
   shouldStoreSimilarityResponse,
   serializeSimilaritySnapshot,
+  CURRENT_SCORING_CONTRACT,
   MAX_TOP_MATCHES_PER_TIER,
   DEFAULT_SNAPSHOT_HISTORY_LIMIT
 };

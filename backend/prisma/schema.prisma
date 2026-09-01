@@ -191,6 +191,11 @@ model SimilarityCheckSnapshot {
   responseStatus String     @map("response_status") @db.VarChar(50)
   overallRisk    String?    @map("overall_risk") @db.VarChar(50)
   maxSimilarity  Float?     @map("max_similarity")
+  // The scoring contract maxSimilarity and the summary scores were recorded
+  // under (for example "voyage-raw-cosine-v1"). Stamped on every new snapshot
+  // at write time. NULL means the row predates contract stamping: its scale
+  // was never recorded and must not be inferred from the stored values.
+  scoringContract String?   @map("scoring_contract") @db.VarChar(100)
   recommendation String?    @db.Text
   resultSummary  Json?      @map("result_summary")
   createdAt      DateTime   @default(now()) @map("created_at")

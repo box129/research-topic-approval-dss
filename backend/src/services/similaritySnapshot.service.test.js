@@ -19,6 +19,7 @@ const {
   buildResultSummary,
   shouldStoreSimilarityResponse,
   serializeSimilaritySnapshot,
+  CURRENT_SCORING_CONTRACT,
   DEFAULT_SNAPSHOT_HISTORY_LIMIT,
   MAX_TOP_MATCHES_PER_TIER
 } = require('./similaritySnapshot.service');
@@ -120,6 +121,7 @@ describe('similaritySnapshot.service', () => {
     expect(prisma.similarityCheckSnapshot.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         overallRisk: 'HIGH',
+        scoringContract: 'voyage-raw-cosine-v1',
         maxSimilarity: 0.88,
         resultSummary: expect.objectContaining({
           tierCounts: { historical: 1, currentSession: 1, underReview: 1 },
@@ -151,11 +153,13 @@ describe('similaritySnapshot.service', () => {
         checkedById: 8,
         responseStatus: 'success',
         overallRisk: 'HIGH',
+        scoringContract: 'voyage-raw-cosine-v1',
         maxSimilarity: 0.814,
         recommendation: 'High similarity detected.',
         resultSummary: buildResultSummary(successResponse)
       }
     });
+    expect(CURRENT_SCORING_CONTRACT).toBe('voyage-raw-cosine-v1');
   });
 
   test('creates snapshot for partial_success response', async () => {
@@ -183,6 +187,7 @@ describe('similaritySnapshot.service', () => {
         checkedById: 9,
         responseStatus: 'partial_success',
         overallRisk: 'MEDIUM',
+        scoringContract: CURRENT_SCORING_CONTRACT,
         maxSimilarity: 58.2,
         recommendation: null,
         resultSummary: expect.objectContaining({
@@ -280,6 +285,9 @@ describe('similaritySnapshot.service', () => {
       },
       response_status: 'success',
       overall_risk: 'HIGH',
+      // The fixture predates contract stamping, so its contract is unknown and
+      // must serialize as null — never a guessed identifier.
+      scoring_contract: null,
       max_similarity: 81.4,
       recommendation: 'High similarity detected.',
       result_summary: {
@@ -291,6 +299,31 @@ describe('similaritySnapshot.service', () => {
       },
       created_at: '2026-05-22T12:00:00.000Z'
     });
+  });
+
+  test('serializes the stored scoring contract for stamped rows and null for unmarked rows', () => {
+    const base = {
+      id: 22,
+      checkedById: 8,
+      responseStatus: 'success',
+      overallRisk: 'LOW',
+      maxSimilarity: 0.623,
+      recommendation: null,
+      resultSummary: null,
+      createdAt: new Date('2026-09-01T09:00:00Z')
+    };
+
+    expect(serializeSimilaritySnapshot({
+      ...base,
+      scoringContract: CURRENT_SCORING_CONTRACT
+    }).scoring_contract).toBe('voyage-raw-cosine-v1');
+
+    // Prisma returns null (not undefined) for pre-migration rows; both must
+    // serialize to the same explicit contract-unknown null.
+    expect(serializeSimilaritySnapshot({
+      ...base,
+      scoringContract: null
+    }).scoring_contract).toBeNull();
   });
 
   test('lists snapshots for submission newest first with checker details', async () => {
