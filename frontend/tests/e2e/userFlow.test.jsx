@@ -257,8 +257,8 @@ describe('End-to-End User Flow Tests', () => {
 
     expect(await screen.findByTestId('student-results-container')).toBeInTheDocument();
     expect(screen.getByTestId('results-display')).toBeInTheDocument();
-    expect(screen.getByTestId('risk-title')).toHaveTextContent('High Risk');
-    expect(screen.getByTestId('max-similarity')).toHaveTextContent('0.880');
+    expect(screen.getByTestId('similarity-classification')).toHaveTextContent('Higher similarity');
+    expect(screen.getByTestId('provenance-cosine')).toHaveTextContent('0.880');
     expect(screen.getAllByText(/public health surveillance systems/i)).toHaveLength(2);
     expect(screen.queryByPlaceholderText(/enter your research topic/i)).not.toBeInTheDocument();
     expect(screen.getByText(/temporary browser state only/i)).toBeInTheDocument();
@@ -285,8 +285,8 @@ describe('End-to-End User Flow Tests', () => {
     await submitValidTopic(user);
 
     expect(await screen.findByTestId('student-results-container')).toBeInTheDocument();
-    expect(screen.getByTestId('risk-title')).toHaveTextContent('Low Risk');
-    expect(screen.getByTestId('max-similarity')).toHaveTextContent('0.180');
+    expect(screen.getByTestId('similarity-classification')).toHaveTextContent('Lower similarity');
+    expect(screen.getByTestId('provenance-cosine')).toHaveTextContent('0.180');
     expect(screen.getByText(/machine learning in public health/i)).toBeInTheDocument();
   });
 

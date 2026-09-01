@@ -1,451 +1,366 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-
-// ============ Constants ============
-// Risk level configuration with colors and messaging
-const RISK_CONFIGS = {
-  LOW: {
-    color: 'green',
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-500',
-    textColor: 'text-green-800',
-    iconColor: 'text-green-600',
-    title: 'Low Risk',
-    recommendation: 'No high-similarity records were identified by this check. Review the proposal and its context before making a submission or approval decision.'
-  },
-  MEDIUM: {
-    color: 'yellow',
-    bgColor: 'bg-yellow-50',
-    borderColor: 'border-yellow-500',
-    textColor: 'text-yellow-800',
-    iconColor: 'text-yellow-600',
-    title: 'Medium Risk',
-    recommendation: 'Some overlap detected. Consider reviewing the flagged topics to refine your focus.'
-  },
-  HIGH: {
-    color: 'red',
-    bgColor: 'bg-red-50',
-    borderColor: 'border-red-500',
-    textColor: 'text-red-800',
-    iconColor: 'text-red-600',
-    title: 'High Risk',
-    recommendation: 'Significant overlap detected. We recommend revising your topic to differentiate it.'
-  }
-};
-
-// Rendered when the backend returned no risk classification (risk_level null),
-// which happens when no eligible stored topics were available for comparison.
-// An empty corpus must never be presented as a LOW-risk or "unique" result.
-const NO_CLASSIFICATION_CONFIG = {
-  color: 'gray',
-  bgColor: 'bg-gray-50',
-  borderColor: 'border-gray-400',
-  textColor: 'text-gray-800',
-  iconColor: 'text-gray-500',
-  title: 'No Risk Classification',
-  recommendation: 'No eligible stored topics are currently available for comparison. This result does not establish that the topic is new or original.'
-};
+import SimilarityClassificationChip, {
+  classificationLabel,
+  normalizeClassification
+} from './SimilarityClassificationChip';
 
 // ============ Utility Functions ============
-/**
- * Format the raw directional semantic cosine score.
- */
+
+// Raw directional semantic cosine, displayed to three decimal places. Never a
+// percentage, never multiplied, never clamped, never labelled as confidence or
+// probability.
 const formatScore = (score) => {
   if (score === null || score === undefined) return 'N/A';
   return Number(score).toFixed(3);
 };
 
-/**
- * ResultsDisplay Component
- * 
- * Displays similarity check results with risk assessment and tiered matches.
- * Algorithm scores are hidden by default (expandable for advanced users).
- * Tier names are user-friendly: "Similar Past Projects", "Current Session Projects", "Under Review"
- * 
- * @param {Object} props - Component props
- * @param {Object} props.results - Results object from API
- * @param {string} props.results.risk_level - Risk level: LOW, MEDIUM, HIGH
- * @param {number} props.results.max_similarity - Maximum raw cosine similarity returned by the check, displayed to three decimals
- * @param {Array} props.results.tier1_matches - Historical-collection matches
- * @param {Array} props.results.tier2_matches - Current-session-collection matches
- * @param {Array} props.results.tier3_matches - Under-review-collection matches
- * @param {boolean} props.results.semantic_available - Whether semantic scores are available
- */
-const ResultsDisplay = ({ results, appearance = 'default' }) => {
-  // Track which matches have expanded details
-  const [expandedMatches, setExpandedMatches] = useState({});
-  const isCheckerShell = ['student-checker', 'lecturer-checker'].includes(appearance);
-  const isStudentChecker = appearance === 'student-checker';
-  // The lecturer checker tiles match cards inside a page that is already split
-  // form | results, so each card is narrow regardless of viewport width. The
-  // research-context list must therefore stack there instead of following the
-  // viewport breakpoint, which would collide the labels.
-  const isLecturerChecker = appearance === 'lecturer-checker';
+const COLLECTION_TIER_LABEL = {
+  HISTORICAL: 'previous-session record',
+  CURRENT_SESSION: 'current-session record',
+  UNDER_REVIEW: 'under-review record'
+};
 
-  // Risk level configuration; a null risk level means the backend made no
-  // classification (empty comparison corpus) and must not fall back to LOW.
-  const riskConfig = RISK_CONFIGS[results.risk_level] || NO_CLASSIFICATION_CONFIG;
-  const riskLabel = results.risk_level || 'NOT CLASSIFIED';
-  const recommendation = results.recommendation || (isStudentChecker && results.risk_level === 'LOW'
-    ? 'No high-similarity records were identified by this check. Review the proposal and its context before making a submission or approval decision.'
-    : riskConfig.recommendation);
+const COUNT_WORDS = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five'];
 
-  /**
-   * Toggle details visibility for a match
-   */
-  const toggleDetails = (matchId) => {
-    setExpandedMatches(prev => ({
-      ...prev,
-      [matchId]: !prev[matchId]
-    }));
+// One ranked list, not a card grid (Board A R4). The API returns matches
+// ranked by semantic similarity; the API mapper splits them by collection, so
+// the merge re-sorts on the backend-provided score purely to restore that
+// presentation order. Classification is never derived from the score (N-3).
+function rankedRecords(results) {
+  return [
+    ...(results.tier1_matches || []),
+    ...(results.tier2_matches || []),
+    ...(results.tier3_matches || [])
+  ].sort((a, b) => {
+    const aScore = Number.isFinite(a?.semantic_score) ? a.semantic_score : -Infinity;
+    const bScore = Number.isFinite(b?.semantic_score) ? b.semantic_score : -Infinity;
+    return bScore - aScore;
+  });
+}
+
+function compositionSummary(records) {
+  const counts = { HISTORICAL: 0, CURRENT_SESSION: 0, UNDER_REVIEW: 0 };
+  records.forEach((record) => {
+    if (counts[record.collection] !== undefined) counts[record.collection] += 1;
+  });
+
+  const parts = [];
+  if (counts.HISTORICAL > 0) {
+    parts.push(counts.HISTORICAL === 1 ? '1 from a previous session' : `${counts.HISTORICAL} from previous sessions`);
+  }
+  if (counts.CURRENT_SESSION > 0) parts.push(`${counts.CURRENT_SESSION} from the current session`);
+  if (counts.UNDER_REVIEW > 0) parts.push(`${counts.UNDER_REVIEW} under review`);
+  return parts.join(' · ');
+}
+
+// Lead lines report what the check found; they never prescribe an academic
+// action (Board A R9). The subject noun follows the surface: a checker checks
+// a proposal, the review detail embeds evidence about a submission.
+function leadContent(classification, records, subjectNoun, isStudent) {
+  if (classification === 'HIGH') {
+    const closeCount = records.filter((record) => normalizeClassification(record.similarity_class) === 'HIGH').length;
+    const countWord = closeCount >= 1 && closeCount < COUNT_WORDS.length ? COUNT_WORDS[closeCount] : null;
+    const readClause = isStudent ? 'before deciding whether to submit' : 'before deciding';
+
+    if (closeCount === 1) {
+      return { lead: `One stored record is closely related to this ${subjectNoun}. Read it ${readClause}.` };
+    }
+    if (closeCount > 1) {
+      return { lead: `${countWord || closeCount} stored records are closely related to this ${subjectNoun}. Read them ${readClause}.` };
+    }
+    return { lead: `Stored records closely related to this ${subjectNoun} were found. Read them ${readClause}.` };
+  }
+
+  if (classification === 'MEDIUM') {
+    return isStudent
+      ? { lead: `Some stored records overlap with this ${subjectNoun}. Compare their population, location and study focus with your own.` }
+      : { lead: `Some stored records overlap with this ${subjectNoun}. Their population, location and study focus are shown below for comparison.` };
+  }
+
+  if (classification === 'LOW') {
+    return {
+      lead: `No stored record is closely related to this ${subjectNoun}.`,
+      denial: 'This does not establish that the topic is new or original.',
+      scopeNote: isStudent
+        ? 'The comparison covers stored departmental records only, and your lecturer makes the academic decision.'
+        : 'The comparison covers stored departmental records only.'
+    };
+  }
+
+  // NOT_CLASSIFIED with records present should not occur, but degrade
+  // truthfully: name the absence of a classification without inventing one.
+  return {
+    lead: 'No similarity classification was returned for this check.',
+    denial: 'This does not establish that the topic is new or original.'
   };
+}
 
-  /**
-   * Get similarity level descriptor (user-friendly)
-   */
-  const getSimilarityLevel = (score) => {
-    if (score >= 0.8) return { label: 'Very High Match', color: 'text-red-600 font-semibold' };
-    if (score >= 0.7) return { label: 'High Match', color: 'text-orange-600 font-semibold' };
-    if (score >= 0.6) return { label: 'Moderate Match', color: 'text-yellow-600' };
-    return { label: 'Low Match', color: 'text-green-600' };
-  };
+function ProvenanceItem({ label, value, mono = false }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-[11.5px] font-medium uppercase tracking-[0.08em] text-text-muted">{label}</dt>
+      <dd className={`mt-0.5 text-[14px] text-text-primary ${mono ? 'font-mono' : ''}`}>{value}</dd>
+    </div>
+  );
+}
 
-  /**
-   * Render a single topic match with expandable algorithm scores
-   */
-  const renderTopicMatch = (match, index, tierKey) => {
-    const matchKey = `${match.collection}-${match.id}-${index}`;
-    const isExpanded = expandedMatches[matchKey];
-    const score = match.semantic_score;
-    const similarityLevel = getSimilarityLevel(score);
-    const studentMetadata = tierKey === 'tier3'
-      ? [
-          ['Reviewing lecturer', match.supervisor_name, `supervisor-${index}`],
-          ['Review started', match.session_year, `session-${index}`]
-        ]
-      : tierKey === 'tier2'
-        ? [
-            ['Supervisor', match.supervisor_name, `supervisor-${index}`],
-            ['Approved date', match.session_year, `session-${index}`]
-          ]
-        : [
-            ['Supervisor', match.supervisor_name, `supervisor-${index}`],
-            ['Session', match.session_year, `session-${index}`]
-          ];
+ProvenanceItem.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.node.isRequired,
+  mono: PropTypes.bool
+};
 
-    const researchContext = [
-      ['Population', match.population, 'match-population'],
-      ['Location', match.location, 'match-location'],
-      ['Study focus', match.study_focus, 'match-study-focus']
-    ].filter(([, value]) => Boolean(value));
+// Check provenance: counts and the top-record cosine, with the one sentence
+// that keeps the number from being read as a probability (Board A R2). The
+// disclaimer is subordinate, never illegible: 13.5px at AA contrast.
+function ProvenanceStrip({ corpusSize, returnedCount, maxSimilarity }) {
+  return (
+    <section aria-label="Check provenance" className="rounded-[10px] bg-surface-muted px-4 py-3" data-testid="check-provenance">
+      <dl className="flex flex-wrap gap-x-8 gap-y-2">
+        <ProvenanceItem label="Records compared" value={corpusSize ?? '—'} />
+        <ProvenanceItem label="Records returned" value={returnedCount} />
+        <ProvenanceItem label="Cosine, top record" value={<span data-testid="provenance-cosine">{formatScore(maxSimilarity)}</span>} mono />
+      </dl>
+      <p className="mt-2 text-[13.5px] leading-5 text-text-secondary">
+        Technical similarity score, not a percentage of duplication, originality or probability.
+      </p>
+    </section>
+  );
+}
 
-    return (
-      <div
-        key={matchKey}
-        data-testid={`topic-match-${index}`}
-        className={isCheckerShell
-          ? 'rounded-xl border border-emerald-100 bg-white p-4 transition-shadow hover:shadow-md'
-          : 'p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow'
-        }
-      >
-        {/* Topic Title */}
-        <h4 className="text-lg font-semibold text-gray-900 mb-2" data-testid={`topic-title-${index}`}>
-          {match.topic_title}
-        </h4>
+ProvenanceStrip.propTypes = {
+  corpusSize: PropTypes.number,
+  returnedCount: PropTypes.number.isRequired,
+  maxSimilarity: PropTypes.number
+};
 
-        {/* Similarity Level (User-Friendly, Prominent) */}
-        <div className="mb-3">
-          <p className={`text-sm ${similarityLevel.color}`}>
-            ⚠ {similarityLevel.label}
-          </p>
-        </div>
+// A stored record row. One 600-weight run (the title; 500 on an overall-LOW
+// result, where nothing found is a finding of substance), labels
+// colour-differentiated and never bold, no inner borders, no icons — the rank
+// ordinal replaces the old warning triangle (Board A R3/R4).
+function StoredRecord({ record, rank, index, overallClassification, subjectLabelId }) {
+  const contextFields = [
+    ['Population', record.population, 'record-population'],
+    ['Location', record.location, 'record-location'],
+    ['Study focus', record.study_focus, 'record-study-focus']
+  ].filter(([, value]) => Boolean(value));
 
-        {/* Metadata */}
-        <div className="flex flex-wrap gap-3 mb-3 text-sm text-gray-600">
-          {isStudentChecker ? studentMetadata.map(([label, value, testId]) => value && (
-            <span key={label} data-testid={testId}><strong>{label}:</strong> {value}</span>
-          )) : <>
-            {match.supervisor_name && <span data-testid={`supervisor-${index}`}><strong>Supervisor:</strong> {match.supervisor_name}</span>}
-            {match.session_year && <span data-testid={`session-${index}`}><strong>Year:</strong> {match.session_year}</span>}
-          </>}
-          {match.status && (
-            <span data-testid={`status-${index}`}>
-              <strong>Status:</strong> {match.status}
-            </span>
-          )}
-        </div>
-
-        {/* Research context, when the stored record actually has it. This is
-            what turns a similarity verdict into something a reviewer can judge:
-            the same score means something different when the population and
-            location match than when only the wording does. Historical records
-            are uneven, so every field is skipped individually when absent and
-            the whole block disappears when none is present -- no "N/A" rows. */}
-        {researchContext.length > 0 && (
-          <dl
-            className={`mb-3 grid gap-x-4 gap-y-1 text-sm text-gray-600 ${isLecturerChecker ? 'grid-cols-1' : 'sm:grid-cols-2'}`}
-            data-testid={`research-context-${index}`}
-            data-layout={isLecturerChecker ? 'stacked' : 'two-column'}
-          >
-            {researchContext.map(([label, value, testId]) => (
-              <div key={label} className="min-w-0">
-                <dt className="inline font-semibold">{label}:</dt>{' '}
-                <dd className="inline break-words" data-testid={`${testId}-${index}`}>{value}</dd>
-              </div>
-            ))}
-          </dl>
-        )}
-
-        <button
-          onClick={() => toggleDetails(matchKey)}
-          className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center transition-colors"
-          data-testid={`expand-details-${index}`}
-        >
-          {isExpanded ? (
-            <>
-              <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-              Hide Technical Details
-            </>
-          ) : (
-            <>
-              <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-              </svg>
-              Show Technical Details
-            </>
-          )}
-        </button>
-
-        {isExpanded && (
-          <div className="mt-3 pt-3 border-t border-gray-200" data-testid={`algorithm-details-${index}`}>
-            <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Semantic similarity</p>
-            <div className="flex flex-wrap gap-2">
-              <span data-testid={`semantic-badge-${index}`} className="px-3 py-1 rounded-full text-xs font-medium text-blue-700 bg-blue-50">Semantic: {formatScore(match.semantic_score)}</span>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  /**
-   * Render tier section with user-friendly naming
-   */
-  const renderTierSection = (tierKey, tierTitle, tierDescription, matches) => {
-    if (!matches || matches.length === 0) return null;
-
-    return (
-      <div className={isCheckerShell ? 'mb-6' : 'mb-8'} data-testid={`tier-section-${tierKey}`}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold text-gray-800" data-testid={`tier-title-${tierKey}`}>
-            {tierTitle}
-          </h3>
-          <span className="inline-block bg-gray-200 text-gray-800 text-xs font-semibold px-3 py-1 rounded-full">
-            {matches.length} {matches.length === 1 ? 'match' : 'matches'}
-          </span>
-        </div>
-        <p className="text-sm text-gray-600 mb-4">{tierDescription}</p>
-        <div className={isCheckerShell ? 'grid gap-3 lg:grid-cols-2 xl:grid-cols-3' : 'space-y-3'}>
-          {matches.map((match, index) => renderTopicMatch(match, index, tierKey))}
-        </div>
-      </div>
-    );
-  };
-
-  const totalMatches = (results.tier1_matches?.length || 0) +
-    (results.tier2_matches?.length || 0) +
-    (results.tier3_matches?.length || 0);
-
-  if (isCheckerShell) {
-    return (
-      <div className="w-full p-4 sm:p-6" data-testid="results-display">
-        <div className="grid gap-4 lg:grid-cols-[13rem_minmax(0,1fr)]">
-          <div className="rounded-xl border border-emerald-100 bg-[#fbfdf8] p-5 text-center">
-            <p className="text-xs font-bold uppercase tracking-[0.12em] text-text-muted">Similarity score</p>
-            <p className={`mt-2 text-5xl font-bold ${riskConfig.textColor}`} data-testid="max-similarity">
-              {formatScore(results.max_similarity)}
-            </p>
-            <p className="mt-2 text-xs leading-5 text-text-secondary">Highest semantic similarity returned by the checker.</p>
-            <p className="sr-only" data-testid="summary-max-similarity">{formatScore(results.max_similarity)}</p>
-          </div>
-
-          <div
-            data-testid="risk-banner"
-            data-risk-level={results.risk_level}
-            className={`${riskConfig.bgColor} ${riskConfig.borderColor} rounded-xl border p-5`}
-          >
-            <p className="text-xs font-bold uppercase tracking-[0.12em] opacity-70">Advisory risk level</p>
-            <h3 className={`mt-2 text-xl font-bold ${riskConfig.textColor}`} data-testid="risk-title">
-              {riskConfig.title}
-            </h3>
-            <p className={`mt-2 text-sm leading-6 ${riskConfig.textColor}`} data-testid="risk-recommendation">
-              {recommendation}
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
-              <span className="rounded-full bg-white/75 px-3 py-1" data-testid="summary-risk">{riskLabel}</span>
-              <span className="rounded-full bg-white/75 px-3 py-1" data-testid="summary-total-matches">
-                {totalMatches} {totalMatches === 1 ? 'match' : 'matches'} returned
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6">
-          {renderTierSection(
-            'tier1',
-            isStudentChecker ? 'Historical topics' : 'Similar Past Projects',
-            'The most similar topics from previous submission cycles. Review these to understand how your topic compares.',
-            results.tier1_matches
-          )}
-
-          {renderTierSection(
-            'tier2',
-            isStudentChecker ? 'Current-session topics' : 'Current Session Projects',
-            'Topics from current submissions with significant similarity to yours.',
-            results.tier2_matches
-          )}
-
-          {renderTierSection(
-            'tier3',
-            isStudentChecker ? 'Under-review topics' : 'Under Review Projects',
-            'Recently submitted topics under review that show some overlap with your submission.',
-            results.tier3_matches
-          )}
-
-          {totalMatches === 0 && (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-6 text-center" data-testid="no-matches">
-              <p className="font-medium text-[#1B5E20]">No meaningful matches were returned by this check.</p>
-              <p className="mt-2 text-sm text-text-secondary">This does not establish originality or guarantee approval. Review the proposal and its context before deciding whether to submit it.</p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
+  const isUnderReview = record.collection === 'UNDER_REVIEW';
+  const metaParts = [];
+  if (record.supervisor_name) {
+    metaParts.push(isUnderReview ? `Reviewing lecturer: ${record.supervisor_name}` : record.supervisor_name);
+  }
+  if (record.session_year) {
+    metaParts.push(isUnderReview ? `review started ${record.session_year}` : `${record.session_year} session`);
+  }
+  if (COLLECTION_TIER_LABEL[record.collection]) {
+    metaParts.push(COLLECTION_TIER_LABEL[record.collection]);
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6" data-testid="results-display">
-      {/* Risk Assessment Banner */}
-      <div
-        data-testid="risk-banner"
-        data-risk-level={results.risk_level}
-        className={`${riskConfig.bgColor} ${riskConfig.borderColor} border-l-4 p-6 rounded-lg mb-8`}
-      >
-        <div className="flex items-start">
-          <div className="flex-shrink-0">
-            <svg
-              className={`h-6 w-6 ${riskConfig.iconColor}`}
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              data-testid="risk-icon"
+    <li className="px-4 py-4 sm:px-5" data-testid={`record-${index}`} aria-labelledby={subjectLabelId}>
+      <div className="flex gap-3">
+        <span aria-hidden="true" className="mt-0.5 shrink-0 font-mono text-[13.5px] font-medium leading-6 text-text-secondary">
+          {rank}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+            <h4
+              id={subjectLabelId}
+              className={`break-words text-[15.5px] leading-6 text-text-primary ${overallClassification === 'LOW' ? 'font-medium' : 'font-semibold'}`}
+              data-testid={`record-title-${index}`}
             >
-              {results.risk_level === 'HIGH' ? (
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              ) : results.risk_level === 'MEDIUM' ? (
-                <path
-                  fillRule="evenodd"
-                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              ) : results.risk_level === 'LOW' ? (
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              ) : (
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                  clipRule="evenodd"
-                />
-              )}
-            </svg>
+              <span className="sr-only">{`Rank ${rank}: `}</span>
+              {record.topic_title}
+            </h4>
+            <span className="shrink-0">
+              <SimilarityClassificationChip value={record.similarity_class} data-testid={`record-class-${index}`} />
+            </span>
           </div>
-          <div className="ml-3 flex-1">
-            <h3 className={`text-lg font-bold ${riskConfig.textColor}`} data-testid="risk-title">
-              {riskConfig.title}
-            </h3>
-            <p className={`mt-2 text-sm ${riskConfig.textColor}`} data-testid="risk-recommendation">
-              {recommendation}
-            </p>
-            <p className={`mt-3 text-sm font-semibold ${riskConfig.textColor}`} data-testid="max-similarity">
-              Maximum Semantic Similarity: {formatScore(results.max_similarity)}
-            </p>
-          </div>
-        </div>
-      </div>
 
-      {/* Results Overview Cards */}
-      <div className="bg-gray-50 rounded-lg p-6 mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Similarity Analysis Summary</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow-sm border-b-4 border-blue-200">
-            <p className="text-sm text-gray-600 mb-1">Risk Level</p>
-            <p className={`text-2xl font-bold ${riskConfig.textColor}`} data-testid="summary-risk">
-              {riskLabel}
-            </p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border-b-4 border-blue-200">
-            <p className="text-sm text-gray-600 mb-1">Highest Similarity</p>
-            <p className="text-2xl font-bold text-gray-900" data-testid="summary-max-similarity">
-              {formatScore(results.max_similarity)}
-            </p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border-b-4 border-blue-200">
-            <p className="text-sm text-gray-600 mb-1">Total Matches Found</p>
-            <p className="text-2xl font-bold text-gray-900" data-testid="summary-total-matches">
-              {(results.tier1_matches?.length || 0) + 
-               (results.tier2_matches?.length || 0) + 
-               (results.tier3_matches?.length || 0)}
-            </p>
-          </div>
-        </div>
-      </div>
+          {contextFields.length > 0 && (
+            <dl className="mt-2 space-y-1" data-testid={`record-context-${index}`}>
+              {contextFields.map(([label, value, testId]) => (
+                <div key={label} className="min-w-0 text-[14px] leading-6">
+                  <dt className="inline font-medium text-text-muted">{label}</dt>{' '}
+                  <dd className="inline break-words text-text-primary" data-testid={`${testId}-${index}`}>{value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
 
-      {/* Tier 1: Similar Past Projects (Historical Top 5) */}
-      {renderTierSection(
-        'tier1',
-        '📚 Similar Past Projects',
-        'The 5 most similar topics from previous submission cycles. Review these to understand how your topic compares.',
-        results.tier1_matches
-      )}
-
-      {/* Tier 2: Current Session Projects */}
-      {renderTierSection(
-        'tier2',
-        '📝 Current Session Projects',
-        'Topics from current submissions with significant similarity to yours. These may be competing proposals.',
-        results.tier2_matches
-      )}
-
-      {/* Tier 3: Under Review Projects */}
-      {renderTierSection(
-        'tier3',
-        '⏳ Under Review Projects',
-        'Recently submitted topics under review that show some overlap with your submission.',
-        results.tier3_matches
-      )}
-
-      {/* No Matches Message — must not claim originality: zero matches usually
-          means no eligible stored topics were available for comparison. */}
-      {(!results.tier1_matches || results.tier1_matches.length === 0) &&
-       (!results.tier2_matches || results.tier2_matches.length === 0) &&
-       (!results.tier3_matches || results.tier3_matches.length === 0) && (
-        <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200" data-testid="no-matches">
-          <p className="text-gray-800 font-medium">
-            {results.corpus_size === 0
-              ? 'No eligible stored topics are currently available for comparison.'
-              : 'No matching topics were returned by this check.'}
+          {(metaParts.length > 0 || Number.isFinite(record.semantic_score)) && (
+          <p className="mt-2 text-[13.5px] leading-5 text-text-secondary" data-testid={`record-meta-${index}`}>
+            {metaParts.map((part, partIndex) => (
+              <span key={part}>
+                {partIndex > 0 && ' · '}
+                {part}
+              </span>
+            ))}
+            {Number.isFinite(record.semantic_score) && (
+              <span data-testid={`record-cosine-${index}`}>
+                {metaParts.length > 0 && ' · '}
+                <span className="font-mono text-[13px]">cosine {formatScore(record.semantic_score)}</span>
+              </span>
+            )}
           </p>
-          <p className="mt-2 text-sm text-gray-600">This does not establish originality or guarantee approval. Review the proposal and its context before deciding how to proceed.</p>
+          )}
         </div>
+      </div>
+    </li>
+  );
+}
+
+StoredRecord.propTypes = {
+  record: PropTypes.object.isRequired,
+  rank: PropTypes.string.isRequired,
+  index: PropTypes.number.isRequired,
+  overallClassification: PropTypes.string.isRequired,
+  subjectLabelId: PropTypes.string.isRequired
+};
+
+/**
+ * ResultsDisplay — the frozen Board A similarity evidence system.
+ *
+ * Communicates what the system found, never what anyone should decide.
+ * Classification is the primary human-readable result; the raw cosine is
+ * subordinate technical provenance shown to three decimal places, never as a
+ * percentage. Per-record classification comes only from the backend's
+ * `similarity_class`; the component never derives a classification from a
+ * numeric score. Everything rests in neutral ink: similarity evidence never
+ * wears approval green, revision amber or rejection red, and its affordances
+ * rest in underlined ink so decision colour stays with human controls.
+ *
+ * @param {Object} props.results - Normalized results object from the API
+ *   mapper: risk_level (internal compatibility field name for the backend's
+ *   overall classification token), max_similarity (raw cosine), corpus_size,
+ *   tier1/2/3_matches with per-match semantic_score and similarity_class.
+ * @param {string} props.appearance - 'student-checker' | 'lecturer-checker' |
+ *   'default' (embedded in the lecturer review detail).
+ */
+const ResultsDisplay = ({ results, appearance = 'default' }) => {
+  const [showAllRecords, setShowAllRecords] = useState(false);
+
+  const isStudent = appearance === 'student-checker';
+  const subjectNoun = appearance === 'default' ? 'submission' : 'proposal';
+
+  const records = rankedRecords(results);
+  const isEmptyCorpus = results.corpus_size === 0;
+  const classification = isEmptyCorpus ? 'NOT_CLASSIFIED' : normalizeClassification(results.risk_level);
+
+  // Disclosure as emphasis (R5): higher similarity opens every record;
+  // moderate and lower open the top record only. The count stays visible so
+  // nothing is hidden — only deferred.
+  const defaultVisible = classification === 'HIGH' ? records.length : Math.min(records.length, 1);
+  const visibleRecords = showAllRecords ? records : records.slice(0, defaultVisible);
+  const hiddenCount = records.length - defaultVisible;
+
+  const content = isEmptyCorpus
+    ? {
+      lead: 'No comparison could be made. There are no eligible stored topics to compare against.',
+      denial: 'This does not establish that the topic is new or original.',
+      scopeNote: 'No similarity classification has been assigned, because nothing was compared.'
+    }
+    : leadContent(classification, records, subjectNoun, isStudent);
+
+  return (
+    <div
+      className="w-full space-y-4 p-4 sm:p-5"
+      data-testid="results-display"
+      data-classification={classification}
+    >
+      {/* Classification block: the primary human-readable result. */}
+      <section aria-label="Similarity classification" data-testid={isEmptyCorpus ? 'empty-corpus' : 'classification-block'}>
+        <p className="text-[11.5px] font-medium uppercase tracking-[0.1em] text-text-muted">
+          Similarity classification
+        </p>
+        <div className="mt-2">
+          <SimilarityClassificationChip
+            value={isEmptyCorpus ? null : results.risk_level}
+            showToken
+            data-testid="similarity-classification"
+          />
+        </div>
+        <p className="mt-3 max-w-[62ch] text-[15px] font-medium leading-6 text-text-primary" data-testid="classification-lead">
+          {content.lead}
+        </p>
+        {content.denial && (
+          <p className="mt-1.5 max-w-[62ch] text-[15px] font-medium leading-6 text-text-primary" data-testid="originality-denial">
+            {content.denial}
+          </p>
+        )}
+        {content.scopeNote && (
+          <p className="mt-1.5 max-w-[62ch] text-[13.5px] leading-5 text-text-secondary">
+            {content.scopeNote}
+          </p>
+        )}
+        {isStudent && !isEmptyCorpus && classification !== 'LOW' && (
+          <p className="mt-2 max-w-[62ch] text-[13.5px] leading-5 text-text-secondary" data-testid="boundary-line">
+            Similarity evidence supports your judgement. It does not approve, reject or certify originality — your lecturer makes the academic decision.
+          </p>
+        )}
+      </section>
+
+      <ProvenanceStrip
+        corpusSize={results.corpus_size ?? null}
+        returnedCount={records.length}
+        maxSimilarity={results.max_similarity}
+      />
+
+      {/* Stored records: one ranked bordered list. Ends the surface — an empty
+          corpus adds no records section and no filler (R6). */}
+      {!isEmptyCorpus && records.length > 0 && (
+        <section aria-label="Closest stored records" data-testid="records-section">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <h3 className="text-[15px] font-semibold text-text-primary">Closest stored records</h3>
+            <p className="text-[13.5px] text-text-secondary">{compositionSummary(records)}</p>
+          </div>
+          <p className="mt-0.5 text-[13.5px] text-text-secondary">
+            {classification === 'LOW'
+              ? 'The nearest records found — none is closely related.'
+              : `Ranked by semantic similarity to your ${subjectNoun}.`}
+          </p>
+
+          <ol className="mt-3 divide-y divide-border-subtle rounded-[10px] border border-border-subtle bg-white">
+            {visibleRecords.map((record, index) => (
+              <StoredRecord
+                key={`${record.collection}-${record.id}-${index}`}
+                record={record}
+                rank={String(index + 1).padStart(2, '0')}
+                index={index}
+                overallClassification={classification}
+                subjectLabelId={`similarity-record-${appearance}-${index}`}
+              />
+            ))}
+          </ol>
+
+          {hiddenCount > 0 && (
+            <button
+              type="button"
+              className="mt-3 text-[14px] font-medium text-text-primary underline underline-offset-2 hover:text-text-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2"
+              aria-expanded={showAllRecords}
+              onClick={() => setShowAllRecords((current) => !current)}
+              data-testid="show-more-records"
+            >
+              {showAllRecords ? 'Show fewer records' : `Show ${hiddenCount} more record${hiddenCount === 1 ? '' : 's'}`}
+            </button>
+          )}
+        </section>
+      )}
+
+      {/* Zero returned records on a comparison that ran: a different condition
+          from an empty corpus, stated neutrally — never as a pass. */}
+      {!isEmptyCorpus && records.length === 0 && (
+        <section
+          className="rounded-[10px] border border-border-subtle bg-white px-5 py-5"
+          data-testid="no-matches"
+        >
+          <p className="text-[15px] font-medium text-text-primary">No stored records were returned by this check.</p>
+          <p className="mt-1.5 text-[13.5px] leading-5 text-text-secondary">
+            This does not establish that the topic is new or original. Review the {subjectNoun} and its context before deciding how to proceed.
+          </p>
+        </section>
       )}
     </div>
   );
@@ -464,7 +379,6 @@ const MATCH_SHAPE = PropTypes.shape({
   population: PropTypes.string,
   location: PropTypes.string,
   study_focus: PropTypes.string,
-  status: PropTypes.string,
   collection: PropTypes.oneOf(['HISTORICAL', 'CURRENT_SESSION', 'UNDER_REVIEW']).isRequired,
   semantic_score: PropTypes.number.isRequired,
   similarity_class: PropTypes.oneOf(['LOW', 'MEDIUM', 'HIGH'])
@@ -472,7 +386,10 @@ const MATCH_SHAPE = PropTypes.shape({
 
 ResultsDisplay.propTypes = {
   results: PropTypes.shape({
-    // null when the backend made no classification (empty comparison corpus).
+    // Internal compatibility field name for the backend's overall
+    // classification token; null when the backend asserted no classification
+    // (empty comparison corpus). Never coerced to LOW, and never rendered
+    // with "risk" vocabulary.
     risk_level: PropTypes.oneOf(['LOW', 'MEDIUM', 'HIGH']),
     max_similarity: PropTypes.number,
     corpus_size: PropTypes.number,

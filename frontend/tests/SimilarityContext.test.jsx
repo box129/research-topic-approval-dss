@@ -99,17 +99,19 @@ const contextResults = {
 };
 
 describe('similarity context display', () => {
-  it('renders supervisor, session and research context when the record has them', () => {
+  it('renders supervisor, session, source tier and research context when the record has them', () => {
     render(<ResultsDisplay results={contextResults} />);
 
-    const card = screen.getByTestId('topic-match-0');
-    expect(within(card).getByTestId('supervisor-0')).toHaveTextContent('Dr A. Adeyemi');
-    expect(within(card).getByTestId('session-0')).toHaveTextContent('2021/2022');
+    const record = screen.getByTestId('record-0');
+    const meta = within(record).getByTestId('record-meta-0');
+    expect(meta).toHaveTextContent('Dr A. Adeyemi');
+    expect(meta).toHaveTextContent('2021/2022 session');
+    expect(meta).toHaveTextContent('previous-session record');
 
-    const context = within(card).getByTestId('research-context-0');
-    expect(within(context).getByTestId('match-population-0')).toHaveTextContent('Rural caregivers');
-    expect(within(context).getByTestId('match-location-0')).toHaveTextContent('Osun State');
-    expect(within(context).getByTestId('match-study-focus-0')).toHaveTextContent('Preventive knowledge and practice');
+    const context = within(record).getByTestId('record-context-0');
+    expect(within(context).getByTestId('record-population-0')).toHaveTextContent('Rural caregivers');
+    expect(within(context).getByTestId('record-location-0')).toHaveTextContent('Osun State');
+    expect(within(context).getByTestId('record-study-focus-0')).toHaveTextContent('Preventive knowledge and practice');
   });
 
   it('degrades gracefully when a record carries no context at all', () => {
@@ -129,11 +131,11 @@ describe('similarity context display', () => {
       }]
     }} />);
 
-    const card = screen.getByTestId('topic-match-0');
-    expect(within(card).getByText(/a stored topic with no recorded context/i)).toBeInTheDocument();
+    const record = screen.getByTestId('record-0');
+    expect(within(record).getByText(/a stored topic with no recorded context/i)).toBeInTheDocument();
     // No empty rows, no placeholder noise.
-    expect(within(card).queryByTestId('research-context-0')).not.toBeInTheDocument();
-    expect(card.textContent).not.toMatch(/null|undefined|N\/A/);
+    expect(within(record).queryByTestId('record-context-0')).not.toBeInTheDocument();
+    expect(record.textContent).not.toMatch(/null|undefined|N\/A/);
   });
 
   it('renders only the context fields that are actually present', () => {
@@ -147,49 +149,35 @@ describe('similarity context display', () => {
       }]
     }} />);
 
-    const context = screen.getByTestId('research-context-0');
-    expect(within(context).getByTestId('match-population-0')).toHaveTextContent('Rural caregivers');
-    expect(within(context).queryByTestId('match-location-0')).not.toBeInTheDocument();
-    expect(within(context).queryByTestId('match-study-focus-0')).not.toBeInTheDocument();
+    const context = screen.getByTestId('record-context-0');
+    expect(within(context).getByTestId('record-population-0')).toHaveTextContent('Rural caregivers');
+    expect(within(context).queryByTestId('record-location-0')).not.toBeInTheDocument();
+    expect(within(context).queryByTestId('record-study-focus-0')).not.toBeInTheDocument();
     expect(context.textContent).not.toMatch(/null|undefined|N\/A/);
   });
 
-  it('keeps the plain-language level leading and the raw score secondary', () => {
+  it('keeps the plain-language classification leading and the raw cosine subordinate', () => {
     render(<ResultsDisplay results={contextResults} />);
 
-    const card = screen.getByTestId('topic-match-0');
-    // The raw cosine score stays behind the technical-details disclosure; adding
-    // context must not promote it into the primary reading.
-    expect(within(card).queryByTestId('semantic-badge-0')).not.toBeInTheDocument();
-    expect(within(card).getByTestId('expand-details-0')).toHaveTextContent(/show technical details/i);
-    expect(card.textContent).not.toMatch(/0\.66/);
+    const record = screen.getByTestId('record-0');
+    // The backend classification leads as a plain-language chip; the raw
+    // cosine appears only as subordinate labelled provenance in the meta line.
+    expect(within(record).getByTestId('record-class-0')).toHaveTextContent('Moderate similarity');
+    expect(within(record).getByTestId('record-cosine-0')).toHaveTextContent('cosine 0.660');
+    expect(record.textContent).not.toMatch(/%/);
   });
 });
 
 describe('research context layout', () => {
-  // The lecturer checker tiles its match cards inside a page that is already
-  // split form | results, so the cards are narrow at every desktop width. The
-  // context list must stack there; the full-width student checker and the
-  // default embedded view keep the two-column layout.
-  it('stacks the context fields one per row in the lecturer checker', () => {
-    render(<ResultsDisplay appearance="lecturer-checker" results={contextResults} />);
+  // Board A: context fields render as labelled lines, one per row, at every
+  // appearance — so a long phrase never wraps mid-label in the lecturer
+  // checker's narrow results column.
+  it.each([['lecturer-checker'], ['student-checker'], ['default']])('stacks the context fields as labelled lines in the %s appearance', (appearance) => {
+    render(<ResultsDisplay appearance={appearance === 'default' ? undefined : appearance} results={contextResults} />);
 
-    const context = screen.getByTestId('research-context-0');
-    expect(context).toHaveAttribute('data-layout', 'stacked');
-    expect(context).toHaveClass('grid-cols-1');
-    expect(context).not.toHaveClass('sm:grid-cols-2');
-    expect(within(context).getByTestId('match-population-0')).toHaveTextContent('Rural caregivers');
-    expect(within(context).getByTestId('match-location-0')).toHaveTextContent('Osun State');
-  });
-
-  it('keeps the two-column context layout for the full-width student checker and the default view', () => {
-    const { unmount } = render(<ResultsDisplay appearance="student-checker" results={contextResults} />);
-    expect(screen.getByTestId('research-context-0')).toHaveAttribute('data-layout', 'two-column');
-    expect(screen.getByTestId('research-context-0')).toHaveClass('sm:grid-cols-2');
-    unmount();
-
-    render(<ResultsDisplay results={contextResults} />);
-    expect(screen.getByTestId('research-context-0')).toHaveAttribute('data-layout', 'two-column');
-    expect(screen.getByTestId('research-context-0')).toHaveClass('sm:grid-cols-2');
+    const context = screen.getByTestId('record-context-0');
+    expect(within(context).getByTestId('record-population-0')).toHaveTextContent('Rural caregivers');
+    expect(within(context).getByTestId('record-location-0')).toHaveTextContent('Osun State');
+    expect(context.className).not.toMatch(/grid-cols-2/);
   });
 });

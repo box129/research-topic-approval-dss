@@ -157,7 +157,9 @@ function CheckMyTopicPage() {
             <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2"><div><dt className="font-bold">Population</dt><dd>{checkedProposal?.population || 'Not specified'}</dd></div><div><dt className="font-bold">Location</dt><dd>{checkedProposal?.location || 'Not specified'}</dd></div><div><dt className="font-bold">Study focus</dt><dd>{checkedProposal?.studyFocus || 'Not specified'}</dd></div></dl>
             <p className="mt-3 text-sm text-text-secondary">Temporary browser state only. This proposal was not saved or submitted.</p>
           </section>
-          <div className="flex flex-col gap-3 border-b border-emerald-100 pb-3 sm:flex-row sm:items-end sm:justify-between">
+          {/* Board A: similarity evidence rests neutral — the result boundary
+              and wrapper never carry the approval/action hue. */}
+          <div className="flex flex-col gap-3 border-b border-gray-200 pb-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.12em] text-brand-green-dark">Advisory result</p>
               <h2 id="student-results-title" className="mt-1 font-serif text-2xl font-semibold text-brand-green-dark">
@@ -169,7 +171,7 @@ function CheckMyTopicPage() {
             </SecondaryButton>
           </div>
 
-          <div data-testid="student-results-container" className="mt-3 rounded-2xl border border-emerald-100 bg-white/95 shadow-sm">
+          <div data-testid="student-results-container" className="mt-3 rounded-2xl border border-gray-200 bg-white shadow-sm">
             <ResultsDisplay results={results} appearance="student-checker" />
           </div>
         </section>

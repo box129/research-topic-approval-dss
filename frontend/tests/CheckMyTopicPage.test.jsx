@@ -133,8 +133,8 @@ describe('CheckMyTopicPage', () => {
     await submitTopic(user);
 
     expect(await screen.findByTestId('student-results-container')).toBeInTheDocument();
-    expect(screen.getByTestId('risk-title')).toHaveTextContent('Low Risk');
-    expect(screen.getByTestId('max-similarity')).toHaveTextContent('0.180');
+    expect(screen.getByTestId('similarity-classification')).toHaveTextContent('Lower similarity');
+    expect(screen.getByTestId('provenance-cosine')).toHaveTextContent('0.180');
     expect(screen.getByText(/machine learning in public health/i)).toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/enter your research topic/i)).not.toBeInTheDocument();
     expect(screen.getByText(/temporary browser state only/i)).toBeInTheDocument();
@@ -147,8 +147,8 @@ describe('CheckMyTopicPage', () => {
 
     await submitTopic(user);
 
-    expect(await screen.findByTestId('no-matches')).toHaveTextContent(/no meaningful matches/i);
-    expect(screen.getByTestId('no-matches')).toHaveTextContent(/does not establish originality/i);
+    expect(await screen.findByTestId('no-matches')).toHaveTextContent(/no stored records were returned by this check/i);
+    expect(screen.getByTestId('no-matches')).toHaveTextContent(/does not establish that the topic is new or original/i);
     expect(screen.getByTestId('no-matches')).not.toHaveTextContent(/unique|cleared|safe to submit/i);
   });
 
@@ -165,7 +165,7 @@ describe('CheckMyTopicPage', () => {
     await submitTopic(user);
 
     expect(await screen.findByTestId('semantic-unavailable')).toBeInTheDocument();
-    expect(screen.queryByTestId('risk-banner')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('classification-block')).not.toBeInTheDocument();
     expect(screen.queryByText(/exact match|term weighting|sbert/i)).not.toBeInTheDocument();
   });
 
@@ -189,8 +189,8 @@ describe('CheckMyTopicPage', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
     resolveB(buildFypResponse({ risk: 'HIGH', maxSimilarity: 0.91 }));
-    expect(await screen.findByTestId('max-similarity')).toHaveTextContent('0.910');
-    expect(screen.getByTestId('risk-title')).toHaveTextContent('High Risk');
+    expect(await screen.findByTestId('provenance-cosine')).toHaveTextContent('0.910');
+    expect(screen.getByTestId('similarity-classification')).toHaveTextContent('Higher similarity');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
@@ -214,7 +214,11 @@ describe('CheckMyTopicPage', () => {
     await submitTopic(user);
 
     expect(await screen.findByTestId('student-results-container')).toBeInTheDocument();
-    expect(screen.getByTestId('risk-title')).toHaveTextContent('High Risk');
+    expect(screen.getByTestId('similarity-classification')).toHaveTextContent('Higher similarity');
+    // Board A: the evidence wrapper itself rests neutral — the result surface
+    // must never regain semantic emerald/green resting colour. (Institutional
+    // green elsewhere on the page is legitimate branding and untested here.)
+    expect(screen.getByTestId('student-results-container').className).not.toMatch(/emerald|green|mint/i);
     expect(screen.queryByRole('button', { name: /reject/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /approve/i })).not.toBeInTheDocument();
   });

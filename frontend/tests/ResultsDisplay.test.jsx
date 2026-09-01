@@ -1,348 +1,400 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ResultsDisplay from '../src/components/features/Results/ResultsDisplay';
 
-describe('ResultsDisplay Component - Redesigned', () => {
-  // Mock data
-  const mockLowRiskData = {
-    risk_level: 'LOW',
-    max_similarity: 0.45,
+// Board A regression suite: the similarity evidence system communicates what
+// the system found, never what anyone should decide. HIGH/MEDIUM/LOW are
+// similarity classifications — not approval, rejection, revision, danger or
+// risk verdicts.
+
+function buildMatch(overrides = {}) {
+  return {
+    id: 1,
+    topic_title: 'Assessment of Health Education Campaigns on Malaria Prevention',
+    supervisor_name: 'Dr. Adeyemi',
+    session_year: '2022/2023',
+    collection: 'HISTORICAL',
+    population: 'Undergraduate students',
+    location: 'Osogbo',
+    study_focus: 'Effect of health education campaigns',
+    semantic_score: 0.7207,
+    similarity_class: 'HIGH',
+    ...overrides
+  };
+}
+
+function buildResults(overrides = {}) {
+  return {
+    risk_level: 'HIGH',
+    max_similarity: 0.7206525778154617,
+    corpus_size: 9,
     semantic_available: true,
-    tier1_matches: [
-      {
-        id: 1,
-        topic_title: 'Machine Learning in Healthcare',
-        supervisor_name: 'Dr. Smith',
-        session_year: '2023/2024',
-        status: 'Approved',
-        collection: 'HISTORICAL',
-        semantic_score: 0.40
-      }
-    ],
+    tier1_matches: [buildMatch()],
+    tier2_matches: [],
+    tier3_matches: [],
+    ...overrides
+  };
+}
+
+const FORBIDDEN_RISK_WORDING = /risk/i;
+const WARNING_ICON = /⚠/;
+
+describe('Board A — overall similarity classification', () => {
+  it.each([
+    ['HIGH', 'Higher similarity'],
+    ['MEDIUM', 'Moderate similarity'],
+    ['LOW', 'Lower similarity']
+  ])('renders overall %s as the neutral classification "%s" with the API token, never risk wording', (token, label) => {
+    const { container } = render(
+      <ResultsDisplay results={buildResults({ risk_level: token, tier1_matches: [buildMatch({ similarity_class: token })] })} />
+    );
+
+    const chip = screen.getByTestId('similarity-classification');
+    expect(chip).toHaveTextContent(label);
+    expect(chip).toHaveTextContent(token);
+    expect(screen.getByText('Similarity classification')).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(FORBIDDEN_RISK_WORDING);
+    expect(container.textContent).not.toMatch(WARNING_ICON);
+  });
+
+  it('keeps the classification primary and the raw cosine subordinate technical provenance', () => {
+    render(<ResultsDisplay results={buildResults()} />);
+
+    // The cosine lives in the provenance strip, labelled as what it is, at
+    // three decimals — never a percentage and never a display figure.
+    const provenance = screen.getByTestId('check-provenance');
+    expect(within(provenance).getByText('Cosine, top record')).toBeInTheDocument();
+    expect(screen.getByTestId('provenance-cosine')).toHaveTextContent('0.721');
+    expect(provenance).toHaveTextContent('not a percentage of duplication, originality or probability');
+    expect(provenance.textContent).not.toMatch(/%/);
+    expect(provenance.textContent).not.toMatch(/confidence|probability of|accuracy/i);
+  });
+
+  it('names the consequence for HIGH in the lead line without prescribing an academic action', () => {
+    const { container } = render(
+      <ResultsDisplay
+        appearance="student-checker"
+        results={buildResults({
+          tier1_matches: [
+            buildMatch({ id: 1, similarity_class: 'HIGH', semantic_score: 0.72 }),
+            buildMatch({ id: 2, topic_title: 'Second related record', similarity_class: 'HIGH', semantic_score: 0.7 }),
+            buildMatch({ id: 3, topic_title: 'Third related record', similarity_class: 'HIGH', semantic_score: 0.69 })
+          ]
+        })}
+      />
+    );
+
+    expect(screen.getByTestId('classification-lead')).toHaveTextContent(
+      'Three stored records are closely related to this proposal. Read them before deciding whether to submit.'
+    );
+    // The system reports; it never prescribes an academic action. (The
+    // boundary line legitimately *denies* approving/rejecting — the ban is on
+    // directive machine advice.)
+    expect(container.textContent).not.toMatch(
+      /request (topic )?modification|coordinate with|we recommend|consider revising|revise your topic|check with colleagues|proceed(ing)? (to|with)/i
+    );
+  });
+
+  it('carries the human-authority boundary once on the student surface', () => {
+    render(<ResultsDisplay appearance="student-checker" results={buildResults()} />);
+
+    const boundaries = screen.getAllByTestId('boundary-line');
+    expect(boundaries).toHaveLength(1);
+    expect(boundaries[0]).toHaveTextContent(
+      'It does not approve, reject or certify originality — your lecturer makes the academic decision.'
+    );
+  });
+
+  it('renders LOW with the originality denial promoted into the lead block', () => {
+    render(
+      <ResultsDisplay
+        appearance="student-checker"
+        results={buildResults({
+          risk_level: 'LOW',
+          max_similarity: 0.2673686509412847,
+          tier1_matches: [buildMatch({ similarity_class: 'LOW', semantic_score: 0.2674, topic_title: 'Machine Learning Algorithms for Stock Market Prediction' })]
+        })}
+      />
+    );
+
+    expect(screen.getByTestId('classification-lead')).toHaveTextContent('No stored record is closely related to this proposal.');
+    expect(screen.getByTestId('originality-denial')).toHaveTextContent('This does not establish that the topic is new or original.');
+    expect(screen.getByText('The nearest records found — none is closely related.')).toBeInTheDocument();
+    expect(screen.getByTestId('provenance-cosine')).toHaveTextContent('0.267');
+  });
+});
+
+describe('Board A — neutral treatment (no verdict semantics)', () => {
+  it.each(['HIGH', 'MEDIUM', 'LOW'])('gives %s no red/amber/green verdict colouring', (token) => {
+    render(<ResultsDisplay results={buildResults({ risk_level: token, tier1_matches: [buildMatch({ similarity_class: token })] })} />);
+
+    const chipGroup = screen.getByTestId('similarity-classification');
+    const chipClasses = Array.from(chipGroup.querySelectorAll('span')).map((el) => el.className).join(' ');
+    expect(chipClasses).not.toMatch(/red|rose|amber|yellow|orange|green|emerald|risk|danger|success|warning/i);
+  });
+
+  it('renders ordinary evidence with rank ordinals and no warning iconography', () => {
+    const { container } = render(
+      <ResultsDisplay
+        results={buildResults({
+          tier1_matches: [
+            buildMatch({ id: 1, similarity_class: 'HIGH' }),
+            buildMatch({ id: 2, topic_title: 'Second record', similarity_class: 'LOW', semantic_score: 0.31 })
+          ]
+        })}
+      />
+    );
+
+    expect(container.textContent).not.toMatch(WARNING_ICON);
+    expect(screen.getByTestId('record-0')).toHaveTextContent('01');
+    expect(screen.getByTestId('record-1')).toHaveTextContent('02');
+    // "Match" is not used for a nearest neighbour.
+    expect(container.textContent).not.toMatch(/high match|moderate match|low match|very high match/i);
+    expect(screen.getByText('Closest stored records')).toBeInTheDocument();
+  });
+
+  it('exposes no approve/reject/decision controls', () => {
+    render(<ResultsDisplay results={buildResults()} />);
+
+    expect(screen.queryByRole('button', { name: /approve/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /reject/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /request revision/i })).not.toBeInTheDocument();
+  });
+});
+
+describe('Board A — N-3: backend classification is the only per-record authority', () => {
+  it('renders similarity_class MEDIUM for a 0.58 score the old local bands called "Low Match"', () => {
+    render(
+      <ResultsDisplay
+        results={buildResults({
+          risk_level: 'MEDIUM',
+          max_similarity: 0.58,
+          tier1_matches: [buildMatch({ semantic_score: 0.58, similarity_class: 'MEDIUM' })]
+        })}
+      />
+    );
+
+    const recordChip = screen.getByTestId('record-class-0');
+    expect(recordChip).toHaveTextContent('Moderate similarity');
+    expect(recordChip).toHaveAttribute('data-classification', 'MEDIUM');
+    expect(screen.queryByText(/low match/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/moderate match/i)).not.toBeInTheDocument();
+  });
+
+  it('degrades a missing similarity_class to "Not classified" and never infers one from the score', () => {
+    render(
+      <ResultsDisplay
+        results={buildResults({
+          risk_level: 'MEDIUM',
+          tier1_matches: [buildMatch({ semantic_score: 0.95, similarity_class: undefined })]
+        })}
+      />
+    );
+
+    const recordChip = screen.getByTestId('record-class-0');
+    expect(recordChip).toHaveTextContent('Not classified');
+    expect(recordChip).toHaveAttribute('data-classification', 'NOT_CLASSIFIED');
+    // 0.95 would have been "Very High Match" under the removed local bands.
+    expect(screen.queryByText(/very high|higher similarity/i)).not.toBeInTheDocument();
+  });
+
+  it('degrades an unknown similarity_class value truthfully and neutrally', () => {
+    render(
+      <ResultsDisplay
+        results={buildResults({
+          tier1_matches: [buildMatch({ semantic_score: 0.9, similarity_class: 'BANANAS' })]
+        })}
+      />
+    );
+
+    expect(screen.getByTestId('record-class-0')).toHaveTextContent('Not classified');
+  });
+});
+
+describe('Board A — raw cosine truthfulness', () => {
+  it('shows the per-record cosine as a raw three-decimal value labelled cosine', () => {
+    render(<ResultsDisplay results={buildResults()} />);
+
+    expect(screen.getByTestId('record-cosine-0')).toHaveTextContent('cosine 0.721');
+    expect(screen.getByTestId('record-cosine-0').textContent).not.toMatch(/%/);
+  });
+
+  it('renders N/A when the top-record cosine is null', () => {
+    render(<ResultsDisplay results={buildResults({ risk_level: null, max_similarity: null, corpus_size: 0, tier1_matches: [] })} />);
+
+    expect(screen.getByTestId('provenance-cosine')).toHaveTextContent('N/A');
+  });
+});
+
+describe('Board A — disclosure as emphasis (R5)', () => {
+  const fiveRecords = [
+    buildMatch({ id: 1, similarity_class: 'HIGH', semantic_score: 0.72 }),
+    buildMatch({ id: 2, topic_title: 'Record two', similarity_class: 'MEDIUM', semantic_score: 0.66, collection: 'CURRENT_SESSION' }),
+    buildMatch({ id: 3, topic_title: 'Record three', similarity_class: 'MEDIUM', semantic_score: 0.65 }),
+    buildMatch({ id: 4, topic_title: 'Record four', similarity_class: 'MEDIUM', semantic_score: 0.6 }),
+    buildMatch({ id: 5, topic_title: 'Record five', similarity_class: 'LOW', semantic_score: 0.4 })
+  ];
+
+  it('opens every record for a HIGH result', () => {
+    render(<ResultsDisplay results={buildResults({ risk_level: 'HIGH', tier1_matches: fiveRecords })} />);
+
+    expect(screen.getAllByTestId(/^record-\d+$/)).toHaveLength(5);
+    expect(screen.queryByTestId('show-more-records')).not.toBeInTheDocument();
+  });
+
+  it('opens only the top record for MEDIUM with a keyboard-operable visible-count disclosure', async () => {
+    const user = userEvent.setup();
+    render(<ResultsDisplay results={buildResults({ risk_level: 'MEDIUM', tier1_matches: fiveRecords })} />);
+
+    expect(screen.getAllByTestId(/^record-\d+$/)).toHaveLength(1);
+    const disclosure = screen.getByTestId('show-more-records');
+    expect(disclosure).toHaveTextContent('Show 4 more records');
+    expect(disclosure).toHaveAttribute('aria-expanded', 'false');
+
+    disclosure.focus();
+    await user.keyboard('{Enter}');
+
+    expect(screen.getAllByTestId(/^record-\d+$/)).toHaveLength(5);
+    expect(screen.getByTestId('show-more-records')).toHaveTextContent('Show fewer records');
+    expect(screen.getByTestId('show-more-records')).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('ranks the merged record list by the backend score and names each source tier', () => {
+    render(<ResultsDisplay results={buildResults({ risk_level: 'HIGH', tier1_matches: fiveRecords })} />);
+
+    expect(screen.getByTestId('record-title-0')).toHaveTextContent('Assessment of Health Education Campaigns');
+    expect(screen.getByTestId('record-meta-1')).toHaveTextContent('current-session record');
+    expect(screen.getByTestId('record-meta-0')).toHaveTextContent('previous-session record');
+    expect(screen.getByText('4 from previous sessions · 1 from the current session')).toBeInTheDocument();
+  });
+
+  it('labels under-review provenance truthfully', () => {
+    render(
+      <ResultsDisplay
+        results={buildResults({
+          risk_level: 'MEDIUM',
+          tier1_matches: [],
+          tier3_matches: [buildMatch({
+            id: 8,
+            topic_title: 'Under-review public health topic',
+            supervisor_name: 'Dr. Reviewing Lecturer',
+            session_year: '2026-08-05',
+            collection: 'UNDER_REVIEW',
+            semantic_score: 0.64,
+            similarity_class: 'MEDIUM',
+            population: null,
+            location: null,
+            study_focus: null
+          })]
+        })}
+      />
+    );
+
+    const meta = screen.getByTestId('record-meta-0');
+    expect(meta).toHaveTextContent('Reviewing lecturer: Dr. Reviewing Lecturer');
+    expect(meta).toHaveTextContent('review started 2026-08-05');
+    expect(meta).toHaveTextContent('under-review record');
+    expect(meta).not.toHaveTextContent(/2026-08-05 session/);
+  });
+});
+
+describe('Board A — record context provenance', () => {
+  it('renders only the context fields that are actually present, with no placeholder noise', () => {
+    render(
+      <ResultsDisplay
+        results={buildResults({
+          tier1_matches: [buildMatch({ location: null, study_focus: null })]
+        })}
+      />
+    );
+
+    const context = screen.getByTestId('record-context-0');
+    expect(within(context).getByTestId('record-population-0')).toHaveTextContent('Undergraduate students');
+    expect(within(context).queryByTestId('record-location-0')).not.toBeInTheDocument();
+    expect(within(context).queryByTestId('record-study-focus-0')).not.toBeInTheDocument();
+    expect(context.textContent).not.toMatch(/null|undefined|N\/A/);
+  });
+
+  it('omits the context block entirely when a record carries no context', () => {
+    render(
+      <ResultsDisplay
+        results={buildResults({
+          tier1_matches: [buildMatch({ population: null, location: null, study_focus: null })]
+        })}
+      />
+    );
+
+    expect(screen.queryByTestId('record-context-0')).not.toBeInTheDocument();
+    expect(screen.getByTestId('record-0').textContent).not.toMatch(/null|undefined/);
+  });
+});
+
+describe('Board A — empty corpus (A4)', () => {
+  const emptyCorpusResults = buildResults({
+    risk_level: null,
+    max_similarity: null,
+    corpus_size: 0,
+    tier1_matches: [],
     tier2_matches: [],
     tier3_matches: []
-  };
-
-  const mockHighRiskData = {
-    risk_level: 'HIGH',
-    max_similarity: 0.85,
-    semantic_available: true,
-    tier1_matches: [
-      {
-        id: 1,
-        topic_title: 'Advanced Machine Learning Techniques',
-        supervisor_name: 'Dr. Johnson',
-        session_year: '2023/2024',
-        status: 'In Progress',
-        collection: 'HISTORICAL',
-        semantic_score: 0.88
-      },
-      {
-        id: 2,
-        topic_title: 'Deep Learning for AI Research',
-        supervisor_name: 'Dr. Williams',
-        session_year: '2023/2024',
-        status: 'Approved',
-        collection: 'HISTORICAL',
-        semantic_score: 0.80
-      }
-    ],
-    tier2_matches: [
-      {
-        id: 3,
-        topic_title: 'Neural Network Optimization',
-        supervisor_name: 'Dr. Brown',
-        session_year: '2023/2024',
-        status: 'Under Review',
-        collection: 'CURRENT_SESSION',
-        semantic_score: 0.75
-      }
-    ],
-    tier3_matches: []
-  };
-
-  describe('Risk Assessment Banner', () => {
-    it('displays LOW risk with correct styling', () => {
-      render(<ResultsDisplay results={mockLowRiskData} />);
-      
-      const banner = screen.getByTestId('risk-banner');
-      expect(banner).toHaveAttribute('data-risk-level', 'LOW');
-      expect(screen.getByTestId('risk-title')).toHaveTextContent('Low Risk');
-      expect(screen.getByTestId('risk-recommendation')).toBeInTheDocument();
-    });
-
-    it('displays HIGH risk with correct styling', () => {
-      render(<ResultsDisplay results={mockHighRiskData} />);
-      
-      const banner = screen.getByTestId('risk-banner');
-      expect(banner).toHaveAttribute('data-risk-level', 'HIGH');
-      expect(screen.getByTestId('risk-title')).toHaveTextContent('High Risk');
-    });
-
-    it('displays backend-provided recommendation when present', () => {
-      render(
-        <ResultsDisplay
-          results={{
-            ...mockHighRiskData,
-            recommendation: 'High similarity detected. Coordinate with Dr. Ibrahim before proceeding.'
-          }}
-        />
-      );
-
-      expect(screen.getByTestId('risk-recommendation')).toHaveTextContent(
-        'High similarity detected. Coordinate with Dr. Ibrahim before proceeding.'
-      );
-    });
-
-    it('shows maximum similarity score in banner', () => {
-      render(<ResultsDisplay results={mockLowRiskData} />);
-      
-      expect(screen.getByTestId('max-similarity')).toHaveTextContent('0.450');
-    });
   });
 
-  describe('User-Friendly Tier Names', () => {
-    it('displays "Similar Past Projects" for tier1', () => {
-      render(<ResultsDisplay results={mockLowRiskData} />);
-      
-      expect(screen.getByTestId('tier-title-tier1')).toHaveTextContent('Similar Past Projects');
-    });
+  it('asserts an explicit non-classification, never LOW and never an originality claim', () => {
+    const { container } = render(<ResultsDisplay results={emptyCorpusResults} />);
 
-    it('displays tier1 section when matches exist', () => {
-      render(<ResultsDisplay results={mockLowRiskData} />);
-      
-      expect(screen.getByTestId('tier-section-tier1')).toBeInTheDocument();
-    });
-
-    it('displays "Current Session Projects" for tier2', () => {
-      render(<ResultsDisplay results={mockHighRiskData} />);
-      
-      expect(screen.getByTestId('tier-title-tier2')).toHaveTextContent('Current Session Projects');
-    });
-
-    it('does not display tier2 when no matches', () => {
-      render(<ResultsDisplay results={mockLowRiskData} />);
-      
-      expect(screen.queryByTestId('tier-section-tier2')).not.toBeInTheDocument();
-    });
+    expect(screen.getByTestId('empty-corpus')).toBeInTheDocument();
+    const chip = screen.getByTestId('similarity-classification');
+    expect(chip).toHaveTextContent('Not classified');
+    expect(chip).toHaveTextContent('NOT CLASSIFIED');
+    expect(chip).not.toHaveTextContent('Lower similarity');
+    expect(screen.getByTestId('classification-lead')).toHaveTextContent(
+      'No comparison could be made. There are no eligible stored topics to compare against.'
+    );
+    expect(screen.getByTestId('originality-denial')).toHaveTextContent('This does not establish that the topic is new or original.');
+    expect(screen.getByText('No similarity classification has been assigned, because nothing was compared.')).toBeInTheDocument();
+    // The originality denial legitimately names "new or original"; what must
+    // never appear is an affirmative uniqueness/clearance/approval claim.
+    expect(container.textContent).not.toMatch(/appears unique|is unique|appears original|cleared|safe to submit|approved/i);
+    expect(container.textContent).not.toMatch(FORBIDDEN_RISK_WORDING);
   });
 
-  describe('Topic Match Display', () => {
-    it('displays topic title prominently', () => {
-      render(<ResultsDisplay results={mockLowRiskData} />);
-      
-      expect(screen.getByTestId('topic-title-0')).toHaveTextContent('Machine Learning in Healthcare');
-    });
+  it('shows zeroed provenance and adds no records section or filler', () => {
+    render(<ResultsDisplay results={emptyCorpusResults} />);
 
-    it('shows user-friendly similarity level instead of raw scores', () => {
-      render(<ResultsDisplay results={mockLowRiskData} />);
-      
-      // Should show "Low Match" or similar for 45% score
-      const titleText = screen.getAllByText(/Match/i).some(el => 
-        el.textContent.includes('Match')
-      );
-      expect(titleText).toBe(true);
-    });
-
-    it('displays metadata (supervisor, year)', () => {
-      render(<ResultsDisplay results={mockLowRiskData} />);
-      
-      expect(screen.getByTestId('supervisor-0')).toHaveTextContent('Dr. Smith');
-      expect(screen.getByTestId('session-0')).toHaveTextContent('2023/2024');
-    });
-
-    it('shows "Show Technical Details" button by default', () => {
-      render(<ResultsDisplay results={mockLowRiskData} />);
-      
-      const detailBtn = screen.getByTestId('expand-details-0');
-      expect(detailBtn).toHaveTextContent('Show Technical Details');
-    });
+    const provenance = screen.getByTestId('check-provenance');
+    expect(provenance).toHaveTextContent('Records compared');
+    expect(provenance).toHaveTextContent('0');
+    expect(screen.getByTestId('provenance-cosine')).toHaveTextContent('N/A');
+    expect(screen.queryByTestId('records-section')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('no-matches')).not.toBeInTheDocument();
   });
 
-  describe('Expandable Algorithm Scores', () => {
-    it('hides algorithm scores by default', () => {
-      render(<ResultsDisplay results={mockLowRiskData} />);
-      
-      // Algorithm details should not be visible
-      expect(screen.queryByTestId('algorithm-details-0')).not.toBeInTheDocument();
-    });
-
-    it('shows algorithm scores when expanded', async () => {
-      const user = userEvent.setup();
-      render(<ResultsDisplay results={mockLowRiskData} />);
-      
-      const expandBtn = screen.getByTestId('expand-details-0');
-      await user.click(expandBtn);
-      
-      // Algorithm details should now be visible
-      expect(screen.getByTestId('algorithm-details-0')).toBeInTheDocument();
-      expect(screen.getByTestId('semantic-badge-0')).toBeInTheDocument();
-    });
-
-    it('toggles between Show and Hide text', async () => {
-      const user = userEvent.setup();
-      render(<ResultsDisplay results={mockLowRiskData} />);
-      
-      const expandBtn = screen.getByTestId('expand-details-0');
-      expect(expandBtn).toHaveTextContent('Show Technical Details');
-      
-      await user.click(expandBtn);
-      expect(expandBtn).toHaveTextContent('Hide Technical Details');
-      
-      await user.click(expandBtn);
-      expect(expandBtn).toHaveTextContent('Show Technical Details');
-    });
-
-    it('displays the semantic score without legacy algorithm badges', async () => {
-      const user = userEvent.setup();
-      render(<ResultsDisplay results={mockLowRiskData} />);
-      
-      await user.click(screen.getByTestId('expand-details-0'));
-      
-      expect(screen.getByTestId('semantic-badge-0')).toHaveTextContent('Semantic:');
-      expect(screen.queryByText(/jaccard|tf-idf|sbert/i)).not.toBeInTheDocument();
-    });
+  it('carries no approval-green treatment', () => {
+    const { container } = render(<ResultsDisplay results={emptyCorpusResults} />);
+    expect(container.innerHTML).not.toMatch(/emerald|green-\d|mint/);
   });
+});
 
-  describe('Summary Cards', () => {
-    it('displays risk level in summary', () => {
-      render(<ResultsDisplay results={mockLowRiskData} />);
-      
-      expect(screen.getByTestId('summary-risk')).toHaveTextContent('LOW');
-    });
+describe('Board A — zero returned records on a comparison that ran', () => {
+  it('remains distinct from the empty corpus and stays neutral without originality claims', () => {
+    const { container } = render(
+      <ResultsDisplay
+        results={buildResults({
+          risk_level: 'LOW',
+          max_similarity: 0,
+          corpus_size: 9,
+          tier1_matches: [],
+          tier2_matches: [],
+          tier3_matches: []
+        })}
+      />
+    );
 
-    it('displays max similarity in summary', () => {
-      render(<ResultsDisplay results={mockLowRiskData} />);
-      
-      expect(screen.getByTestId('summary-max-similarity')).toHaveTextContent('0.450');
-    });
-
-    it('displays total matches count', () => {
-      render(<ResultsDisplay results={mockHighRiskData} />);
-      
-      const totalMatches = 2 + 1; // tier1: 2, tier2: 1
-      expect(screen.getByTestId('summary-total-matches')).toHaveTextContent(totalMatches.toString());
-    });
-  });
-
-  describe('Semantic score terminology', () => {
-    it('labels checker summary as semantic similarity, not combined similarity', () => {
-      render(<ResultsDisplay appearance="student-checker" results={{ ...mockLowRiskData, semantic_available: true }} />);
-      expect(screen.getByText(/highest semantic similarity/i)).toBeInTheDocument();
-      expect(screen.queryByText(/combined similarity/i)).not.toBeInTheDocument();
-    });
-  });
-
-  describe('No Matches State', () => {
-    it('shows a truthful message without originality claims when no matches return', () => {
-      const noMatchesData = {
-        risk_level: 'LOW',
-        max_similarity: 0,
-        semantic_available: true,
-        tier1_matches: [],
-        tier2_matches: [],
-        tier3_matches: []
-      };
-
-      render(<ResultsDisplay results={noMatchesData} />);
-
-      expect(screen.getByTestId('no-matches')).toBeInTheDocument();
-      expect(screen.getByText(/No matching topics were returned by this check/i)).toBeInTheDocument();
-      expect(screen.getByText(/does not establish originality/i)).toBeInTheDocument();
-      expect(screen.queryByText(/appears unique/i)).not.toBeInTheDocument();
-    });
-  });
-
-  describe('Empty Comparison Corpus', () => {
-    const emptyCorpusData = {
-      risk_level: null,
-      max_similarity: null,
-      corpus_size: 0,
-      semantic_available: true,
-      recommendation: 'No eligible stored topics are currently available for comparison. This result does not establish that the topic is new or original.',
-      tier1_matches: [],
-      tier2_matches: [],
-      tier3_matches: []
-    };
-
-    it('never renders an empty corpus as a LOW risk result', () => {
-      render(<ResultsDisplay results={emptyCorpusData} />);
-
-      expect(screen.getByTestId('risk-title')).toHaveTextContent('No Risk Classification');
-      expect(screen.getByTestId('risk-title')).not.toHaveTextContent('Low Risk');
-      expect(screen.getByTestId('summary-risk')).toHaveTextContent('NOT CLASSIFIED');
-      expect(screen.getByTestId('risk-recommendation')).toHaveTextContent(
-        'No eligible stored topics are currently available for comparison.'
-      );
-      expect(screen.queryByText(/appears unique/i)).not.toBeInTheDocument();
-    });
-
-    it('states that no eligible stored topics were available in the no-matches area', () => {
-      render(<ResultsDisplay results={emptyCorpusData} />);
-
-      expect(screen.getByTestId('no-matches')).toHaveTextContent(
-        'No eligible stored topics are currently available for comparison.'
-      );
-    });
-
-    it('keeps the checker shell truthful for an empty corpus', () => {
-      render(<ResultsDisplay appearance="student-checker" results={emptyCorpusData} />);
-
-      expect(screen.getByTestId('risk-title')).toHaveTextContent('No Risk Classification');
-      expect(screen.getByTestId('summary-risk')).toHaveTextContent('NOT CLASSIFIED');
-      expect(screen.getByTestId('max-similarity')).toHaveTextContent('N/A');
-    });
-  });
-
-  describe('Multiple Matches in Different Tiers', () => {
-    it('renders a same-id current-session match only in the current-session section', () => {
-      render(<ResultsDisplay appearance="student-checker" results={{
-        ...mockLowRiskData,
-        tier1_matches: [{ ...mockLowRiskData.tier1_matches[0], id: 1, topic_title: 'Historical id 1' }],
-        tier2_matches: [{ ...mockLowRiskData.tier1_matches[0], id: 1, collection: 'CURRENT_SESSION', topic_title: 'Current-session id 1' }]
-      }} />);
-
-      expect(screen.getByTestId('tier-section-tier1')).toHaveTextContent('Historical id 1');
-      expect(screen.getByTestId('tier-section-tier1')).not.toHaveTextContent('Current-session id 1');
-      expect(screen.getByTestId('tier-section-tier2')).toHaveTextContent('Current-session id 1');
-    });
-
-    it('uses truthful under-review metadata labels for the student checker', () => {
-      render(<ResultsDisplay appearance="student-checker" results={{
-        ...mockLowRiskData,
-        tier1_matches: [],
-        tier3_matches: [{
-          id: 8,
-          topic_title: 'Under-review public health topic',
-          supervisor_name: 'Dr. Reviewing Lecturer',
-          session_year: '2026-08-05',
-          semantic_score: 0.64
-        }]
-      }} />);
-
-      const tier = screen.getByTestId('tier-section-tier3');
-      expect(tier).toHaveTextContent('Reviewing lecturer: Dr. Reviewing Lecturer');
-      expect(tier).toHaveTextContent('Review started: 2026-08-05');
-      expect(tier).not.toHaveTextContent('Supervisor:');
-      expect(tier).not.toHaveTextContent('Year:');
-    });
-
-    it('displays all tier sections with matches', () => {
-      render(<ResultsDisplay results={mockHighRiskData} />);
-      
-      expect(screen.getByTestId('tier-section-tier1')).toBeInTheDocument();
-      expect(screen.getByTestId('tier-section-tier2')).toBeInTheDocument();
-      // tier3 is empty, should not render
-      expect(screen.queryByTestId('tier-section-tier3')).not.toBeInTheDocument();
-    });
-
-    it('renders correct number of matches per tier', () => {
-      render(<ResultsDisplay results={mockHighRiskData} />);
-      
-      // Tier 1 has 2 matches
-      const tier1Matches = screen.getAllByTestId(/^topic-match-/);
-      expect(tier1Matches.length).toBeGreaterThanOrEqual(2);
-    });
+    expect(screen.getByTestId('no-matches')).toHaveTextContent('No stored records were returned by this check.');
+    expect(screen.getByTestId('no-matches')).toHaveTextContent('This does not establish that the topic is new or original.');
+    expect(screen.queryByTestId('empty-corpus')).not.toBeInTheDocument();
+    expect(container.innerHTML).not.toMatch(/emerald|green-\d|mint/);
+    expect(container.textContent).not.toMatch(/unique|cleared|safe to submit/i);
   });
 });
