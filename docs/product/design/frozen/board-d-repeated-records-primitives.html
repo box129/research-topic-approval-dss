@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #E7E2D8; }
+  a { color: #111827; }
+  a:hover { color: #000000; }
+</style>
+</helmet>
+
+<div style="width: 1760px; padding: 64px 72px 40px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #FAF7F1; color: #111827;">
+  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: #6F5518;">Board D · repeated records &amp; primitives</div>
+  <h1 style="margin: 14px 0 16px; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 48px; line-height: 1.08; letter-spacing: -0.02em; color: #0F2A22; max-width: 1120px;">Four semantic families that must never share a costume</h1>
+  <p style="margin: 0; font-size: 18px; line-height: 1.6; color: #4A554F; max-width: 940px;">Boards A, B and C each fixed one surface. Board D states the shared rules that keep those fixes from being undone by the next component someone builds. All example content is captured synthetic data.</p>
+
+  <div style="display: flex; gap: 22px; margin-top: 30px;">
+    <div style="flex: 1; border: 2px solid #0F2A22; background: #FFFFFF; padding: 22px 26px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">Rationale · what actually went wrong</div>
+      <p style="margin: 12px 0 0; font-size: 16px; line-height: 1.65; color: #4A554F;">The original defect was never that a colour was ugly. It was that <strong style="font-weight: 600; color: #111827;">four unrelated meaning-systems were sharing three colours</strong>: a machine classification, a workflow state, a human action, and a system condition. Once <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14.5px;">HIGH</code> and <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14.5px;">Rejected</code> resolve to identical pixels, no amount of careful copy recovers the distinction.</p>
+      <p style="margin: 12px 0 0; font-size: 16px; line-height: 1.65; color: #4A554F;">Boards A–C fixed that on three screens. But the fix is only durable if the <em>primitives</em> carry it — otherwise the next queue, the next badge, the next confirm dialog reintroduces the collision. <strong style="font-weight: 600; color: #111827;">Board D's job is to make the correct thing the default thing.</strong></p>
+    </div>
+    <div style="flex: 1; border: 1px solid #D6CEBE; background: #FFFFFF; padding: 22px 26px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">The rule D actually enforces</div>
+      <p style="margin: 12px 0 0; font-size: 16px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Colour must never imply an academic verdict where none exists.</strong> That is the whole rule — narrower than “green means one thing everywhere”, and it is what the evidence actually supports.</p>
+      <p style="margin: 12px 0 0; font-size: 16px; line-height: 1.65; color: #4A554F;">So institutional green stays available for ordinary primary product actions — Sign in, Continue, Apply Filters, Refresh Queue — <strong style="font-weight: 600; color: #111827;">wherever the surrounding state does not give green a false academic meaning</strong>. It remains correct for the Approve action and the Approved status, because there green <em>is</em> the verdict.</p>
+      <p style="margin: 12px 0 0; font-size: 16px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">The exceptions stay scoped, not generalised.</strong> Boards A and C made retry, “Run a new check” and “Clear all filters” neutral because those affordances sit <em>inside</em> evidence and recovery surfaces, where product green would contaminate the evidence reading. An earlier draft of this board extrapolated that into a workspace-wide green-to-ink migration; three local exceptions do not license a global change, and the cost — losing green as a primary-action cue everywhere — buys nothing the verdict rule does not already secure.</p>
+    </div>
+  </div>
+</div>
+
+<section style="width: 1760px; padding: 52px 72px 60px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #EDF3EF;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #1E5142;">D1 · D2</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; color: #0F2A22;">Semantic taxonomy — four families, four visual languages</h2>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 28px;">
+
+    <div style="border: 1px solid #C6D6CC; background: #FFFFFF; padding: 20px 22px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #4b5563;">Family A · similarity classification</div>
+      <div style="margin-top: 6px; font-size: 15px; color: #4A554F;">What the machine measured</div>
+      <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start;">
+        <span style="display: inline-flex; align-items: center; padding: 6px 13px; background: #111827; color: #FFFFFF; border-radius: 5px; font-size: 14px; font-weight: 600;">Higher similarity</span>
+        <span style="display: inline-flex; align-items: center; padding: 6px 13px; background: #E5E7EB; color: #374151; border: 1px solid #D1D5DB; border-radius: 5px; font-size: 14px; font-weight: 600;">Moderate similarity</span>
+        <span style="display: inline-flex; align-items: center; padding: 6px 13px; background: #FFFFFF; color: #4b5563; border: 1px solid #D1D5DB; border-radius: 5px; font-size: 14px; font-weight: 500;">Lower similarity</span>
+        <span style="display: inline-flex; align-items: center; padding: 6px 13px; background: #FFFFFF; color: #4b5563; border: 1px dashed #9ca3af; border-radius: 5px; font-size: 14px; font-weight: 500;">Not classified</span>
+      </div>
+      <p style="margin: 16px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Language:</strong> one neutral hue, three fill weights, plus a dashed variant for absence. Rank ordinals, never icons. API token <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">HIGH/MEDIUM/LOW</code> kept as a subordinate mono chip.</p>
+      <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #B91C1C;">Never:</strong> green, amber or red. Frozen from Board A.</p>
+    </div>
+
+    <div style="border: 1px solid #C6D6CC; background: #FFFFFF; padding: 20px 22px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #4b5563;">Family B · workflow status</div>
+      <div style="margin-top: 6px; font-size: 15px; color: #4A554F;">Where a real record stands</div>
+      <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start;">
+        <span style="display: inline-flex; align-items: center; padding: 4px 12px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 999px; font-size: 13.5px; font-weight: 600; white-space: nowrap;">Pending review</span>
+        <span style="display: inline-flex; align-items: center; padding: 4px 12px; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; border-radius: 999px; font-size: 13.5px; font-weight: 600; white-space: nowrap;">Approved</span>
+        <span style="display: inline-flex; align-items: center; padding: 4px 12px; background: #fffbeb; color: #92620a; border: 1px solid #fcd34d; border-radius: 999px; font-size: 13.5px; font-weight: 600; white-space: nowrap;">Revision requested</span>
+        <span style="display: inline-flex; align-items: center; padding: 4px 12px; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 999px; font-size: 13.5px; font-weight: 600; white-space: nowrap;">Rejected</span>
+      </div>
+      <p style="margin: 16px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Language:</strong> <em>pill</em> shape — fully rounded, tinted, 13.5px. Decision semantics are legitimate here because a human produced the state. Pending is neutral blue, not amber: waiting is not a warning.</p>
+      <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">The shape carries the family.</strong> Pill = workflow, 5px radius = classification. Distinguishable in greyscale.</p>
+    </div>
+
+    <div style="border: 1px solid #C6D6CC; background: #FFFFFF; padding: 20px 22px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #4b5563;">Family C · system state</div>
+      <div style="margin-top: 6px; font-size: 15px; color: #4A554F;">What the software could or could not do</div>
+      <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px; align-items: stretch;">
+        <div style="border-left: 3px solid #b45309; padding: 8px 0 8px 11px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #b45309;">Check could not run</div><div style="margin-top: 3px; font-size: 14px; color: #374151;">Service failure</div></div>
+        <div style="border-left: 3px solid #d1d5db; padding: 8px 0 8px 11px;"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563;">No records</div><div style="margin-top: 3px; font-size: 14px; color: #374151;">Absence — neutral</div></div>
+        <div style="padding: 8px 0 0;"><div style="font-size: 14px; font-weight: 500; color: #b91c1c;">Too short: 4 words (minimum 7)</div><div style="margin-top: 3px; font-size: 14px; color: #374151;">Validation — on the field only</div></div>
+      </div>
+      <p style="margin: 16px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Language:</strong> not a badge at all — an <em>edge rule</em> plus a title, or inline field text. Amber for genuine failure, neutral for absence, red only on a field.</p>
+      <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #B91C1C;">Never a pill.</strong> Frozen from Board C.</p>
+    </div>
+
+    <div style="border: 1px solid #C6D6CC; background: #FFFFFF; padding: 20px 22px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #4b5563;">Family D · actions</div>
+      <div style="margin-top: 6px; font-size: 15px; color: #4A554F;">What a person can do</div>
+      <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start;">
+        <span style="display: inline-flex; align-items: center; height: 40px; padding: 0 18px; background: #047857; color: #FFFFFF; border-radius: 6px; font-size: 14.5px; font-weight: 600;">Approve</span>
+        <span style="display: inline-flex; align-items: center; height: 40px; padding: 0 18px; background: #FFFFFF; color: #92620a; border: 1px solid #fcd34d; border-radius: 6px; font-size: 14.5px; font-weight: 600;">Request Revision</span>
+        <span style="display: inline-flex; align-items: center; height: 40px; padding: 0 18px; background: #FFFFFF; color: #b91c1c; border: 1px solid #fca5a5; border-radius: 6px; font-size: 14.5px; font-weight: 600;">Reject</span>
+        <span style="display: inline-flex; align-items: center; height: 40px; padding: 0 18px; background: #047857; color: #FFFFFF; border-radius: 6px; font-size: 14.5px; font-weight: 600;">Open Review · Apply Filters</span>
+        <span style="display: inline-flex; align-items: center; height: 40px; padding: 0 18px; background: #111827; color: #FFFFFF; border-radius: 6px; font-size: 14.5px; font-weight: 600;">Try the check again</span>
+      </div>
+      <p style="margin: 16px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Language:</strong> 6px radius, ≥40px desktop / 44px touch. Green is legitimate for <strong style="font-weight: 600; color: #111827;">Approve</strong> and for <strong style="font-weight: 600; color: #111827;">ordinary primary product actions</strong> alike — the two are told apart by label, context and the confirmation they trigger, not by hue.</p>
+      <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Filled ink is the scoped exception:</strong> primary actions <em>inside</em> similarity-evidence and failure-recovery surfaces, where product green would contaminate the evidence semantics — retry, “Run a new check”, “Clear all filters”. Elsewhere ink is simply a secondary weight, not a requirement.</p>
+      <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;">Focus always follows the global gold focus ring, unweakened, including inside evidence.</p>
+    </div>
+  </div>
+
+  <div style="margin-top: 22px; padding: 18px 22px; background: #FFFFFF; border: 1px solid #C9A24D; max-width: 1616px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">The rule that makes the taxonomy enforceable</div>
+    <p style="margin: 9px 0 0; font-size: 15.5px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Shape identifies the family before colour identifies the value.</strong> A 5px-radius chip is always a classification. A fully-rounded pill is always a workflow status. An edge rule is always a system condition. A 6px-radius filled or outlined control is always an action. That is why the taxonomy holds up in greyscale, for colour-blind readers, and — most importantly — for the next developer, who can tell from the component's shape whether they are allowed to pass it a green.</p>
+    <p style="margin: 9px 0 0; font-size: 15.5px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Corollary:</strong> there is no universal <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">StatusBadge</code>. A component whose colour meaning depends on which route rendered it is the defect, not the solution.</p>
+  </div>
+</section>
+
+<section style="width: 1760px; padding: 52px 72px 60px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #F8FAFC;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #6F5518;">D3</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; color: #0F2A22;">Confirmation dialog — one anatomy, three semantics</h2>
+    <span style="font-size: 14.5px; color: #57606E;">structure from the captured modal · colour from the action being confirmed</span>
+  </div>
+
+  <div style="display: flex; gap: 40px; margin-top: 26px; align-items: flex-start;">
+    <div style="width: 512px; flex: none;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">Approve</div>
+      <div style="background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 12px 32px -12px rgba(17,24,39,.18); padding: 22px 24px 20px;">
+        <h3 style="margin: 0; font-size: 19px; font-weight: 600; line-height: 1.3; color: #111827;">Approve this submission?</h3>
+        <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.6; color: #374151;">The submission status will be updated immediately and the student will see the outcome.</p>
+        <div style="margin-top: 14px; padding: 11px 13px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;">
+          <div style="font-size: 13.5px; color: #4b5563;">Rationale to be recorded</div>
+          <div style="margin-top: 4px; font-size: 14.5px; line-height: 1.55; color: #6b7280; font-style: italic;">Not provided — optional for approval.</div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 18px;">
+          <span style="display: inline-flex; align-items: center; height: 44px; padding: 0 20px; background: #FFFFFF; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14.5px; font-weight: 500;">Cancel</span>
+          <span style="display: inline-flex; align-items: center; height: 44px; padding: 0 22px; background: #047857; color: #FFFFFF; border-radius: 6px; font-size: 14.5px; font-weight: 600;">Approve</span>
+        </div>
+      </div>
+    </div>
+    <div style="width: 512px; flex: none;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">Request revision · the captured defect, fixed</div>
+      <div style="background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 12px 32px -12px rgba(17,24,39,.18); padding: 22px 24px 20px;">
+        <h3 style="margin: 0; font-size: 19px; font-weight: 600; line-height: 1.3; color: #111827;">Request revision for this submission?</h3>
+        <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.6; color: #374151;">The submission status will be updated immediately and the student will be asked to revise and resubmit.</p>
+        <div style="margin-top: 14px; padding: 11px 13px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;">
+          <div style="font-size: 13.5px; color: #4b5563;">Rationale to be recorded <span style="color: #92620a;">· required</span></div>
+          <div style="margin-top: 4px; font-size: 14.5px; line-height: 1.55; color: #111827;">The proposed topic overlaps closely with an existing malaria prevention study. Please narrow the population and state a distinct study focus before resubmitting.</div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 18px;">
+          <span style="display: inline-flex; align-items: center; height: 44px; padding: 0 20px; background: #FFFFFF; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14.5px; font-weight: 500;">Cancel</span>
+          <span style="display: inline-flex; align-items: center; height: 44px; padding: 0 22px; background: #92620a; color: #FFFFFF; border-radius: 6px; font-size: 14.5px; font-weight: 600;">Request Revision</span>
+        </div>
+      </div>
+    </div>
+    <div style="width: 512px; flex: none;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">Reject</div>
+      <div style="background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 12px 32px -12px rgba(17,24,39,.18); padding: 22px 24px 20px;">
+        <h3 style="margin: 0; font-size: 19px; font-weight: 600; line-height: 1.3; color: #111827;">Reject this submission?</h3>
+        <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.6; color: #374151;">The submission status will be updated immediately. This is a terminal outcome and the student will see the recorded reason.</p>
+        <div style="margin-top: 14px; padding: 11px 13px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;">
+          <div style="font-size: 13.5px; color: #4b5563;">Rationale to be recorded <span style="color: #b91c1c;">· required</span></div>
+          <div style="margin-top: 4px; font-size: 14.5px; line-height: 1.55; color: #111827;">This topic is too similar to an existing malaria prevention topic and needs refinement in population, location, or study focus.</div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 18px;">
+          <span style="display: inline-flex; align-items: center; height: 44px; padding: 0 20px; background: #FFFFFF; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14.5px; font-weight: 500;">Cancel</span>
+          <span style="display: inline-flex; align-items: center; height: 44px; padding: 0 22px; background: #b91c1c; color: #FFFFFF; border-radius: 6px; font-size: 14.5px; font-weight: 600;">Reject</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 20px; padding: 18px 22px; background: #FFFFFF; border: 1px solid #C9A24D; max-width: 1616px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">D3 notes</div>
+    <p style="margin: 9px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Kept from the captured modal:</strong> its whole anatomy. Compact and centred, names the specific action, states that status updates immediately, Cancel visually quieter, rationale enforced before the modal can open. That was well built and is not being redesigned.</p>
+    <p style="margin: 9px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Fixed — N-4:</strong> the confirm button now takes the colour of the action it confirms. In the capture, confirming <em>Request Revision</em> used the same filled green as Approve, so the last thing a lecturer clicked before sending work back looked like an approval. <strong style="font-weight: 600; color: #111827;">Fixed — grammar:</strong> “Request Revision this submission?” becomes “Request revision for this submission?”.</p>
+    <p style="margin: 9px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Added — the rationale echo.</strong> The captured modal shows the typed rationale only behind a dimmed overlay. Since this text is permanent, student-visible and required for two of three actions, the dialog now restates it as the thing being committed. For Approve it shows the honest “Not provided — optional for approval”, which also makes the per-action contract visible at the moment of consequence rather than only in the form above.</p>
+    <p style="margin: 9px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">One shadow, used here.</strong> Modals are the only genuinely floating surface in the workspace, so this is where the elevation budget is spent — not on cards, inputs or buttons.</p>
+  </div>
+</section>
+
+
+<section style="width: 1760px; padding: 52px 72px 60px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #EDF3EF;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #1E5142;">D4 · D8</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; color: #0F2A22;">Two record primitives, deliberately unalike</h2>
+    <span style="font-size: 14.5px; color: #57606E;">both are “cards” in the current build — that is the problem</span>
+  </div>
+
+  <div style="display: flex; gap: 42px; margin-top: 26px; align-items: flex-start;">
+    <div style="width: 1184px; flex: none;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">Workflow record · captured Pending Reviews row · 1440</div>
+      <div style="background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px;">
+        <div style="display: grid; grid-template-columns: 1fr 222px 160px 164px 176px; background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+          <div style="padding: 10px 20px; font-size: 13px; color: #4b5563;">Topic</div>
+          <div style="padding: 10px 16px; font-size: 13px; color: #4b5563;">Student</div>
+          <div style="padding: 10px 16px; font-size: 13px; color: #4b5563;">Category</div>
+          <div style="padding: 10px 16px; font-size: 13px; color: #4b5563;">Status</div>
+          <div style="padding: 10px 20px 10px 16px; font-size: 13px; color: #4b5563; text-align: right;">Action</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 222px 160px 164px 176px; align-items: center;">
+          <div style="padding: 16px 20px;">
+            <div style="font-size: 15.5px; font-weight: 600; line-height: 1.4; color: #111827;">Influence of Public Health Campaigns on Student Malaria Prevention Practices</div>
+            <div style="margin-top: 5px; font-size: 13.5px; line-height: 1.55; color: #4b5563;">public health campaigns, malaria prevention, students</div>
+            <div style="margin-top: 4px; font-size: 13.5px; color: #4b5563;">Submitted 20 May 2026</div>
+          </div>
+          <div style="padding: 16px;">
+            <div style="font-size: 14.5px; color: #111827;">Student Demo User</div>
+            <div style="margin-top: 4px; font-size: 13.5px; color: #4b5563;">No matric number on record</div>
+            <div style="margin-top: 2px; font-size: 13.5px; color: #4b5563; overflow-wrap: break-word;">student.demo@uniosun.edu.ng</div>
+          </div>
+          <div style="padding: 16px; font-size: 14.5px; color: #111827;">Public Health</div>
+          <div style="padding: 16px;"><span style="display: inline-flex; align-items: center; padding: 4px 12px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 999px; font-size: 13.5px; font-weight: 600; white-space: nowrap;">Pending review</span></div>
+          <div style="padding: 16px 20px 16px 16px; text-align: right;"><span style="display: inline-flex; align-items: center; height: 40px; padding: 0 18px; background: #047857; color: #FFFFFF; border-radius: 6px; font-size: 14px; font-weight: 600; white-space: nowrap;">Open Review</span></div>
+        </div>
+      </div>
+
+      <div style="margin-top: 30px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">Evidence record · captured related topic · 1440</div>
+      <div style="background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px; padding: 4px 24px;">
+        <div style="display: flex; gap: 18px; padding: 15px 0; border-bottom: 1px solid #e5e7eb;">
+          <span style="flex: none; width: 26px; font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; font-weight: 500; color: #4b5563; padding-top: 2px;">01</span>
+          <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; align-items: flex-start; gap: 14px;">
+              <div style="flex: 1; font-size: 15.5px; font-weight: 600; line-height: 1.4; color: #111827;">Assessment of Health Education Campaigns on Malaria Prevention Practices among Undergraduate Students in Osogbo</div>
+              <span style="flex: none; padding: 5px 11px; background: #E5E7EB; color: #374151; border: 1px solid #D1D5DB; border-radius: 5px; font-size: 13px; font-weight: 600;">Moderate similarity</span>
+            </div>
+            <div style="margin-top: 7px; display: flex; gap: 26px; font-size: 14px; color: #374151; flex-wrap: wrap;">
+              <span><span style="color: #4b5563;">Population</span> Undergraduate students</span>
+              <span><span style="color: #4b5563;">Location</span> Osogbo</span>
+              <span><span style="color: #4b5563;">Study focus</span> Effect of health education campaigns on malaria prevention practices</span>
+            </div>
+            <div style="margin-top: 6px; font-size: 13.5px; color: #4b5563;">Dr. Adeyemi · 2022/2023 session · previous-session record · <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">cosine 0.6230</span></div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 18px; padding: 15px 0;">
+          <span style="flex: none; width: 26px; font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; font-weight: 500; color: #4b5563; padding-top: 2px;">02</span>
+          <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; align-items: flex-start; gap: 14px;">
+              <div style="flex: 1; font-size: 15.5px; font-weight: 600; line-height: 1.4; color: #111827;">Influence of Public Health Campaigns on Malaria Prevention Behaviour among University Students in Osun State</div>
+              <span style="flex: none; padding: 5px 11px; background: #E5E7EB; color: #374151; border: 1px solid #D1D5DB; border-radius: 5px; font-size: 13px; font-weight: 600;">Moderate similarity</span>
+            </div>
+            <div style="margin-top: 7px; display: flex; gap: 26px; font-size: 14px; color: #374151; flex-wrap: wrap;">
+              <span><span style="color: #4b5563;">Population</span> University students</span>
+              <span><span style="color: #4b5563;">Location</span> Osun State</span>
+              <span><span style="color: #4b5563;">Study focus</span> Campaign influence on malaria prevention behaviour</span>
+            </div>
+            <div style="margin-top: 6px; font-size: 13.5px; color: #4b5563;">Dr. Balogun · 2021/2022 session · previous-session record</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 14px; background: #FFFFFF; border: 1px solid #C9A24D;">
+        <div style="display: grid; grid-template-columns: 190px 1fr 1fr;">
+          <div style="padding: 11px 16px; background: #F1ECE1; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">Attribute</div>
+          <div style="padding: 11px 16px; background: #F1ECE1; border-left: 1px solid #E5D9BC; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">Workflow record</div>
+          <div style="padding: 11px 16px; background: #F1ECE1; border-left: 1px solid #E5D9BC; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">Evidence record</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 190px 1fr 1fr; font-size: 14px; line-height: 1.55; border-top: 1px solid #E5D9BC;">
+          <div style="padding: 10px 16px; color: #4A554F;">Identity</div>
+          <div style="padding: 10px 16px; border-left: 1px solid #E5D9BC; color: #111827;">A real application object with a lifecycle</div>
+          <div style="padding: 10px 16px; border-left: 1px solid #E5D9BC; color: #111827;">A stored record cited as supporting evidence</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 190px 1fr 1fr; font-size: 14px; line-height: 1.55; border-top: 1px solid #EDE7DA;">
+          <div style="padding: 10px 16px; color: #4A554F;">Container</div>
+          <div style="padding: 10px 16px; border-left: 1px solid #E5D9BC; color: #111827;">Bordered row inside a bordered table</div>
+          <div style="padding: 10px 16px; border-left: 1px solid #E5D9BC; color: #111827;">Ruled list row, <strong style="font-weight: 600;">no border of its own</strong>, ordinal-led</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 190px 1fr 1fr; font-size: 14px; line-height: 1.55; border-top: 1px solid #EDE7DA;">
+          <div style="padding: 10px 16px; color: #4A554F;">Badge family</div>
+          <div style="padding: 10px 16px; border-left: 1px solid #E5D9BC; color: #111827;">Workflow pill — may carry decision colour</div>
+          <div style="padding: 10px 16px; border-left: 1px solid #E5D9BC; color: #111827;">Classification chip — neutral only</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 190px 1fr 1fr; font-size: 14px; line-height: 1.55; border-top: 1px solid #EDE7DA;">
+          <div style="padding: 10px 16px; color: #4A554F;">Actions</div>
+          <div style="padding: 10px 16px; border-left: 1px solid #E5D9BC; color: #111827;">One primary action per row, right-aligned — an ordinary product action, so institutional green. <strong style="font-weight: 600;">Never wraps:</strong> the action column is sized to its widest label, since a control that breaks across two lines stops reading as a control. <strong style="font-weight: 600;">Metadata columns are sized to their longest real value</strong> for the same reason — per Board B, the remedy for a broken email is room, not a permissive <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">overflow-wrap</code>; only the fluid identity column may absorb the difference</div>
+          <div style="padding: 10px 16px; border-left: 1px solid #E5D9BC; color: #111827;"><strong style="font-weight: 600;">None.</strong> Evidence is read, not operated on</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 190px 1fr 1fr; font-size: 14px; line-height: 1.55; border-top: 1px solid #EDE7DA;">
+          <div style="padding: 10px 16px; color: #4A554F;">Ordering</div>
+          <div style="padding: 10px 16px; border-left: 1px solid #E5D9BC; color: #111827;">User-controlled — sort and filter</div>
+          <div style="padding: 10px 16px; border-left: 1px solid #E5D9BC; color: #111827;">Machine-controlled — rank is meaningful, never re-sortable</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 190px 1fr 1fr; font-size: 14px; line-height: 1.55; border-top: 1px solid #EDE7DA;">
+          <div style="padding: 10px 16px; color: #4A554F;">Technical metadata</div>
+          <div style="padding: 10px 16px; border-left: 1px solid #E5D9BC; color: #111827;">Rare — dates and identifiers only</div>
+          <div style="padding: 10px 16px; border-left: 1px solid #E5D9BC; color: #111827;">Expected — cosine in mono, always labelled and subordinate</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="width: 390px; flex: none;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">Both at 390</div>
+      <div style="background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden;">
+        <div style="padding: 12px 16px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-size: 13px; color: #4b5563;">Workflow record</div>
+        <div style="padding: 15px 16px 17px;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;">
+            <div style="flex: 1; font-size: 15.5px; font-weight: 600; line-height: 1.4; color: #111827;">Influence of Public Health Campaigns on Student Malaria Prevention Practices</div>
+          </div>
+          <div style="margin-top: 9px;"><span style="display: inline-flex; align-items: center; padding: 4px 11px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 999px; font-size: 13px; font-weight: 600;">Pending review</span></div>
+          <div style="margin-top: 12px; border-top: 1px solid #f3f4f6; font-size: 14px; line-height: 1.7;">
+            <div style="padding: 6px 0; border-bottom: 1px solid #f3f4f6;"><div style="color: #4b5563;">Student</div><div style="color: #111827;">Student Demo User</div></div>
+            <div style="padding: 6px 0; border-bottom: 1px solid #f3f4f6;"><div style="color: #4b5563;">Matric number</div><div style="color: #4b5563;">No matric number on record</div></div>
+            <div style="padding: 6px 0; border-bottom: 1px solid #f3f4f6;"><div style="color: #4b5563;">Category</div><div style="color: #111827;">Public Health</div></div>
+            <div style="padding: 6px 0;"><div style="color: #4b5563;">Submitted</div><div style="color: #111827;">20 May 2026</div></div>
+          </div>
+          <span style="display: flex; align-items: center; justify-content: center; height: 44px; margin-top: 14px; background: #047857; color: #FFFFFF; border-radius: 6px; font-size: 14.5px; font-weight: 600;">Open Review</span>
+        </div>
+      </div>
+      <div style="margin-top: 16px; background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden;">
+        <div style="padding: 12px 16px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-size: 13px; color: #4b5563;">Evidence record</div>
+        <div style="padding: 14px 16px 16px;">
+          <div style="display: flex; gap: 10px; align-items: baseline;"><span style="flex: none; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; color: #4b5563;">01</span><div style="flex: 1; font-size: 15px; font-weight: 600; line-height: 1.4; color: #111827;">Assessment of Health Education Campaigns on Malaria Prevention Practices among Undergraduate Students in Osogbo</div></div>
+          <div style="margin-top: 8px; margin-left: 23px;"><span style="display: inline-flex; padding: 4px 10px; background: #E5E7EB; color: #374151; border: 1px solid #D1D5DB; border-radius: 4px; font-size: 12.5px; font-weight: 600;">Moderate similarity</span></div>
+          <div style="margin-top: 8px; margin-left: 23px; font-size: 13.5px; line-height: 1.7; color: #374151;"><span style="color: #4b5563;">Population</span> Undergraduate students<br><span style="color: #4b5563;">Location</span> Osogbo<br><span style="color: #4b5563;">Study focus</span> Effect of health education campaigns on malaria prevention practices</div>
+          <div style="margin-top: 6px; margin-left: 23px; font-size: 13px; color: #4b5563;">Dr. Adeyemi · 2022/2023 · <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">cosine 0.6230</span></div>
+        </div>
+      </div>
+      <div style="margin-top: 12px; padding: 11px 13px; background: #FBF6E8; border-left: 2px solid #C9A24D;">
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.6; color: #4A554F;">At 390 the two stay distinguishable by the same three signals as desktop: <strong style="font-weight: 600; color: #111827;">pill vs chip</strong>, <strong style="font-weight: 600; color: #111827;">action vs no action</strong>, <strong style="font-weight: 600; color: #111827;">no ordinal vs ordinal</strong>. Status sits directly under identity in both.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 22px; padding: 18px 22px; background: #FFFFFF; border: 1px solid #C9A24D; max-width: 1616px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">D4 · what is shared and what is not</div>
+    <p style="margin: 9px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Shared:</strong> the hierarchy (primary identity → status/classification → labelled context → metadata → action, in that order), the type roles, the 13.5px metadata floor, unbolded labels, one 600-weight run per record, 10px outer radius, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">#e5e7eb</code> borders, no inner borders, and the 390px transformation rule.</p>
+    <p style="margin: 9px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Not shared — and this is the point of D8:</strong> a workflow record has a lifecycle, an owner and an action; an evidence record has a rank, a classification and no action at all. Making them one component would force either an action onto evidence or a rank onto a submission. <strong style="font-weight: 600; color: #111827;">They share a grammar, not a template.</strong></p>
+    <p style="margin: 9px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Route-specific content stays route-specific.</strong> Topic Repository needs lifecycle bucket, embedding status and import warnings; Pending Reviews needs student identity and category; My Submissions needs the lecturer's feedback. The primitive fixes <em>how</em> fields are typeset and ordered, never <em>which</em> fields a route shows.</p>
+  </div>
+</section>
+
+<section style="width: 1760px; padding: 52px 72px 60px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #F8FAFC;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #6F5518;">D5</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; color: #0F2A22;">Record list → mobile card — Topic Repository</h2>
+    <span style="font-size: 14.5px; color: #57606E;">both viewports captured · corrected after opening the desktop capture</span>
+  </div>
+
+  <div style="margin-top: 20px; padding: 18px 22px; background: #FFFFFF; border: 2px solid #B91C1C; max-width: 1616px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #B91C1C;">Correction — I had drawn a table that does not exist</div>
+    <p style="margin: 10px 0 0; font-size: 15.5px; line-height: 1.65; color: #4A554F;">An earlier draft of D5 showed a conventional desktop table with a header row and five columns, described as “tightened to the D6 type roles”. <strong style="font-weight: 600; color: #111827;">The desktop capture was in the pack and I had not opened it.</strong> Having now done so: <strong style="font-weight: 600; color: #111827;">Topic Repository is not a table at either viewport.</strong> Desktop renders nine bordered record cards, each with the lifecycle pill <em>above</em> the title and a four-column internal grid — Topic &amp; keywords · Category + session · Supervisor · Data quality. There is no header row and no per-row action.</p>
+    <p style="margin: 10px 0 0; font-size: 15.5px; line-height: 1.65; color: #4A554F;">That makes the real story stronger than the one I invented: <strong style="font-weight: 600; color: #111827;">this route already uses one primitive at both viewports</strong>, and the 390px version simply collapses the internal columns into labelled rows. It is not a table-to-card transformation — it is a card whose interior reflows. Which is exactly the pattern the other lists should adopt, and it needs no redesign at all.</p>
+  </div>
+
+  <p style="margin: 18px 0 0; font-size: 15.5px; line-height: 1.65; color: #4A554F; max-width: 1180px;">Below is the captured desktop structure with D6 type roles applied and the two colour-role corrections named in the notes. Everything else — field set, order, pill placement, pagination line — is preserved as captured.</p>
+
+  <div style="display: flex; gap: 42px; margin-top: 24px; align-items: flex-start;">
+    <div style="width: 1184px; flex: none;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">Desktop · captured card structure, D6 roles applied</div>
+      <div style="background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px;">
+        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px 18px;">
+          <div style="display: grid; grid-template-columns: 1fr 190px 170px 200px; gap: 18px;">
+            <div>
+              <span style="display: inline-flex; align-items: center; padding: 4px 11px; background: #f3f4f6; color: #374151; border: 1px dashed #9ca3af; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap;">Under review</span>
+              <div style="margin-top: 9px; font-size: 15.5px; font-weight: 600; line-height: 1.4; color: #111827;">Communication Strategies for Malaria Prevention among University Students in Ile-Ife</div>
+              <div style="margin-top: 5px; font-size: 13.5px; line-height: 1.55; color: #4b5563;">communication strategies, malaria prevention, university students, Ile-Ife</div>
+            </div>
+            <div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563;">Category</div><div style="margin-top: 5px; font-size: 14.5px; color: #111827;">Health Communication</div><div style="margin-top: 4px; font-size: 13.5px; color: #4b5563;">Session 2025/2026</div></div>
+            <div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563;">Supervisor</div><div style="margin-top: 5px; font-size: 14.5px; color: #111827;">Dr. Falade</div><div style="margin-top: 4px; font-size: 13.5px; color: #4b5563;">demo</div></div>
+            <div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563;">Data quality</div><div style="margin-top: 5px; font-size: 14.5px; color: #111827;">Embedding stored</div><div style="margin-top: 4px; font-size: 13.5px; color: #4b5563;">0 import warnings</div></div>
+          </div>
+        </div>
+        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px 18px; margin-top: 12px;">
+          <div style="display: grid; grid-template-columns: 1fr 190px 170px 200px; gap: 18px;">
+            <div>
+              <span style="display: inline-flex; align-items: center; padding: 4px 11px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap;">Current session</span>
+              <div style="margin-top: 9px; font-size: 15.5px; font-weight: 600; line-height: 1.4; color: #111827;">Effect of School Health Campaigns on Malaria Prevention among Undergraduate Students in Osun State</div>
+              <div style="margin-top: 5px; font-size: 13.5px; line-height: 1.55; color: #4b5563;">school health campaigns, malaria prevention, undergraduate students, Osun State</div>
+            </div>
+            <div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563;">Category</div><div style="margin-top: 5px; font-size: 14.5px; color: #111827;">Public Health</div><div style="margin-top: 4px; font-size: 13.5px; color: #4b5563;">Session 2025/2026</div></div>
+            <div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563;">Supervisor</div><div style="margin-top: 5px; font-size: 14.5px; color: #111827;">Dr. Musa</div><div style="margin-top: 4px; font-size: 13.5px; color: #4b5563;">demo</div></div>
+            <div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563;">Data quality</div><div style="margin-top: 5px; font-size: 14.5px; color: #111827;">Embedding stored</div><div style="margin-top: 4px; font-size: 13.5px; color: #4b5563;">0 import warnings</div></div>
+          </div>
+        </div>
+        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px 18px; margin-top: 12px;">
+          <div style="display: grid; grid-template-columns: 1fr 190px 170px 200px; gap: 18px;">
+            <div>
+              <span style="display: inline-flex; align-items: center; padding: 4px 11px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap;">Historical</span>
+              <div style="margin-top: 9px; font-size: 15.5px; font-weight: 600; line-height: 1.4; color: #111827;">Machine Learning Algorithms for Stock Market Prediction</div>
+              <div style="margin-top: 5px; font-size: 13.5px; line-height: 1.55; color: #4b5563;">machine learning, stock market, prediction algorithms, financial forecasting</div>
+            </div>
+            <div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563;">Category</div><div style="margin-top: 5px; font-size: 14.5px; color: #111827;">Computer Science</div><div style="margin-top: 4px; font-size: 13.5px; color: #4b5563;">Session 2022/2023</div></div>
+            <div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563;">Supervisor</div><div style="margin-top: 5px; font-size: 14.5px; color: #111827;">Dr. Williams</div><div style="margin-top: 4px; font-size: 13.5px; color: #4b5563;">demo</div></div>
+            <div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563;">Data quality</div><div style="margin-top: 5px; font-size: 14.5px; color: #111827;">Embedding stored</div><div style="margin-top: 4px; font-size: 13.5px; color: #4b5563;">0 import warnings</div></div>
+          </div>
+        </div>
+        <div style="margin-top: 14px; padding: 11px 16px; background: #f9fafb; border-radius: 6px; display: flex; justify-content: space-between; font-size: 14px; color: #4b5563;"><span>Showing 9 of 9 matching records.</span><span>Page 1 of 1</span></div>
+      </div>
+      <div style="margin-top: 12px; padding: 13px 17px; background: #FFFFFF; border: 1px solid #C9A24D;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">Desktop specification — as captured</div>
+        <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Structure:</strong> one bordered card per record inside a bordered container; identity takes the fluid column and carries the only 600-weight run; three fixed metadata columns each pair an eyebrow label with a value and a subordinate line. <strong style="font-weight: 600; color: #111827;">Pill above title</strong> — status is read before identity, which is right for an oversight surface. <strong style="font-weight: 600; color: #111827;">No per-row action</strong> — now confirmed rather than inferred, so the record primitive's action slot is genuinely optional. Pagination summary preserved verbatim.</p>
+        <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Correction 1 — the lifecycle pills are all the same green.</strong> In the capture, <em>Under review</em>, <em>Current session</em> and <em>Historical</em> all render in mint on green — so approval colour is doing duty for three non-academic lifecycle buckets, none of which involves a human approving anything. That is the Family A/B collision in a place neither the audit nor Board A reached. <em>Current session</em> and <em>Historical</em> become neutral here: a record's age is temporal metadata, not a status.</p>
+        <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Under review carries a provisional treatment only</strong> — neutral with a dashed pill border, the same device Board A uses for “not classified”, because its semantic family is genuinely unresolved (question 1 below). An earlier draft gave it in-progress blue, which quietly invented a new semantic category from a label I had not confirmed. <strong style="font-weight: 600; color: #111827;">Its final token depends on source confirmation:</strong> if it proves a submission status it joins Family B and takes the Pending treatment; if it proves a repository lifecycle bucket it stays neutral permanently. The dashed border is a deliberate marker that this is undecided, not a third status colour.</p>
+        <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Correction 2 — the metric cards above the list</strong> (All topics 9 · Historical 6 · Current session 1 · Under review 2) carry left-accent stripes in green, amber, blue and <em>pink-red</em> respectively. Red on “Under review” is verdict colour on non-verdict data. This was observed in <em>both</em> captures; an earlier draft attributed it to the desktop alone, which at that point I had not opened.</p>
+      </div>
+    </div>
+
+    <div style="width: 390px; flex: none;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">390 · captured field order preserved</div>
+      <div style="background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden;">
+        <div style="padding: 15px 16px 16px; border-bottom: 1px solid #e5e7eb;">
+          <span style="display: inline-flex; align-items: center; padding: 4px 11px; background: #f3f4f6; color: #374151; border: 1px dashed #9ca3af; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap;">Under review</span>
+          <div style="margin-top: 10px; font-size: 15.5px; font-weight: 600; line-height: 1.4; color: #111827;">Communication Strategies for Malaria Prevention among University Students in Ile-Ife</div>
+          <div style="margin-top: 5px; font-size: 13.5px; line-height: 1.6; color: #4b5563;">communication strategies, malaria prevention, Ile-Ife</div>
+          <div style="margin-top: 12px; border-top: 1px solid #f3f4f6; font-size: 14px; line-height: 1.7;">
+            <div style="padding: 6px 0; border-bottom: 1px solid #f3f4f6;"><div style="color: #4b5563;">Category</div><div style="color: #111827;">Health Communication</div></div>
+            <div style="padding: 6px 0; border-bottom: 1px solid #f3f4f6;"><div style="color: #4b5563;">Session</div><div style="color: #111827;">2025/2026</div></div>
+            <div style="padding: 6px 0; border-bottom: 1px solid #f3f4f6;"><div style="color: #4b5563;">Supervisor</div><div style="color: #111827;">Dr. Falade</div></div>
+            <div style="padding: 6px 0;"><div style="color: #4b5563;">Data quality</div><div style="color: #111827;">Embedding stored · 0 import warnings</div></div>
+          </div>
+        </div>
+        <div style="padding: 15px 16px 16px;">
+          <span style="display: inline-flex; align-items: center; padding: 4px 11px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 999px; font-size: 13px; font-weight: 600;">Historical</span>
+          <div style="margin-top: 10px; font-size: 15.5px; font-weight: 600; line-height: 1.4; color: #111827;">Machine Learning Algorithms for Stock Market Prediction</div>
+          <div style="margin-top: 5px; font-size: 13.5px; line-height: 1.6; color: #4b5563;">machine learning, stock market, prediction algorithms</div>
+          <div style="margin-top: 12px; border-top: 1px solid #f3f4f6; font-size: 14px; line-height: 1.7;">
+            <div style="padding: 6px 0; border-bottom: 1px solid #f3f4f6;"><div style="color: #4b5563;">Category</div><div style="color: #111827;">Computer Science</div></div>
+            <div style="padding: 6px 0; border-bottom: 1px solid #f3f4f6;"><div style="color: #4b5563;">Session</div><div style="color: #111827;">2022/2023</div></div>
+            <div style="padding: 6px 0;"><div style="color: #4b5563;">Supervisor</div><div style="color: #111827;">Dr. Williams</div></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 12px; padding: 12px 14px; background: #FFFFFF; border: 1px solid #C9A24D;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">Mobile specification</div>
+        <p style="margin: 8px 0 0; font-size: 13.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Never horizontal scroll.</strong> The card's <em>internal columns</em> become labelled rows — label above or left in <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">#4b5563</code>, value in <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">#111827</code>, both ≥14px. <strong style="font-weight: 600; color: #111827;">Status stays above identity</strong> at both viewports, exactly as captured. Metadata may stack; nothing is dropped. Any row action becomes full-width at 44px.</p>
+        <p style="margin: 8px 0 0; font-size: 13.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">The transformation is smaller than I first described.</strong> Because desktop is already a card list, 390px changes only the interior: a four-column grid becomes a single column. That is why this route survives mobile with no clipping and no scroll — and why the honest instruction to the other lists is “adopt this card”, not “build a mobile variant of your table”.</p>
+        <p style="margin: 8px 0 0; font-size: 13.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Protected as-is from the capture:</strong> field order, the data-quality line, and the pagination summary beneath the list.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="width: 1760px; padding: 52px 72px 60px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #EDF3EF;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #1E5142;">D6 · D7</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; color: #0F2A22;">Type roles and colour roles</h2>
+  </div>
+
+  <div style="display: flex; gap: 42px; margin-top: 26px; align-items: flex-start;">
+    <div style="width: 786px; flex: none;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">D6 · text roles — named, not numbered arbitrarily</div>
+      <div style="background: #FFFFFF; border: 1px solid #C9BFA9;">
+        <div style="display: grid; grid-template-columns: 168px 128px 1fr; background: #F1ECE1; border-bottom: 1px solid #C9BFA9;">
+          <div style="padding: 10px 16px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">Role</div>
+          <div style="padding: 10px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">Spec</div>
+          <div style="padding: 10px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">Sample</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 168px 128px 1fr; border-bottom: 1px solid #E2DCD0;"><div style="padding: 11px 16px; font-size: 14px; color: #4A554F;">Page / record title</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #4b5563;">20–24 / 600</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0;"><span style="font-size: 22px; font-weight: 600; color: #111827;">Submission Details</span></div></div>
+        <div style="display: grid; grid-template-columns: 168px 128px 1fr; border-bottom: 1px solid #E2DCD0;"><div style="padding: 11px 16px; font-size: 14px; color: #4A554F;">Section title</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #4b5563;">16 / 600</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0;"><span style="font-size: 16px; font-weight: 600; color: #111827;">Closest stored records</span></div></div>
+        <div style="display: grid; grid-template-columns: 168px 128px 1fr; border-bottom: 1px solid #E2DCD0;"><div style="padding: 11px 16px; font-size: 14px; color: #4A554F;">Record title</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #4b5563;">15.5 / 600</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0;"><span style="font-size: 15.5px; font-weight: 600; color: #111827;">Malaria Prevention Practices in Lagos State</span></div></div>
+        <div style="display: grid; grid-template-columns: 168px 128px 1fr; border-bottom: 1px solid #E2DCD0;"><div style="padding: 11px 16px; font-size: 14px; color: #4A554F;">Field label</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #4b5563;">13–14 / <strong style="font-weight: 600;">400</strong></div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0;"><span style="font-size: 14px; color: #4b5563;">Population</span> <span style="font-size: 13px; color: #6F5518;">— never bold</span></div></div>
+        <div style="display: grid; grid-template-columns: 168px 128px 1fr; border-bottom: 1px solid #E2DCD0;"><div style="padding: 11px 16px; font-size: 14px; color: #4A554F;">Value</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #4b5563;">14.5–15 / 400</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0;"><span style="font-size: 14.5px; color: #111827;">Undergraduate students</span></div></div>
+        <div style="display: grid; grid-template-columns: 168px 128px 1fr; border-bottom: 1px solid #E2DCD0;"><div style="padding: 11px 16px; font-size: 14px; color: #4A554F;">Metadata</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #4b5563;">13.5 / 400</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0;"><span style="font-size: 13.5px; color: #4b5563;">Dr. Adeyemi · 2022/2023 session</span></div></div>
+        <div style="display: grid; grid-template-columns: 168px 128px 1fr; border-bottom: 1px solid #E2DCD0;"><div style="padding: 11px 16px; font-size: 14px; color: #4A554F;">Helper / explanatory</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #4b5563;">13.5–14 / 400</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0;"><span style="font-size: 14px; color: #4b5563;">Required when rejecting or requesting revision.</span></div></div>
+        <div style="display: grid; grid-template-columns: 168px 128px 1fr; border-bottom: 1px solid #E2DCD0;"><div style="padding: 11px 16px; font-size: 14px; color: #4A554F;">Eyebrow <span style="font-size: 12.5px; color: #6F5518;">nonessential</span></div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #4b5563;">11–11.5 / 500</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563;">Similarity evidence</span></div></div>
+        <div style="display: grid; grid-template-columns: 168px 128px 1fr;"><div style="padding: 11px 16px; font-size: 14px; color: #4A554F;">Technical token <span style="font-size: 12.5px; color: #6F5518;">nonessential</span></div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #4b5563;">12.5–13 mono</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #4b5563; border: 1px solid #e5e7eb; border-radius: 4px; padding: 3px 7px;">MEDIUM</span> <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #4b5563;">cosine 0.6230</span></div></div>
+      </div>
+      <div style="margin-top: 12px; padding: 13px 16px; background: #FFFFFF; border: 1px solid #C9A24D;">
+        <p style="margin: 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Floors:</strong> task-essential and interpretive text ≥13px; 11–12.5px reserved for nonessential structural labels and technical metadata not required to understand or act on the result. Everything ≥4.5:1 against its own background, with the single inactive-control exemption from Board C. <strong style="font-weight: 600; color: #111827;">Only two roles are uppercase</strong> — eyebrow and token — and both are nonessential, which is what keeps uppercase from becoming decoration. <strong style="font-weight: 600; color: #111827;">One 600-weight run per record.</strong> No 700, no 800, no 900 anywhere in the workspace. No landing type scale.</p>
+      </div>
+    </div>
+
+    <div style="width: 788px; flex: none;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">D7 · colour roles — semantic, not implementation</div>
+      <div style="background: #FFFFFF; border: 1px solid #C9BFA9;">
+        <div style="display: grid; grid-template-columns: 168px 1fr 1fr; background: #F1ECE1; border-bottom: 1px solid #C9BFA9;">
+          <div style="padding: 10px 16px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">Role · meaning</div>
+          <div style="padding: 10px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #1E5142;">Allowed</div>
+          <div style="padding: 10px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #B91C1C;">Prohibited</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 168px 1fr 1fr; border-bottom: 1px solid #E2DCD0; font-size: 14px; line-height: 1.55;"><div style="padding: 11px 16px;"><strong style="font-weight: 600; color: #111827;">Academic approval</strong><div style="margin-top: 2px; color: #4A554F;">A human approved</div></div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Approve control · Approved pill · confirm button for Approve</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Any similarity classification · any absence state · any non-academic status such as a lifecycle bucket</div></div>
+        <div style="display: grid; grid-template-columns: 168px 1fr 1fr; border-bottom: 1px solid #E2DCD0; font-size: 14px; line-height: 1.55;"><div style="padding: 11px 16px;"><strong style="font-weight: 600; color: #111827;">Academic revision</strong><div style="margin-top: 2px; color: #4A554F;">A human asked for changes</div></div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Request Revision control · Revision requested pill · its confirm button</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">MEDIUM similarity · Pending status · system warnings</div></div>
+        <div style="display: grid; grid-template-columns: 168px 1fr 1fr; border-bottom: 1px solid #E2DCD0; font-size: 14px; line-height: 1.55;"><div style="padding: 11px 16px;"><strong style="font-weight: 600; color: #111827;">Academic rejection</strong><div style="margin-top: 2px; color: #4A554F;">A human rejected</div></div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Reject control · Rejected pill · its confirm button · required-field markers</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">HIGH similarity</strong> · unavailable results · empty lists</div></div>
+        <div style="display: grid; grid-template-columns: 168px 1fr 1fr; border-bottom: 1px solid #E2DCD0; font-size: 14px; line-height: 1.55;"><div style="padding: 11px 16px;"><strong style="font-weight: 600; color: #111827;">Similarity evidence</strong><div style="margin-top: 2px; color: #4A554F;">Machine measurement</div></div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Neutral ink ramp — filled / tinted / outline / dashed. Evidence affordances rest in ink</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Every hue. No exception, at any classification</div></div>
+        <div style="display: grid; grid-template-columns: 168px 1fr 1fr; border-bottom: 1px solid #E2DCD0; font-size: 14px; line-height: 1.55;"><div style="padding: 11px 16px;"><strong style="font-weight: 600; color: #111827;">System failure</strong><div style="margin-top: 2px; color: #4A554F;">The software could not act</div></div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Warning amber, <strong style="font-weight: 600;">as an edge rule</strong> · the outage message</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Filled tints · similarity findings · workflow statuses</div></div>
+        <div style="display: grid; grid-template-columns: 168px 1fr 1fr; border-bottom: 1px solid #E2DCD0; font-size: 14px; line-height: 1.55;"><div style="padding: 11px 16px;"><strong style="font-weight: 600; color: #111827;">In-progress</strong><div style="margin-top: 2px; color: #4A554F;">Awaiting a human</div></div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Pending review — neutral blue pill. <strong style="font-weight: 600;">Under review is unassigned</strong> pending source confirmation and shown provisionally neutral</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Amber — waiting is not a warning and not a revision request. Green — waiting is not approval</div></div>
+        <div style="display: grid; grid-template-columns: 168px 1fr 1fr; border-bottom: 1px solid #E2DCD0; font-size: 14px; line-height: 1.55;"><div style="padding: 11px 16px;"><strong style="font-weight: 600; color: #111827;">Brand / product action</strong><div style="margin-top: 2px; color: #4A554F;">Any non-academic action</div></div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Institutional green — Sign in, Continue, Apply Filters, Refresh Queue, Open Review. <strong style="font-weight: 600;">Filled ink inside evidence and recovery surfaces</strong> (retry, Run a new check, Clear all filters)</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Green anywhere the surrounding state would read it as an academic verdict — inside similarity evidence, on an absence state, or beside a classification</div></div>
+        <div style="display: grid; grid-template-columns: 168px 1fr 1fr; border-bottom: 1px solid #E2DCD0; font-size: 14px; line-height: 1.55;"><div style="padding: 11px 16px;"><strong style="font-weight: 600; color: #111827;">Muted metadata</strong><div style="margin-top: 2px; color: #4A554F;">Subordinate but readable</div></div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Labels, provenance, timestamps — at ≥4.5:1</div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Any grey below 4.5:1 · opacity-derived colour</div></div>
+        <div style="display: grid; grid-template-columns: 168px 1fr 1fr; font-size: 14px; line-height: 1.55;"><div style="padding: 11px 16px;"><strong style="font-weight: 600; color: #111827;">Focus</strong><div style="margin-top: 2px; color: #4A554F;">Keyboard position</div></div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Institutional gold ring, every interactive element, globally — <strong style="font-weight: 600;">including inside evidence</strong></div><div style="padding: 11px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Gold for anything else — nav text, avatars, chips, buttons</div></div>
+      </div>
+      <div style="margin-top: 12px; padding: 13px 16px; background: #FFFFFF; border: 1px solid #C9A24D;">
+        <p style="margin: 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Roles, not hex values.</strong> The source audit found raw <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">emerald-*</code> and <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">amber-*</code> classes beside the semantic tokens — real design-system debt, but not evidence that the screens look wrong today. The remedy is that <em>every</em> colour use names a role from this table; mapping roles onto tokens is an implementation step. <strong style="font-weight: 600; color: #111827;">Note the scope:</strong> this table constrains where each role's colour <em>may mean what</em>; it does not require the workspace to abandon green for primary actions. <strong style="font-weight: 600; color: #111827;">Gold's four current jobs collapse to one:</strong> focus. Active nav becomes tint plus underline, the avatar becomes neutral, and the login button stops overriding itself with <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">!important</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="width: 1760px; padding: 52px 72px 60px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #0F2A22; color: #E8EEEA;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,.24);">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #D8C48A;">CURRENT vs PROPOSED</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; color: #FFFFFF;">Four findings, four resolutions</h2>
+  </div>
+
+  <div style="margin-top: 26px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.2);">
+    <div style="display: grid; grid-template-columns: 230px 1fr 1fr 1fr; border-bottom: 1px solid rgba(255,255,255,.18);">
+      <div style="padding: 12px 16px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #8FA69B;">Finding</div>
+      <div style="padding: 12px 14px; border-left: 1px solid rgba(255,255,255,.18); font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #FFB4A8;">Current</div>
+      <div style="padding: 12px 14px; border-left: 1px solid rgba(255,255,255,.18); font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #A7F3D0;">Proposed</div>
+      <div style="padding: 12px 14px; border-left: 1px solid rgba(255,255,255,.18); font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #8FA69B;">Why the primitive, not the page</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 230px 1fr 1fr 1fr; border-bottom: 1px solid rgba(255,255,255,.12); font-size: 14px; line-height: 1.6;">
+      <div style="padding: 13px 16px; font-weight: 600; color: #FFFFFF;">RiskBadge vs StatusBadge collision</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">Both resolve to the same three tinted pills. <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">HIGH</code> is pixel-identical to <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">Rejected</code>; <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">LOW</code> to <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">Approved</code>.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">Two separate families with <strong style="font-weight: 600; color: #FFFFFF;">different shapes</strong>: 5px chip on a neutral ramp for classification, fully-rounded tinted pill for workflow status.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">Board A fixed three screens by hand. Without the shape rule, the fourth screen re-collides — and shape is checkable by a reviewer who does not know the semantics.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 230px 1fr 1fr 1fr; border-bottom: 1px solid rgba(255,255,255,.12); font-size: 14px; line-height: 1.6;">
+      <div style="padding: 13px 16px; font-weight: 600; color: #FFFFFF;">Revision-confirmation green</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">The modal confirming <em>Request Revision</em> uses filled approval green, so the last click before sending work back looks affirmative. Copy also reads “Request Revision this submission?”.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">One dialog anatomy; the confirm button <strong style="font-weight: 600; color: #FFFFFF;">inherits the colour of the action it confirms</strong>. Grammar fixed to “Request revision for this submission?”. Rationale echoed as the thing being committed.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">A shared dialog with a hardcoded green confirm reproduces the bug at every call site. Binding colour to the action makes the correct behaviour automatic.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 230px 1fr 1fr 1fr; border-bottom: 1px solid rgba(255,255,255,.12); font-size: 14px; line-height: 1.6;">
+      <div style="padding: 13px 16px; font-weight: 600; color: #FFFFFF;">Repeated one-off record styling</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">Every list invents its own row: four bold labels inside one evidence card, nested borders four deep on Review Detail, left-accent stripe cards on Topic Repository — one with red on a neutral bucket.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">Two named primitives sharing a grammar: <strong style="font-weight: 600; color: #FFFFFF;">workflow record</strong> and <strong style="font-weight: 600; color: #FFFFFF;">evidence record</strong>. One 600-weight run, unbolded labels, no inner borders, action right-most or absent.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">The drift is not aesthetic. Bold labels and accent stripes were <em>assigning emphasis and colour meaning</em> per route, which is how red reached “Under review”.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 230px 1fr 1fr 1fr; font-size: 14px; line-height: 1.6; background: rgba(167,243,208,.09);">
+      <div style="padding: 13px 16px; font-weight: 600; color: #FFFFFF;">Mobile table “overflow”</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">My source-derived audit called this a defect across seven routes, from one unconditional <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">overflow-x-auto</code> in <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">TableShell</code>.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #A7F3D0; font-weight: 600;">Protected, not redesigned — and the principle generalises as <strong style="font-weight: 600; color: #FFFFFF;">structured desktop record → stacked mobile record</strong>, not table → card. Topic Repository is a bordered card at both viewports; 390px collapses its interior.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">Pixels beat inference twice here: first disproving the overflow finding, then disproving my own claim that this route was a table. Routes that <em>are</em> tables — where pixels or source prove it — may still adopt a related strategy; that is unverified for now.</div>
+    </div>
+  </div>
+</section>
+
+<section style="width: 1760px; padding: 52px 72px 72px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #FAF7F1;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #6F5518;">D9</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; color: #0F2A22;">Implementation guidance</h2>
+    <span style="font-size: 14.5px; color: #57606E;">categories, not component merges — I have not read enough source to prescribe architecture</span>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 26px;">
+    <div style="border: 2px solid #0F2A22; background: #FFFFFF; padding: 20px 22px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #0F2A22;">Must share semantics</div>
+      <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;">These must agree on <em>meaning</em> wherever they appear, whatever their file layout.</p>
+      <div style="margin-top: 12px; border-top: 1px solid #E2DCD0; font-size: 14.5px; line-height: 1.6;">
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Similarity classification</strong> — every render, in every role's view, from one neutral scale.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Workflow status</strong> — one status→appearance map for Pending / Approved / Revision requested / Rejected / Under review.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Decision actions</strong> — the Approve / Request Revision / Reject triad, including its confirm dialog and the per-action rationale contract.</div>
+        <div style="padding: 9px 0;"><strong style="font-weight: 600; color: #111827;">Colour roles</strong> — the D7 table. Every colour use names a role.</div>
+      </div>
+      <p style="margin: 12px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;">Highest leverage: <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">RiskBadge</code>, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">StatusBadge</code> and the three risk tokens govern every instance in the product — the same two-file change the v2 audit ranked first.</p>
+    </div>
+    <div style="border: 1px solid #D6CEBE; background: #FFFFFF; padding: 20px 22px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">May share presentation</div>
+      <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;">Consolidation would reduce drift, but each is safe to unify only if the shared version stays configurable.</p>
+      <div style="margin-top: 12px; border-top: 1px solid #E2DCD0; font-size: 14.5px; line-height: 1.6;">
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Structured record card</strong> — Topic Repository's desktop card with its internal column grid, and the stacked 390px reflow of that same card; field selection stays per route.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Table shell + row typography</strong> — header, density, rules, alignment, <em>for routes that are genuinely tables</em>; columns stay per route.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Confirmation dialog shell</strong> — one anatomy, semantics passed in.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Duplicate primitive pairs</strong> — <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">EmptyState</code>/<code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">EmptyStatePanel</code>, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">LoadingState</code>/<code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">LoadingStatePanel</code>, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">StatCard</code>/<code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">MetricCard</code>, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">AlertBanner</code>/<code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">InfoCallout</code> — four concepts, eight files.</div>
+        <div style="padding: 9px 0;"><strong style="font-weight: 600; color: #111827;">Dead files</strong> — <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">Sidebar.jsx</code> and <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">Topbar.jsx</code> are unreferenced and carry a forked palette plus glassmorphism.</div>
+      </div>
+    </div>
+    <div style="border: 1px solid #D6CEBE; background: #FFFFFF; padding: 20px 22px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #B91C1C;">Must remain distinct</div>
+      <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;">Unifying these would recreate the original defect.</p>
+      <div style="margin-top: 12px; border-top: 1px solid #E2DCD0; font-size: 14.5px; line-height: 1.6;">
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Classification chip vs status pill.</strong> No universal <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">StatusBadge</code> whose colour meaning depends on the route.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Evidence record vs workflow record.</strong> One has rank and no action; the other has lifecycle and an action.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Decision action vs product action.</strong> Both may be green; they must not share a component, because a decision action carries a confirmation dialog, a rationale contract and an irreversible outcome that a Refresh button must never inherit.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">The five absence states.</strong> Board C's whole point: one generic “no result” component is what let “complete the form” answer a 503.</div>
+        <div style="padding: 9px 0;"><strong style="font-weight: 600; color: #111827;">Validation vs system failure.</strong> Field-local red, never a page-level failure treatment.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 22px; margin-top: 26px;">
+    <div style="flex: 1; padding: 20px 24px; background: #FFFFFF; border: 2px solid #0F2A22;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #0F2A22;">What Board D standardises</div>
+      <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Shape as family identifier</strong> — chip, pill, edge rule, control — so the four meaning-systems cannot collapse again. <strong style="font-weight: 600; color: #111827;">One colour rule: never imply an academic verdict where none exists</strong>, which keeps green available for ordinary primary actions and scopes the neutral-affordance exception to evidence and recovery surfaces. <strong style="font-weight: 600; color: #111827;">One confirmation anatomy</strong> whose confirm button inherits the action's semantics, with the grammar fixed. <strong style="font-weight: 600; color: #111827;">Two record primitives</strong> sharing a grammar — hierarchy, type roles, spacing, radii, borders, action placement, 390px transformation. <strong style="font-weight: 600; color: #111827;">Nine named text roles</strong> with a 13px task-essential floor and 11–12.5px reserved for nonessential labels. <strong style="font-weight: 600; color: #111827;">Nine colour roles</strong> with explicit allowed and prohibited contexts, and gold reduced to focus alone.</p>
+    </div>
+    <div style="flex: 1; padding: 20px 24px; background: #FFFFFF; border: 1px solid #D6CEBE;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">What deliberately remains different</div>
+      <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Green for ordinary primary actions</strong> — deliberately left in place across the workspace, with neutrality required only inside evidence and recovery surfaces. Which <em>fields</em> each route shows — Topic Repository's lifecycle bucket and embedding status, Pending Reviews' student identity, My Submissions' lecturer feedback. The presence or absence of a row action. Rank ordinals, which belong only to machine-ordered evidence. Sort and filter controls, which belong only to workflow lists. Review Detail's inverted hierarchy on a decided record, frozen in Board B. And the five absence treatments, which stay five.</p>
+      <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;">Also unchanged by design: workspace density, the three named widths, navigation, dashboards, and forms. <strong style="font-weight: 600; color: #111827;">Board D adds no new screen.</strong></p>
+    </div>
+  </div>
+
+  <div style="margin-top: 22px; padding: 20px 24px; background: #FFFFFF; border: 1px solid #C9A24D;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">Implementation questions needing source or data confirmation</div>
+    <div style="margin-top: 12px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+      <div style="font-size: 15px; line-height: 1.65; color: #4A554F;">
+        <p style="margin: 0;"><strong style="font-weight: 600; color: #111827;">1 · Is <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">Under review</code> a topic-repository lifecycle bucket or a submission status? <span style="color: #B91C1C;">Blocking its final token.</span></strong> Shown provisionally neutral with a dashed pill border rather than resolved visually. If it is a submission status it joins Family B and takes the Pending treatment; if it is a repository lifecycle bucket it stays neutral. Either way it is not red and not green.</p>
+        <p style="margin: 12px 0 0;"><strong style="font-weight: 600; color: #111827;">2 · How many distinct workflow statuses exist?</strong> I have seen four rendered plus <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">AWAITING_REVISION</code> in source. If there are others — withdrawn, superseded, resubmitted — each needs a role assignment before the pill map is fixed.</p>
+        <p style="margin: 12px 0 0;"><strong style="font-weight: 600; color: #111827;">3 · Does any evidence surface currently offer a row-level action?</strong> D8 asserts evidence records have none. If a route lets a lecturer open or cite a related topic, that is a legitimate exception and the primitive needs a defined action slot rather than a prohibition.</p>
+      </div>
+      <div style="font-size: 15px; line-height: 1.65; color: #4A554F;">
+        <p style="margin: 0;"><strong style="font-weight: 600; color: #111827;">4 · Which surfaces put green close enough to a classification to read as a verdict?</strong> The global green-to-ink migration is withdrawn, so this is now a targeted question: an inventory of primary buttons that sit <em>within</em> an evidence or absence surface, where the scoped neutral rule applies. Sign-in is separately worth checking — its submit forces gold via three <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">!important</code> overrides, which no role in the D7 table sanctions.</p>
+        <p style="margin: 12px 0 0;"><strong style="font-weight: 600; color: #111827;">5 · Are <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">StatCard</code> and <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">MetricCard</code> genuinely one concept?</strong> Source showed one as a pass-through to the other, which suggests yes — but I read them in the v2 audit only, and a merge should be confirmed against every call site rather than that inference.</p>
+        <p style="margin: 12px 0 0;"><strong style="font-weight: 600; color: #111827;">6 · Deliberately out of scope here:</strong> the F-1 similarity-scale contract, F-2 duplicate snapshots, F-3 the 4-vs-5 count and F-4 directive stored copy. All four are functional or data defects; none is addressed visually anywhere in Boards A–D.</p>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1760,&quot;height&quot;:1100}}"></script>
+</body>
+</html>

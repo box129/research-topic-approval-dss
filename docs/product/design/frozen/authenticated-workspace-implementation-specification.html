@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #E7E2D8; }
+  a { color: #1E5142; }
+  a:hover { color: #0F2A22; }
+</style>
+</helmet>
+
+<div style="width: 1280px; padding: 64px 80px 48px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #FAF7F1; color: #111827;">
+  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: #6F5518;">Implementation contract · not a design board</div>
+  <h1 style="margin: 14px 0 16px; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 46px; line-height: 1.1; letter-spacing: -0.02em; color: #0F2A22;">Authenticated Workspace Implementation Specification</h1>
+  <p style="margin: 0; font-size: 17.5px; line-height: 1.65; color: #4A554F; max-width: 860px;">One executable contract consolidating the frozen landing direction and Boards A–D, so implementation does not require interpreting four boards. <strong style="font-weight: 600; color: #111827;">No code, no <code style="font-family: 'IBM Plex Mono', monospace; font-size: 15px;">DESIGN.md</code>, no backend, no commits were changed by this task.</strong></p>
+
+  <div style="margin-top: 28px; padding: 20px 24px; border: 2px solid #B91C1C; background: #FFFFFF;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #B91C1C;">Input provenance — two named documents do not exist under those names</div>
+    <p style="margin: 11px 0 0; font-size: 15.5px; line-height: 1.65; color: #4A554F;">I searched the repository at <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">main@5c78b8f0</code> for the named inputs. <strong style="font-weight: 600; color: #111827;">There is no <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">PRODUCT.md</code> and no <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">RTADSS-SURFACE-BRIEFS.md</code></strong> anywhere in the tree. What exists is <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">docs/ui/DESIGN.md</code> (read in full for Part 12) and <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">docs/ui/REPRESENTATIVE-SCREEN-BRIEFS.md</code>. <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">DESIGN.md §23</code> also requires agents to read <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">COMPONENT-MAP.md</code> and <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">VISUAL-ACCEPTANCE-CRITERIA.md</code>.</p>
+    <p style="margin: 11px 0 0; font-size: 15.5px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">What I did not do:</strong> substitute a document I had not read. Product-behaviour claims in this spec are sourced from the capture pack, from source files named in Boards A–D, and from <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">DESIGN.md</code>. <strong style="font-weight: 600; color: #111827;">Four briefs remain unread</strong> — the two above plus the two §23 documents — and any rule in them could narrow this spec. That is listed as blocking question Q7 in Part 10, not silently assumed away.</p>
+  </div>
+
+  <div style="margin-top: 24px; padding: 20px 24px; border: 1px solid #C9A24D; background: #FFFFFF;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">Authority order, applied literally</div>
+    <p style="margin: 11px 0 0; font-size: 15.5px; line-height: 1.65; color: #4A554F;">Real implementation contract → real rendered evidence → frozen Boards A–D → <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">DESIGN.md</code> where not superseded. Part 12 records every place a <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">DESIGN.md</code> rule and a frozen board disagree, <strong style="font-weight: 600; color: #111827;">including three where the board loses and two where the conflict is unresolved</strong> — an old rule does not silently override a tested decision, but neither does a board silently override a rule I have not reconciled in writing.</p>
+  </div>
+</div>
+
+<section style="width: 1280px; padding: 48px 80px 56px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #EDF3EF;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #1E5142;">PART 1</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 30px; line-height: 1.1; color: #0F2A22;">Frozen principles</h2>
+    <span style="font-size: 14.5px; color: #57606E;">eleven rules · each traceable to evidence, not preference</span>
+  </div>
+
+  <div style="margin-top: 22px; background: #FFFFFF; border: 1px solid #C9BFA9;">
+    <div style="display: grid; grid-template-columns: 48px 300px 1fr 210px; background: #F1ECE1; border-bottom: 1px solid #C9BFA9;">
+      <div style="padding: 10px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">#</div>
+      <div style="padding: 10px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">Principle</div>
+      <div style="padding: 10px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">Operative meaning</div>
+      <div style="padding: 10px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">Source</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 48px 300px 1fr 210px; border-bottom: 1px solid #E2DCD0; font-size: 14.5px; line-height: 1.6;">
+      <div style="padding: 12px 14px; color: #4b5563;">P1</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Human-authoritative academic decisions</strong></div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">The system reports what it found and <strong style="font-weight: 600; color: #111827;">never prescribes an academic action</strong>. No “request modification”, no “coordinate with”, no “proceed”. Boundary copy that defends human authority is protected; directive machine advice is removed.</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board A R9 · F-4</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 48px 300px 1fr 210px; border-bottom: 1px solid #E2DCD0; font-size: 14.5px; line-height: 1.6;">
+      <div style="padding: 12px 14px; color: #4b5563;">P2</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Evidence ≠ verdict</strong></div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Colour must never imply an academic verdict where none exists. A machine classification may not wear approval, revision or rejection colour; a low result may not read as cleared.</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board A · Board D corrected</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 48px 300px 1fr 210px; border-bottom: 1px solid #E2DCD0; font-size: 14.5px; line-height: 1.6;">
+      <div style="padding: 12px 14px; color: #4b5563;">P3</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Shape and context help identify semantic families before colour identifies the value</strong></div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Within authenticated record and state primitives, similarity classification, workflow status, operational state, and actions should use consistently distinguishable treatments so the taxonomy remains understandable in greyscale and for colour-blind users. This is not a global radius or shape rule: unrelated tags, filters, inputs, buttons, and other components may share shapes or radii where their context already makes their purpose clear.</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board D D1</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 48px 300px 1fr 210px; border-bottom: 1px solid #E2DCD0; font-size: 14.5px; line-height: 1.6;">
+      <div style="padding: 12px 14px; color: #4b5563;">P4</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Similarity classification ≠ workflow status</strong></div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">No universal status badge whose colour meaning depends on the route. <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">HIGH</code> must not be pixel-identical to <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">Rejected</code>, nor <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">LOW</code> to <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">Approved</code>.</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board D · audit DS-1</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 48px 300px 1fr 210px; border-bottom: 1px solid #E2DCD0; font-size: 14.5px; line-height: 1.6;">
+      <div style="padding: 12px 14px; color: #4b5563;">P5</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">System failure ≠ absence ≠ validation</strong></div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Every state names whether the operation ran and whether a classification was produced. <strong style="font-weight: 600; color: #111827;">No generic “nothing found” component may exist</strong> — the one that does today is how “complete the form” came to answer a 503.</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board C S1</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 48px 300px 1fr 210px; border-bottom: 1px solid #E2DCD0; font-size: 14.5px; line-height: 1.6;">
+      <div style="padding: 12px 14px; color: #4b5563;">P6</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Truthful state language</strong></div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Never describe an operation that did not occur. Never assign fault to the user unless they hold it. Never state a cause the system does not know. Never show a count the UI cannot verify.</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board C S4 · corrections 1–2</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 48px 300px 1fr 210px; border-bottom: 1px solid #E2DCD0; font-size: 14.5px; line-height: 1.6;">
+      <div style="padding: 12px 14px; color: #4b5563;">P7</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Technical information subordinate to task meaning</strong></div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Classification is the primary signal; raw cosine is subordinate technical provenance in small mono, always labelled, never a display figure. <strong style="font-weight: 600; color: #111827;">Subordinate does not mean unreadable</strong> — the disclaimer preventing a probability reading sits at full contrast.</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board A R2</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 48px 300px 1fr 210px; border-bottom: 1px solid #E2DCD0; font-size: 14.5px; line-height: 1.6;">
+      <div style="padding: 12px 14px; color: #4b5563;">P8</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Responsive recomposition, not desktop compression</strong></div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Structured desktop record → stacked mobile record.</strong> Columns become labelled rows; status stays with identity; nothing is dropped; no horizontal scroll; actions ≥44px, stacked rather than wrapped.</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board D D5 corrected</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 48px 300px 1fr 210px; border-bottom: 1px solid #E2DCD0; font-size: 14.5px; line-height: 1.6;">
+      <div style="padding: 12px 14px; color: #4b5563;">P9</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Workspace density and institutional restraint</strong></div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Two container levels maximum. No landing devices in the workspace — no marketing headings, no 96/128px section rhythm, no dark-to-paper crossing, no oversized elevated window framing. One elevation budget, spent on modals.</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board B · DESIGN.md §8 §10</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 48px 300px 1fr 210px; border-bottom: 1px solid #E2DCD0; font-size: 14.5px; line-height: 1.6;">
+      <div style="padding: 12px 14px; color: #4b5563;">P10</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">No invented data</strong></div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">No fabricated metrics, adoption, departmental outcomes, accuracy, testimonials, field-level semantic attribution, or deployment claims. Illustrative examples labelled as such.</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">DESIGN.md §19 · all boards</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 48px 300px 1fr 210px; font-size: 14.5px; line-height: 1.6;">
+      <div style="padding: 12px 14px; color: #4b5563;">P11</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Corrections are complete only when everything agrees</strong></div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Rendered specimen + normative rule + summary documentation + implementation must all say the same thing. <strong style="font-weight: 600; color: #111827;">This drift was caught three times across Boards B, C and D</strong> — it is a process rule, not an observation.</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Boards B · C · D review history</div>
+    </div>
+  </div>
+</section>
+
+<section style="width: 1280px; padding: 48px 80px 56px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #F8FAFC;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #6F5518;">PART 2</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 30px; line-height: 1.1; color: #0F2A22;">Semantic UI contract</h2>
+    <span style="font-size: 14.5px; color: #57606E;">five families · the normative reference for every badge, control and state</span>
+  </div>
+
+  <div style="margin-top: 22px; background: #FFFFFF; border: 1px solid #C9BFA9;">
+    <div style="display: grid; grid-template-columns: 150px 1fr 1fr 1fr; background: #F1ECE1; border-bottom: 1px solid #C9BFA9;">
+      <div style="padding: 10px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">Family</div>
+      <div style="padding: 10px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #1E5142;">Allowed treatment</div>
+      <div style="padding: 10px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #B91C1C;">Prohibited</div>
+      <div style="padding: 10px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">Wording · icons · where used</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 150px 1fr 1fr 1fr; border-bottom: 1px solid #E2DCD0; font-size: 14px; line-height: 1.6;">
+      <div style="padding: 13px 14px;"><strong style="font-weight: 600; color: #111827;">A · Similarity classification</strong><div style="margin-top: 3px; color: #4A554F;">What the machine measured</div></div>
+      <div style="padding: 13px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">5px-radius chip, one neutral hue in three fill weights: filled ink / tinted / outline. Dashed outline for <em>not classified</em>. Label ≥14px; API token as subordinate mono chip 12.5px. Rank ordinals for ordering.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Green, amber, red — at any classification, without exception. Pill shape. Warning icons. Raw cosine as a display figure. Resting approval-green affordances inside the surface.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">“Similarity classification”</strong>, “Higher / Moderate / Lower similarity”, “Closest stored records”. Never “risk”, never “match” for a nearest neighbour. No icon on any result. Used on Check My Topic, Review Detail evidence, saved-check registers, Similarity Checker.</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 150px 1fr 1fr 1fr; border-bottom: 1px solid #E2DCD0; font-size: 14px; line-height: 1.6;">
+      <div style="padding: 13px 14px;"><strong style="font-weight: 600; color: #111827;">B · Workflow / academic state</strong><div style="margin-top: 3px; color: #4A554F;">Where a real record stands</div></div>
+      <div style="padding: 13px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Fully-rounded tinted pill, 13.5px, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">white-space: nowrap</code>. <strong style="font-weight: 600; color: #111827;">Approved → green · Revision requested → amber · Rejected → red · Pending review → neutral blue.</strong> Decision colour is legitimate here because a human produced the state.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Reusing the classification chip component. Amber for Pending — waiting is not a warning. Green for a lifecycle bucket — waiting is not approval. Wrapping onto two lines. Several badges where one statement suffices <span style="color: #6F5518;">(DESIGN.md §15)</span>.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Existing status values and meanings preserved exactly. <strong style="font-weight: 600; color: #111827;">Under review is unassigned</strong> pending Q2 and renders provisionally neutral with a dashed border. Used on Pending Reviews, My Submissions, My Decisions, Review Detail, Topic Repository.</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 150px 1fr 1fr 1fr; border-bottom: 1px solid #E2DCD0; font-size: 14px; line-height: 1.6;">
+      <div style="padding: 13px 14px;"><strong style="font-weight: 600; color: #111827;">C · System / operational state</strong><div style="margin-top: 3px; color: #4A554F;">What the software could or could not do</div></div>
+      <div style="padding: 13px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Not a badge. A <strong style="font-weight: 600; color: #111827;">3px edge rule</strong> plus a title for failure (amber); neutral edge or plain block for absence; inline field text in red for validation. Cause first, largest.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Pill shape. Filled amber or red tints. Page-level red for ordinary incomplete input. Green or mint on any absence. A shared “no result” component across states.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Cause → meaning → action. No provider name, no status code, no internal vocabulary in student-facing copy. Warning glyphs reserved for genuine failure only. Used on all five Part 5 states.</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 150px 1fr 1fr 1fr; border-bottom: 1px solid #E2DCD0; font-size: 14px; line-height: 1.6;">
+      <div style="padding: 13px 14px;"><strong style="font-weight: 600; color: #111827;">D · Product actions</strong><div style="margin-top: 3px; color: #4A554F;">Ordinary non-academic actions</div></div>
+      <div style="padding: 13px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Institutional green is allowed</strong> — Sign in, Continue, Apply Filters, Refresh Queue, Open Review. 6px radius, ≥40px desktop / 44px touch, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">nowrap</code>, column sized to the widest label.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Green where the surrounding state gives it a false academic meaning — <strong style="font-weight: 600; color: #111827;">inside similarity-evidence or failure-recovery surfaces</strong>, where filled ink applies instead (retry, Run a new check, Clear all filters). Sharing a component with decision actions.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Labels explicit about consequence. Focus always the global gold ring, unweakened, <em>including</em> inside evidence. Used workspace-wide.</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 150px 1fr 1fr 1fr; font-size: 14px; line-height: 1.6;">
+      <div style="padding: 13px 14px;"><strong style="font-weight: 600; color: #111827;">E · Academic decision actions</strong><div style="margin-top: 3px; color: #4A554F;">Consequential human judgements</div></div>
+      <div style="padding: 13px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Approve → filled green · Request Revision → amber · Reject → red.</strong> Each triggers a confirmation whose confirm button inherits the action's colour. Rationale contract enforced before the dialog opens.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Request Revision in approval-green — anywhere, including its confirm button.</strong> Styling a destructive action as an ordinary secondary control. Disabled decision buttons persisting on a terminal record.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">“Request revision for this submission?” — not “Request Revision this submission?”. Rationale: Approve optional, Request Revision required, Reject required. Used on Review Detail only.</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 20px; padding: 18px 22px; background: #FFFFFF; border: 2px solid #0F2A22;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #0F2A22;">The colour rule, stated once and exactly</div>
+    <p style="margin: 11px 0 0; font-size: 15.5px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Colour must never imply an academic verdict where none exists.</strong> That is the whole rule. It is <em>not</em> “green means Approve exclusively” — institutional green remains available for ordinary primary product interactions. It <em>is</em> a prohibition on green reaching a similarity classification, an absence state, or a non-academic lifecycle bucket; on amber reaching Pending; and on red reaching <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">HIGH</code> or an unavailable result.</p>
+    <p style="margin: 10px 0 0; font-size: 15.5px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">LOW similarity never inherits approval semantics.</strong> Lightest chip weight, originality denial promoted into the lead block at 15px, record title at 500 weight because it is not a finding of substance, and the section states plainly that none is closely related.</p>
+  </div>
+</section>
+
+
+<section style="width: 1280px; padding: 48px 80px 56px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #EDF3EF;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #1E5142;">PARTS 3–6</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 30px; line-height: 1.1; color: #0F2A22;">Board implementation contracts</h2>
+  </div>
+
+  <div style="margin-top: 24px; background: #FFFFFF; border: 1px solid #C9BFA9;">
+    <div style="padding: 14px 20px; background: #F1ECE1; border-bottom: 1px solid #C9BFA9;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: #6F5518;">Part 3 · Board A — similarity evidence</span></div>
+    <div style="padding: 20px 22px; font-size: 15px; line-height: 1.65; color: #4A554F;">
+      <div style="display: grid; grid-template-columns: 220px 1fr; gap: 0;">
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Terminology</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">Remove “risk” from every similarity surface. <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">ADVISORY RISK LEVEL</code> → “Similarity classification”. “High / Medium / Low Risk” → “Higher / Moderate / Lower similarity”. “5 matches returned” → “Closest stored records”, ranked 01–0n. At LOW the section states “none is closely related”. <strong style="font-weight: 600; color: #111827;">API tokens <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">HIGH/MEDIUM/LOW</code> and their thresholds are unchanged</strong> and remain visible as a subordinate mono chip.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Classification treatment</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">Neutral ink ramp, three fill weights, dashed for not-classified; label ≥14px (up from 12px). Distinguishable in greyscale and by label alone.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Raw cosine</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">Provenance strip and per-record meta line, mono 13px, always labelled “cosine”, always with the non-probability disclaimer at 13.5px and ≥4.5:1. Never a display figure. <strong style="font-weight: 600; color: #B91C1C;">Exact numeric format is blocked on the F-1 contract</strong> — show the raw stored value; do not normalise, round or hide the inconsistency to make a screen look finished.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Icons</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">No icon on any similarity result; rank ordinals replace the ⚠. Warning iconography reserved for genuine system failure. No emoji anywhere.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Affordances · focus</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">Similarity evidence must not use approval/action green as a <em>resting</em> semantic treatment where that would give the evidence academic meaning — disclosure links are underlined ink, the retry is filled ink. <strong style="font-weight: 600; color: #111827;">Interactive focus and keyboard states follow the global accessible focus system; visible focus is never weakened to keep the component neutral.</strong></div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Disclosure as emphasis</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">Higher opens all records; moderate and lower open the top record with the count visible. This mechanism replaces colour-as-urgency: the interface allocates attention instead of issuing a rating.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Provenance</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">Only fields the API supplies: title, population, location, study focus, supervisor, session, source tier, cosine. <strong style="font-weight: 600; color: #111827;">No field-level semantic attribution</strong> — the model does not score fields individually and the UI must not imply it does.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Mobile</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">Two container levels; chip below the title, not beside it; provenance as a tinted key/value strip; context fields as labelled lines. The existing Check My Topic mobile composition is <strong style="font-weight: 600; color: #111827;">protected</strong> — pixels proved it good.</div>
+        <div style="padding: 9px 0;"><strong style="font-weight: 600; color: #111827;">Lecturer embedding</strong></div>
+        <div style="padding: 9px 0 9px 16px;">Record width, ~380px tall, banner and summary merged into one block, one record open by default, “Run a new check” inside the evidence block with its own scope note, plus <em>“recorded ⟨timestamp⟩ · by ⟨lecturer⟩”</em> which the student pre-check does not show. Interacts with Part 5: the provider-unavailable state replaces the evidence block entirely rather than appearing beneath it.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 22px; background: #FFFFFF; border: 1px solid #C9BFA9;">
+    <div style="padding: 14px 20px; background: #F1ECE1; border-bottom: 1px solid #C9BFA9;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: #6F5518;">Part 4 · Board B — lecturer review detail</span></div>
+    <div style="padding: 20px 22px; font-size: 15px; line-height: 1.65; color: #4A554F;">
+      <div style="display: grid; grid-template-columns: 220px 1fr; gap: 0;">
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Geometry</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">A <strong style="font-weight: 600; color: #111827;">single vertical axis at record width</strong>. No side column, so no gutter can outlive its content — this retires the ~1,100px dead left gutter. <strong style="font-weight: 600; color: #111827;">Two container levels</strong> (page → section); nothing inside a section gets its own border. Context becomes a ruled grid, not seven bordered boxes.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Pending order</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">proposal identity + structured context → similarity evidence → evidence history (one summary line) → rationale → decision controls. Decision block is the only coloured region and the only one with a 2px rule above it; rationale field at a 720px measure.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Decided order</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Submission identity (compact header) → decision record → proposal context → supporting similarity evidence → history.</strong> Outcome at 27px with decider and timestamp beside it, rationale at 17px directly beneath. The identity header keeps the decision attached to the topic decided; it is a header, not a section — no context grid.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Terminal controls</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">Disabled decision buttons <strong style="font-weight: 600; color: #111827;">removed</strong>; the decision record is the status cue. The explanation copy is preserved verbatim as a quiet line inside the decision block. A control that cannot be used is not information.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Rationale contract</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">Approve <strong style="font-weight: 600; color: #111827;">optional</strong> · Request Revision <strong style="font-weight: 600; color: #111827;">required</strong> · Reject <strong style="font-weight: 600; color: #111827;">required</strong>. Stated as a visible three-row table above the buttons and echoed in the confirmation dialog. Helper copy: “Required when rejecting a topic or requesting a revision, so the student knows what to change.”</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">History register</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">One row per check at ~40px — checked-at, classification, cosine, tier counts, author — collapsed to a summary line while pending, expanded on a terminal record. Purely typographic compression: <strong style="font-weight: 600; color: #111827;">nothing merged, nothing omitted, no backend change</strong>. Three columns at 390px with the rest per-row on demand. <strong style="font-weight: 600; color: #B91C1C;">Do not group repeated checks</strong> without separate engineering approval — grouping would hide F-2 at the moment someone might notice it.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">No unproven linkage</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">The evidence block reads <strong style="font-weight: 600; color: #111827;">“Latest saved similarity check”</strong> with its own timestamp — never “before the decision”, which asserts a snapshot↔decision relationship no data contract establishes. Ordering by timestamp is not linkage. Summary lines carry counts and dates only, never derived classification aggregates.</div>
+        <div style="padding: 9px 0;"><strong style="font-weight: 600; color: #111827;">390px actions</strong></div>
+        <div style="padding: 9px 0 9px 16px;">All three decision actions full-width at 44px and <strong style="font-weight: 600; color: #111827;">stacked, never wrapped</strong>, constrained inside the visible column. A wrapped Reject was clipped in an earlier draft — that is the defect this rule prevents.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 22px; background: #FFFFFF; border: 1px solid #C9BFA9;">
+    <div style="padding: 14px 20px; background: #F1ECE1; border-bottom: 1px solid #C9BFA9;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: #6F5518;">Part 5 · Board C — six states, six meanings</span></div>
+    <div style="display: grid; grid-template-columns: 190px 128px 150px 1fr; background: #F7F4EC; border-bottom: 1px solid #E2DCD0;">
+      <div style="padding: 9px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">State</div>
+      <div style="padding: 9px 12px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">Ran?</div>
+      <div style="padding: 9px 12px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">Classified?</div>
+      <div style="padding: 9px 14px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">Required treatment and exact copy</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 128px 150px 1fr; border-bottom: 1px solid #EDE7DA; font-size: 14px; line-height: 1.6;">
+      <div style="padding: 12px 14px; font-weight: 600; color: #111827;">LOW similarity</div>
+      <div style="padding: 12px; border-left: 1px solid #E2DCD0; color: #1E5142; font-weight: 600;">Yes</div>
+      <div style="padding: 12px; border-left: 1px solid #E2DCD0; color: #1E5142; font-weight: 600;">Yes — LOW</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Lightest chip. “No stored record is closely related to this proposal.” Then, promoted into the lead block at 15px: <strong style="font-weight: 600; color: #111827;">“This does not establish that the topic is new or original.”</strong> Records still listed; title at 500 weight. Prohibited: cleared, safe, original, “no duplication found”.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 128px 150px 1fr; border-bottom: 1px solid #EDE7DA; font-size: 14px; line-height: 1.6;">
+      <div style="padding: 12px 14px; font-weight: 600; color: #111827;">No eligible corpus</div>
+      <div style="padding: 12px; border-left: 1px solid #E2DCD0; color: #92620a; font-weight: 600;">Request yes,<br>comparison no</div>
+      <div style="padding: 12px; border-left: 1px solid #E2DCD0; color: #B91C1C; font-weight: 600;">No — none asserted</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;">Dashed chip, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">N/A</code> score, no record list, neutral surface, page simply ends. <strong style="font-weight: 600; color: #111827;">“No eligible stored topics are currently available for comparison, so no comparison could be made.”</strong> Plus the retained boundary line: <strong style="font-weight: 600; color: #111827;">“This result does not establish that the topic is new or original.”</strong> <span style="color: #B91C1C;">Assert no cause</span> — <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">corpus_size 0</code> reports that nothing was eligible, not why. Remove “No meaningful matches were returned by this check” and its mint tint.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 128px 150px 1fr; border-bottom: 1px solid #EDE7DA; font-size: 14px; line-height: 1.6;">
+      <div style="padding: 12px 14px; font-weight: 600; color: #111827;">Provider unavailable</div>
+      <div style="padding: 12px; border-left: 1px solid #E2DCD0; color: #B91C1C; font-weight: 600;">No</div>
+      <div style="padding: 12px; border-left: 1px solid #E2DCD0; color: #B91C1C; font-weight: 600;">No</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Cause first and largest</strong>, on a 3px amber edge rule. “Similarity checking is temporarily unavailable, so this check could not run.” Then “Nothing is wrong with your topic — this is a fault in the checking service, and your proposal has not been lost.” <strong style="font-weight: 600; color: #111827;">Input preserved</strong> with title and all three context fields, “not saved or submitted” still visible, retry (filled ink, primary) + Edit proposal. <strong style="font-weight: 600; color: #B91C1C;">Delete the “Awaiting topic check” placeholder from this state</strong> — an empty-state prompt must never outrank an error. Retry repeats the failed operation; it never resets the workflow. No provider name, no status code.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 128px 150px 1fr; border-bottom: 1px solid #EDE7DA; font-size: 14px; line-height: 1.6;">
+      <div style="padding: 12px 14px; font-weight: 600; color: #111827;">Client-side validation</div>
+      <div style="padding: 12px; border-left: 1px solid #E2DCD0; color: #B91C1C; font-weight: 600;">Not attempted</div>
+      <div style="padding: 12px; border-left: 1px solid #E2DCD0; color: #B91C1C; font-weight: 600;">No</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Local guidance, never a page-level service failure.</strong> Red ring and message on the field; existing strings kept verbatim (“Too short: 4 words (minimum 7)”, “4 / 7-24 words”, the character guideline). Add one remedy sentence. The disabled action explains itself adjacently — “Available once the topic reaches 7 words.” The placeholder panel is retired here too, its job moved beside the button. Guideline amber raised to ≥4.5:1. <strong style="font-weight: 600; color: #111827;">Inactive-control exemption:</strong> a disabled label may sit below 4.5:1, but only where the same information appears adjacent at full contrast — it is never the sole carrier of its own explanation.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 128px 150px 1fr; border-bottom: 1px solid #EDE7DA; font-size: 14px; line-height: 1.6;">
+      <div style="padding: 12px 14px; font-weight: 600; color: #111827;">Empty queue</div>
+      <div style="padding: 12px; border-left: 1px solid #E2DCD0; color: #1E5142; font-weight: 600;">Yes</div>
+      <div style="padding: 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">N/A — no similarity</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">No underlying records exist for this queue.</strong> Existing titles kept verbatim (“No pending reviews”, “No submissions yet”, etc.). Left-aligned where the first row would be, not centred in a dashed box. Onward routes, not remedies. No filler.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 128px 150px 1fr; font-size: 14px; line-height: 1.6;">
+      <div style="padding: 12px 14px; font-weight: 600; color: #111827;">Filtered empty</div>
+      <div style="padding: 12px; border-left: 1px solid #E2DCD0; color: #1E5142; font-weight: 600;">Yes</div>
+      <div style="padding: 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">N/A — no similarity</div>
+      <div style="padding: 12px 14px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Records may exist but none satisfy the filters.</strong> “No pending reviews match these filters.” + “Submissions <strong style="font-weight: 600; color: #111827;">may</strong> be waiting for your review but excluded by the search term or category above.” — true whether or not anything is hidden, so it needs no count. Filters as removable chips; “Clear all filters” primary. <strong style="font-weight: 600; color: #B91C1C;">Must not imply zero underlying records.</strong> A hidden-record count is an optional enhancement, permitted only where a reliable pre-filter total already exists (Q5).</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 22px; background: #FFFFFF; border: 1px solid #C9BFA9;">
+    <div style="padding: 14px 20px; background: #F1ECE1; border-bottom: 1px solid #C9BFA9;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: #6F5518;">Part 6 · Board D — primitives</span></div>
+    <div style="padding: 20px 22px; font-size: 15px; line-height: 1.65; color: #4A554F;">
+      <div style="display: grid; grid-template-columns: 220px 1fr; gap: 0;">
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Badge families</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">Chip (classification) and pill (workflow) are separate components with separate colour vocabularies. Operational state is neither — an edge rule or inline text. <strong style="font-weight: 600; color: #111827;">Both pills and row actions carry <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">white-space: nowrap</code></strong>; a control or pill that breaks across two lines stops reading as one.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Confirmation anatomy</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">One shell: action-specific title, concise consequence, rationale echo, quiet outlined Cancel, confirm button inheriting the action's semantics. Modals are the only floating surface — the whole elevation budget. Grammar fixed to “Request revision for this submission?”.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Shared record grammar</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">Primary identity → status/classification → labelled context → metadata → action, in that order. One 600-weight run per record; labels colour-differentiated, never bold; 10px outer radius; <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">#e5e7eb</code> borders; no inner borders; metadata floor 13.5px.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Two primitives, not one</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Workflow record:</strong> bordered row, workflow pill, one primary action right-most, user-controlled ordering, rare technical metadata. <strong style="font-weight: 600; color: #111827;">Evidence record:</strong> ruled list row with no border of its own, ordinal-led, classification chip, <strong style="font-weight: 600; color: #111827;">no action</strong>, machine-controlled order that is never re-sortable, cosine expected. They share a grammar, <em>not</em> a template — and <strong style="font-weight: 600; color: #B91C1C;">must not become one React component</strong>.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Responsive rule</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Structured desktop record → stacked mobile record.</strong> Topic Repository is a bordered card at <em>both</em> viewports — desktop uses an internal multi-column grid; 390px collapses that interior vertically. It is not a table-to-card transformation. Routes that <em>are</em> tables may adopt a related strategy where pixels or source prove they are tables.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Column sizing</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">The action column is sized to its widest label; <strong style="font-weight: 600; color: #111827;">metadata columns are sized to their longest real value</strong>; only the fluid identity column absorbs the difference. Per Board B, the remedy for a broken email is <em>room</em> — <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">overflow-wrap: break-word</code> as a last resort, never <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">anywhere</code>, which is what produces “edu.n / g”.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid #EDE7DA;"><strong style="font-weight: 600; color: #111827;">Type roles</strong></div>
+        <div style="padding: 9px 0 9px 16px; border-bottom: 1px solid #EDE7DA;">Page/record title 20–24/600 · section title 16/600 · record title 15.5/600 · field label 13–14/<strong style="font-weight: 600; color: #111827;">400</strong> · value 14.5–15/400 · metadata 13.5 · helper 13.5–14 · eyebrow 11–11.5/500 · technical token 12.5–13 mono. <strong style="font-weight: 600; color: #111827;">Task-essential and interpretive text ≥13px; 11–12.5px reserved for nonessential structural labels and technical metadata.</strong> Everything ≥4.5:1. Only two roles uppercase, both nonessential. No 700+ weight in the workspace. <span style="color: #B91C1C;">See Part 12 C-3 — this conflicts with DESIGN.md §6.</span></div>
+        <div style="padding: 9px 0;"><strong style="font-weight: 600; color: #111827;">Colour roles</strong></div>
+        <div style="padding: 9px 0 9px 16px;">Nine roles with explicit allowed/prohibited contexts per Part 2. Every colour use names a role; mapping roles onto tokens is implementation. <strong style="font-weight: 600; color: #111827;">Gold's four current jobs collapse to one — focus.</strong> <span style="color: #B91C1C;">See Part 12 C-2 — this conflicts with DESIGN.md §7.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="width: 1280px; padding: 48px 80px 56px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #F8FAFC;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #6F5518;">PART 7</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 30px; line-height: 1.1; color: #0F2A22;">Component / route change map</h2>
+    <span style="font-size: 14.5px; color: #57606E;">confirmed source names only</span>
+  </div>
+
+  <p style="margin: 18px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F; max-width: 1000px;">Every filename below was read or confirmed during the audit or Boards A–D. Where I do not know a file, the Likely column says so rather than guessing. <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">ENGINEERING FIRST</code> means design must not proceed until a data question resolves.</p>
+
+  <div style="margin-top: 20px; background: #FFFFFF; border: 1px solid #C9BFA9;">
+    <div style="display: grid; grid-template-columns: 130px 1fr 1fr 372px 128px 146px; background: #F1ECE1; border-bottom: 1px solid #C9BFA9;">
+      <div style="padding: 9px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #545E58;">Area</div>
+      <div style="padding: 9px 12px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #545E58;">Current issue</div>
+      <div style="padding: 9px 12px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #545E58;">Frozen requirement</div>
+      <div style="padding: 9px 12px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #545E58;">Likely component</div>
+      <div style="padding: 9px 12px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #545E58;">Scope</div>
+      <div style="padding: 9px 12px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #545E58;">Risk · deps</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 130px 1fr 1fr 372px 128px 146px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Similarity chip</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Red/amber/green pills identical to decision statuses; 12px label; “Risk” vocabulary.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Neutral ramp, 5px radius, ≥14px, dashed not-classified variant, plain-language labels + mono token.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">components/ui/RiskBadge.jsx</code> + risk tokens in <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">index.css</code></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #1E5142; font-weight: 600;">GLOBAL COMPONENT</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Low risk, highest leverage.</strong> Governs every instance product-wide. No deps.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 130px 1fr 1fr 372px 128px 146px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Workflow pill</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Shares its palette with the risk badge, so status and classification collide.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Pill shape retained; Pending → neutral blue; nowrap; one status statement per record.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">components/ui/StatusBadge.jsx</code></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #1E5142; font-weight: 600;">GLOBAL COMPONENT</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Low. <strong style="font-weight: 600; color: #B91C1C;">Blocked on Q3</strong> (status inventory) for completeness.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 130px 1fr 1fr 372px 128px 146px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Evidence surface</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">⚠ on every result; cosine at ~40px; “matches”; directive advice; bold labels; nested cards.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Full Part 3 contract — terminology, ranks, subordinate cosine, disclosure-as-emphasis, ink affordances.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">components/features/Results/ResultsDisplay.jsx</code></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #6F5518; font-weight: 600;">SHARED PRIMITIVE</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Medium</strong> — shared by student and lecturer surfaces; verify both. Needs chip first.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 130px 1fr 1fr 372px 128px 146px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Stored snapshot copy</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Persisted text instructs the lecturer — “Request topic modification or check with colleagues”.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Removed. Replaced by a factual count of what was found.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Server-side generator — <strong style="font-weight: 600; color: #B91C1C;">file unknown to me</strong></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #B91C1C; font-weight: 600;">ENGINEERING FIRST</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">F-4.</strong> Hiding it in the UI leaves it in the database. Fix at source.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 130px 1fr 1fr 372px 128px 146px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Numeric display</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">One formatter receives 0–1 floats and 0–100 values: <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">0.623</code>, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">0.6%</code>, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">81.4%</code>.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Classification primary, number subordinate — <em>independent of scale</em>. Format itself deferred.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Storage + formatter — <strong style="font-weight: 600; color: #B91C1C;">not identified</strong></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #B91C1C; font-weight: 600;">ENGINEERING FIRST</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">F-1. High.</strong> Any board built on current numbers encodes the bug. Blocks Q1.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 130px 1fr 1fr 372px 128px 146px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Review Detail</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">~1,100px dead gutter; 4 container levels; ~1,000px history; rationale last on a decided record, below disabled buttons.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Full Part 4 contract — single axis, two levels, register, inverted decided hierarchy, contract table.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">pages/lecturer/SubmissionDetailPage.jsx</code></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #8A6C25; font-weight: 600;">ROUTE COMPOSITION</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Highest risk.</strong> Touches decision controls. Needs evidence surface first; Q4 affects one label.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 130px 1fr 1fr 372px 128px 146px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Confirmation dialog</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Revision confirm is filled approval-green; “Request Revision this submission?”.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Confirm inherits the action's colour; grammar fixed; rationale echoed.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Dialog used by <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">SubmissionDetailPage.jsx</code> — <strong style="font-weight: 600; color: #B91C1C;">shell file unconfirmed</strong></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #6F5518; font-weight: 600;">SHARED PRIMITIVE</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">N-4.</strong> Low risk, high value. Preserve confirmation payload semantics exactly.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 130px 1fr 1fr 372px 128px 146px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Absence states</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">One generic placeholder serves “you have not finished” and “we could not run”; “no meaningful matches” on an empty corpus; mint tint.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Six distinct treatments per Part 5, differing in shape as well as wording.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">components/ui/EmptyStatePanel.jsx</code>, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">ResultsDisplay.jsx</code>, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">pages/lecturer/PendingReviewsPage.jsx</code></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #8A6C25; font-weight: 600;">ROUTE COMPOSITION<div style="margin-top: 3px; font-weight: 400; color: #4A554F;">+ COPY ONLY for 9 other empty states</div></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Medium. Filtered-empty count blocked on Q5; the baseline copy is not.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 130px 1fr 1fr 372px 128px 146px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Topic Repository</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">All three lifecycle pills render in approval green; “Under review” metric card carries a red accent.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Current session + Historical neutral; Under review provisionally neutral; red removed. <strong style="font-weight: 600; color: #111827;">Card structure protected as-is.</strong></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Admin topic repository page — <strong style="font-weight: 600; color: #B91C1C;">exact filename unconfirmed</strong>; metric card is <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">StatCard</code>/<code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">MetricCard</code></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #8A6C25; font-weight: 600;">ROUTE COMPOSITION</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Low. <strong style="font-weight: 600; color: #B91C1C;">Under review's final token blocked on Q2.</strong></div>
+    </div>
+    <div style="display: grid; grid-template-columns: 130px 1fr 1fr 372px 128px 146px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Duplicate primitives</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Four concepts across eight files: Empty, Loading, Stat/Metric, Alert/Callout.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Consolidate presentation only, keeping each configurable.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">components/ui/*</code> pairs named in the audit</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #6F5518; font-weight: 600;">SHARED PRIMITIVE</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Medium — many call sites. <strong style="font-weight: 600; color: #B91C1C;">Q6</strong> before any merge.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 130px 1fr 1fr 372px 128px 146px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Gold usage</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Gold does four jobs — focus, active nav, avatar, and a login button forced with three <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">!important</code> overrides.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Gold reserved for focus. Active nav becomes tint + underline; avatar neutral.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">frontend/src/index.css</code> + auth layout</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #1E5142; font-weight: 600;">GLOBAL COMPONENT</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #B91C1C;">Conflicts with DESIGN.md §7</strong> — see Part 12 C-2. Do not proceed unreconciled.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 130px 1fr 1fr 372px 128px 146px; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Dead files</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Unreferenced components carrying a forked palette and glassmorphism.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Delete once confirmed unreferenced, so they cannot be revived as a style source.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">Sidebar.jsx</code>, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">Topbar.jsx</code></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #6F5518; font-weight: 600;">SHARED PRIMITIVE</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Low, once a repo-wide reference check confirms.</div>
+    </div>
+  </div>
+</section>
+
+<section style="width: 1280px; padding: 48px 80px 56px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #EDF3EF;">
+  <div style="display: flex; gap: 24px; align-items: flex-start;">
+    <div style="flex: 1;">
+      <div style="display: flex; align-items: baseline; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid #0F2A22;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #1E5142;">PART 8</span>
+        <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 26px; line-height: 1.1; color: #0F2A22;">Protect list</h2>
+      </div>
+      <p style="margin: 14px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;">Must not be redesigned as a side effect. Each was verified good, or is out of scope.</p>
+      <div style="margin-top: 12px; background: #FFFFFF; border: 1px solid #C6D6CC; font-size: 14px; line-height: 1.6;">
+        <div style="padding: 10px 14px; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Check My Topic mobile composition</strong> — two container levels, 8–10 words per line, five records stacking cleanly. Pixels proved it good; it is the reference, not a target.</div>
+        <div style="padding: 10px 14px; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Topic Repository record-card responsiveness</strong> — field order, data-quality line, pagination summary, pill-above-title, and the card-at-both-viewports structure.</div>
+        <div style="padding: 10px 14px; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Authenticated navigation</strong> — no board changed it. The nav a11y behaviour and focus system are protected. <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">DESIGN.md §9</code> continues to govern.</div>
+        <div style="padding: 10px 14px; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">All existing workflow functionality</strong> — routes, API contracts, cookie auth, role guards, business rules, persisted behaviour, payloads, thresholds, response mapping, test IDs, accessible names.</div>
+        <div style="padding: 10px 14px; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Structured proposal context</strong> — every field including the “Not provided” honesty, which is a feature.</div>
+        <div style="padding: 10px 14px; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Accessible control sizes</strong> — 44px touch, 40px dense desktop, and the global focus ring on every interactive element.</div>
+        <div style="padding: 10px 14px; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Evidence provenance and audit history</strong> — every saved check remains listed; nothing merged, grouped or omitted.</div>
+        <div style="padding: 10px 14px; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Every real action</strong> — Run a new check, Refresh Queue, import staging with its guards, filters, pagination, exports.</div>
+        <div style="padding: 10px 14px; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Identity and forced-password workflow</strong> — <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">pages/auth/ChangePasswordPage.jsx</code> exists and its copy is good. My earlier “missing route” finding was wrong and is withdrawn.</div>
+        <div style="padding: 10px 14px; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Boundary copy</strong> — the advisory statements, “not saved or submitted”, and the lecturer-authority lines. Only directive machine advice is removed.</div>
+        <div style="padding: 10px 14px;"><strong style="font-weight: 600; color: #111827;">The frozen landing direction</strong> — not re-specified, not re-opened, and not a source of workspace patterns.</div>
+      </div>
+    </div>
+
+    <div style="flex: 1;">
+      <div style="display: flex; align-items: baseline; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid #0F2A22;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #B91C1C;">PART 9</span>
+        <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 26px; line-height: 1.1; color: #0F2A22;">Functional / data defects</h2>
+      </div>
+      <p style="margin: 14px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;">Carried separately. <strong style="font-weight: 600; color: #111827;">None may be disguised as a design change.</strong> Exactly as established in the audit — no speculative additions.</p>
+      <div style="margin-top: 12px; background: #FFFFFF; border: 2px solid #B91C1C; font-size: 14px; line-height: 1.6;">
+        <div style="padding: 12px 14px; border-bottom: 1px solid #E2DCD0;">
+          <div style="font-weight: 600; color: #111827;">F-1 · Similarity values persisted on two scales</div>
+          <div style="margin-top: 4px; color: #4A554F;">A fresh lecturer check on submission #6 stores <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">0.623</code> and its history renders <strong style="font-weight: 600; color: #111827;">“0.6%”</strong>, while older seeded snapshots render <strong style="font-weight: 600; color: #111827;">“81.4%”</strong>. One formatter is receiving both 0–1 floats and 0–100 values, so a 0.623 similarity is understated by two orders of magnitude — and both appear on the same screen ~700px apart.</div>
+          <div style="margin-top: 6px; padding: 8px 10px; background: #FEF2F2; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; line-height: 1.5; color: #B91C1C;">ENGINEERING / DATA-CONTRACT INVESTIGATION REQUIRED BEFORE FINAL NUMERIC PRESENTATION</div>
+          <div style="margin-top: 6px; color: #4A554F;">Establish one stored/display contract, then re-capture. <strong style="font-weight: 600; color: #111827;">Separately</strong>, and regardless of the scale chosen: a large percentage invites reading as duplication, originality or probability, so classification stays primary and the number subordinate.</div>
+        </div>
+        <div style="padding: 12px 14px; border-bottom: 1px solid #E2DCD0;">
+          <div style="font-weight: 600; color: #111827;">F-2 · Duplicate persisted snapshots</div>
+          <div style="margin-top: 4px; color: #4A554F;">Submission #5 carries six saved checks, four identical to the minute (22 May 20:16), same classification, cosine and tier counts. The compact register makes this <em>more</em> visible, deliberately. <strong style="font-weight: 600; color: #111827;">Do not group runs to tidy it away</strong> until the cause is known.</div>
+        </div>
+        <div style="padding: 12px 14px; border-bottom: 1px solid #E2DCD0;">
+          <div style="font-weight: 600; color: #111827;">F-3 · Contradictory counts on one screen</div>
+          <div style="margin-top: 4px; color: #4A554F;">“4 matches” and “Total Matches Found 5” render simultaneously. Which is correct is an engineering definition, not a display choice; the spec shows a single “records returned” figure and does not adjudicate.</div>
+        </div>
+        <div style="padding: 12px 14px;">
+          <div style="font-weight: 600; color: #111827;">F-4 · Directive advice stored in snapshots</div>
+          <div style="margin-top: 4px; color: #4A554F;">Generated text such as “Request topic modification or check with colleagues” and “Coordinate with Dr. Adebayo before proceeding to avoid duplicate approvals” is persisted against submissions. <strong style="font-weight: 600; color: #111827;">Removing it from the surface does not remove it from the database</strong> — the generator must change too.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="width: 1280px; padding: 48px 80px 56px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #F8FAFC;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #6F5518;">PART 10</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 30px; line-height: 1.1; color: #0F2A22;">Open questions before implementation</h2>
+    <span style="font-size: 14.5px; color: #57606E;">seven · not answered by guessing</span>
+  </div>
+
+  <div style="margin-top: 20px; background: #FFFFFF; border: 1px solid #C9BFA9;">
+    <div style="display: grid; grid-template-columns: 44px 1fr 1fr 210px 1fr 128px; background: #F1ECE1; border-bottom: 1px solid #C9BFA9;">
+      <div style="padding: 9px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #545E58;">#</div>
+      <div style="padding: 9px 12px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #545E58;">Question</div>
+      <div style="padding: 9px 12px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #545E58;">Why it matters</div>
+      <div style="padding: 9px 12px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #545E58;">Source to check</div>
+      <div style="padding: 9px 12px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #545E58;">Blocks</div>
+      <div style="padding: 9px 12px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #545E58;">Status</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 44px 1fr 1fr 210px 1fr 128px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Q1</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">What is the intended <strong style="font-weight: 600; color: #111827;">stored and displayed numeric contract</strong> for similarity — 0–1 float, 0–100, or both with a documented conversion boundary?</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Every numeric surface in Boards A and B is provisional until this resolves. Building against current values would encode F-1.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Snapshot persistence layer, the similarity response mapper, and the shared percentage formatter</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Final cosine format in evidence surface, history register, lecturer embedding</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #B91C1C; font-weight: 600;">BLOCKING</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 44px 1fr 1fr 210px 1fr 128px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Q2</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Is <strong style="font-weight: 600; color: #111827;">“Under review”</strong> a topic-repository lifecycle bucket or a submission status?</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Determines its semantic family. If a submission status it joins Family B and takes Pending's treatment; if a lifecycle bucket it stays neutral permanently. <strong style="font-weight: 600; color: #111827;">Either way it is neither red nor green.</strong></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Topic repository model/serializer and the admin repository page's bucket derivation</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Under review's final token only — the red-accent removal is unblocked</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #B91C1C; font-weight: 600;">BLOCKING<div style="margin-top: 2px; font-weight: 400; color: #4A554F;">narrow scope</div></div>
+    </div>
+    <div style="display: grid; grid-template-columns: 44px 1fr 1fr 210px 1fr 128px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Q3</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">What is the <strong style="font-weight: 600; color: #111827;">complete workflow-status inventory</strong>? Four render in captures plus <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">AWAITING_REVISION</code> in source.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">The pill map cannot be fixed while statuses may exist without an assigned role — an unmapped status would fall back to a default and reintroduce a collision.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Submission status enum in the backend model, plus <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">StatusBadge.jsx</code>'s own map</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Completeness of the workflow pill work; not its shape or Pending's colour</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #B91C1C; font-weight: 600;">BLOCKING</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 44px 1fr 1fr 210px 1fr 128px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Q4</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Does a formal <strong style="font-weight: 600; color: #111827;">snapshot ↔ decision linkage</strong> exist, or is proximity only inferable from timestamps?</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board B deliberately says only “Latest saved similarity check”. If a real linkage exists, a stronger and more useful label becomes available; if not, the current wording is the ceiling.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Decision record schema — whether it stores a snapshot foreign key</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">One label on the decided record. Nothing else</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #1E5142; font-weight: 600;">NON-BLOCKING</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 44px 1fr 1fr 210px 1fr 128px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Q5</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Is a <strong style="font-weight: 600; color: #111827;">reliable pre-filter total</strong> available alongside the filtered set?</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Only gates the optional hidden-record count. The captured “Pending reviews 1 / Visible after filters 1” chips suggest yes, but that is inference about the data flow, not confirmation.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Queue list endpoint response shape and <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">PendingReviewsPage.jsx</code> filter derivation</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">The optional count only — the filtered-empty baseline copy needs no count</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #1E5142; font-weight: 600;">NON-BLOCKING</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 44px 1fr 1fr 210px 1fr 128px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Q6</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Where are <strong style="font-weight: 600; color: #111827;">safe shared-component boundaries</strong>? Are <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">StatCard</code>/<code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">MetricCard</code> and the Empty/Loading pairs genuinely one concept each?</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Source showed one card as a pass-through to the other, suggesting yes — but I read them once in the audit, and a merge must be confirmed against every call site rather than that inference.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">All call sites of each pair under <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">components/ui/</code></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Duplicate-primitive consolidation only</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #1E5142; font-weight: 600;">NON-BLOCKING</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 44px 1fr 1fr 210px 1fr 128px; font-size: 13.5px; line-height: 1.55; background: #FEF9F0;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">Q7</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Do the <strong style="font-weight: 600; color: #111827;">four unread governance documents</strong> contain rules that narrow this spec?</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">DESIGN.md §23</code> makes reading them mandatory before visual work. <strong style="font-weight: 600; color: #111827;">This spec was written without them</strong>, so any acceptance criterion or component boundary they define is currently unaccounted for.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">docs/ui/REPRESENTATIVE-SCREEN-BRIEFS.md</code>, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">COMPONENT-MAP.md</code>, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">VISUAL-ACCEPTANCE-CRITERIA.md</code></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Nothing specific — but could narrow any part. Read before PR 1</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #B91C1C; font-weight: 600;">BLOCKING</div>
+    </div>
+  </div>
+</section>
+
+<section style="width: 1280px; padding: 48px 80px 56px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #EDF3EF;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #1E5142;">PART 11</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 30px; line-height: 1.1; color: #0F2A22;">Implementation sequence</h2>
+    <span style="font-size: 14.5px; color: #57606E;">six PRs, ordered by real dependency</span>
+  </div>
+
+  <p style="margin: 18px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F; max-width: 1000px;"><strong style="font-weight: 600; color: #111827;">PR 0 is prepended to the suggested structure</strong> because two blocking questions (Q1, Q7) and one defect (F-4) are engineering work that must land before any visual PR, and F-1 in particular determines what the evidence surface renders. Every PR re-captures at <strong style="font-weight: 600; color: #111827;">1440 and 390</strong> at minimum; <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">DESIGN.md §21</code> additionally requires 1280 and 768, which <strong style="font-weight: 600; color: #B91C1C;">no board covered</strong> — see Part 12 C-5.</p>
+
+  <div style="margin-top: 20px; background: #FFFFFF; border: 2px solid #B91C1C;">
+    <div style="padding: 14px 20px; background: #FEF2F2; border-bottom: 1px solid #fecaca;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: #B91C1C;">PR 0 · engineering prerequisites — no visual change</span></div>
+    <div style="padding: 18px 22px; font-size: 14.5px; line-height: 1.65; color: #4A554F;">
+      <p style="margin: 0;"><strong style="font-weight: 600; color: #111827;">Objective:</strong> resolve the numeric contract (F-1), remove directive generated copy at source (F-4), answer Q1/Q3/Q7, and investigate F-2 and F-3 enough to state a cause.</p>
+      <p style="margin: 9px 0 0;"><strong style="font-weight: 600; color: #111827;">Categories:</strong> similarity persistence, response mapping, the snapshot copy generator, shared formatter. <strong style="font-weight: 600; color: #111827;">No frontend visual files.</strong></p>
+      <p style="margin: 9px 0 0;"><strong style="font-weight: 600; color: #111827;">Acceptance:</strong> a written contract stating stored scale, display scale and conversion point; a re-captured pack showing one consistent scale; snapshots free of directive advice. <strong style="font-weight: 600; color: #111827;">Tests:</strong> thresholds, classification mapping and advisory behaviour unchanged — a scale fix must not move a HIGH/MEDIUM/LOW boundary.</p>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px;">
+    <div style="background: #FFFFFF; border: 1px solid #C9BFA9;">
+      <div style="padding: 13px 18px; background: #F1ECE1; border-bottom: 1px solid #C9BFA9;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: #6F5518;">PR 1 · semantic primitives</span></div>
+      <div style="padding: 16px 20px; font-size: 14px; line-height: 1.6; color: #4A554F;">
+        <p style="margin: 0;"><strong style="font-weight: 600; color: #111827;">Objective:</strong> split the two badge families and establish colour roles as tokens. The single highest-leverage change — it governs every instance product-wide.</p>
+        <p style="margin: 8px 0 0;"><strong style="font-weight: 600; color: #111827;">Files:</strong> <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">RiskBadge.jsx</code>, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">StatusBadge.jsx</code>, risk/status tokens in <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">index.css</code>.</p>
+        <p style="margin: 8px 0 0;"><strong style="font-weight: 600; color: #111827;">Deps:</strong> Q3 for status completeness; Q2 for Under review's token.</p>
+        <p style="margin: 8px 0 0;"><strong style="font-weight: 600; color: #111827;">Captures:</strong> every route rendering either badge, both viewports — the point is that <em>nothing else</em> changed. <strong style="font-weight: 600; color: #111827;">Tests:</strong> threshold and status-mapping suites; snapshot updates reviewed one by one, since a diff here is the whole product.</p>
+      </div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #C9BFA9;">
+      <div style="padding: 13px 18px; background: #F1ECE1; border-bottom: 1px solid #C9BFA9;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: #6F5518;">PR 2 · evidence surface</span></div>
+      <div style="padding: 16px 20px; font-size: 14px; line-height: 1.6; color: #4A554F;">
+        <p style="margin: 0;"><strong style="font-weight: 600; color: #111827;">Objective:</strong> the Part 3 contract inside the shared evidence component — terminology, ranks, subordinate cosine, disclosure-as-emphasis, ink affordances, no icons.</p>
+        <p style="margin: 8px 0 0;"><strong style="font-weight: 600; color: #111827;">Files:</strong> <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">ResultsDisplay.jsx</code> and its subcomponents.</p>
+        <p style="margin: 8px 0 0;"><strong style="font-weight: 600; color: #111827;">Deps:</strong> PR 1 (chip) and PR 0 (cosine format).</p>
+        <p style="margin: 8px 0 0;"><strong style="font-weight: 600; color: #111827;">Captures:</strong> HIGH, MEDIUM, LOW at 1440 + 390, student <em>and</em> lecturer contexts — one component, two hosts. <strong style="font-weight: 600; color: #111827;">Tests:</strong> similarity request/response mapping and advisory behaviour unchanged; accessible names preserved.</p>
+      </div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #C9BFA9;">
+      <div style="padding: 13px 18px; background: #F1ECE1; border-bottom: 1px solid #C9BFA9;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: #6F5518;">PR 3 · failure &amp; absence states</span></div>
+      <div style="padding: 16px 20px; font-size: 14px; line-height: 1.6; color: #4A554F;">
+        <p style="margin: 0;"><strong style="font-weight: 600; color: #111827;">Objective:</strong> the six Part 5 states, and critically <strong style="font-weight: 600; color: #111827;">the removal of the shared placeholder</strong> that currently answers two incompatible questions.</p>
+        <p style="margin: 8px 0 0;"><strong style="font-weight: 600; color: #111827;">Files:</strong> <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">ResultsDisplay.jsx</code> states, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">EmptyStatePanel.jsx</code>, the Check My Topic form, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">PendingReviewsPage.jsx</code>, plus copy-only edits at nine other empty states.</p>
+        <p style="margin: 8px 0 0;"><strong style="font-weight: 600; color: #111827;">Deps:</strong> PR 2. Q5 gates the optional count, not the copy.</p>
+        <p style="margin: 8px 0 0;"><strong style="font-weight: 600; color: #111827;">Captures:</strong> all six states at both viewports — <strong style="font-weight: 600; color: #111827;">including the two never yet captured</strong> (empty queue, filtered empty), which closes the Board C evidence gap. <strong style="font-weight: 600; color: #111827;">Tests:</strong> validation rules, 503 handling and retry behaviour unchanged; input genuinely preserved across a failure.</p>
+      </div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #C9BFA9;">
+      <div style="padding: 13px 18px; background: #F1ECE1; border-bottom: 1px solid #C9BFA9;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: #6F5518;">PR 4 · confirmation dialog</span></div>
+      <div style="padding: 16px 20px; font-size: 14px; line-height: 1.6; color: #4A554F;">
+        <p style="margin: 0;"><strong style="font-weight: 600; color: #111827;">Objective:</strong> confirm button inherits the action's semantics; grammar fixed; rationale echoed. Small, self-contained, and it removes the most consequential single defect in the product.</p>
+        <p style="margin: 8px 0 0;"><strong style="font-weight: 600; color: #111827;">Files:</strong> the dialog shell and its call sites in <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">SubmissionDetailPage.jsx</code>.</p>
+        <p style="margin: 8px 0 0;"><strong style="font-weight: 600; color: #111827;">Deps:</strong> none — deliberately sequenced before the Review Detail recomposition so the two are reviewable separately.</p>
+        <p style="margin: 8px 0 0;"><strong style="font-weight: 600; color: #111827;">Captures:</strong> all three dialogs at both viewports. <strong style="font-weight: 600; color: #111827;">Tests:</strong> confirmation payloads, rationale enforcement and focus management in the dialog unchanged.</p>
+      </div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #C9BFA9;">
+      <div style="padding: 13px 18px; background: #F1ECE1; border-bottom: 1px solid #C9BFA9;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: #6F5518;">PR 5 · Review Detail recomposition</span></div>
+      <div style="padding: 16px 20px; font-size: 14px; line-height: 1.6; color: #4A554F;">
+        <p style="margin: 0;"><strong style="font-weight: 600; color: #111827;">Objective:</strong> the Part 4 contract — single axis, two container levels, history register, inverted decided hierarchy, disabled buttons removed, contract table.</p>
+        <p style="margin: 8px 0 0;"><strong style="font-weight: 600; color: #111827;">Files:</strong> <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">SubmissionDetailPage.jsx</code>.</p>
+        <p style="margin: 8px 0 0;"><strong style="font-weight: 600; color: #111827;">Deps:</strong> PR 2 and PR 4. Q4 affects one label.</p>
+        <p style="margin: 8px 0 0;"><strong style="font-weight: 600; color: #111827;">Captures:</strong> pending and decided at both viewports, plus a rejected and a revision-requested record. <strong style="font-weight: 600; color: #111827;">Tests:</strong> decision submission, rationale enforcement, terminal-state guards and current-user protections unchanged. <strong style="font-weight: 600; color: #B91C1C;">Highest-risk PR</strong> — it touches the decision controls, so it ships alone.</p>
+      </div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #C9BFA9;">
+      <div style="padding: 13px 18px; background: #F1ECE1; border-bottom: 1px solid #C9BFA9;"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: #6F5518;">PR 6 · record propagation &amp; cleanup</span></div>
+      <div style="padding: 16px 20px; font-size: 14px; line-height: 1.6; color: #4A554F;">
+        <p style="margin: 0;"><strong style="font-weight: 600; color: #111827;">Objective:</strong> apply the workflow-record grammar and type roles across remaining lists; remove Topic Repository's green lifecycle pills and red metric accent; reduce gold to focus; consolidate duplicate primitives; delete dead files.</p>
+        <p style="margin: 8px 0 0;"><strong style="font-weight: 600; color: #111827;">Files:</strong> remaining list routes, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">components/ui/*</code> pairs, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">index.css</code>, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">Sidebar.jsx</code>, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">Topbar.jsx</code>.</p>
+        <p style="margin: 8px 0 0;"><strong style="font-weight: 600; color: #111827;">Deps:</strong> PR 1; Q2 and Q6; <strong style="font-weight: 600; color: #B91C1C;">and the Part 12 C-2 gold reconciliation.</strong></p>
+        <p style="margin: 8px 0 0;"><strong style="font-weight: 600; color: #111827;">Captures:</strong> every remaining authenticated route at both viewports. <strong style="font-weight: 600; color: #111827;">Tests:</strong> full suite, lint, production build; no route loses a reference through a deletion. Split by role if the diff grows beyond review.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="width: 1280px; padding: 48px 80px 56px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #F8FAFC;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #6F5518;">PART 12</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 30px; line-height: 1.1; color: #0F2A22;">DESIGN.md reconciliation plan</h2>
+    <span style="font-size: 14.5px; color: #57606E;">read in full · not edited</span>
+  </div>
+
+  <div style="margin-top: 20px; padding: 18px 22px; background: #FFFFFF; border: 2px solid #B91C1C;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #B91C1C;">Three conflicts where a frozen board contradicts a current rule — flagged, not silently resolved</div>
+    <p style="margin: 11px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;">The authority order says a tested board outranks an unrevised rule. But two of these are <strong style="font-weight: 600; color: #111827;">accessibility and token constraints</strong>, where quietly overriding the contract would be the same failure the boards spent five rounds correcting. <strong style="font-weight: 600; color: #111827;">C-2 and C-3 must be decided by you before the PRs they gate.</strong> I have stated my reasoning and marked what I believe, not applied it.</p>
+  </div>
+
+  <div style="margin-top: 20px; background: #FFFFFF; border: 1px solid #C9BFA9;">
+    <div style="display: grid; grid-template-columns: 96px 1fr 1fr 112px 168px; background: #F1ECE1; border-bottom: 1px solid #C9BFA9;">
+      <div style="padding: 9px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #545E58;">Rule</div>
+      <div style="padding: 9px 12px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #545E58;">Current text (abbreviated)</div>
+      <div style="padding: 9px 12px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #545E58;">Reason</div>
+      <div style="padding: 9px 12px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #545E58;">Status</div>
+      <div style="padding: 9px 12px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #545E58;">Frozen source</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 96px 1fr 1fr 112px 168px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55; background: #FEF2F2;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">C-1<div style="margin-top: 2px; font-weight: 400; color: #4A554F;">§14</div></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">“Keep similarity methodology secondary to the result and <strong style="font-weight: 600; color: #B91C1C;">recommendation</strong>.”</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">The word <em>recommendation</em> presumes the system recommends an academic action. Board A froze the opposite: it reports what it found and never prescribes. <strong style="font-weight: 600; color: #111827;">This single word licenses F-4's directive copy.</strong></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #B91C1C; font-weight: 600;">SUPERSEDE</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board A R9 · F-4</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 96px 1fr 1fr 112px 168px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55; background: #FEF9F0;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">C-2<div style="margin-top: 2px; font-weight: 400; color: #4A554F;">§7</div></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">“<strong style="font-weight: 600; color: #111827;">Gold</strong> identifies revision, attention, or a limited institutional accent.” · “<strong style="font-weight: 600; color: #111827;">Blue</strong> identifies advisory evidence and neutral information.”</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Two collisions. <strong style="font-weight: 600; color: #111827;">Gold:</strong> Board D reduces gold to focus alone and uses amber for revision — but if gold <em>is</em> the revision token, then Board D's amber may be that same token under another name, and the “four jobs” finding may be partly a naming artefact. <strong style="font-weight: 600; color: #111827;">Blue:</strong> Board A made evidence neutral greyscale, and Board D assigns blue to in-progress workflow status — the opposite allocation.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #B91C1C; font-weight: 600;">UNRESOLVED<div style="margin-top: 2px; font-weight: 400; color: #4A554F;">needs your decision</div></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board A · Board D D7</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 96px 1fr 1fr 112px 168px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55; background: #FEF9F0;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">C-3<div style="margin-top: 2px; font-weight: 400; color: #4A554F;">§6</div></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">“16px is the default body size and <strong style="font-weight: 600; color: #B91C1C;">14px is the minimum for secondary operational text</strong>. Smaller text requires a documented exceptional use.”</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Boards A–D set metadata at 13.5px and a task-essential floor of 13px — below the stated minimum.</strong> They raise the <em>worst</em> current text (12px classification chips → 14px) but formalise a 13.5px tier the contract does not permit. Either §6 gains a documented exception naming the metadata role, or the board floors rise to 14px. <strong style="font-weight: 600; color: #111827;">I did not decide this</strong>: it is an accessibility rule, and a board is not the right instrument for overriding one.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #B91C1C; font-weight: 600;">UNRESOLVED<div style="margin-top: 2px; font-weight: 400; color: #4A554F;">needs your decision</div></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board A R8 · Board D D6</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 96px 1fr 1fr 112px 168px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">C-4<div style="margin-top: 2px; font-weight: 400; color: #4A554F;">§12</div></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">“By default, transform mobile tables into intentionally designed expandable records.”</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Right in spirit, too narrow in scope. Topic Repository is a card at both viewports, so “mobile tables” does not describe it. Restate as <strong style="font-weight: 600; color: #111827;">structured desktop record → stacked mobile record</strong>, with the table case as one instance.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #8A6C25; font-weight: 600;">NARROW</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board D D5 corrected</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 96px 1fr 1fr 112px 168px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">C-5<div style="margin-top: 2px; font-weight: 400; color: #4A554F;">§21</div></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Required evidence viewports: 1440×1000, 1280×800, 768×1024, 390×844.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">KEEP — and note the gap honestly.</strong> Boards A–D designed 1440 and 390 only; the capture pack contains only those two. 1280 and 768 are undesigned and unverified. The single-axis compositions should degrade cleanly, but that is a prediction.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #1E5142; font-weight: 600;">KEEP</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board B · Board D gaps</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 96px 1fr 1fr 112px 168px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">C-6<div style="margin-top: 2px; font-weight: 400; color: #4A554F;">§15</div></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">“Preserve LOW/MEDIUM/HIGH meanings and thresholds.” · “Avoid excessive pill badges.” · “Never present advisory evidence as an automatic approval, rejection, or block.”</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">KEEP the thresholds rule verbatim</strong> — the boards change presentation only. <strong style="font-weight: 600; color: #111827;">CLARIFY the pill rule:</strong> the target is redundant badges, not the workflow pill, which is now a named family. <strong style="font-weight: 600; color: #111827;">The third sentence is the strongest rule in the document</strong> and is exactly what the red/green risk badges violated — add that colour equivalence counts as “presenting”.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #6F5518; font-weight: 600;">KEEP<div style="margin-top: 2px; font-weight: 400; color: #4A554F;">+ CLARIFY</div></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board A · Board D D1</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 96px 1fr 1fr 112px 168px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">C-7<div style="margin-top: 2px; font-weight: 400; color: #4A554F;">§16</div></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Loading: “Use row, record, form, or stage skeletons rather than oversized generic loading panels.” Empty: “place it where content would appear”.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">KEEP both.</strong> The empty rule is what Board C implements. The skeleton rule stands unchanged — Board C simply did not design skeletons, because no capture shows a loading state. <strong style="font-weight: 600; color: #111827;">That is a scope gap, not a superseded rule</strong>, and I withdrew my own speculative “three skeletons” proposal for the same reason. ADD: each absence must state its own cause, which §16 does not currently require.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #1E5142; font-weight: 600;">KEEP<div style="margin-top: 2px; font-weight: 400; color: #4A554F;">+ ADD</div></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board C S1 · S4 · S6</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 96px 1fr 1fr 112px 168px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">C-8<div style="margin-top: 2px; font-weight: 400; color: #4A554F;">§10 §8</div></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">“Do not exceed two nested surface levels.” · “Avoid more than two nested surface levels.”</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">KEEP — the rule was already right and simply unenforced.</strong> Review Detail rendered four levels. Board B implements the existing rule rather than inventing one; worth citing in the reconciliation so it reads as enforcement, not novelty.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #1E5142; font-weight: 600;">KEEP</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board B · Board A R4</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 96px 1fr 1fr 112px 168px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">C-9<div style="margin-top: 2px; font-weight: 400; color: #4A554F;">§18</div></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">“Preserve disabled actions for finalized records and current-user protections.”</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">NARROW.</strong> Board B removes the three disabled decision buttons from terminal records. The <em>protection</em> is preserved absolutely — no decision can be recorded — but the disabled controls no longer occupy the primary position. Distinguish “preserve the guard” from “preserve the greyed control”; current-user protections elsewhere are untouched.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #8A6C25; font-weight: 600;">NARROW</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board B B2</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 96px 1fr 1fr 112px 168px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">C-10<div style="margin-top: 2px; font-weight: 400; color: #4A554F;">§7 §22</div></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">“Use semantic tokens from <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">index.css</code>. Do not add arbitrary literal colour values.” · Anti-pattern: “Arbitrary new colours.”</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">KEEP, and ADD the role layer.</strong> The rule is sound but was bypassed by raw <code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">emerald-*</code>/<code style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">amber-*</code> classes. Add: every colour use must name a semantic <em>role</em> (Part 2), and a token whose meaning varies by route is not semantic. The boards' hex values are specification, not proposed tokens.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #1E5142; font-weight: 600;">KEEP<div style="margin-top: 2px; font-weight: 400; color: #4A554F;">+ ADD</div></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Board D D7</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 96px 1fr 1fr 112px 168px; border-bottom: 1px solid #E2DCD0; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">C-11<div style="margin-top: 2px; font-weight: 400; color: #4A554F;">§4</div></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">The public-page exception, its content hierarchy, navigation and truthfulness rules.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">KEEP entirely.</strong> The landing direction is frozen separately and is not re-specified here. §4's own sentence — “Authenticated pages must not inherit oversized public-page hero patterns” — is the rule that keeps the two apart, and it is doing its job.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #1E5142; font-weight: 600;">KEEP</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Landing (frozen)</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 96px 1fr 1fr 112px 168px; font-size: 13.5px; line-height: 1.55;">
+      <div style="padding: 11px 12px; font-weight: 600; color: #111827;">C-12<div style="margin-top: 2px; font-weight: 400; color: #4A554F;">new</div></div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">No current rule requires specimens, normative text and implementation to agree.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">ADD as a review rule.</strong> Three separate drift incidents across Boards B, C and D each had correct prose and contradicting artwork, or vice versa. §23 governs implementation conduct; this belongs beside it.</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #6F5518; font-weight: 600;">ADD</div>
+      <div style="padding: 11px 12px; border-left: 1px solid #E2DCD0; color: #4A554F;">Boards B · C · D review history</div>
+    </div>
+  </div>
+</section>
+
+<section style="width: 1280px; padding: 48px 80px 64px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #0F2A22; color: #E8EEEA;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,.24);">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #D8C48A;">PART 13</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 30px; line-height: 1.1; color: #FFFFFF;">Definition of done</h2>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+    <div style="padding: 20px 24px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.2);">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #8FA69B;">Verifiable by inspection</div>
+      <div style="margin-top: 12px; font-size: 14.5px; line-height: 1.6;">
+        <div style="padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.12);"><strong style="font-weight: 600; color: #FFFFFF;">Frozen semantics reproduced in real React</strong> — the five families render as specified on every route that uses them.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.12);"><strong style="font-weight: 600; color: #FFFFFF;">Recaptures at 1440 and 390</strong> for every touched route, plus 1280 and 768 per <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">§21</code> — the two the boards did not cover.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.12);"><strong style="font-weight: 600; color: #FFFFFF;">No document-level horizontal overflow</strong> at any required viewport; no clipped consequential action; no zero-sized control.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.12);"><strong style="font-weight: 600; color: #FFFFFF;">No semantic colour collisions</strong> — a greyscale pass should still distinguish classification from status, and no classification carries a decision hue.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.12);"><strong style="font-weight: 600; color: #FFFFFF;">No false empty or failure wording</strong> — each of the six states names its own cause, and no state describes an operation that did not occur.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.12);"><strong style="font-weight: 600; color: #FFFFFF;">Correct human-decision hierarchy</strong> — on a terminal record the outcome, decider and rationale precede all machine evidence.</div>
+        <div style="padding: 9px 0;"><strong style="font-weight: 600; color: #FFFFFF;">Visual comparison against the frozen boards</strong>, difference by difference, with remaining differences reported rather than absorbed.</div>
+      </div>
+    </div>
+    <div style="padding: 20px 24px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.2);">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #8FA69B;">Verifiable by test</div>
+      <div style="margin-top: 12px; font-size: 14.5px; line-height: 1.6;">
+        <div style="padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.12);"><strong style="font-weight: 600; color: #FFFFFF;">Functional behaviour unchanged</strong> except separately approved fixes — routes, API contracts, auth, role guards, payloads, thresholds, response mapping, persisted behaviour.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.12);"><strong style="font-weight: 600; color: #FFFFFF;">Accessibility preserved or improved</strong> — keyboard access, focus order, visible focus, heading order, one <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">h1</code>, accessible names, test IDs, dialog focus management. <strong style="font-weight: 600; color: #FFFFFF;">Never colour alone.</strong></div>
+        <div style="padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.12);"><strong style="font-weight: 600; color: #FFFFFF;">Lint, full frontend suite, production build</strong> and relevant Playwright evidence all pass.</div>
+        <div style="padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.12);"><strong style="font-weight: 600; color: #FFFFFF;">No console errors or network failures</strong> on any touched route.</div>
+        <div style="padding: 9px 0;"><strong style="font-weight: 600; color: #FFFFFF;">Every F-series defect either fixed at source or still open and visible</strong> — none masked by a visual change.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 22px; padding: 20px 24px; background: rgba(216,196,138,.1); border-left: 3px solid #D8C48A;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #D8C48A;">The lesson this process earned, carried explicitly</div>
+    <p style="margin: 11px 0 0; font-size: 16.5px; line-height: 1.6; color: #FFFFFF;"><strong style="font-weight: 600;">A correction is not complete until the rendered specimen, the normative rule, the summary documentation and the implementation all agree.</strong></p>
+    <p style="margin: 11px 0 0; font-size: 15px; line-height: 1.65; color: #BFCFC7;">This was caught three times in review — Board B's note still arguing for phrasing that had been banned; Board C's CURRENT vs PROPOSED panel still advertising two withdrawn claims as features; Board D's artwork still ink after the prose went green. In each case the design was right and a description was wrong, or the reverse. <strong style="font-weight: 600; color: #FFFFFF;">Both fail identically for whoever implements from it.</strong> Treat it as a required review step per PR, not a habit to hope for.</p>
+  </div>
+</section>
+
+<section style="width: 1280px; padding: 48px 80px 72px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #FAF7F1;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #6F5518;">CLOSING</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 30px; line-height: 1.1; color: #0F2A22;">Summary and change statement</h2>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 22px;">
+    <div style="padding: 20px 24px; background: #FFFFFF; border: 1px solid #C9BFA9;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">1 · Frozen decisions consolidated</div>
+      <p style="margin: 11px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;">Eleven principles (Part 1), five semantic families with allowed and prohibited treatments (Part 2), and four board contracts (Parts 3–6). The governing colour rule is <strong style="font-weight: 600; color: #111827;">“never imply an academic verdict where none exists”</strong> — green stays available for ordinary product actions. Six absence states, each naming its own cause. Two record primitives sharing a grammar but not a template. Nine type roles, nine colour roles.</p>
+    </div>
+    <div style="padding: 20px 24px; background: #FFFFFF; border: 1px solid #C9BFA9;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">2 · Unresolved engineering questions</div>
+      <p style="margin: 11px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Four blocking</strong> — Q1 numeric contract, Q2 Under review's family, Q3 status inventory, Q7 the four unread governance documents. <strong style="font-weight: 600; color: #111827;">Three non-blocking</strong> — Q4 snapshot linkage, Q5 pre-filter totals, Q6 component boundaries. Separately, four F-series defects (Part 9) are engineering work, not design work.</p>
+    </div>
+    <div style="padding: 20px 24px; background: #FFFFFF; border: 1px solid #C9BFA9;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">3 · Recommended PR sequence</div>
+      <p style="margin: 11px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">PR 0</strong> engineering prerequisites → <strong style="font-weight: 600; color: #111827;">PR 1</strong> semantic primitives → <strong style="font-weight: 600; color: #111827;">PR 2</strong> evidence surface → <strong style="font-weight: 600; color: #111827;">PR 3</strong> failure and absence states → <strong style="font-weight: 600; color: #111827;">PR 4</strong> confirmation dialog → <strong style="font-weight: 600; color: #111827;">PR 5</strong> Review Detail → <strong style="font-weight: 600; color: #111827;">PR 6</strong> propagation and cleanup. Two departures from the suggested order: PR 0 is new, and the dialog precedes the Review Detail recomposition so the riskiest change ships alone.</p>
+    </div>
+    <div style="padding: 20px 24px; background: #FFFFFF; border: 1px solid #C9BFA9;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">4 · DESIGN.md reconciliation</div>
+      <p style="margin: 11px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;">Twelve entries. <strong style="font-weight: 600; color: #111827;">One SUPERSEDE</strong> (§14's “recommendation”), <strong style="font-weight: 600; color: #111827;">two UNRESOLVED needing your decision</strong> (§7 gold/blue, §6 the 14px minimum against the boards' 13.5px metadata), two NARROW, six KEEP — one of which also carries a CLARIFY (C-6) — three ADDs, and one new review rule (C-12). <strong style="font-weight: 600; color: #111827;">The two unresolved conflicts gate PR 6 and the type work</strong> — I flagged rather than resolved them because overriding an accessibility rule by board is precisely the move this process exists to prevent.</p>
+    </div>
+  </div>
+
+  <div style="margin-top: 22px; padding: 22px 26px; background: #FFFFFF; border: 2px solid #0F2A22;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #0F2A22;">5 · Explicit change statement</div>
+    <p style="margin: 11px 0 0; font-size: 16.5px; line-height: 1.65; color: #111827;"><strong style="font-weight: 600;">No code and no <code style="font-family: 'IBM Plex Mono', monospace; font-size: 15px;">DESIGN.md</code> were changed by this task.</strong></p>
+    <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;">No React file, no backend file, no <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">DESIGN.md</code> edit, no auth or checker change, no commit, no new board, and no landing re-specification. The repository was read only — <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">docs/ui/DESIGN.md</code> in full, plus a filename search establishing that <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">PRODUCT.md</code> and <code style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">RTADSS-SURFACE-BRIEFS.md</code> do not exist. The only artefact produced is this specification.</p>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:1000}}"></script>
+</body>
+</html>

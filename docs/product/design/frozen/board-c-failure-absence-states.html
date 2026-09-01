@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #E7E2D8; }
+  a { color: #111827; }
+  a:hover { color: #000000; }
+</style>
+</helmet>
+
+<div style="width: 1760px; padding: 64px 72px 40px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #FAF7F1; color: #111827;">
+  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: #6F5518;">Board C · failure &amp; absence states</div>
+  <h1 style="margin: 14px 0 16px; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 48px; line-height: 1.08; letter-spacing: -0.02em; color: #0F2A22; max-width: 1100px;">Five absences that must never look alike</h1>
+  <p style="margin: 0; font-size: 18px; line-height: 1.6; color: #4A554F; max-width: 940px;">Every state below exists today — four in the capture pack, one confirmed in source with its exact current copy. Nothing invented: no loading skeletons, no offline mode, no retry queue, no fallback provider.</p>
+
+  <div style="margin-top: 30px; padding: 22px 26px; border: 2px solid #0F2A22; background: #FFFFFF; max-width: 1400px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">The root cause, found by comparing two captures</div>
+    <p style="margin: 12px 0 0; font-size: 16.5px; line-height: 1.65; color: #4A554F;">The provider-failure screen and the validation screen <strong style="font-weight: 600; color: #111827;">both render the same dashed panel</strong>: “Awaiting topic check — Complete the form to view advisory similarity guidance.” On the validation capture that sentence is <em>correct</em> — the form genuinely is incomplete and the check has not run. On the 503 capture it is <em>false</em>, and it sits above the real cause.</p>
+    <p style="margin: 12px 0 0; font-size: 16.5px; line-height: 1.65; color: #4A554F;">So this is not a wording bug in the failure state. It is <strong style="font-weight: 600; color: #111827;">one generic “no result yet” placeholder serving two incompatible meanings</strong> — “you have not finished” and “we could not run”. That is exactly the collapse Board C exists to prevent, and it is why the fix is a state <em>system</em> rather than five pieces of copy.</p>
+  </div>
+</div>
+
+<section style="width: 1760px; padding: 52px 72px 60px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #EDF3EF;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #1E5142;">PART 1</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; color: #0F2A22;">Confirmed state inventory</h2>
+    <span style="font-size: 14.5px; color: #57606E;">route · evidence · factual meaning</span>
+  </div>
+
+  <div style="margin-top: 24px; background: #FFFFFF; border: 1px solid #C9BFA9;">
+    <div style="display: grid; grid-template-columns: 92px 250px 250px 1fr; background: #F1ECE1; border-bottom: 1px solid #C9BFA9;">
+      <div style="padding: 11px 16px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">State</div>
+      <div style="padding: 11px 16px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">Route / component</div>
+      <div style="padding: 11px 16px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">Evidence source</div>
+      <div style="padding: 11px 16px; border-left: 1px solid #E2DCD0; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58;">Factual meaning</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 92px 250px 250px 1fr; border-bottom: 1px solid #E2DCD0; font-size: 14px; line-height: 1.6;">
+      <div style="padding: 13px 16px; font-weight: 600;">C1</div>
+      <div style="padding: 13px 16px; border-left: 1px solid #E2DCD0; color: #4A554F;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">/student/check-my-topic</code><br>evidence result surface</div>
+      <div style="padding: 13px 16px; border-left: 1px solid #E2DCD0; color: #4A554F;">Captures at 1440 + 390. API returned <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">corpus_size 0</code>, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">overall_risk null</code>.</div>
+      <div style="padding: 13px 16px; border-left: 1px solid #E2DCD0; color: #4A554F;">The request succeeded. There were <strong style="font-weight: 600; color: #111827;">no eligible stored topics to compare against</strong>, so no comparison was performed and no classification was asserted.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 92px 250px 250px 1fr; border-bottom: 1px solid #E2DCD0; font-size: 14px; line-height: 1.6;">
+      <div style="padding: 13px 16px; font-weight: 600;">C2</div>
+      <div style="padding: 13px 16px; border-left: 1px solid #E2DCD0; color: #4A554F;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">/student/check-my-topic</code><br>evidence result surface</div>
+      <div style="padding: 13px 16px; border-left: 1px solid #E2DCD0; color: #4A554F;">Captures at 1440 + 390. HTTP 503 <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">semantic_unavailable</code> with <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">VOYAGE_API_KEY</code> unset. No fallback attempted.</div>
+      <div style="padding: 13px 16px; border-left: 1px solid #E2DCD0; color: #4A554F;">The operation <strong style="font-weight: 600; color: #111827;">could not run at all</strong>. No comparison, no classification, no result. A service fault, not a property of the topic or the corpus.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 92px 250px 250px 1fr; border-bottom: 1px solid #E2DCD0; font-size: 14px; line-height: 1.6;">
+      <div style="padding: 13px 16px; font-weight: 600;">C3</div>
+      <div style="padding: 13px 16px; border-left: 1px solid #E2DCD0; color: #4A554F;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">/student/check-my-topic</code><br>form, client-side only</div>
+      <div style="padding: 13px 16px; border-left: 1px solid #E2DCD0; color: #4A554F;">Capture at 1440. A 4-word title against a 7-word minimum; <strong style="font-weight: 600; color: #111827;">no API call made</strong>, Check Similarity disabled.</div>
+      <div style="padding: 13px 16px; border-left: 1px solid #E2DCD0; color: #4A554F;">The user has not yet provided enough input for the operation to begin. Nothing has failed. Real strings: <em>“Too short: 4 words (minimum 7)”</em>, <em>“4 / 7-24 words”</em>, <em>“Character count outside guideline (50-180 chars recommended)”</em>.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 92px 250px 250px 1fr; border-bottom: 1px solid #E2DCD0; font-size: 14px; line-height: 1.6;">
+      <div style="padding: 13px 16px; font-weight: 600;">C4</div>
+      <div style="padding: 13px 16px; border-left: 1px solid #E2DCD0; color: #4A554F;"><code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">/lecturer/pending-reviews</code><br><code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">PendingReviewsPage.jsx</code></div>
+      <div style="padding: 13px 16px; border-left: 1px solid #E2DCD0; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Source, not pixels</strong> — every captured list is populated. Two distinct <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">EmptyStatePanel</code> calls at lines 134 and 178.</div>
+      <div style="padding: 13px 16px; border-left: 1px solid #E2DCD0; color: #4A554F;">Two different absences already coded: <strong style="font-weight: 600; color: #111827;">nothing exists</strong> (<code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">title="No pending reviews"</code>) and <strong style="font-weight: 600; color: #111827;">nothing matches your filter</strong> (<code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">message="No submissions match the current search or category filter."</code>). I chose this route precisely because it already distinguishes them.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 92px 250px 250px 1fr; font-size: 14px; line-height: 1.6; background: #F7F4EC;">
+      <div style="padding: 13px 16px; font-weight: 600; color: #545E58;">Not drawn</div>
+      <div style="padding: 13px 16px; border-left: 1px solid #E2DCD0; color: #545E58;">Other confirmed absences</div>
+      <div style="padding: 13px 16px; border-left: 1px solid #E2DCD0; color: #545E58;">Source strings verified</div>
+      <div style="padding: 13px 16px; border-left: 1px solid #E2DCD0; color: #4A554F;">Nine more real empty states share C4's pattern and need no separate design: <em>“No submissions yet”</em> (My Submissions), <em>“No students are currently assigned to you.”</em> (Supervisees), <em>“No completed decisions match the current filters.”</em> (My Decisions), <em>“No similarity checks have been saved for this submission yet.”</em> (Review Detail history), <em>“No topics match the selected filters.”</em>, <em>“No accounts match the selected filters.”</em>, <em>“No audit events match the selected filters.”</em>, <em>“No configuration values are available.”</em>, <em>“No aggregate trend information is currently available.”</em></div>
+    </div>
+  </div>
+
+  <div style="margin-top: 20px; padding: 18px 22px; background: #FFFFFF; border: 1px solid #C9A24D; max-width: 1616px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">A correction to my own v2 audit, found while confirming C4</div>
+    <p style="margin: 9px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;">The v2 audit recorded as a “factual gap” that <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">App.jsx</code> has no activation or first-password-change route. <strong style="font-weight: 600; color: #111827;">That was wrong.</strong> <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">frontend/src/pages/auth/ChangePasswordPage.jsx</code> exists and carries real copy: <em>“Your temporary password only allows this step. All other pages stay locked until you set a private password.”</em> — which describes a working forced-password-change flow with a locked-down session. I had inferred absence from a route list I read too quickly. Withdrawn; the flow exists and its copy is good.</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 24px;">
+    <div style="border: 1px solid #C6D6CC; background: #FFFFFF; padding: 20px 22px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #1E5142;">Rationale · the operating question</div>
+      <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;">Every state answers two questions before it answers anything else: <strong style="font-weight: 600; color: #111827;">did the intended operation execute, and was a classification produced?</strong> Those two bits distinguish all five states, so each state's title states its own answer rather than describing a shared feeling of emptiness.</p>
+      <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;">Hence no shared “nothing found” component. The five treatments differ in <em>shape</em>, not just wording, so they cannot be mistaken for one another at a glance.</p>
+    </div>
+    <div style="border: 1px solid #C6D6CC; background: #FFFFFF; padding: 20px 22px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #1E5142;">Rationale · fault attribution</div>
+      <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;">Only two of the five states involve anything the user could act on: validation (their input) and provider failure (their retry). The other three are properties of the data or the record. <strong style="font-weight: 600; color: #111827;">A state must never assign fault to the user unless the user genuinely holds it</strong> — the single rule that the captured 503 screen breaks.</p>
+      <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;">So validation speaks in the second person and sits on the field. Failure speaks about the service and sits above the result.</p>
+    </div>
+    <div style="border: 1px solid #C6D6CC; background: #FFFFFF; padding: 20px 22px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #1E5142;">Rationale · what stays</div>
+      <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;">Board A's C1 treatment is carried forward unchanged in structure — it is already the semantic reference. All real validation strings, thresholds and counters are preserved verbatim. The existing empty-state titles and filter message are used as written.</p>
+      <p style="margin: 10px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;">No illustrations, no mascots, no oversized headings. State titles sit at 16–17px in the workspace's own type, adjacent to the content they explain.</p>
+    </div>
+  </div>
+</section>
+
+
+<section style="width: 1760px; padding: 52px 72px 60px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #F8FAFC;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; padding: 4px 9px; background: #111827; color: #FFFFFF; border-radius: 4px;">C1</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; color: #0F2A22;">No eligible corpus</h2>
+    <span style="font-size: 14.5px; color: #57606E;">the request succeeded · nothing was available to compare against</span>
+  </div>
+
+  <div style="display: flex; gap: 42px; margin-top: 26px; align-items: flex-start;">
+    <div style="width: 1184px; flex: none;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">1440 · record width</div>
+      <div style="background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px;">
+        <div style="padding: 20px 24px 20px;">
+          <div style="display: flex; align-items: flex-start; gap: 20px;">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563;">Similarity classification</div>
+              <div style="display: flex; align-items: center; gap: 12px; margin-top: 9px;">
+                <span style="display: inline-flex; align-items: center; padding: 6px 13px; background: #FFFFFF; color: #4b5563; border: 1px dashed #9ca3af; border-radius: 5px; font-size: 14px; font-weight: 500;">Not classified</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #4b5563; border: 1px solid #e5e7eb; border-radius: 4px; padding: 4px 8px;">NOT CLASSIFIED</span>
+              </div>
+              <p style="margin: 14px 0 0; font-size: 17px; line-height: 1.5; color: #111827; max-width: 720px;">No eligible stored topics are currently available for comparison, so no comparison could be made.</p>
+              <p style="margin: 9px 0 0; font-size: 15px; line-height: 1.6; color: #374151; max-width: 720px;"><strong style="font-weight: 600; color: #111827;">This result does not establish that the topic is new or original.</strong> No similarity classification has been assigned, because nothing was compared.</p>
+              <p style="margin: 9px 0 0; font-size: 14.5px; line-height: 1.6; color: #4b5563; max-width: 720px;">Your lecturer makes the academic decision either way.</p>
+            </div>
+            <div style="flex: none; width: 236px; border-left: 1px solid #e5e7eb; padding-left: 20px;">
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563;">Check provenance</div>
+              <div style="margin-top: 10px; font-size: 13.5px; line-height: 1.75; color: #4b5563;">
+                <div style="display: flex; justify-content: space-between; gap: 10px;"><span>Records compared</span><span style="font-variant-numeric: tabular-nums; color: #111827;">0</span></div>
+                <div style="display: flex; justify-content: space-between; gap: 10px;"><span>Records returned</span><span style="font-variant-numeric: tabular-nums; color: #111827;">0</span></div>
+                <div style="display: flex; justify-content: space-between; gap: 10px;"><span>Cosine, top record</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #4b5563;">N/A</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 12px; padding: 13px 17px; background: #FFFFFF; border: 1px solid #C9A24D;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">C1 · three corrections, one addition</div>
+        <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Removed:</strong> the second panel reading “No meaningful matches were returned by this check” — it described a comparison that never ran. <strong style="font-weight: 600; color: #111827;">Removed:</strong> that panel's mint tint, which put the approval hue on the one state that most needs to avoid an all-clear reading. <strong style="font-weight: 600; color: #111827;">Kept from the current build:</strong> <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">N/A</code>, the explicit non-classification, the neutral surface, and the originality denial — this state was already the best in the product.</p>
+        <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Cause claim withdrawn.</strong> An earlier draft added “Your department's comparison records may not be loaded yet.” That over-claimed: <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">corpus_size 0</code> tells the UI that <em>nothing was eligible</em>, not <em>why</em> — an eligibility rule excluding every record produces the same zero as an unloaded repository, and the system cannot distinguish them. The copy now states only what is known: <strong style="font-weight: 600; color: #111827;">“No eligible stored topics are currently available for comparison.”</strong></p>
+        <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;">The dashed chip border, not a solid one, keeps “not classified” from reading as a fourth band. The originality denial stays verbatim and prominent — it is the only sentence preventing this state being read as a pass.</p>
+      </div>
+    </div>
+
+    <div style="width: 390px; flex: none;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">390</div>
+      <div style="background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden;">
+        <div style="padding: 16px 16px 18px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563;">Similarity classification</div>
+          <div style="display: flex; align-items: center; gap: 9px; margin-top: 8px; flex-wrap: wrap;">
+            <span style="display: inline-flex; align-items: center; padding: 6px 12px; background: #FFFFFF; color: #4b5563; border: 1px dashed #9ca3af; border-radius: 5px; font-size: 14px; font-weight: 500;">Not classified</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #4b5563; border: 1px solid #e5e7eb; border-radius: 4px; padding: 3px 7px;">NOT CLASSIFIED</span>
+          </div>
+          <p style="margin: 12px 0 0; font-size: 16px; line-height: 1.5; color: #111827;">No eligible stored topics are currently available for comparison, so no comparison could be made.</p>
+          <p style="margin: 9px 0 0; font-size: 14.5px; line-height: 1.6; color: #374151;"><strong style="font-weight: 600; color: #111827;">This result does not establish that the topic is new or original.</strong> No classification has been assigned, because nothing was compared.</p>
+          <p style="margin: 9px 0 0; font-size: 14px; line-height: 1.6; color: #4b5563;">Your lecturer makes the academic decision either way.</p>
+        </div>
+        <div style="padding: 14px 16px 16px; background: #f9fafb; border-top: 1px solid #e5e7eb;">
+          <div style="display: flex; justify-content: space-between; font-size: 13.5px; line-height: 1.85; color: #4b5563;"><span>Records compared</span><span style="font-variant-numeric: tabular-nums; color: #111827;">0</span></div>
+          <div style="display: flex; justify-content: space-between; font-size: 13.5px; line-height: 1.85; color: #4b5563;"><span>Cosine, top record</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #4b5563;">N/A</span></div>
+        </div>
+      </div>
+      <div style="margin-top: 11px; padding: 11px 13px; background: #FBF6E8; border-left: 2px solid #C9A24D;">
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.6; color: #4A554F;">The page ends here, as it does today. Nothing is added to fill the viewport — an empty state that scrolls is a worse empty state.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="width: 1760px; padding: 52px 72px 60px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #EDF3EF;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; padding: 4px 9px; background: #111827; color: #FFFFFF; border-radius: 4px;">C2</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; color: #0F2A22;">Semantic provider unavailable</h2>
+    <span style="font-size: 14.5px; color: #57606E;">the operation could not run · a service fault, not the user's</span>
+  </div>
+
+  <div style="display: flex; gap: 42px; margin-top: 26px; align-items: flex-start;">
+    <div style="width: 1184px; flex: none;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">1440 · record width</div>
+      <div style="background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px;">
+        <div style="padding: 20px 24px 20px; border-left: 3px solid #b45309; border-bottom: 1px solid #e5e7eb;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #b45309;">Check could not run</div>
+          <p style="margin: 11px 0 0; font-size: 17px; line-height: 1.5; color: #111827; max-width: 760px;">Similarity checking is temporarily unavailable, so this check could not run.</p>
+          <p style="margin: 9px 0 0; font-size: 15px; line-height: 1.6; color: #374151; max-width: 760px;">No similarity result was produced and no classification has been assigned. <strong style="font-weight: 600; color: #111827;">Nothing is wrong with your topic</strong> — this is a fault in the checking service, and your proposal has not been lost.</p>
+          <div style="display: flex; align-items: center; gap: 18px; margin-top: 18px;">
+            <span style="display: inline-flex; align-items: center; height: 44px; padding: 0 22px; background: #111827; color: #FFFFFF; border-radius: 6px; font-size: 15px; font-weight: 600;">Try the check again</span>
+            <span style="display: inline-flex; align-items: center; height: 44px; padding: 0 22px; background: #FFFFFF; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; font-weight: 600;">Edit proposal</span>
+            <span style="font-size: 14px; color: #4b5563;">If it keeps failing, contact your department administrator.</span>
+          </div>
+        </div>
+        <div style="padding: 18px 24px 20px; background: #f9fafb;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563;">Your proposal, retained</div>
+          <div style="margin-top: 9px; font-size: 17px; font-weight: 600; line-height: 1.4; color: #111827; max-width: 800px;">Evaluation of Community Pharmacy Counselling on Rational Antibiotic Use among Adults in Ede</div>
+          <div style="margin-top: 11px; display: flex; gap: 30px; font-size: 14.5px; color: #374151; flex-wrap: wrap;">
+            <span><span style="color: #4b5563;">Population</span> Adults attending community pharmacies</span>
+            <span><span style="color: #4b5563;">Location</span> Ede, Osun State</span>
+            <span><span style="color: #4b5563;">Study focus</span> Effect of counselling on rational antibiotic use</span>
+          </div>
+          <div style="margin-top: 11px; font-size: 13.5px; color: #4b5563;">Temporary browser state only. This proposal was not saved or submitted.</div>
+        </div>
+      </div>
+      <div style="margin-top: 12px; padding: 13px 17px; background: #FFFFFF; border: 1px solid #C9A24D;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">C2 · four changes from the capture</div>
+        <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">The “Awaiting topic check / Complete the form” panel is deleted from this state</strong> — not reworded. It is the correct placeholder for the initial and validation states (see C3) and simply does not belong to a failure; an empty-state prompt must never outrank an error. <strong style="font-weight: 600; color: #111827;">The cause is now first and largest.</strong> <strong style="font-weight: 600; color: #111827;">The proposal survives</strong> with its context intact and a retry beside it, rather than being discarded. <strong style="font-weight: 600; color: #111827;">Amber is a 3px edge rule</strong>, not a filled tint, so a service fault cannot be mistaken for a similarity finding.</p>
+        <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Copy: no provider name.</strong> The captured wording — “Semantic analysis is currently unavailable” — is honest but tells a student nothing they can use, and “semantic analysis” is internal vocabulary. This says <em>similarity checking</em>, states that their topic is not at fault, and names the one useful escalation. No Voyage, no API, no key, no 503. An administrator-facing surface could carry the technical detail; a student-facing outage message should not.</p>
+        <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Retry is ink, not green</strong> — per Board A, affordances inside the evidence component rest in ink, and a retry is a system action rather than an academic one. It is also the primary action here, which is why it is filled rather than a link.</p>
+      </div>
+    </div>
+
+    <div style="width: 390px; flex: none;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">390</div>
+      <div style="background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden;">
+        <div style="padding: 16px 16px 18px; border-left: 3px solid #b45309;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #b45309;">Check could not run</div>
+          <p style="margin: 11px 0 0; font-size: 16px; line-height: 1.5; color: #111827;">Similarity checking is temporarily unavailable, so this check could not run.</p>
+          <p style="margin: 9px 0 0; font-size: 14.5px; line-height: 1.6; color: #374151;">No result was produced and no classification assigned. <strong style="font-weight: 600; color: #111827;">Nothing is wrong with your topic.</strong></p>
+          <div style="display: flex; flex-direction: column; gap: 9px; margin-top: 16px;">
+            <span style="display: flex; align-items: center; justify-content: center; height: 44px; background: #111827; color: #FFFFFF; border-radius: 6px; font-size: 15px; font-weight: 600;">Try the check again</span>
+            <span style="display: flex; align-items: center; justify-content: center; height: 44px; background: #FFFFFF; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; font-weight: 600;">Edit proposal</span>
+          </div>
+          <p style="margin: 12px 0 0; font-size: 13.5px; line-height: 1.6; color: #4b5563;">If it keeps failing, contact your department administrator.</p>
+        </div>
+        <div style="padding: 15px 16px 17px; background: #f9fafb; border-top: 1px solid #e5e7eb;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563;">Your proposal, retained</div>
+          <div style="margin-top: 8px; font-size: 15.5px; font-weight: 600; line-height: 1.4; color: #111827;">Evaluation of Community Pharmacy Counselling on Rational Antibiotic Use among Adults in Ede</div>
+          <div style="margin-top: 9px; font-size: 13.5px; line-height: 1.7; color: #374151;"><span style="color: #4b5563;">Population</span> Adults attending community pharmacies<br><span style="color: #4b5563;">Location</span> Ede, Osun State<br><span style="color: #4b5563;">Study focus</span> Effect of counselling on rational antibiotic use</div>
+          <div style="margin-top: 10px; font-size: 13px; color: #4b5563;">Temporary browser state only. Not saved or submitted.</div>
+        </div>
+      </div>
+      <div style="margin-top: 11px; padding: 11px 13px; background: #FBF6E8; border-left: 2px solid #C9A24D;">
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.6; color: #4A554F;">Both actions full-width at 44px and stacked. On the captured mobile screen the only remaining control was “Check Another Topic” — which throws the proposal away. Here the destructive path is not the default.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="width: 1760px; padding: 52px 72px 60px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #F8FAFC;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; padding: 4px 9px; background: #111827; color: #FFFFFF; border-radius: 4px;">C3</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; color: #0F2A22;">Client-side validation</h2>
+    <span style="font-size: 14.5px; color: #57606E;">the operation has not started · nothing has failed · no API call made</span>
+  </div>
+
+  <div style="display: flex; gap: 42px; margin-top: 26px; align-items: flex-start;">
+    <div style="width: 1184px; flex: none;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">1440 · form + guidance rail, as today</div>
+      <div style="background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px;">
+        <div style="display: flex; gap: 0;">
+          <div style="flex: 1; min-width: 0; padding: 20px 24px 22px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563;">Check your research topic</div>
+            <h3 style="margin: 8px 0 0; font-size: 20px; font-weight: 600; line-height: 1.3; color: #111827;">Similarity pre-check</h3>
+
+            <div style="margin-top: 18px;">
+              <label style="display: block; font-size: 14.5px; font-weight: 500; color: #111827;">Research topic <span style="color: #b91c1c;">*</span></label>
+              <div style="margin-top: 6px; height: 92px; border: 2px solid #b91c1c; border-radius: 6px; padding: 11px 13px; box-sizing: border-box; font-size: 15px; color: #111827;">Malaria prevention among students</div>
+              <div style="display: flex; justify-content: space-between; gap: 16px; margin-top: 8px;">
+                <span style="font-size: 14px; font-weight: 500; color: #b91c1c;">Too short: 4 words (minimum 7)</span>
+                <span style="font-size: 14px; font-variant-numeric: tabular-nums; color: #b91c1c;">4 / 7–24 words</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; gap: 16px; margin-top: 4px;">
+                <span style="font-size: 14px; color: #92620a;">Character count outside guideline (50–180 chars recommended)</span>
+                <span style="font-size: 14px; font-variant-numeric: tabular-nums; color: #92620a;">33 chars</span>
+              </div>
+              <p style="margin: 10px 0 0; font-size: 14px; line-height: 1.6; color: #4b5563; max-width: 620px;">Add at least three more words describing the population, location or study focus — for example who the study is about and where.</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;">
+              <div>
+                <label style="display: block; font-size: 14.5px; font-weight: 500; color: #111827;">Population <span style="font-weight: 400; color: #4b5563;">(optional)</span></label>
+                <div style="margin-top: 6px; height: 44px; border: 1px solid #d1d5db; border-radius: 6px;"></div>
+              </div>
+              <div>
+                <label style="display: block; font-size: 14.5px; font-weight: 500; color: #111827;">Location <span style="font-weight: 400; color: #4b5563;">(optional)</span></label>
+                <div style="margin-top: 6px; height: 44px; border: 1px solid #d1d5db; border-radius: 6px;"></div>
+              </div>
+            </div>
+            <div style="margin-top: 16px;">
+              <label style="display: block; font-size: 14.5px; font-weight: 500; color: #111827;">Study focus <span style="font-weight: 400; color: #4b5563;">(optional)</span></label>
+              <div style="margin-top: 6px; height: 64px; border: 1px solid #d1d5db; border-radius: 6px;"></div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 16px; margin-top: 20px;">
+              <span style="display: inline-flex; align-items: center; height: 44px; padding: 0 22px; background: #F3F4F6; color: #6b7280; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; font-weight: 600;">Check similarity</span>
+              <span style="font-size: 14px; color: #4b5563;">Available once the topic reaches 7 words.</span>
+            </div>
+          </div>
+
+          <div style="flex: none; width: 340px; padding: 20px 24px 22px; border-left: 1px solid #e5e7eb; background: #f9fafb;">
+            <div style="font-size: 16px; font-weight: 600; color: #111827;">What this check considers</div>
+            <div style="margin-top: 14px; border-top: 1px solid #e5e7eb;">
+              <div style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;"><div style="font-size: 14.5px; font-weight: 600; color: #111827;">Semantic topic representation</div><div style="margin-top: 4px; font-size: 14px; line-height: 1.6; color: #4b5563;">The title, population, location, and study focus when supplied.</div></div>
+              <div style="padding: 12px 0; border-bottom: 1px solid #e5e7eb;"><div style="font-size: 14.5px; font-weight: 600; color: #111827;">Stored research-topic records</div><div style="margin-top: 4px; font-size: 14px; line-height: 1.6; color: #4b5563;">The most similar eligible records are returned for advisory review.</div></div>
+              <div style="padding: 12px 0;"><div style="font-size: 14px; line-height: 1.6; color: #4b5563;">The result is evidence for review, not an academic decision.</div></div>
+            </div>
+            <div style="margin-top: 16px; padding: 12px 14px; background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 6px;">
+              <div style="font-size: 14px; font-weight: 600; color: #111827;">Validation benchmark</div>
+              <div style="margin-top: 4px; font-size: 14px; line-height: 1.6; color: #4b5563;">Use 7–24 clear words. Population, location, and study focus are represented when supplied.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 12px; padding: 13px 17px; background: #FFFFFF; border: 1px solid #C9A24D;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">C3 · kept, and four fixes</div>
+        <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Kept verbatim:</strong> the red field ring, “Too short: 4 words (minimum 7)”, the “4 / 7–24 words” counter, the character-count guideline line, the disabled action, the guidance rail and the validation benchmark. All real, all local to the field, no page-level failure treatment. This state was already handled correctly in kind.</p>
+        <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">1 · The dashed “Awaiting topic check” panel is gone from the page.</strong> It is truthful here, unlike in C2 — but it sat 600px below the field, describing the same fact the disabled button already states. Its job moves to one line beside the button: <em>“Available once the topic reaches 7 words.”</em> That is the same information at the point of use, and removing the panel is what stops it being available to leak into C2.</p>
+        <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">2 · The disabled button now explains itself.</strong> In the capture it is grey with no adjacent reason, so the only explanation is 200px above it. Its label stays at <strong style="font-weight: 600; color: #111827;">4.39:1 deliberately</strong> — darkening it would make an unavailable control read as available — which is the single case S2 exempts from Board A's R8. The exemption holds only because the adjacent sentence carries the same information at full contrast; the greyed label is never the sole explanation.</p>
+        <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">3 · “Validation benchmark” loses its mint tint.</strong> Guidance is not success, and per the colour contract green must not imply good news. It becomes a plain bordered note in the rail.</p>
+        <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">4 · The amber guideline line moves from <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">#c2894a</code>-class amber to <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">#92620a</code></strong> so it clears 4.5:1, and gains one actionable sentence telling the student what to add. A validation message that states a rule without stating a remedy makes the user do the arithmetic.</p>
+      </div>
+    </div>
+
+    <div style="width: 390px; flex: none;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">390 · rail moves below the form</div>
+      <div style="background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden;">
+        <div style="padding: 16px 16px 18px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563;">Check your research topic</div>
+          <h4 style="margin: 8px 0 0; font-size: 18px; font-weight: 600; line-height: 1.3; color: #111827;">Similarity pre-check</h4>
+          <div style="margin-top: 16px;">
+            <label style="display: block; font-size: 14.5px; font-weight: 500; color: #111827;">Research topic <span style="color: #b91c1c;">*</span></label>
+            <div style="margin-top: 6px; height: 84px; border: 2px solid #b91c1c; border-radius: 6px; padding: 11px 12px; box-sizing: border-box; font-size: 15px; line-height: 1.5; color: #111827;">Malaria prevention among students</div>
+            <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 8px;">
+              <span style="font-size: 13.5px; font-weight: 500; color: #b91c1c;">Too short: 4 words (min 7)</span>
+              <span style="font-size: 13.5px; font-variant-numeric: tabular-nums; color: #b91c1c;">4 / 7–24</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 4px;">
+              <span style="font-size: 13.5px; color: #92620a;">Outside 50–180 char guideline</span>
+              <span style="font-size: 13.5px; font-variant-numeric: tabular-nums; color: #92620a;">33 chars</span>
+            </div>
+            <p style="margin: 9px 0 0; font-size: 13.5px; line-height: 1.6; color: #4b5563;">Add at least three more words describing the population, location or study focus.</p>
+          </div>
+          <div style="margin-top: 16px;">
+            <label style="display: block; font-size: 14.5px; font-weight: 500; color: #111827;">Population <span style="font-weight: 400; color: #4b5563;">(optional)</span></label>
+            <div style="margin-top: 6px; height: 44px; border: 1px solid #d1d5db; border-radius: 6px;"></div>
+          </div>
+          <div style="margin-top: 13px;">
+            <label style="display: block; font-size: 14.5px; font-weight: 500; color: #111827;">Location <span style="font-weight: 400; color: #4b5563;">(optional)</span></label>
+            <div style="margin-top: 6px; height: 44px; border: 1px solid #d1d5db; border-radius: 6px;"></div>
+          </div>
+          <div style="margin-top: 13px;">
+            <label style="display: block; font-size: 14.5px; font-weight: 500; color: #111827;">Study focus <span style="font-weight: 400; color: #4b5563;">(optional)</span></label>
+            <div style="margin-top: 6px; height: 60px; border: 1px solid #d1d5db; border-radius: 6px;"></div>
+          </div>
+          <div style="margin-top: 18px;">
+            <span style="display: flex; align-items: center; justify-content: center; height: 46px; background: #F3F4F6; color: #6b7280; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; font-weight: 600;">Check similarity</span>
+            <p style="margin: 8px 0 0; font-size: 13.5px; line-height: 1.6; color: #4b5563; text-align: center;">Available once the topic reaches 7 words.</p>
+          </div>
+        </div>
+        <div style="padding: 15px 16px 17px; background: #f9fafb; border-top: 1px solid #e5e7eb;">
+          <div style="font-size: 15px; font-weight: 600; color: #111827;">What this check considers</div>
+          <div style="margin-top: 10px; font-size: 13.5px; line-height: 1.65; color: #4b5563;">The title, population, location and study focus when supplied, compared against stored research-topic records. The result is evidence for review, not an academic decision.</div>
+          <div style="margin-top: 12px; padding: 11px 12px; background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 6px;">
+            <div style="font-size: 14px; font-weight: 600; color: #111827;">Validation benchmark</div>
+            <div style="margin-top: 4px; font-size: 13.5px; line-height: 1.6; color: #4b5563;">Use 7–24 clear words.</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 11px; padding: 11px 13px; background: #FBF6E8; border-left: 2px solid #C9A24D;">
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.6; color: #4A554F;">Error text stays on the field, never in a banner. The two counter lines shorten rather than wrap. Every input and the action are ≥44px.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="width: 1760px; padding: 52px 72px 60px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #EDF3EF;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; padding: 4px 9px; background: #111827; color: #FFFFFF; border-radius: 4px;">C4</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; color: #0F2A22;">Empty record list — Pending Reviews</h2>
+    <span style="font-size: 14.5px; color: #57606E;">source-confirmed · two distinct absences already coded in <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">PendingReviewsPage.jsx</code></span>
+  </div>
+
+  <p style="margin: 20px 0 0; font-size: 15.5px; line-height: 1.65; color: #4A554F; max-width: 1100px;">I chose this route because it is the one place the codebase <em>already</em> separates “nothing exists” from “nothing matches your filter” — two absences that are habitually collapsed, and that require different next actions. No capture shows either state, so both are drawn from the source strings at lines 134 and 178.</p>
+
+  <div style="display: flex; gap: 42px; margin-top: 24px; align-items: flex-start;">
+    <div style="width: 1184px; flex: none;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">C4a · nothing exists · 1440 · record width, as C1–C3</div>
+      <div style="background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px;">
+        <div style="padding: 16px 22px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 16px; font-weight: 600; color: #111827;">Review queue</span>
+          <div style="flex: 1;"></div>
+          <span style="display: inline-flex; align-items: center; height: 40px; padding: 0 16px; background: #FFFFFF; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; font-weight: 600;">Refresh Queue</span>
+        </div>
+        <div style="padding: 26px 22px 28px;">
+          <div style="font-size: 16.5px; font-weight: 600; color: #111827;">No pending reviews</div>
+          <p style="margin: 7px 0 0; font-size: 15px; line-height: 1.6; color: #4b5563; max-width: 560px;">No submissions are currently waiting for your review. Newly submitted topics assigned to you will appear here.</p>
+          <div style="display: flex; align-items: center; gap: 16px; margin-top: 16px;">
+            <span style="font-size: 14.5px; font-weight: 500; color: #111827; border-bottom: 1px solid #9ca3af; padding-bottom: 2px; white-space: nowrap;">View my decisions</span>
+            <span style="font-size: 14.5px; font-weight: 500; color: #111827; border-bottom: 1px solid #9ca3af; padding-bottom: 2px; white-space: nowrap;">View supervisees</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 11px; padding: 12px 15px; background: #FFFFFF; border: 1px solid #C9A24D;">
+        <p style="margin: 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Absence of records, never absence of similarity.</strong> Existing title kept verbatim. In place of the current dashed, centred, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">p-8</code> shadowed panel, the message sits left-aligned exactly where the first row would be — so the reader's eye lands on it in the same place it would land on content. Two real onward routes, because an empty queue is a fine state to be in and the lecturer has other work.</p>
+      </div>
+
+      <div style="margin-top: 28px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">C4b · nothing matches the filter · 1440</div>
+      <div style="background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px;">
+        <div style="padding: 16px 22px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span style="font-size: 16px; font-weight: 600; color: #111827;">Review queue</span>
+          <span style="font-size: 13.5px; color: #4b5563;">1 pending review · 0 shown</span>
+          <div style="flex: 1;"></div>
+          <span style="display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 999px; font-size: 13.5px;">Search: “nutrition” <span style="font-weight: 600;">×</span></span>
+          <span style="display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 999px; font-size: 13.5px;">Category: Nursing <span style="font-weight: 600;">×</span></span>
+        </div>
+        <div style="padding: 26px 22px 28px;">
+          <div style="font-size: 16.5px; font-weight: 600; color: #111827;">No pending reviews match these filters.</div>
+          <p style="margin: 7px 0 0; font-size: 15px; line-height: 1.6; color: #4b5563; max-width: 620px;">Submissions may be waiting for your review but excluded by the search term or category above. Clear or change the filters to see them.</p>
+          <div style="display: flex; align-items: center; gap: 16px; margin-top: 16px;">
+            <span style="display: inline-flex; align-items: center; height: 44px; padding: 0 20px; background: #111827; color: #FFFFFF; border-radius: 6px; font-size: 14.5px; font-weight: 600;">Clear all filters</span>
+            <span style="font-size: 14.5px; color: #4b5563;">Or adjust the search term above.</span>
+          </div>
+          <div style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed #d1d5db;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #4b5563;">Optional enhancement — only if a reliable pre-filter total exists</div>
+            <p style="margin: 7px 0 0; font-size: 14.5px; line-height: 1.6; color: #4b5563; max-width: 620px;"><strong style="font-weight: 600; color: #111827;">1 submission is pending review</strong> but is hidden by these filters.</p>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 11px; padding: 12px 15px; background: #FFFFFF; border: 1px solid #C9A24D;">
+        <p style="margin: 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">The taxonomy, stated so the two cannot merge.</strong> <strong style="font-weight: 600; color: #111827;">Empty queue</strong> = no underlying records exist for this queue. <strong style="font-weight: 600; color: #111827;">Filtered empty</strong> = underlying records may exist, but none satisfy the current filters. The baseline copy claims only the second: <em>“No pending reviews match these filters”</em> plus “Submissions <strong style="font-weight: 600; color: #111827;">may</strong> be waiting…”. That is true whether or not anything is actually hidden, so it needs no count to be honest.</p>
+        <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">The count is demoted to an optional enhancement</strong>, below a dashed rule. I previously made it load-bearing on the strength of the captured “Pending reviews 1 / Visible after filters 1” chips — but that was inference about the data flow, not confirmation, and a state whose main sentence depends on an unverified count is the wrong baseline. Shown only where a reliable pre-filter total genuinely exists; the state reads correctly without it.</p>
+        <p style="margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;">Filters remain removable chips and “Clear all filters” stays the primary action, because the user's own filter is the cause and reversing it is the remedy — that much needs no count at all.</p>
+      </div>
+    </div>
+
+    <div style="width: 390px; flex: none;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #545E58; margin-bottom: 10px;">390 · both states</div>
+      <div style="background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden;">
+        <div style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb;"><span style="font-size: 15.5px; font-weight: 600; color: #111827;">Review queue</span></div>
+        <div style="padding: 20px 16px 22px;">
+          <div style="font-size: 16px; font-weight: 600; color: #111827;">No pending reviews</div>
+          <p style="margin: 7px 0 0; font-size: 14.5px; line-height: 1.6; color: #4b5563;">No submissions are currently waiting for your review. Newly submitted topics assigned to you will appear here.</p>
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 14px;">
+            <span style="font-size: 14.5px; font-weight: 500; color: #111827; border-bottom: 1px solid #9ca3af; padding-bottom: 2px; align-self: flex-start;">View my decisions</span>
+            <span style="font-size: 14.5px; font-weight: 500; color: #111827; border-bottom: 1px solid #9ca3af; padding-bottom: 2px; align-self: flex-start;">View supervisees</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 14px; background: #FFFFFF; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden;">
+        <div style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb;">
+          <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;"><span style="font-size: 15.5px; font-weight: 600; color: #111827;">Review queue</span><span style="font-size: 13.5px; color: #4b5563;">1 pending · 0 shown</span></div>
+          <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+            <span style="display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 11px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 999px; font-size: 13px;">“nutrition” <span style="font-weight: 600;">×</span></span>
+            <span style="display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 11px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 999px; font-size: 13px;">Nursing <span style="font-weight: 600;">×</span></span>
+          </div>
+        </div>
+        <div style="padding: 18px 16px 20px;">
+          <div style="font-size: 16px; font-weight: 600; line-height: 1.4; color: #111827;">No pending reviews match these filters.</div>
+          <p style="margin: 7px 0 0; font-size: 14.5px; line-height: 1.6; color: #4b5563;">Submissions may be waiting for your review but excluded by the search term or category above.</p>
+          <span style="display: flex; align-items: center; justify-content: center; height: 44px; margin-top: 14px; background: #111827; color: #FFFFFF; border-radius: 6px; font-size: 14.5px; font-weight: 600;">Clear all filters</span>
+        </div>
+      </div>
+      <div style="margin-top: 11px; padding: 11px 13px; background: #FBF6E8; border-left: 2px solid #C9A24D;">
+        <p style="margin: 0; font-size: 13.5px; line-height: 1.6; color: #4A554F;">Filter chips wrap rather than scroll; each is a 32px removable target with the 44px primary action below. The route is already mobile-supported — the captured Topic Repository proves the list pattern recomposes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="width: 1760px; padding: 52px 72px 60px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #FAF7F1;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #6F5518;">STATE-SYSTEM RULES</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; color: #0F2A22;">Eight rules</h2>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 28px;">
+    <div style="border: 2px solid #0F2A22; background: #FFFFFF; padding: 20px 22px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #0F2A22;">S1 · Semantics — the governing rule</div>
+      <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;">Every state names <strong style="font-weight: 600; color: #111827;">whether the operation ran</strong> and <strong style="font-weight: 600; color: #111827;">whether a classification was produced</strong>. Those two bits identify all five states uniquely, so no two may share a title, a shape or a surface. <strong style="font-weight: 600; color: #111827;">No generic “nothing found” component may exist</strong> — the one that does today is exactly how “you have not finished” leaked into a 503.</p>
+    </div>
+    <div style="border: 1px solid #D6CEBE; background: #FFFFFF; padding: 20px 22px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">S2 · Colour</div>
+      <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;">Absence and evidence: <strong style="font-weight: 600; color: #111827;">neutral</strong>. System failure: <strong style="font-weight: 600; color: #111827;">amber, as an edge rule only</strong> — never a filled tint, so a fault cannot read as a finding. Validation: <strong style="font-weight: 600; color: #111827;">red on the field</strong>, never at page level. Decision colour is untouched and stays out of all five states.</p>
+      <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;">Green never appears. Not on absence, not on guidance, not on “no problems found”. Red never appears merely because a result is unavailable.</p>
+      <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">One exemption to Board A's R8, stated rather than assumed.</strong> Board A froze “nothing below 4.5:1” with no exception. <strong style="font-weight: 600; color: #111827;">Inactive controls are the exception</strong> — a disabled button's label may sit below 4.5:1, because that is how a control reads as unavailable, and WCAG 1.4.3 exempts text that is part of an inactive user-interface component. The condition: <strong style="font-weight: 600; color: #111827;">the same information must appear adjacent at full contrast.</strong> C3's disabled action is the only instance in this board, and it is paired with “Available once the topic reaches 7 words.” at 4.5:1+. A disabled control may never be the sole carrier of its own explanation.</p>
+    </div>
+    <div style="border: 1px solid #D6CEBE; background: #FFFFFF; padding: 20px 22px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">S3 · Iconography</div>
+      <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">None of these five states carries an icon.</strong> Position, an edge rule and a title do the work. Carried from Board A: warning glyphs are reserved for genuine system failure, and if C2 ever gains one it is the only state entitled to it. No illustrations, no mascots, no decorative empty-state art, no glyph-font or emoji icons.</p>
+    </div>
+    <div style="border: 1px solid #D6CEBE; background: #FFFFFF; padding: 20px 22px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">S4 · Copy</div>
+      <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;">Cause first, in three beats: <strong style="font-weight: 600; color: #111827;">what happened · what it means · what you can do</strong>. Never describe an operation that did not occur. Never assign fault to the user unless they hold it. <strong style="font-weight: 600; color: #111827;">No internal vocabulary in student-facing copy</strong> — no provider name, no “semantic analysis”, no status codes; those belong on administrator surfaces. One short title, one paragraph, and a next action only where one genuinely exists.</p>
+    </div>
+    <div style="border: 1px solid #D6CEBE; background: #FFFFFF; padding: 20px 22px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">S5 · Retry &amp; actions</div>
+      <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;">Retry <strong style="font-weight: 600; color: #111827;">repeats the failed operation</strong>; it never resets the workflow. It is a system action, so it rests in ink per Board A, never in approval green. Where the user's own filter caused the absence, reversing it is the primary action (“Clear all filters”). Where nothing is wrong, there is no primary action — C1 and C4a offer onward routes, not remedies.</p>
+    </div>
+    <div style="border: 1px solid #D6CEBE; background: #FFFFFF; padding: 20px 22px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">S6 · State preservation</div>
+      <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;">A recoverable failure is <strong style="font-weight: 600; color: #111827;">an interruption, not a new page</strong>. Entered values, page context and scroll position survive it. The captured 503 screen discards the student's topic and offers only “Check Another Topic” — so the <em>default</em> path destroys their work. Here the destructive path is never the default, and “Temporary browser state only” stays visible so the pre-check's promise is not quietly broken.</p>
+    </div>
+    <div style="border: 1px solid #D6CEBE; background: #FFFFFF; padding: 20px 22px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">S7 · Responsive</div>
+      <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;">The message sits <strong style="font-weight: 600; color: #111827;">where the content would have been</strong>, at both viewports — not centred in a dashed box. At 390: no clipping, no horizontal scroll, all actions ≥44px and stacked rather than wrapped, error text on the field, filter chips wrapping rather than scrolling. An empty state should be <em>shorter</em> than the content it replaces; if it scrolls, it is wrong.</p>
+    </div>
+    <div style="border: 1px solid #D6CEBE; background: #FFFFFF; padding: 20px 22px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">S8 · Scope discipline</div>
+      <p style="margin: 10px 0 0; font-size: 14.5px; line-height: 1.6; color: #4A554F;">Only states evidenced in captures or confirmed in source. <strong style="font-weight: 600; color: #111827;">Deliberately absent:</strong> loading skeletons (no capture shows a loading state), offline mode, retry queues, automatic provider fallback, any lexical or SBERT fallback, and any new workflow state. The nine other confirmed empty states inherit C4's pattern rather than getting bespoke designs.</p>
+    </div>
+  </div>
+</section>
+
+<section style="width: 1760px; padding: 52px 72px 60px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #0F2A22; color: #E8EEEA;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,.24);">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #D8C48A;">COMPARISON</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; color: #FFFFFF;">Five states, five meanings</h2>
+    <span style="font-size: 14.5px; color: #BFCFC7;">the two leftmost columns are what distinguish them</span>
+  </div>
+
+  <div style="margin-top: 26px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.2);">
+    <div style="display: grid; grid-template-columns: 190px 128px 150px 1fr 1fr 1.1fr; border-bottom: 1px solid rgba(255,255,255,.18);">
+      <div style="padding: 12px 16px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #8FA69B;">State</div>
+      <div style="padding: 12px 14px; border-left: 1px solid rgba(255,255,255,.18); font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #8FA69B;">Operation ran?</div>
+      <div style="padding: 12px 14px; border-left: 1px solid rgba(255,255,255,.18); font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #8FA69B;">Classification?</div>
+      <div style="padding: 12px 14px; border-left: 1px solid rgba(255,255,255,.18); font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #8FA69B;">Visual semantic</div>
+      <div style="padding: 12px 14px; border-left: 1px solid rgba(255,255,255,.18); font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #8FA69B;">Allowed action</div>
+      <div style="padding: 12px 14px; border-left: 1px solid rgba(255,255,255,.18); font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; color: #FFB4A8;">Prohibited implication</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 190px 128px 150px 1fr 1fr 1.1fr; border-bottom: 1px solid rgba(255,255,255,.12); font-size: 14px; line-height: 1.6;">
+      <div style="padding: 13px 16px; font-weight: 600; color: #FFFFFF;">Low similarity<div style="margin-top: 2px; font-weight: 400; font-size: 13px; color: #BFCFC7;">Board A · A3</div></div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #A7F3D0; font-weight: 600;">Yes</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #A7F3D0; font-weight: 600;">Yes — LOW</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">Neutral, lightest chip weight. Records listed, ranked, title at 500 weight.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">Continue to submission · refine the topic.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">Cleared · safe · original · approved · “no duplication found”. The comparison ran and found little; that is all.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 128px 150px 1fr 1fr 1.1fr; border-bottom: 1px solid rgba(255,255,255,.12); font-size: 14px; line-height: 1.6; background: rgba(216,196,138,.08);">
+      <div style="padding: 13px 16px; font-weight: 600; color: #FFFFFF;">Empty corpus<div style="margin-top: 2px; font-weight: 400; font-size: 13px; color: #BFCFC7;">C1</div></div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #FFD79A; font-weight: 600;">Request yes,<br>comparison no</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #FFB4A8; font-weight: 600;">No — none asserted</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">Neutral. <strong style="font-weight: 600; color: #FFFFFF;">Dashed</strong> chip, <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13px;">N/A</code> score, no record list.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">None required. Onward navigation only.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">That a comparison occurred · that low similarity was found · <strong style="font-weight: 600; color: #FFFFFF;">that the topic is novel</strong>. Also: never “no meaningful matches”.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 128px 150px 1fr 1fr 1.1fr; border-bottom: 1px solid rgba(255,255,255,.12); font-size: 14px; line-height: 1.6; background: rgba(216,196,138,.08);">
+      <div style="padding: 13px 16px; font-weight: 600; color: #FFFFFF;">Provider failure<div style="margin-top: 2px; font-weight: 400; font-size: 13px; color: #BFCFC7;">C2</div></div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #FFB4A8; font-weight: 600;">No</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #FFB4A8; font-weight: 600;">No</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;"><strong style="font-weight: 600; color: #FFFFFF;">Amber edge rule</strong> — the only warning colour in the system. Cause first; input retained below.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">Retry the same check · edit the proposal · escalate to an administrator.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;"><strong style="font-weight: 600; color: #FFFFFF;">That the user failed to do something</strong> · validation error · low similarity · rejection · that a fallback ran. No provider name.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 128px 150px 1fr 1fr 1.1fr; border-bottom: 1px solid rgba(255,255,255,.12); font-size: 14px; line-height: 1.6; background: rgba(216,196,138,.08);">
+      <div style="padding: 13px 16px; font-weight: 600; color: #FFFFFF;">Validation<div style="margin-top: 2px; font-weight: 400; font-size: 13px; color: #BFCFC7;">C3</div></div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #FFB4A8; font-weight: 600;">Not attempted</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #FFB4A8; font-weight: 600;">No</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">Red <strong style="font-weight: 600; color: #FFFFFF;">on the field only</strong>. Counter, remedy sentence, disabled action that explains itself.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">Correct the input. The action unlocks itself.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">System failure · a server error · that anything is broken. Also: no page-level red for ordinary incomplete input.</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 190px 128px 150px 1fr 1fr 1.1fr; font-size: 14px; line-height: 1.6; background: rgba(216,196,138,.08);">
+      <div style="padding: 13px 16px; font-weight: 600; color: #FFFFFF;">Empty record list<div style="margin-top: 2px; font-weight: 400; font-size: 13px; color: #BFCFC7;">C4a / C4b</div></div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #A7F3D0; font-weight: 600;">Yes</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">Not applicable —<br>no similarity involved</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">Neutral, left-aligned where the first row would be. <strong style="font-weight: 600; color: #FFFFFF;">C4a</strong> = no records exist. <strong style="font-weight: 600; color: #FFFFFF;">C4b</strong> = records may exist but none match the filters.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">C4a: onward routes. C4b: clear or change the filters.</div>
+      <div style="padding: 13px 14px; border-left: 1px solid rgba(255,255,255,.12); color: #BFCFC7;">Absence of similarity · <strong style="font-weight: 600; color: #FFFFFF;">that no records exist when only a filter is excluding them</strong> · and conversely, any hidden-record count the UI cannot verify.</div>
+    </div>
+  </div>
+</section>
+
+<section style="width: 1760px; padding: 52px 72px 72px; box-sizing: border-box; font-family: 'IBM Plex Sans', system-ui, sans-serif; background: #F8FAFC;">
+  <div style="display: flex; align-items: baseline; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid #0F2A22;">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #6F5518;">CURRENT vs PROPOSED</span>
+    <h2 style="margin: 0; font-family: 'Newsreader', Georgia, serif; font-weight: 400; font-size: 32px; line-height: 1.1; color: #0F2A22;">The two captured states</h2>
+  </div>
+
+  <div style="display: flex; gap: 24px; margin-top: 26px; align-items: stretch;">
+    <div style="flex: 1; border: 1px solid #D6CEBE; background: #FFFFFF;">
+      <div style="padding: 16px 22px; background: #FEF2F2; border-bottom: 1px solid #fecaca;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #b91c1c;">Provider unavailable · as captured</div>
+      </div>
+      <div style="padding: 18px 22px 20px;">
+        <div style="font-size: 14.5px; line-height: 1.7; color: #4A554F;">
+          <div style="padding: 9px 0; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Order:</strong> advisory callout → dashed <em>“Awaiting topic check — Complete the form…”</em> → small amber <em>“Semantic similarity unavailable”</em>.</div>
+          <div style="padding: 9px 0; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Attribution:</strong> the largest, highest message tells the user to complete a form they already completed.</div>
+          <div style="padding: 9px 0; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Their work:</strong> the submitted proposal is discarded from view.</div>
+          <div style="padding: 9px 0; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Only action:</strong> “Check Another Topic” — which throws the topic away.</div>
+          <div style="padding: 9px 0; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Copy:</strong> “Semantic analysis is currently unavailable” — honest, but internal vocabulary and no remedy.</div>
+          <div style="padding: 9px 0;"><strong style="font-weight: 600; color: #111827;">Shape:</strong> a dashed placeholder panel implies the check has not yet been attempted.</div>
+        </div>
+      </div>
+    </div>
+    <div style="flex: 1; border: 2px solid #0F2A22; background: #FFFFFF;">
+      <div style="padding: 16px 22px; background: #EDF3EF; border-bottom: 1px solid #C6D6CC;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #1E5142;">Provider unavailable · proposed</div>
+      </div>
+      <div style="padding: 18px 22px 20px;">
+        <div style="font-size: 14.5px; line-height: 1.7; color: #4A554F;">
+          <div style="padding: 9px 0; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Order:</strong> cause → meaning → actions → retained proposal. The placeholder panel is deleted from this state entirely.</div>
+          <div style="padding: 9px 0; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Attribution:</strong> “Nothing is wrong with your topic — this is a fault in the checking service.”</div>
+          <div style="padding: 9px 0; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Their work:</strong> title and all three context fields retained, with “not saved or submitted” still visible.</div>
+          <div style="padding: 9px 0; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Actions:</strong> retry the same check (primary, ink) · edit proposal · escalate. The destructive path is not the default.</div>
+          <div style="padding: 9px 0; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Copy:</strong> “Similarity checking is temporarily unavailable” — no provider, no status code, one real escalation.</div>
+          <div style="padding: 9px 0;"><strong style="font-weight: 600; color: #111827;">Shape:</strong> a 3px amber edge rule on a solid block — unmistakably a fault, not a pending result.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 24px; margin-top: 22px; align-items: stretch;">
+    <div style="flex: 1; border: 1px solid #D6CEBE; background: #FFFFFF;">
+      <div style="padding: 16px 22px; background: #FEF9F0; border-bottom: 1px solid #E5D9BC;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #92620a;">Empty corpus · as captured</div>
+      </div>
+      <div style="padding: 18px 22px 20px;">
+        <div style="font-size: 14.5px; line-height: 1.7; color: #4A554F;">
+          <div style="padding: 9px 0; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Strong already:</strong> <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">N/A</code> · “No Risk Classification” · <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">NOT CLASSIFIED</code> · neutral panel · explicit originality denial · page ends without filler.</div>
+          <div style="padding: 9px 0; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Wrong fact:</strong> a second panel reads “No meaningful matches were returned by this check” — describing a comparison that never ran.</div>
+          <div style="padding: 9px 0; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Wrong colour:</strong> that panel is mint-tinted, putting the approval hue on the state that most needs to avoid an all-clear reading.</div>
+          <div style="padding: 9px 0;"><strong style="font-weight: 600; color: #111827;">Redundant:</strong> the same absence is stated twice, in two panels.</div>
+        </div>
+      </div>
+    </div>
+    <div style="flex: 1; border: 2px solid #0F2A22; background: #FFFFFF;">
+      <div style="padding: 16px 22px; background: #EDF3EF; border-bottom: 1px solid #C6D6CC;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #1E5142;">Empty corpus · proposed</div>
+      </div>
+      <div style="padding: 18px 22px 20px;">
+        <div style="font-size: 14.5px; line-height: 1.7; color: #4A554F;">
+          <div style="padding: 9px 0; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Kept unchanged:</strong> all of the above. This state was already the semantic reference for the whole system and is not redesigned.</div>
+          <div style="padding: 9px 0; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Corrected fact:</strong> “No eligible stored topics are currently available for comparison, so no comparison could be made.” Boundary sentence retained verbatim: “This result does not establish that the topic is new or original.”</div>
+          <div style="padding: 9px 0; border-bottom: 1px solid #E2DCD0;"><strong style="font-weight: 600; color: #111827;">Corrected colour:</strong> mint removed; the whole state is neutral, and the chip border is dashed so “not classified” cannot read as a fourth band.</div>
+          <div style="padding: 9px 0;"><strong style="font-weight: 600; color: #111827;">Cause claim withdrawn:</strong> <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">corpus_size 0</code> reports that nothing was <em>eligible</em>, not why — so the copy states eligibility only and asserts no cause. The duplicate second panel is deleted.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 24px; padding: 18px 22px; background: #FFFFFF; border: 1px solid #C9A24D; max-width: 1616px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F5518;">What Board C does not settle</div>
+    <p style="margin: 9px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">Both of my over-claims are now withdrawn, not hedged.</strong> The empty-corpus cause line is gone: <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">corpus_size 0</code> reports that nothing was eligible, and an eligibility rule excluding every record yields the same zero as an unloaded repository — the system cannot tell which, so the copy states only eligibility. And C4b's hidden count has moved below a dashed rule as an optional enhancement, because I had inferred its availability from two chips in a screenshot rather than reading the data flow.</p>
+    <p style="margin: 9px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">The pattern in both mistakes is the same</strong> and worth naming: I reached for the most <em>helpful</em> sentence rather than the most <em>defensible</em> one. A cause the system does not know and a count the UI may not hold are both more useful than the honest alternative — which is exactly what makes them tempting, and exactly why an evidence-grade discipline has to apply to my own additions as strictly as to the existing build's claims.</p>
+    <p style="margin: 9px 0 0; font-size: 15px; line-height: 1.65; color: #4A554F;"><strong style="font-weight: 600; color: #111827;">C4 has no pixel baseline.</strong> Every captured list is populated, so unlike C1–C3 I could not compare against a rendered current state — only against the source strings and the <code style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">EmptyStatePanel</code> component I read in the v2 audit. A capture of any empty list would let me verify the geometry claim rather than assert it.</p>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1760,&quot;height&quot;:1100}}"></script>
+</body>
+</html>
