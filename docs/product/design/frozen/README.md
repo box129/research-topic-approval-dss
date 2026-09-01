@@ -76,15 +76,49 @@ authenticated-record/state principle. No other specification content changed.
 - audit v2: FROZEN
 - manifest.md: FROZEN
 - manifest.json: FROZEN
-- capture PNG pack: NOT YET CANONICAL
-- archive contains 27 authenticated capture PNGs
-- audit v2 references 28 real captures
-- image completeness verification required separately
+- authenticated capture PNG pack: FROZEN
+- authenticated capture PNG count: 28
+- unique PNG content hashes: 28
+- archive, manifests, and protected design-worktree filename sets: identical
+- ZIP ↔ design-worktree ↔ canonical PNG bytes: verified identical for all 28
 
-Authenticated capture images are not canonicalised in this import. The source
-archive contains 27 capture PNGs while the frozen audit references 28 captures.
-The image evidence set requires a separate completeness verification before
-canonical import.
+The authenticated capture pack is complete. A read-only forensic recount on
+2026-09-01 established that the previously recorded count of 27 was an archive
+inventory counting error. The source archive actually contains 28 authenticated
+capture PNGs, matching both manifests and audit v2.
+
+No capture was missing and no replacement capture was generated.
+
+The canonical pack lives in `authenticated-captures/` beside this README,
+copied byte-identically from the source archive. Its per-file hashes are
+recorded in `authenticated-capture-sha256.txt`, a derived integrity record
+generated during canonicalisation on 2026-09-01 — it is not an archive-source
+artefact.
+
+## Capture-count correction
+
+- Date: 2026-09-01
+- Previous README statement: archive contained 27 authenticated capture PNGs
+- Status: CORRECTED
+- Correct count: 28
+- Cause: manual grouping/counting error during the initial archive inventory
+- Evidence:
+  - manifest.md = 28 records
+  - manifest.json = 28 records
+  - ZIP = 28 PNGs / 28 unique hashes
+  - protected design worktree = same 28 filenames and hashes
+  - audit v2 = 28 physical capture files
+
+This correction changes provenance metadata only. It does not revise any Board
+A-D design decision or authenticated-workspace implementation rule.
+
+Audit v2 provenance note: audit v2 contains a non-substantive counting-unit
+inconsistency in Part 3: 12 audit table rows represent 15 physical PNG files
+because three rows cover desktop/mobile pairs. Its header and named unopened
+set resolve to 15 inspected files + 13 unopened files = 28 physical captures.
+The canonical manifests and capture pack define the physical-file inventory.
+The audit itself remains hash-frozen and unedited; this note is not a new
+design ruling.
 
 ## Excluded from this import
 
@@ -97,5 +131,3 @@ Deliberately excluded, with reasons:
   intermediate process documents.
 - .thumbnail, github.md, support.js — platform export residue.
 - uploads/variant_shots-*.png, uploads/variant-2-*.png — landing screenshots.
-- uploads/authenticated-captures/*.png — capture image pack pending the
-  completeness verification described above.
