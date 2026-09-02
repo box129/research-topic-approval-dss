@@ -5,6 +5,7 @@ import InfoCallout from '../../components/ui/InfoCallout';
 import SecondaryButton from '../../components/ui/SecondaryButton';
 import TopicForm from '../../components/features/TopicInput/TopicForm';
 import ResultsDisplay from '../../components/features/Results/ResultsDisplay';
+import SimilarityCheckUnavailable from '../../components/features/Results/SimilarityCheckUnavailable';
 
 function getSimilarityErrorMessage(err) {
   if (err.response) {
@@ -21,13 +22,16 @@ function getSimilarityErrorMessage(err) {
 
 function CheckMyTopicPage() {
   const [results, setResults] = useState(null);
-  const [semanticUnavailable, setSemanticUnavailable] = useState(null);
+  // Boolean only: the C2 surface is frontend-authored product language, so the
+  // backend failure message is detection input and is never rendered here.
+  const [semanticUnavailable, setSemanticUnavailable] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [checkedProposal, setCheckedProposal] = useState(null);
   const abortControllerRef = useRef(null);
   const topicInputRef = useRef(null);
   const errorAlertRef = useRef(null);
+  const unavailableRef = useRef(null);
   const [focusFreshForm, setFocusFreshForm] = useState(false);
 
   const handleSubmit = async (data) => {
@@ -38,14 +42,19 @@ function CheckMyTopicPage() {
     setIsLoading(true);
     setError('');
     setResults(null);
-    setSemanticUnavailable(null);
+    setSemanticUnavailable(false);
     setCheckedProposal(data);
 
     try {
       const response = await runSimilarityCheck(data, { signal: requestController.signal });
       if (abortControllerRef.current !== requestController) return false;
-      if (response.status === 'semantic_unavailable') setSemanticUnavailable(response.message);
-      else setResults(response.results);
+      if (response.status === 'semantic_unavailable') {
+        // The check did not run, so the input was not consumed: returning
+        // false keeps TopicForm from clearing the typed proposal.
+        setSemanticUnavailable(true);
+        return false;
+      }
+      setResults(response.results);
       return true;
     } catch (err) {
       if (requestController.signal.aborted || err.name === 'AbortError' || err.name === 'CanceledError' || axios.isCancel?.(err)) return false;
@@ -63,11 +72,30 @@ function CheckMyTopicPage() {
 
   const handleReset = () => {
     setResults(null);
-    setSemanticUnavailable(null);
+    setSemanticUnavailable(false);
     setError('');
     setCheckedProposal(null);
     setFocusFreshForm(true);
   };
+
+  // C2 recovery: retry repeats the failed check with the identical retained
+  // proposal; edit returns to the form seeded from that proposal. Neither
+  // resets the workflow and neither discards the student's work.
+  const handleRetry = () => {
+    if (checkedProposal) handleSubmit(checkedProposal);
+  };
+
+  const handleEditProposal = () => {
+    setSemanticUnavailable(false);
+    setFocusFreshForm(true);
+  };
+
+  useEffect(() => {
+    if (!semanticUnavailable) return undefined;
+
+    const animationFrame = requestAnimationFrame(() => unavailableRef.current?.focus());
+    return () => cancelAnimationFrame(animationFrame);
+  }, [semanticUnavailable]);
 
   useEffect(() => {
     if (!focusFreshForm || results) return undefined;
@@ -120,32 +148,24 @@ function CheckMyTopicPage() {
 
       {!results && !semanticUnavailable && (
         <section className={`${error ? 'block' : 'grid lg:grid-cols-[minmax(0,2fr)_minmax(16rem,1fr)]'} gap-6 border border-gray-200 bg-white p-4 shadow-sm sm:p-6`}>
-          <TopicForm appearance="student-checker" onSubmit={handleSubmit} isLoading={isLoading} compact={isLoading || Boolean(error)} topicInputRef={topicInputRef} />
+          <TopicForm appearance="student-checker" onSubmit={handleSubmit} isLoading={isLoading} compact={isLoading || Boolean(error)} topicInputRef={topicInputRef} initialValues={checkedProposal} />
           {!error && <aside aria-labelledby="check-context-title" className="border-t border-gray-200 pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
-            <h2 id="check-context-title" className="text-lg font-bold text-brand-green-dark">What this check considers</h2>
+            <h2 id="check-context-title" className="text-lg font-bold text-text-primary">What this check considers</h2>
             <dl className="mt-4 space-y-4 text-sm"><div><dt className="font-bold">Semantic topic representation</dt><dd className="mt-1 text-text-secondary">The title, population, location, and study focus when supplied.</dd></div><div><dt className="font-bold">Stored research-topic records</dt><dd className="mt-1 text-text-secondary">The most similar eligible records are returned for advisory review.</dd></div></dl>
             <p className="mt-5 border-t border-gray-200 pt-4 text-sm text-text-secondary">The result is evidence for review, not an academic decision.</p>
           </aside>}
         </section>
       )}
 
-      {!results && !error && !isLoading && (
-        <section className="rounded-2xl border border-dashed border-emerald-200 bg-white/75 px-5 py-5 text-center">
-          <h2 className="font-serif text-xl font-semibold text-brand-green-dark">
-            {isLoading ? 'Checking topic' : 'Awaiting topic check'}
-          </h2>
-          <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-text-secondary">
-            {isLoading
-              ? 'Your topic is being compared against existing records.'
-              : 'Complete the form to view advisory similarity guidance. Nothing is saved from this pre-check.'}
-          </p>
-        </section>
-      )}
-
       {semanticUnavailable && (
-        <section data-testid="semantic-unavailable" className="space-y-4">
-          <InfoCallout variant="warning" title="Semantic similarity unavailable" message={`${semanticUnavailable} No similarity classification can be provided until semantic analysis is available.`} />
-          <SecondaryButton type="button" onClick={handleReset} data-testid="reset-button">Check Another Topic</SecondaryButton>
+        <section
+          ref={unavailableRef}
+          tabIndex="-1"
+          role="alert"
+          data-testid="semantic-unavailable"
+          className="focus:outline-none"
+        >
+          <SimilarityCheckUnavailable proposal={checkedProposal} onRetry={handleRetry} onEdit={handleEditProposal} />
         </section>
       )}
 

@@ -107,8 +107,8 @@ describe('Lecturer PendingReviewsPage', () => {
     listLecturerPendingSubmissions.mockResolvedValue([]);
     renderPendingReviewsPage();
 
-    expect(await screen.findByText(/no pending reviews/i)).toBeInTheDocument();
-    expect(screen.getByText(/student submissions with pending review status/i)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'No pending reviews' })).toBeInTheDocument();
+    expect(screen.getByText(/no submissions are currently waiting for your review\. newly submitted topics assigned to you will appear here\./i)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /refresh queue/i }));
 
@@ -184,7 +184,7 @@ describe('Lecturer PendingReviewsPage', () => {
     );
   });
 
-  it('shows no-results state for search and filter mismatch', async () => {
+  it('shows the filtered-empty state for a search mismatch and restores rows on clear', async () => {
     const user = userEvent.setup();
     listLecturerPendingSubmissions.mockResolvedValue(pendingSubmissions);
     renderPendingReviewsPage();
@@ -193,9 +193,9 @@ describe('Lecturer PendingReviewsPage', () => {
 
     await user.type(screen.getByRole('searchbox', { name: /search queue/i }), 'nothing matches this');
 
-    expect(screen.getByText(/no matching pending reviews/i)).toBeInTheDocument();
+    expect(screen.getByText('No pending reviews match these filters.')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /clear filters/i }));
+    await user.click(screen.getByRole('button', { name: /clear all filters/i }));
 
     expect(screen.getByText(/assessment of malaria prevention awareness/i)).toBeInTheDocument();
   });
@@ -233,5 +233,158 @@ describe('Lecturer PendingReviewsPage', () => {
     expect(screen.queryByRole('navigation', { name: /pagination/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/risk labels/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/score summaries/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('Lecturer PendingReviewsPage — Board C C4 absence states', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  function expectNoDashedCentredPanel(container) {
+    // The generic EmptyStatePanel geometry (dashed, centred, p-8 card) must
+    // not carry either queue absence.
+    const dashedPanels = [...container.querySelectorAll('[class*="border-dashed"]')]
+      .filter((node) => node.className.includes('p-8') || node.className.includes('text-center'));
+    expect(dashedPanels).toHaveLength(0);
+  }
+
+  it('C4a genuine empty renders the queue shell with truthful copy and no filter language', async () => {
+    listLecturerPendingSubmissions.mockResolvedValue([]);
+    renderPendingReviewsPage();
+
+    const section = await screen.findByTestId('pending-empty');
+    expect(section).toHaveTextContent('Review queue');
+    expect(screen.getByRole('heading', { name: 'No pending reviews' })).toBeInTheDocument();
+    expect(section).toHaveTextContent('No submissions are currently waiting for your review. Newly submitted topics assigned to you will appear here.');
+
+    expect(section.textContent).not.toMatch(/filter|match|search/i);
+    expect(section.textContent).not.toMatch(/wrong|fail|error|unavailable/i);
+    expect(section.textContent).not.toMatch(/similarity|original|unique/i);
+    expectNoDashedCentredPanel(section);
+  });
+
+  it('C4a hides filter controls and keeps the summary counts at 0 / 0', async () => {
+    listLecturerPendingSubmissions.mockResolvedValue([]);
+    renderPendingReviewsPage();
+
+    await screen.findByTestId('pending-empty');
+    expect(screen.queryByRole('searchbox', { name: /search queue/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('combobox', { name: /category/i })).not.toBeInTheDocument();
+    const chipText = (expected) => (content, element) => element.tagName === 'P' && element.textContent.replace(/\s+/g, ' ').trim() === expected;
+    expect(screen.getByText(chipText('Pending reviews 0'))).toBeInTheDocument();
+    expect(screen.getByText(chipText('Visible after filters 0'))).toBeInTheDocument();
+  });
+
+  it('C4a offers Refresh Queue as a secondary utility and neutral onward routes', async () => {
+    const user = userEvent.setup();
+    listLecturerPendingSubmissions.mockResolvedValue([]);
+    renderPendingReviewsPage();
+
+    const section = await screen.findByTestId('pending-empty');
+    const refresh = screen.getByRole('button', { name: /refresh queue/i });
+    expect(refresh.className).toContain('border-border-strong');
+    expect(refresh.className).not.toContain('bg-brand-green');
+
+    expect(screen.getByRole('button', { name: 'View my decisions' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'View supervisees' })).toBeInTheDocument();
+    // No primary "fix this" action exists in a state where nothing is wrong.
+    expect(section.querySelector('[class*="bg-brand-green"]')).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: 'View my decisions' }));
+    expect(screen.getByTestId('location-display')).toHaveTextContent('/lecturer/my-decisions');
+  });
+
+  it('C4a routes to supervisees via the existing route', async () => {
+    const user = userEvent.setup();
+    listLecturerPendingSubmissions.mockResolvedValue([]);
+    renderPendingReviewsPage();
+
+    await screen.findByTestId('pending-empty');
+    await user.click(screen.getByRole('button', { name: 'View supervisees' }));
+    expect(screen.getByTestId('location-display')).toHaveTextContent('/lecturer/supervisees');
+  });
+
+  it('C4b renders the frozen filtered-empty copy while filter controls stay visible', async () => {
+    const user = userEvent.setup();
+    listLecturerPendingSubmissions.mockResolvedValue(pendingSubmissions);
+    renderPendingReviewsPage();
+
+    expect(await screen.findByText(/assessment of malaria prevention awareness/i)).toBeInTheDocument();
+    await user.type(screen.getByRole('searchbox', { name: /search queue/i }), 'nutrition');
+
+    const section = screen.getByTestId('pending-filtered-empty');
+    expect(screen.getByText('No pending reviews match these filters.')).toBeInTheDocument();
+    expect(section).toHaveTextContent('Submissions may be waiting for your review but excluded by the search term or category above. Clear or change the filters to see them.');
+    expect(section).toHaveTextContent('2 pending reviews · 0 shown');
+
+    expect(screen.getByRole('searchbox', { name: /search queue/i })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /category/i })).toBeInTheDocument();
+    // Never claims the source collection is empty.
+    expect(section.textContent).not.toMatch(/no submissions are currently waiting/i);
+    expect(screen.queryByTestId('pending-empty')).not.toBeInTheDocument();
+    expectNoDashedCentredPanel(section);
+  });
+
+  it('C4b shows the active filters as removable chips of at least 32px targets', async () => {
+    const user = userEvent.setup();
+    listLecturerPendingSubmissions.mockResolvedValue(pendingSubmissions);
+    renderPendingReviewsPage();
+
+    expect(await screen.findByText(/assessment of malaria prevention awareness/i)).toBeInTheDocument();
+    await user.type(screen.getByRole('searchbox', { name: /search queue/i }), 'zzz-no-match');
+    await user.selectOptions(screen.getByRole('combobox', { name: /category/i }), 'Public Health');
+
+    const searchChip = screen.getByRole('button', { name: /remove search filter zzz-no-match/i });
+    const categoryChip = screen.getByRole('button', { name: /remove category filter public health/i });
+    expect(searchChip.className).toContain('min-h-8');
+    expect(categoryChip.className).toContain('min-h-8');
+
+    await user.click(categoryChip);
+    expect(screen.queryByRole('button', { name: /remove category filter/i })).not.toBeInTheDocument();
+    expect(screen.getByTestId('pending-filtered-empty')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /remove search filter/i }));
+    expect(await screen.findByText(/assessment of malaria prevention awareness/i)).toBeInTheDocument();
+  });
+
+  it('C4b Clear all filters restores rows without resetting the sort order', async () => {
+    const user = userEvent.setup();
+    listLecturerPendingSubmissions.mockResolvedValue(pendingSubmissions);
+    renderPendingReviewsPage();
+
+    expect(await screen.findByText(/assessment of malaria prevention awareness/i)).toBeInTheDocument();
+    await user.selectOptions(screen.getByRole('combobox', { name: /sort/i }), 'newest');
+    await user.type(screen.getByRole('searchbox', { name: /search queue/i }), 'zzz-no-match');
+
+    expect(screen.getByTestId('pending-filtered-empty')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /clear all filters/i }));
+
+    expect(await screen.findByText(/assessment of malaria prevention awareness/i)).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /sort/i })).toHaveValue('newest');
+    expect(screen.getByRole('searchbox', { name: /search queue/i })).toHaveValue('');
+  });
+
+  it('C4b derives the truthful hidden count from the loaded collection', async () => {
+    const user = userEvent.setup();
+    listLecturerPendingSubmissions.mockResolvedValue(pendingSubmissions);
+    renderPendingReviewsPage();
+
+    expect(await screen.findByText(/assessment of malaria prevention awareness/i)).toBeInTheDocument();
+    await user.type(screen.getByRole('searchbox', { name: /search queue/i }), 'zzz-no-match');
+
+    expect(screen.getByTestId('hidden-count')).toHaveTextContent('2 submissions are pending review but hidden by these filters.');
+  });
+
+  it('C4b pluralises the hidden count truthfully for a single record', async () => {
+    const user = userEvent.setup();
+    listLecturerPendingSubmissions.mockResolvedValue([pendingSubmissions[0]]);
+    renderPendingReviewsPage();
+
+    expect(await screen.findByText(/assessment of malaria prevention awareness/i)).toBeInTheDocument();
+    await user.type(screen.getByRole('searchbox', { name: /search queue/i }), 'zzz-no-match');
+
+    expect(screen.getByTestId('hidden-count')).toHaveTextContent('1 submission is pending review but hidden by these filters.');
+    expect(screen.getByTestId('pending-filtered-empty')).toHaveTextContent('1 pending review · 0 shown');
   });
 });

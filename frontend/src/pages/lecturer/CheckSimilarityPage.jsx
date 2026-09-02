@@ -15,6 +15,10 @@ function CheckSimilarityPage() {
   const [error, setError] = useState(null);
   const abortControllerRef = useRef(null);
 
+  // Return contract: true only when a real similarity result succeeds; false
+  // on every other path (semantic unavailable, generic failure, cancellation,
+  // stale response, invalid format). TopicForm clears its fields only on true,
+  // so a failed check can never discard the lecturer's typed proposal.
   const handleSubmit = async (data) => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -26,28 +30,28 @@ function CheckSimilarityPage() {
     setIsLoading(true);
     setError(null);
     setResults(null);
-    setSemanticUnavailable(null);
+    setSemanticUnavailable(false);
 
     try {
       const response = await runSimilarityCheck(data, { signal: requestController.signal });
 
       await new Promise(resolve => setTimeout(resolve, 300));
-      if (abortControllerRef.current !== requestController) return;
+      if (abortControllerRef.current !== requestController) return false;
 
       if (response.status === 'semantic_unavailable') {
-        setSemanticUnavailable(response.message);
-        return;
+        setSemanticUnavailable(true);
+        return false;
       }
 
       if (response.status === 'success' && response.semanticAvailable === true) {
         setResults(response.results);
-        return;
+        return true;
       }
       throw new Error('Invalid semantic similarity response format from server');
     } catch (err) {
       if (err.name === 'AbortError') {
         console.info('Similarity check was cancelled');
-        return;
+        return false;
       }
 
       let errorMessage = 'An error occurred while checking similarity';
@@ -68,6 +72,7 @@ function CheckSimilarityPage() {
         status: err.response?.status,
         timestamp: new Date().toISOString()
       });
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +80,7 @@ function CheckSimilarityPage() {
 
   const handleReset = () => {
     setResults(null);
-    setSemanticUnavailable(null);
+    setSemanticUnavailable(false);
     setError(null);
   };
 
@@ -129,8 +134,10 @@ function CheckSimilarityPage() {
 
             {semanticUnavailable && (
               <div data-testid="semantic-unavailable" className="space-y-4">
-                <InfoCallout variant="warning" title="Semantic similarity unavailable" message={`${semanticUnavailable} No similarity classification can be provided until semantic analysis is available.`} />
-                <SecondaryButton type="button" onClick={handleReset} data-testid="reset-button">Check Another Topic</SecondaryButton>
+                <InfoCallout variant="warning" title="Check could not run" message="Similarity checking is temporarily unavailable. Your topic remains in the form so you can try again." />
+                {/* Truthful action semantics: this only dismisses the failure
+                    message — the typed proposal stays in the form untouched. */}
+                <SecondaryButton type="button" onClick={handleReset} data-testid="dismiss-unavailable">Dismiss</SecondaryButton>
               </div>
             )}
 
