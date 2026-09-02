@@ -214,7 +214,7 @@ describe('lecturer revision review', () => {
       .toHaveTextContent(/narrow the population and state the study design/i);
     expect(within(context).getByTestId('revision-current-title'))
       .toHaveTextContent(/revised assessment of malaria prevention awareness in rural schools/i);
-    expect(screen.getByText(/^Revised topic$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^Lecturer review · revised topic$/i)).toBeInTheDocument();
   });
 
   it('identifies the student by matric and omits an absent email', async () => {
@@ -319,6 +319,6 @@ describe('lecturer revision review', () => {
 
     await screen.findByText('PHS/22/0042');
     expect(screen.queryByTestId('lecturer-revision-context')).not.toBeInTheDocument();
-    expect(screen.getByText(/^Submitted topic$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^Lecturer review · submitted topic$/i)).toBeInTheDocument();
   });
 });

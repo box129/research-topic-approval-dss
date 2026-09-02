@@ -179,37 +179,46 @@ describe('Lecturer SubmissionDetailPage', () => {
     listLecturerSubmissionSimilaritySnapshots.mockResolvedValue([]);
     renderDetailPage();
 
-    expect(await screen.findByText(/no saved similarity checks/i)).toBeInTheDocument();
+    // The wording appears both as the history summary line and the callout
+    // title — both are correct, so assert presence rather than uniqueness.
+    expect((await screen.findAllByText(/no saved similarity checks/i)).length).toBeGreaterThan(0);
     expect(screen.getByText(/no similarity checks have been saved/i)).toBeInTheDocument();
   });
 
-  it('renders snapshot history with risk, checked-by, date, recorded score, tier counts, and recommendation', async () => {
+  it('renders snapshot history as a register row with recorded classification, stored score, tiers, and disclosure detail', async () => {
+    const user = userEvent.setup();
     getLecturerSubmission.mockResolvedValue(pendingSubmission);
     listLecturerSubmissionSimilaritySnapshots.mockResolvedValue([snapshot]);
     renderDetailPage();
 
-    expect(await screen.findByText(/review the high overlap/i)).toBeInTheDocument();
-    expect(screen.getByText(/^HIGH$/i)).toBeInTheDocument();
-    expect(screen.getByText(/checked by dr\. similarity/i)).toBeInTheDocument();
-    expect(screen.getByText(/similarity@uniosun\.edu\.ng/i)).toBeInTheDocument();
-    expect(screen.getByText(/may 21, 2026/i)).toBeInTheDocument();
+    expect(await screen.findByText(/assessment of malaria prevention awareness/i)).toBeInTheDocument();
+
+    // The pending register sits behind a keyboard-operable disclosure.
+    await user.click(screen.getByTestId('show-register'));
+
+    const row = screen.getByTestId('register-row-7');
+    expect(row).toBeInTheDocument();
+    expect(screen.getByTestId('register-checked-7')).toHaveTextContent(/may 21, 2026/i);
+    // The stored classification is preserved but labelled as recorded
+    // historical metadata, not presented as a current classification.
+    expect(screen.getByTestId('snapshot-recorded-classification-7')).toHaveTextContent(/recorded/i);
+    expect(within(row).getByText(/^HIGH$/)).toBeInTheDocument();
     // The fixture carries no scoring-contract marker, so its stored value is
     // shown as recorded — never as a percentage and never as current cosine.
-    const scoreCard = screen.getByTestId('snapshot-score-7');
-    expect(scoreCard).toHaveTextContent('Recorded score: 87.45');
-    expect(scoreCard).not.toHaveTextContent('%');
-    expect(scoreCard).not.toHaveTextContent('Max similarity');
+    const scoreCell = screen.getByTestId('snapshot-score-7');
+    expect(scoreCell).toHaveTextContent('87.45');
+    expect(scoreCell).not.toHaveTextContent('%');
+    expect(scoreCell).not.toHaveTextContent('cosine');
+    expect(screen.getByTestId('register-tiers-7')).toHaveTextContent('Historical 2 · current 1 · under review 3');
+
+    await user.click(screen.getByTestId('register-toggle-7'));
+    const details = screen.getByTestId('register-details-7');
+    expect(within(details).getAllByText(/checked by dr\. similarity/i).length).toBeGreaterThan(0);
+    expect(within(details).getAllByText(/similarity@uniosun\.edu\.ng/i).length).toBeGreaterThan(0);
+    expect(within(details).getByText(/review the high overlap/i)).toBeInTheDocument();
     expect(screen.getByTestId('snapshot-contract-note-7')).toHaveTextContent(
       /historical scoring contract not recorded/i
     );
-    // The stored classification is preserved but labelled as recorded
-    // historical metadata, not presented as a current classification.
-    expect(screen.getByTestId('snapshot-recorded-classification-7')).toHaveTextContent(
-      /recorded classification/i
-    );
-    expect(screen.getByText(/historical: 2/i)).toBeInTheDocument();
-    expect(screen.getByText(/current session: 1/i)).toBeInTheDocument();
-    expect(screen.getByText(/under review: 3/i)).toBeInTheDocument();
   });
 
   it('shows snapshot load error and retry', async () => {
@@ -226,7 +235,10 @@ describe('Lecturer SubmissionDetailPage', () => {
 
     await user.click(screen.getByRole('button', { name: /try again/i }));
 
-    expect(await screen.findByText(/review the high overlap/i)).toBeInTheDocument();
+    // The retry resolves the register data: the summary and its disclosure
+    // appear (the row content itself sits behind Show register on pending).
+    expect(await screen.findByTestId('show-register')).toBeInTheDocument();
+    expect(screen.getByTestId('history-summary')).toHaveTextContent('1 saved check');
     expect(listLecturerSubmissionSimilaritySnapshots).toHaveBeenCalledTimes(2);
   });
 
@@ -241,7 +253,7 @@ describe('Lecturer SubmissionDetailPage', () => {
 
     expect(await screen.findByText(/assessment of malaria prevention awareness/i)).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /run similarity check/i }));
+    await user.click(screen.getByRole('button', { name: /run a new check/i }));
 
     expect(await screen.findByTestId('results-display')).toBeInTheDocument();
     expect(runLecturerSubmissionSimilarityCheck).toHaveBeenCalledWith(42);
@@ -264,12 +276,12 @@ describe('Lecturer SubmissionDetailPage', () => {
 
     expect(await screen.findByText(/assessment of malaria prevention awareness/i)).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /run similarity check/i }));
+    await user.click(screen.getByRole('button', { name: /run a new check/i }));
     expect(screen.getByText(/running similarity check/i)).toBeInTheDocument();
     resolveCheck(buildSimilarityResponse());
     expect(await screen.findByTestId('results-display')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /run similarity check/i }));
+    await user.click(screen.getByRole('button', { name: /run a new check/i }));
     expect(await screen.findByText(/similarity service failed/i)).toBeInTheDocument();
   });
 
@@ -372,17 +384,26 @@ describe('Lecturer SubmissionDetailPage', () => {
     });
   });
 
-  it('disables decision actions for non-pending submissions and displays stored lecturer rationale', async () => {
+  it('leads a terminal record with the recorded decision and renders no decision controls at all', async () => {
     getLecturerSubmission.mockResolvedValue(approvedSubmission);
     listLecturerSubmissionSimilaritySnapshots.mockResolvedValue([]);
     renderDetailPage();
 
-    expect(await screen.findByText(/approved after review/i)).toBeInTheDocument();
-    expect(screen.getByText(/actions are disabled/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^approve$/i })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /request revision/i })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /^reject$/i })).toBeDisabled();
-    expect(screen.getByText(/decided by dr\. lecturer/i)).toBeInTheDocument();
+    const decision = await screen.findByTestId('recorded-decision');
+    expect(within(decision).getByTestId('decision-outcome')).toHaveTextContent('Approved');
+    expect(within(decision).getByTestId('decision-meta')).toHaveTextContent(/by dr\. lecturer on/i);
+    expect(within(decision).getByTestId('decision-rationale-text')).toHaveTextContent(/approved after review/i);
+    expect(within(decision).getByTestId('terminal-note')).toHaveTextContent(
+      'This submission is no longer pending review, so no further decision can be recorded here.'
+    );
+
+    // The disabled buttons are gone entirely — a control that cannot be used
+    // is not information — and the obsolete wording that described them is
+    // gone with them.
+    expect(screen.queryByRole('button', { name: /^approve$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /request revision/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^reject$/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/actions are disabled/i)).not.toBeInTheDocument();
   });
 
   it('does not call unrelated endpoints or invent fake risk, snapshot, or decision data', async () => {
