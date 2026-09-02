@@ -135,7 +135,9 @@ function CheckSimilarityPage() {
             {semanticUnavailable && (
               <div data-testid="semantic-unavailable" className="space-y-4">
                 <InfoCallout variant="warning" title="Check could not run" message="Similarity checking is temporarily unavailable. Your topic remains in the form so you can try again." />
-                <SecondaryButton type="button" onClick={handleReset} data-testid="reset-button">Check Another Topic</SecondaryButton>
+                {/* Truthful action semantics: this only dismisses the failure
+                    message — the typed proposal stays in the form untouched. */}
+                <SecondaryButton type="button" onClick={handleReset} data-testid="dismiss-unavailable">Dismiss</SecondaryButton>
               </div>
             )}
 

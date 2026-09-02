@@ -336,6 +336,28 @@ describe('Lecturer CheckSimilarityPage — Board C field retention and plain-lan
     expect(screen.getByPlaceholderText(/enter your research topic/i)).toHaveValue('');
   });
 
+  it('semantic-unavailable offers a truthful Dismiss action that preserves the typed proposal', async () => {
+    const user = userEvent.setup();
+    axios.post.mockRejectedValueOnce({
+      response: { status: 503, data: buildFypResponse({ status: 'semantic_unavailable' }).data }
+    });
+    renderCheckSimilarityPage();
+
+    await submitTopic(user);
+
+    const panel = await screen.findByTestId('semantic-unavailable');
+    expectTypedProposalRetained();
+    // The action only dismisses the failure message, so it must not claim to
+    // start over: "Check Another Topic" would be a false label here.
+    expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
+    expect(panel).not.toHaveTextContent('Check Another Topic');
+
+    await user.click(screen.getByRole('button', { name: 'Dismiss' }));
+
+    expect(screen.queryByTestId('semantic-unavailable')).not.toBeInTheDocument();
+    expectTypedProposalRetained();
+  });
+
   it('lecturer semantic-unavailable copy is plain similarity-check language without internal vocabulary', async () => {
     const user = userEvent.setup();
     axios.post.mockRejectedValueOnce({
