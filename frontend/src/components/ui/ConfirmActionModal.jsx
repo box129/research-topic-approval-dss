@@ -3,9 +3,17 @@ import PropTypes from 'prop-types';
 import PrimaryButton from './PrimaryButton';
 import SecondaryButton from './SecondaryButton';
 
+// Non-default variants override PrimaryButton's base background. The
+// important modifier makes the override independent of generated-CSS order —
+// without it the variant and the base both land in the class attribute and
+// the winner is stylesheet luck.
 const VARIANT_CLASSES = {
   default: 'bg-brand-green hover:bg-brand-green-dark',
-  danger: 'bg-feedback-danger hover:bg-red-800'
+  danger: 'bg-feedback-danger! hover:bg-red-800!',
+  // Confirming a revision request is a revision action, not an approval, so
+  // the confirm control carries amber/revision semantics rather than
+  // inheriting the approve-green default (audit N-4 / frozen Board B).
+  revision: 'bg-brand-gold-dark! hover:bg-amber-800!'
 };
 
 function ConfirmActionModal({
@@ -111,7 +119,7 @@ ConfirmActionModal.propTypes = {
   onCancel: PropTypes.func.isRequired,
   onConfirm: PropTypes.func.isRequired,
   title: PropTypes.string.isRequired,
-  variant: PropTypes.oneOf(['default', 'danger'])
+  variant: PropTypes.oneOf(['default', 'danger', 'revision'])
 };
 
 export default ConfirmActionModal;

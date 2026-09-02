@@ -54,7 +54,7 @@ describe('SubmissionDetailPage semantic-unavailable transport contract', () => {
     render(<MemoryRouter initialEntries={['/lecturer/pending-reviews/42']}><Routes><Route path="/lecturer/pending-reviews/:topicId" element={<SubmissionDetailPage />} /></Routes></MemoryRouter>);
     expect(await screen.findByText(/assessment of malaria prevention awareness/i)).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /run similarity check/i }));
+    await user.click(screen.getByRole('button', { name: /run a new check/i }));
 
     expect(await screen.findByText(/semantic similarity unavailable/i)).toBeInTheDocument();
     expect(screen.queryByText(/similarity check failed/i)).not.toBeInTheDocument();

@@ -94,6 +94,39 @@ describe('Lecturer similarity wrapper route', () => {
     });
   });
 
+  // Test-only contract pin (Board B / N-2): the product deliberately supports
+  // running and persisting a similarity check on a decided submission. No
+  // status guard exists on this route by design — a post-decision check
+  // records additional advisory evidence and never touches the decision.
+  // This pins the currently supported behaviour without changing any product
+  // code; removing the capability now requires a deliberate contract change.
+  test.each([
+    ['approved'],
+    ['rejected'],
+    ['awaiting_revision']
+  ])('a terminal %s submission can still run a similarity check and persist its snapshot', async (status) => {
+    authService.authenticateToken.mockResolvedValue(lecturerUser);
+    submissionService.getLecturerSubmission.mockResolvedValue({
+      id: 9,
+      title: 'Factors influencing malaria prevention practices among undergraduate students in Osogbo',
+      keywords: 'malaria, prevention, undergraduate students, Osogbo',
+      status
+    });
+
+    const response = await request(app)
+      .post('/api/v1/lecturer/submissions/9/similarity-check')
+      .set('Cookie', ['rtadss_session=signed-lecturer-token'])
+      .expect(200);
+
+    expect(response.body.status).toBe('success');
+    expect(similaritySnapshotService.createSnapshotFromSimilarityResponse).toHaveBeenCalledWith({
+      submissionId: 9,
+      checkedById: lecturerUser.id,
+      similarityResponse: response.body
+    });
+    expect(submissionService.updateLecturerSubmissionStatus).not.toHaveBeenCalled();
+  });
+
   test('wrapper uses submission title and keywords for the similarity request', async () => {
     authService.authenticateToken.mockResolvedValue(lecturerUser);
     submissionService.getLecturerSubmission.mockResolvedValue({
