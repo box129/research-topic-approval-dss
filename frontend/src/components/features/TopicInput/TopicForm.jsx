@@ -40,13 +40,16 @@ const sanitizeInput = (text) => {
  * @param {Function} props.onSubmit - Callback function when form is submitted
  * @param {boolean} props.isLoading - Loading state during API call
  */
-const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default', compact = false, topicInputRef }) => {
-  const [topic, setTopic] = useState('');
+const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default', compact = false, topicInputRef, initialValues = null }) => {
+  // initialValues seeds the checker fields once, on mount only — it restores a
+  // retained proposal when the user chooses "Edit proposal" after a failed
+  // check. Prop changes after mount never overwrite what the user types.
+  const [topic, setTopic] = useState(initialValues?.topic ?? '');
   const [keywords, setKeywords] = useState('');
   const [category, setCategory] = useState('');
-  const [population, setPopulation] = useState('');
-  const [location, setLocation] = useState('');
-  const [studyFocus, setStudyFocus] = useState('');
+  const [population, setPopulation] = useState(initialValues?.population ?? '');
+  const [location, setLocation] = useState(initialValues?.location ?? '');
+  const [studyFocus, setStudyFocus] = useState(initialValues?.studyFocus ?? '');
   const [submissionError, setSubmissionError] = useState('');
   const isCheckerShell = ['student-checker', 'lecturer-checker'].includes(appearance);
   const isLecturerChecker = appearance === 'lecturer-checker';
@@ -84,7 +87,9 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default', compac
         borderColor = 'border-red-500';
         message = `Too long: ${wordCount} words (maximum ${MAX_WORDS})`;
       } else {
-        borderColor = 'border-green-500';
+        // Checker appearances rest neutral on a valid length: guidance is not
+        // success, so green never marks "no problems found" there (Board C S2).
+        borderColor = isCheckerShell ? 'border-gray-300' : 'border-green-500';
         message = 'Valid topic length';
       }
     }
@@ -227,9 +232,9 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default', compac
               <span id="topic-validation" className={`
                 font-medium
                 ${topic.trim() && (validation.wordCount < MIN_WORDS || validation.wordCount > MAX_WORDS)
-                  ? 'text-red-600' 
-                  : validation.wordCount > 0 
-                    ? 'text-green-600' 
+                  ? 'text-red-600'
+                  : validation.wordCount > 0
+                    ? (isCheckerShell ? 'text-text-secondary' : 'text-green-600')
                     : 'text-gray-500'
                 }
               `}>
@@ -242,7 +247,7 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default', compac
                 ${topic.trim() && (validation.wordCount < MIN_WORDS || validation.wordCount > MAX_WORDS)
                   ? 'text-red-600'
                   : validation.wordCount > 0
-                    ? 'text-green-600'
+                    ? (isCheckerShell ? 'text-text-secondary' : 'text-green-600')
                     : 'text-gray-500'
                 }
               `}>
@@ -250,27 +255,39 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default', compac
               </span>
             </div>
 
-            {/* Character Count */}
-            <div id="topic-guidance" className={`${compact ? 'hidden' : 'flex'} items-center justify-between text-sm`}>
-              <span className={`
-                ${!validation.isCharCountInGuideline && validation.charCount > 0
-                  ? 'text-yellow-600' 
-                  : 'text-gray-500'
-                }
-              `}>
-                {!validation.isCharCountInGuideline && validation.charCount > 0
-                  ? 'Character count outside guideline (50-180 chars recommended)'
-                  : 'Character count guideline: 50-180 chars'
-                }
-              </span>
-              <span className={`
-                ${!validation.isCharCountInGuideline && validation.charCount > 0
-                  ? 'text-yellow-600' 
-                  : 'text-gray-500'
-                }
-              `}>
-                {validation.charCount} chars
-              </span>
+            {/* Character Count — advisory guideline only, never blocking. The
+                out-of-guideline colour is brand-gold-dark (#b45309, ≥4.5:1);
+                checker appearances also state a remedy, not just the rule. */}
+            <div id="topic-guidance" className={`${compact ? 'hidden' : 'block'} text-sm`}>
+              <div className="flex items-center justify-between">
+                <span className={`
+                  ${!validation.isCharCountInGuideline && validation.charCount > 0
+                    ? 'text-brand-gold-dark'
+                    : 'text-gray-500'
+                  }
+                `}>
+                  {!validation.isCharCountInGuideline && validation.charCount > 0
+                    ? 'Character count outside guideline (50-180 chars recommended)'
+                    : 'Character count guideline: 50-180 chars'
+                  }
+                </span>
+                <span className={`
+                  ${!validation.isCharCountInGuideline && validation.charCount > 0
+                    ? 'text-brand-gold-dark'
+                    : 'text-gray-500'
+                  }
+                `}>
+                  {validation.charCount} chars
+                </span>
+              </div>
+              {/* Condition = amber above; remedy = neutral guidance here. */}
+              {isCheckerShell && validation.charCount > 0 && validation.charCount < MIN_CHARS_GUIDELINE && (
+                <p className="mt-1 text-text-secondary">
+                  {validation.wordCount > 0 && validation.wordCount < MIN_WORDS
+                    ? `Add at least ${MIN_WORDS - validation.wordCount} more word${MIN_WORDS - validation.wordCount === 1 ? '' : 's'} describing the population, location or study focus — for example who the study is about and where.`
+                    : 'Consider adding detail about the population, location or study focus.'}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -367,10 +384,14 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default', compac
           </div>
         )}
 
-        {/* Submit Button */}
+        {/* Submit Button. While the topic is below the minimum, a full-contrast
+            reason sits immediately beside the disabled control — the greyed
+            label is never the sole explanation (Board C S2 exemption). */}
+        <div>
         {!(isLoading && appearance === 'student-checker') && <button
           type="submit"
           disabled={!validation.isValid || isLoading}
+          aria-describedby={isCheckerShell && !isLoading && validation.wordCount < MIN_WORDS ? 'submit-availability' : undefined}
           className={`flex
             w-full py-3 px-6 rounded-lg font-medium text-white
             transition-all duration-200
@@ -412,11 +433,17 @@ const TopicForm = ({ onSubmit, isLoading = false, appearance = 'default', compac
             'Check Similarity'
           )}
         </button>}
+        {isCheckerShell && !isLoading && validation.wordCount < MIN_WORDS && (
+          <p id="submit-availability" className="mt-2 text-sm leading-6 text-text-secondary">
+            Available once the topic reaches {MIN_WORDS} words.
+          </p>
+        )}
+        </div>
 
         {/* Help Text */}
         {isCheckerShell ? (!compact && (
-          <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 px-4 py-3 text-sm leading-6 text-text-secondary">
-            <p className="font-semibold text-[#1B5E20]">Validation benchmark</p>
+          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm leading-6 text-text-secondary">
+            <p className="font-semibold text-text-primary">Validation benchmark</p>
             <p className="whitespace-normal break-keep text-left tracking-normal hyphens-none [word-spacing:normal]">
               {isLecturerChecker
                 ? 'Use 7-24 clear words. Population, location, and study focus are included when supplied.'
@@ -446,7 +473,13 @@ TopicForm.propTypes = {
   isLoading: PropTypes.bool,
   appearance: PropTypes.oneOf(['default', 'student-checker', 'lecturer-checker']),
   compact: PropTypes.bool,
-  topicInputRef: PropTypes.shape({ current: PropTypes.object })
+  topicInputRef: PropTypes.shape({ current: PropTypes.object }),
+  initialValues: PropTypes.shape({
+    topic: PropTypes.string,
+    population: PropTypes.string,
+    location: PropTypes.string,
+    studyFocus: PropTypes.string
+  })
 };
 
 export default TopicForm;

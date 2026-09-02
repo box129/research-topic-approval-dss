@@ -277,3 +277,78 @@ describe('Lecturer CheckSimilarityPage', () => {
     expect(screen.queryByText(/decision rationale/i)).not.toBeInTheDocument();
   });
 });
+
+describe('Lecturer CheckSimilarityPage — Board C field retention and plain-language failure', () => {
+  let consoleErrorSpy;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    axios.post.mockReset();
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    axios.post.mockReset();
+    consoleErrorSpy.mockRestore();
+  });
+
+  function expectTypedProposalRetained() {
+    expect(screen.getByPlaceholderText(/enter your research topic/i)).toHaveValue(validTopic);
+    expect(screen.getByLabelText(/population/i)).toHaveValue(validPopulation);
+    expect(screen.getByLabelText(/location/i)).toHaveValue(validLocation);
+    expect(screen.getByLabelText(/study focus/i)).toHaveValue(validStudyFocus);
+  }
+
+  it('semantic unavailable never clears the typed proposal', async () => {
+    const user = userEvent.setup();
+    axios.post.mockRejectedValueOnce({
+      response: { status: 503, data: buildFypResponse({ status: 'semantic_unavailable' }).data }
+    });
+    renderCheckSimilarityPage();
+
+    await submitTopic(user);
+
+    expect(await screen.findByTestId('semantic-unavailable')).toBeInTheDocument();
+    expectTypedProposalRetained();
+  });
+
+  it('generic request failure never clears the typed proposal', async () => {
+    const user = userEvent.setup();
+    axios.post.mockRejectedValueOnce({
+      response: { status: 500, statusText: 'Internal Server Error', data: { message: 'Similarity service failed.' } }
+    });
+    renderCheckSimilarityPage();
+
+    await submitTopic(user);
+
+    expect(await screen.findByTestId('error-display')).toBeInTheDocument();
+    expectTypedProposalRetained();
+  });
+
+  it('a successful result still clears the form under the existing success contract', async () => {
+    const user = userEvent.setup();
+    axios.post.mockResolvedValue(buildFypResponse({ risk: 'LOW', maxSimilarity: 0.2 }));
+    renderCheckSimilarityPage();
+
+    await submitTopic(user);
+
+    expect(await screen.findByTestId('results-container')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/enter your research topic/i)).toHaveValue('');
+  });
+
+  it('lecturer semantic-unavailable copy is plain similarity-check language without internal vocabulary', async () => {
+    const user = userEvent.setup();
+    axios.post.mockRejectedValueOnce({
+      response: { status: 503, data: buildFypResponse({ status: 'semantic_unavailable' }).data }
+    });
+    renderCheckSimilarityPage();
+
+    await submitTopic(user);
+
+    const panel = await screen.findByTestId('semantic-unavailable');
+    expect(panel).toHaveTextContent('Check could not run');
+    expect(panel).toHaveTextContent('Similarity checking is temporarily unavailable. Your topic remains in the form so you can try again.');
+    expect(panel.textContent).not.toMatch(/voyage|semantic analysis|semantic similarity unavailable|api key/i);
+    expect(panel.textContent).not.toMatch(/\b503\b/);
+  });
+});

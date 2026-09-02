@@ -427,14 +427,178 @@ describe('TopicForm Component', () => {
     it('handles form submission with Enter key', async () => {
       mockOnSubmit.mockResolvedValue();
       render(<TopicForm onSubmit={mockOnSubmit} />);
-      
+
       fillTopic('Machine learning algorithms for natural language processing tasks');
-      
+
       await user.click(screen.getByRole('button', { name: /check similarity/i }));
-      
+
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalled();
       });
+    });
+  });
+
+  // ==================== BOARD C — C3 VALIDATION STATE ====================
+
+  describe('Board C — C3 validation state', () => {
+    const validTitle = 'Machine learning algorithms for natural language processing tasks';
+    const fourWordTitle = 'Malaria prevention among students';
+
+    it('keeps the frozen invalid wording, counter, and no-API contract for a 4-word title', async () => {
+      render(<TopicForm onSubmit={mockOnSubmit} appearance="student-checker" />);
+
+      fillTopic(fourWordTitle);
+
+      expect(screen.getByText('Too short: 4 words (minimum 7)')).toBeInTheDocument();
+      expect(screen.getByTestId('word-count')).toHaveTextContent('4 / 7-24 words');
+      expect(screen.getByRole('button', { name: /check similarity/i })).toBeDisabled();
+
+      fireEvent.submit(screen.getByPlaceholderText(/enter your research topic/i).closest('form'));
+      expect(mockOnSubmit).not.toHaveBeenCalled();
+    });
+
+    it('renders the availability reason beside the disabled checker action, wired via aria-describedby', () => {
+      render(<TopicForm onSubmit={mockOnSubmit} appearance="student-checker" />);
+
+      fillTopic(fourWordTitle);
+
+      const reason = screen.getByText('Available once the topic reaches 7 words.');
+      expect(reason).toBeInTheDocument();
+      expect(reason.id).toBe('submit-availability');
+      expect(screen.getByRole('button', { name: /check similarity/i })).toHaveAttribute('aria-describedby', 'submit-availability');
+      // Full-contrast adjacent text: the greyed control label is never the sole
+      // explanation for its own unavailability.
+      expect(reason.className).toContain('text-text-secondary');
+    });
+
+    it('removes the availability reason once the topic is valid', () => {
+      render(<TopicForm onSubmit={mockOnSubmit} appearance="student-checker" />);
+
+      fillTopic(validTitle);
+
+      expect(screen.queryByText(/available once the topic reaches/i)).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /check similarity/i })).toBeEnabled();
+      expect(screen.getByRole('button', { name: /check similarity/i })).not.toHaveAttribute('aria-describedby');
+    });
+
+    it('states a dynamic remaining-word remedy, never a hard-coded count', () => {
+      render(<TopicForm onSubmit={mockOnSubmit} appearance="student-checker" />);
+
+      fillTopic(fourWordTitle);
+      const remedy = screen.getByText(/add at least 3 more words describing the population, location or study focus/i);
+      expect(remedy.className).toContain('text-text-secondary');
+      expect(remedy.className).not.toMatch(/amber|yellow|gold|red|green|emerald|success|danger|warning/i);
+
+      fillTopic('Malaria prevention among students here now');
+      expect(screen.getByText(/add at least 1 more word describing the population, location or study focus/i)).toBeInTheDocument();
+      expect(screen.queryByText(/more words describing/i)).not.toBeInTheDocument();
+    });
+
+    it('keeps the character guideline advisory and readable when a valid title sits under 50 chars', () => {
+      render(<TopicForm onSubmit={mockOnSubmit} appearance="student-checker" />);
+
+      fillTopic('Malaria care for mothers in Ede town now');
+
+      expect(screen.getByText(/character count outside guideline \(50-180 chars recommended\)/i)).toBeInTheDocument();
+      const guideline = screen.getByText(/character count outside guideline/i);
+      expect(guideline.className).toContain('text-brand-gold-dark');
+      expect(guideline.className).not.toContain('text-yellow-600');
+      // Condition = amber; remedy = neutral guidance, never a semantic colour.
+      const remedy = screen.getByText(/consider adding detail about the population, location or study focus/i);
+      expect(remedy.className).toContain('text-text-secondary');
+      expect(remedy.className).not.toMatch(/amber|yellow|gold|red|green|emerald|success|danger|warning/i);
+      // Advisory only — an in-range word count keeps the action available.
+      expect(screen.getByRole('button', { name: /check similarity/i })).toBeEnabled();
+    });
+
+    it('checker valid state rests neutral: no success-green field ring or message colour', () => {
+      render(<TopicForm onSubmit={mockOnSubmit} appearance="student-checker" />);
+
+      const textarea = fillTopic(validTitle);
+
+      const message = screen.getByText('Valid topic length');
+      expect(message.className).toContain('text-text-secondary');
+      expect(message.className).not.toMatch(/text-green/);
+      expect(screen.getByTestId('word-count').className).not.toMatch(/text-green/);
+      expect(textarea.className).toContain('border-gray-300');
+      expect(textarea.className).not.toContain('border-green-500');
+    });
+
+    it('lecturer-checker valid state rests neutral too', () => {
+      render(<TopicForm onSubmit={mockOnSubmit} appearance="lecturer-checker" />);
+
+      const textarea = fillTopic(validTitle);
+
+      expect(screen.getByText('Valid topic length').className).toContain('text-text-secondary');
+      expect(textarea.className).toContain('border-gray-300');
+      expect(textarea.className).not.toContain('border-green-500');
+    });
+
+    it('non-checker valid state keeps its existing green treatment unchanged', () => {
+      render(<TopicForm onSubmit={mockOnSubmit} />);
+
+      const textarea = fillTopic(validTitle);
+
+      expect(screen.getByText('Valid topic length').className).toContain('text-green-600');
+      expect(textarea.className).toContain('border-green-500');
+      expect(screen.queryByText(/available once the topic reaches/i)).not.toBeInTheDocument();
+    });
+
+    it('blocking invalid input stays red on the field for checker appearances', () => {
+      render(<TopicForm onSubmit={mockOnSubmit} appearance="student-checker" />);
+
+      const textarea = fillTopic(fourWordTitle);
+
+      expect(screen.getByText('Too short: 4 words (minimum 7)').className).toContain('text-red-600');
+      expect(textarea.className).toContain('border-red-500');
+      expect(textarea).toHaveAttribute('aria-invalid', 'true');
+    });
+
+    it('validation benchmark rests as a neutral bordered note without mint or emerald', () => {
+      render(<TopicForm onSubmit={mockOnSubmit} appearance="student-checker" />);
+
+      const heading = screen.getByText('Validation benchmark');
+      expect(heading.className).toContain('text-text-primary');
+      expect(heading.className).not.toMatch(/green|emerald|success|1B5E20/i);
+
+      const benchmark = heading.closest('div');
+      expect(benchmark.className).toContain('border-gray-200');
+      expect(benchmark.className).not.toMatch(/green|emerald|mint|success/i);
+    });
+
+    it('seeds checker fields from initialValues on mount without syncing later prop changes', () => {
+      const initialValues = {
+        topic: validTitle,
+        population: 'Undergraduate students',
+        location: 'Osogbo',
+        studyFocus: 'Preventive-health information access'
+      };
+      const { rerender } = render(
+        <TopicForm onSubmit={mockOnSubmit} appearance="student-checker" initialValues={initialValues} />
+      );
+
+      expect(screen.getByPlaceholderText(/enter your research topic/i)).toHaveValue(validTitle);
+      expect(screen.getByLabelText(/population/i)).toHaveValue('Undergraduate students');
+      expect(screen.getByLabelText(/location/i)).toHaveValue('Osogbo');
+      expect(screen.getByLabelText(/study focus/i)).toHaveValue('Preventive-health information access');
+
+      fillTopic('A different topic typed by the user right now');
+      rerender(
+        <TopicForm
+          onSubmit={mockOnSubmit}
+          appearance="student-checker"
+          initialValues={{ ...initialValues, topic: 'Prop changed after mount' }}
+        />
+      );
+
+      expect(screen.getByPlaceholderText(/enter your research topic/i)).toHaveValue('A different topic typed by the user right now');
+    });
+
+    it('renders untouched blank fields when initialValues is absent', () => {
+      render(<TopicForm onSubmit={mockOnSubmit} appearance="student-checker" />);
+
+      expect(screen.getByPlaceholderText(/enter your research topic/i)).toHaveValue('');
+      expect(screen.getByLabelText(/population/i)).toHaveValue('');
     });
   });
 });

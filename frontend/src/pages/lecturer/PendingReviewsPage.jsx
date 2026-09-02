@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listLecturerPendingSubmissions } from '../../api/submissions';
-import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import ErrorState from '../../components/ui/ErrorState';
 import FilterDropdown from '../../components/ui/FilterDropdown';
 import LecturerDashboardLayout from '../../layouts/LecturerDashboardLayout';
@@ -130,16 +129,31 @@ function PendingReviewsPage() {
           </div>
 
           {submissions.length === 0 ? (
-            <section className="rounded-[10px] border border-border-subtle bg-white p-5 shadow-card">
-              <EmptyStatePanel
-                title="No pending reviews"
-                message="Student submissions with pending review status will appear here when they are ready for lecturer action."
-                action={(
-                  <SecondaryButton type="button" onClick={loadSubmissions}>
-                    Refresh Queue
+            /* C4a — genuine empty: nothing is currently waiting for review.
+               The message sits left-aligned where the first row would appear,
+               inside the queue shell. Absence of records, never absence of
+               similarity — and no failure or filter language. */
+            <section data-testid="pending-empty" className="overflow-hidden rounded-[10px] border border-border-subtle bg-white shadow-card">
+              <div className="flex flex-col gap-3 border-b border-border-subtle px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-base font-bold text-text-primary">Review queue</h2>
+                <SecondaryButton type="button" onClick={loadSubmissions}>
+                  Refresh Queue
+                </SecondaryButton>
+              </div>
+              <div className="px-5 py-6">
+                <h3 className="text-base font-semibold text-text-primary">No pending reviews</h3>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-text-secondary">
+                  No submissions are currently waiting for your review. Newly submitted topics assigned to you will appear here.
+                </p>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                  <SecondaryButton type="button" className="min-h-11" onClick={() => navigate('/lecturer/my-decisions')}>
+                    View my decisions
                   </SecondaryButton>
-                )}
-              />
+                  <SecondaryButton type="button" className="min-h-11" onClick={() => navigate('/lecturer/supervisees')}>
+                    View supervisees
+                  </SecondaryButton>
+                </div>
+              </div>
             </section>
           ) : (
             <>
@@ -175,21 +189,71 @@ function PendingReviewsPage() {
               </section>
 
               {filteredSubmissions.length === 0 ? (
-                <EmptyStatePanel
-                  title="No matching pending reviews"
-                  message="No submissions match the current search or category filter."
-                  action={(
-                    <SecondaryButton
-                      type="button"
-                      onClick={() => {
-                        setSearchTerm('');
-                        setCategoryFilter('');
-                      }}
-                    >
-                      Clear Filters
-                    </SecondaryButton>
-                  )}
-                />
+                /* C4b — filtered empty: records exist but none satisfy the
+                   current filters. The user's own filter is the cause, so
+                   reversing it is the primary action. The hidden count is
+                   truthful because the full pending collection is loaded and
+                   filtered locally — submissions.length is the real pre-filter
+                   total, not a backend aggregation claim. Sort is not a filter
+                   and is never reset here. */
+                <section data-testid="pending-filtered-empty" className="overflow-hidden rounded-[10px] border border-border-subtle bg-white shadow-card">
+                  <div className="flex flex-col gap-2 border-b border-border-subtle px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                    <h2 className="text-base font-bold text-text-primary">Review queue</h2>
+                    <p className="text-sm text-text-secondary">
+                      {submissions.length} pending review{submissions.length === 1 ? '' : 's'} · 0 shown
+                    </p>
+                  </div>
+                  <div className="px-5 py-6">
+                    {(searchTerm.trim() || categoryFilter) && (
+                      <div className="flex flex-wrap gap-2" aria-label="Active filters">
+                        {searchTerm.trim() && (
+                          <button
+                            type="button"
+                            onClick={() => setSearchTerm('')}
+                            aria-label={`Remove search filter ${searchTerm.trim()}`}
+                            className="inline-flex min-h-8 items-center gap-2 rounded-full border border-border-strong bg-white px-3 text-sm text-text-primary transition-colors hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:ring-offset-2"
+                          >
+                            Search: “{searchTerm.trim()}” <span aria-hidden="true">×</span>
+                          </button>
+                        )}
+                        {categoryFilter && (
+                          <button
+                            type="button"
+                            onClick={() => setCategoryFilter('')}
+                            aria-label={`Remove category filter ${categoryFilter}`}
+                            className="inline-flex min-h-8 items-center gap-2 rounded-full border border-border-strong bg-white px-3 text-sm text-text-primary transition-colors hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:ring-offset-2"
+                          >
+                            Category: {categoryFilter} <span aria-hidden="true">×</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    <h3 className="mt-4 text-base font-semibold text-text-primary">No pending reviews match these filters.</h3>
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-text-secondary">
+                      Submissions may be waiting for your review but excluded by the search term or category above. Clear or change the filters to see them.
+                    </p>
+                    <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                      <PrimaryButton
+                        type="button"
+                        className="min-h-11 w-full sm:w-auto"
+                        onClick={() => {
+                          setSearchTerm('');
+                          setCategoryFilter('');
+                        }}
+                      >
+                        Clear all filters
+                      </PrimaryButton>
+                      {searchTerm.trim() && <p className="text-sm text-text-secondary">Or adjust the search term above.</p>}
+                    </div>
+                    <div className="mt-5 border-t border-dashed border-border-strong pt-3">
+                      <p data-testid="hidden-count" className="text-sm text-text-secondary">
+                        {submissions.length === 1
+                          ? '1 submission is pending review but hidden by these filters.'
+                          : `${submissions.length} submissions are pending review but hidden by these filters.`}
+                      </p>
+                    </div>
+                  </div>
+                </section>
               ) : (
                 <section className="overflow-hidden rounded-[10px] border border-border-subtle bg-white shadow-card">
                   <div className="flex flex-col gap-3 border-b border-border-subtle px-5 py-4 sm:flex-row sm:items-center sm:justify-between">

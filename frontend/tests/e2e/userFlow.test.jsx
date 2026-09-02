@@ -304,7 +304,10 @@ describe('End-to-End User Flow Tests', () => {
     await user.click(screen.getByRole('button', { name: /check another topic/i }));
 
     expect(screen.queryByTestId('student-results-container')).not.toBeInTheDocument();
-    expect(screen.getByText(/awaiting topic check/i)).toBeInTheDocument();
+    // Board C: the generic pristine placeholder no longer exists — reset
+    // returns straight to the blank form.
+    expect(screen.queryByText(/awaiting topic check/i)).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/enter your research topic/i)).toHaveValue('');
   });
 
   it('displays backend error responses from the similarity endpoint', async () => {
