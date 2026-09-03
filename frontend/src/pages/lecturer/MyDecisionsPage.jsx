@@ -15,7 +15,8 @@ import { listLecturerDecisions } from '../../api/submissions';
 const statusOptions = [
   { label: 'Approved', value: 'approved' },
   { label: 'Rejected', value: 'rejected' },
-  { label: 'Awaiting revision', value: 'awaiting_revision' }
+  // User-facing workflow vocabulary; the API parameter value is unchanged.
+  { label: 'Revision requested', value: 'awaiting_revision' }
 ];
 
 const sortOptions = [
@@ -85,15 +86,24 @@ function DecisionRecord({ decision }) {
       </div>
       <div className="hidden lg:block">
         <StatusBadge status={decision.status} />
+        {/* N-1 provenance ceiling (Board B): no persisted decision↔snapshot
+            relation exists. This id is the latest saved check available at
+            read time — independent technical metadata, never evidence "linked
+            to" or "used for" the decision. */}
         <p className="mt-2 text-xs text-text-muted">
           {decision.similaritySnapshotId
-            ? `Snapshot #${decision.similaritySnapshotId}`
-            : 'No snapshot linked'}
+            ? `Latest saved similarity check #${decision.similaritySnapshotId}`
+            : 'No saved similarity check'}
         </p>
       </div>
-      {decision.similaritySnapshotId && (
-        <p className="text-xs text-text-muted lg:hidden">Snapshot #{decision.similaritySnapshotId}</p>
-      )}
+      {/* Mobile carries the same truthful meaning as the desktop column —
+          including the absence wording. A silent branch would drop the
+          "no saved check" fact at 390px. */}
+      <p className="text-xs text-text-muted lg:hidden">
+        {decision.similaritySnapshotId
+          ? `Latest saved similarity check #${decision.similaritySnapshotId}`
+          : 'No saved similarity check'}
+      </p>
     </article>
   );
 }

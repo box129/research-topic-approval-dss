@@ -6,6 +6,7 @@ import ConfirmActionModal from '../src/components/ui/ConfirmActionModal';
 import EmptyStatePanel from '../src/components/ui/EmptyStatePanel';
 import PrimaryButton from '../src/components/ui/PrimaryButton';
 import SelectInput from '../src/components/ui/SelectInput';
+import StatusBadge from '../src/components/ui/StatusBadge';
 import TableShell from '../src/components/ui/TableShell';
 import TextInput from '../src/components/ui/TextInput';
 
@@ -134,5 +135,49 @@ describe('foundation UI primitives', () => {
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
+  });
+});
+
+// Board D — Family B workflow-status pill contract. StatusBadge encodes where
+// a real submission stands and nothing else; stored tokens are never mutated
+// and unknown tokens can never borrow decision semantics.
+describe('StatusBadge workflow contract', () => {
+  it.each([
+    ['pending', 'Pending review', 'text-status-pending'],
+    ['pending_review', 'Pending review', 'text-status-pending'],
+    ['approved', 'Approved', 'text-status-approved'],
+    ['awaiting_revision', 'Revision requested', 'text-status-revision'],
+    ['rejected', 'Rejected', 'text-status-rejected'],
+    ['not_submitted', 'Not submitted', 'text-status-neutral']
+  ])('renders %s as "%s" with its workflow semantics', (token, label, semanticClass) => {
+    render(<StatusBadge status={token} />);
+
+    const pill = screen.getByText(label);
+    expect(pill.className).toContain(semanticClass);
+  });
+
+  it('gives unknown tokens the neutral fallback and never a decision colour', () => {
+    render(<StatusBadge status="some_future_status" />);
+
+    const pill = screen.getByText('Some future status');
+    expect(pill.className).toContain('text-status-neutral');
+    expect(pill.className).not.toMatch(/status-approved|status-revision|status-rejected|status-pending(?!-)/);
+  });
+
+  it('uses 14px operational text and never wraps', () => {
+    render(<StatusBadge status="awaiting_revision" />);
+
+    const pill = screen.getByText('Revision requested');
+    expect(pill.className).toContain('text-sm');
+    expect(pill.className).not.toContain('text-xs');
+    expect(pill.className).toContain('whitespace-nowrap');
+  });
+
+  it('carries no similarity-classification semantics', () => {
+    render(<StatusBadge status="approved" />);
+
+    const pill = screen.getByText('Approved');
+    expect(pill.textContent).not.toMatch(/HIGH|MEDIUM|LOW|similarity|risk/i);
+    expect(pill.className).not.toMatch(/risk-/);
   });
 });
