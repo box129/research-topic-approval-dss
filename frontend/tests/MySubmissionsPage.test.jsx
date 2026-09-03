@@ -109,7 +109,7 @@ describe('MySubmissionsPage', () => {
     ['pending_review', 'Pending review'],
     ['approved', 'Approved'],
     ['rejected', 'Rejected'],
-    ['awaiting_revision', 'Awaiting revision']
+    ['awaiting_revision', 'Revision requested']
   ])('shows the %s status text without relying on colour', async (status, label) => {
     listSubmissions.mockResolvedValue([{
       id: 1,

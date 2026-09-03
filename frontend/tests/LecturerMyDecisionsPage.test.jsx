@@ -86,7 +86,7 @@ describe('Lecturer MyDecisionsPage', () => {
     expect(screen.getByText(/ada\.student@uniosun\.edu\.ng/i)).toBeInTheDocument();
     expect(screen.getByText(/approved after review/i)).toBeInTheDocument();
     expect(screen.getAllByText(/approved/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Snapshot #88/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Latest saved similarity check #88/i).length).toBeGreaterThan(0);
     expect(screen.queryByText(/passwordHash/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/hidden/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/99/i)).not.toBeInTheDocument();
@@ -205,5 +205,78 @@ describe('Lecturer MyDecisionsPage', () => {
     expect(screen.queryByRole('button', { name: /download report/i })).not.toBeInTheDocument();
     expect(listLecturerPendingSubmissions).not.toHaveBeenCalled();
     expect(updateLecturerSubmissionStatus).not.toHaveBeenCalled();
+  });
+});
+
+// Board D D1 — provenance truth and workflow vocabulary. No persisted
+// decision↔snapshot relation exists (Board B N-1): the id shown here is the
+// latest saved check at read time, and the wording must never claim linkage.
+describe('Lecturer MyDecisionsPage — Board D provenance and labels', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('labels the latest check truthfully and never claims snapshot linkage', async () => {
+    listLecturerDecisions.mockResolvedValue(decisionsResponse);
+    renderPage();
+
+    expect(await screen.findByText(/knowledge of malaria prevention/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/latest saved similarity check #88/i).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/snapshot linked/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/linked snapshot/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/used for this decision/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/evidence considered/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/before the decision/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/at decision time/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/decision snapshot/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Snapshot #/)).not.toBeInTheDocument();
+  });
+
+  it('states the truthful absence wording when no saved check exists', async () => {
+    const noSnapshot = {
+      ...decisionsResponse,
+      data: {
+        items: [{ ...decisionsResponse.data.items[0], similaritySnapshotId: null }]
+      }
+    };
+    listLecturerDecisions.mockResolvedValue(noSnapshot);
+    renderPage();
+
+    expect(await screen.findByText(/knowledge of malaria prevention/i)).toBeInTheDocument();
+    expect(screen.getByText('No saved similarity check')).toBeInTheDocument();
+    expect(screen.queryByText(/no snapshot linked/i)).not.toBeInTheDocument();
+  });
+
+  it('shows "Revision requested" in the status filter while submitting the unchanged API value', async () => {
+    listLecturerDecisions.mockResolvedValue(decisionsResponse);
+    renderPage();
+
+    expect(await screen.findByText(/knowledge of malaria prevention/i)).toBeInTheDocument();
+    const statusFilter = screen.getByLabelText(/^status$/i);
+    expect(screen.getByRole('option', { name: 'Revision requested' })).toHaveValue('awaiting_revision');
+    expect(screen.queryByRole('option', { name: /awaiting revision/i })).not.toBeInTheDocument();
+
+    fireEvent.change(statusFilter, { target: { value: 'awaiting_revision' } });
+
+    await waitFor(() => {
+      expect(listLecturerDecisions).toHaveBeenLastCalledWith(
+        expect.objectContaining({ status: 'awaiting_revision' })
+      );
+    });
+  });
+
+  it('renders the workflow pill with the Board D sentence-case vocabulary', async () => {
+    const revisionDecision = {
+      ...decisionsResponse,
+      data: {
+        items: [{ ...decisionsResponse.data.items[0], status: 'AWAITING_REVISION', similaritySnapshotId: null }]
+      }
+    };
+    listLecturerDecisions.mockResolvedValue(revisionDecision);
+    renderPage();
+
+    expect(await screen.findByText(/knowledge of malaria prevention/i)).toBeInTheDocument();
+    expect(screen.getAllByText('Revision requested').length).toBeGreaterThan(0);
+    expect(screen.queryByText(/awaiting revision/i)).not.toBeInTheDocument();
   });
 });

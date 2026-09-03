@@ -58,9 +58,12 @@ function buildListParams(filters) {
   };
 }
 
-function SummaryCard({ label, value, helper, accent = 'border-l-emerald-600' }) {
+// Lifecycle counts are neutral repository metadata (frozen Board D): no
+// semantic accent stripes — green read as approval and rose put verdict
+// colour on the non-verdict "Under review" bucket.
+function SummaryCard({ label, value, helper }) {
   return (
-    <article className={`rounded-lg border border-border-subtle border-l-[3px] ${accent} bg-white p-3`}>
+    <article className="rounded-lg border border-border-subtle bg-white p-3">
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">{label}</p>
       <p className="mt-2 text-2xl font-semibold text-text-primary">{formatCount(value)}</p>
       <p className="mt-2 text-sm leading-5 text-text-secondary">{helper}</p>
@@ -133,7 +136,11 @@ function TopicRow({ topic }) {
       <div className="flex flex-col gap-3 lg:grid lg:grid-cols-[1.35fr_0.85fr_0.9fr_0.82fr] lg:items-start">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800">
+            {/* Repository lifecycle is neutral temporal/corpus metadata, not a
+                workflow status: Historical, Current session and Under review
+                are distinguished by their text, never by semantic colour, and
+                never through the workflow StatusBadge (frozen Board D). */}
+            <span data-testid={`lifecycle-tag-${topic.lifecycle}-${topic.id}`} className="inline-flex rounded-full bg-surface-muted px-2.5 py-1 text-xs font-semibold text-text-secondary">
               {lifecycleLabels[topic.lifecycle] || topic.lifecycle}
             </span>
             {hasWarnings ? (
@@ -356,25 +363,21 @@ function TopicRepositoryPage() {
                 label="All topics"
                 value={buildSummaryValue(totals.all, summaryState)}
                 helper={summaryState === 'loading' ? 'Loading lifecycle totals.' : 'Combined count from supported lifecycle tables.'}
-                accent="border-l-emerald-600"
               />
               <SummaryCard
                 label="Historical"
                 value={buildSummaryValue(totals.historical, summaryState)}
                 helper="Imported or stored historical topic records."
-                accent="border-l-amber-500"
               />
               <SummaryCard
                 label="Current session"
                 value={buildSummaryValue(totals.currentSession, summaryState)}
                 helper="Approved current-session topic records."
-                accent="border-l-blue-500"
               />
               <SummaryCard
                 label="Under review"
                 value={buildSummaryValue(totals.underReview, summaryState)}
                 helper="Topic records currently marked under review."
-                accent="border-l-rose-500"
               />
             </div>
 

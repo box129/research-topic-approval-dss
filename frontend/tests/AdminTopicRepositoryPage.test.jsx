@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import AdminTopicRepositoryPage from '../src/pages/admin/TopicRepositoryPage';
 import apiClient from '../src/api/client';
 import axios from 'axios';
@@ -493,5 +493,75 @@ describe('AdminTopicRepositoryPage', () => {
     expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/fake import row/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/sample import result/i)).not.toBeInTheDocument();
+  });
+});
+
+// Board D D1 — repository lifecycle is neutral temporal/corpus metadata, not a
+// workflow status. Historical / Current session / Under review are physical
+// corpus tables; their labels and their summary counts must never wear
+// approval, pending, revision, or rejection colour.
+describe('AdminTopicRepositoryPage — Board D lifecycle semantics', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    getAdminTopicsSummary.mockResolvedValue(summaryResponse);
+    listAdminTopics.mockResolvedValue(listResponse);
+  });
+
+  const SEMANTIC_COLOUR = /green|emerald|blue|amber|yellow|gold|rose|red|approved|rejected|revision|pending/i;
+
+  it('renders every lifecycle label as a neutral text-distinguished tag', async () => {
+    render(<AdminTopicRepositoryPage />);
+
+    const historicalTag = await screen.findByTestId('lifecycle-tag-historical-1');
+    const underReviewTag = screen.getByTestId('lifecycle-tag-under-review-2');
+
+    expect(historicalTag).toHaveTextContent('Historical');
+    expect(underReviewTag).toHaveTextContent('Under review');
+    expect(historicalTag.className).not.toMatch(SEMANTIC_COLOUR);
+    expect(underReviewTag.className).not.toMatch(SEMANTIC_COLOUR);
+    expect(historicalTag.className).toContain('bg-surface-muted');
+    expect(underReviewTag.className).toContain('bg-surface-muted');
+  });
+
+  it('does not route lifecycle labels through the workflow StatusBadge classes', async () => {
+    render(<AdminTopicRepositoryPage />);
+
+    const underReviewTag = await screen.findByTestId('lifecycle-tag-under-review-2');
+    expect(underReviewTag.className).not.toMatch(/status-approved|status-pending|status-revision|status-rejected|rounded-badge/);
+  });
+
+  it('renders all four summary cards with neutral borders and no accent edges', async () => {
+    render(<AdminTopicRepositoryPage />);
+
+    expect(await screen.findByText('All topics')).toBeInTheDocument();
+    const summarySection = document.querySelector('section[aria-label="Topic repository summary"]');
+    for (const label of ['All topics', 'Historical', 'Current session', 'Under review']) {
+      const card = within(summarySection).getByText(label).closest('article');
+      expect(card.className).toContain('border-border-subtle');
+      expect(card.className).not.toMatch(/border-l-\[|border-l-emerald|border-l-amber|border-l-blue|border-l-rose|border-l-red|border-l-green/);
+      expect(card.className).not.toMatch(SEMANTIC_COLOUR);
+    }
+  });
+
+  it('keeps the record card structure and lifecycle filter values unchanged', async () => {
+    render(<AdminTopicRepositoryPage />);
+
+    expect(await screen.findByText(/malaria prevention in rural communities/i)).toBeInTheDocument();
+    expect(screen.getByText(/dr\. adeyemi/i)).toBeInTheDocument();
+    expect(screen.getByText('Embedding stored')).toBeInTheDocument();
+    expect(screen.getByText('Embedding unavailable')).toBeInTheDocument();
+
+    const lifecycleSelect = document.querySelector('select[name="lifecycle"]');
+    const values = [...lifecycleSelect.options].map((option) => option.value);
+    expect(values).toEqual(['all', 'historical', 'current-session', 'under-review']);
+
+    fireEvent.change(lifecycleSelect, { target: { value: 'under-review' } });
+    fireEvent.submit(lifecycleSelect.closest('form'));
+
+    await waitFor(() => {
+      expect(listAdminTopics).toHaveBeenLastCalledWith(
+        expect.objectContaining({ lifecycle: 'under-review', page: 1 })
+      );
+    });
   });
 });

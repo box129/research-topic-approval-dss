@@ -313,7 +313,7 @@ describe('Lecturer SubmissionDetailPage', () => {
     await user.click(screen.getByRole('button', { name: /^approve$/i }));
 
     const dialog = screen.getByRole('dialog');
-    expect(within(dialog).getByRole('heading', { name: /confirm lecturer decision/i })).toBeInTheDocument();
+    expect(within(dialog).getByRole('heading', { name: /approve this submission\?/i })).toBeInTheDocument();
     expect(dialog).toBeInTheDocument();
     expect(updateLecturerSubmissionStatus).not.toHaveBeenCalled();
 
@@ -342,7 +342,7 @@ describe('Lecturer SubmissionDetailPage', () => {
     await user.click(screen.getByRole('button', { name: /request revision/i }));
 
     const dialog = screen.getByRole('dialog');
-    expect(within(dialog).getByRole('heading', { name: /confirm lecturer decision/i })).toBeInTheDocument();
+    expect(within(dialog).getByRole('heading', { name: /request revision for this submission\?/i })).toBeInTheDocument();
     expect(dialog).toBeInTheDocument();
 
     await user.click(within(dialog).getByRole('button', { name: /request revision/i }));
@@ -374,7 +374,7 @@ describe('Lecturer SubmissionDetailPage', () => {
     await user.click(screen.getByRole('button', { name: /^reject$/i }));
 
     const dialog = screen.getByRole('dialog');
-    expect(within(dialog).getByRole('heading', { name: /confirm lecturer decision/i })).toBeInTheDocument();
+    expect(within(dialog).getByRole('heading', { name: /reject this submission\?/i })).toBeInTheDocument();
     expect(dialog).toBeInTheDocument();
 
     await user.click(within(dialog).getByRole('button', { name: /^reject$/i }));
@@ -422,5 +422,93 @@ describe('Lecturer SubmissionDetailPage', () => {
     expect(screen.queryByText(/critical/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/invented snapshot/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/auto rejected/i)).not.toBeInTheDocument();
+  });
+});
+
+// Board D D1 — decision-dialog grammar and the read-only rationale echo. The
+// dialog restates the permanent, student-visible rationale as the thing being
+// committed; the parent decisionReason state stays authoritative and the
+// payloads are unchanged (covered by the payload tests above).
+describe('Lecturer SubmissionDetailPage — Board D decision dialog', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  async function openPendingRecord() {
+    getLecturerSubmission.mockResolvedValue(pendingSubmission);
+    listLecturerSubmissionSimilaritySnapshots.mockResolvedValue([]);
+    renderDetailPage();
+    expect(await screen.findByText(/assessment of malaria prevention awareness/i)).toBeInTheDocument();
+  }
+
+  it('approve with a blank rationale shows the honest optional fallback', async () => {
+    const user = userEvent.setup();
+    await openPendingRecord();
+
+    await user.click(screen.getByRole('button', { name: /^approve$/i }));
+
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByRole('heading', { name: /approve this submission\?/i })).toBeInTheDocument();
+    expect(within(dialog).getByText(/the submission status will be updated immediately and the student will see the outcome/i)).toBeInTheDocument();
+    const echo = within(dialog).getByTestId('decision-rationale-echo');
+    expect(echo).toHaveTextContent('Decision rationale');
+    expect(echo).toHaveTextContent('Not provided — optional for approval.');
+    expect(within(dialog).queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('approve with a typed rationale echoes it exactly', async () => {
+    const user = userEvent.setup();
+    await openPendingRecord();
+
+    await user.type(screen.getByLabelText(/decision rationale/i), 'Clearly scoped and sufficiently distinct.');
+    await user.click(screen.getByRole('button', { name: /^approve$/i }));
+
+    const echo = within(screen.getByRole('dialog')).getByTestId('decision-rationale-echo');
+    expect(echo).toHaveTextContent('Clearly scoped and sufficiently distinct.');
+    expect(echo).not.toHaveTextContent('Not provided');
+  });
+
+  it('request revision echoes the exact rationale with the revision-coloured confirm', async () => {
+    const user = userEvent.setup();
+    await openPendingRecord();
+
+    await user.type(screen.getByLabelText(/decision rationale/i), 'Please narrow the population and study focus.');
+    await user.click(screen.getByRole('button', { name: /request revision/i }));
+
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByRole('heading', { name: /request revision for this submission\?/i })).toBeInTheDocument();
+    expect(within(dialog).getByText(/asked to revise and resubmit/i)).toBeInTheDocument();
+    expect(within(dialog).getByTestId('decision-rationale-echo')).toHaveTextContent('Please narrow the population and study focus.');
+    const confirm = within(dialog).getByRole('button', { name: /request revision/i });
+    expect(confirm.className).toContain('bg-brand-gold-dark!');
+    expect(within(dialog).queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('reject echoes the exact rationale with the danger-coloured confirm', async () => {
+    const user = userEvent.setup();
+    await openPendingRecord();
+
+    await user.type(screen.getByLabelText(/decision rationale/i), 'Too much overlap with stored records.');
+    await user.click(screen.getByRole('button', { name: /^reject$/i }));
+
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByRole('heading', { name: /reject this submission\?/i })).toBeInTheDocument();
+    expect(within(dialog).getByText(/terminal outcome and the student will see the recorded reason/i)).toBeInTheDocument();
+    expect(within(dialog).getByTestId('decision-rationale-echo')).toHaveTextContent('Too much overlap with stored records.');
+    const confirm = within(dialog).getByRole('button', { name: /^reject$/i });
+    expect(confirm.className).toContain('bg-feedback-danger!');
+    expect(within(dialog).queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('never renders the old generic dialog copy', async () => {
+    const user = userEvent.setup();
+    await openPendingRecord();
+
+    await user.click(screen.getByRole('button', { name: /^approve$/i }));
+
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).queryByText(/confirm lecturer decision/i)).not.toBeInTheDocument();
+    expect(within(dialog).queryByText(/approve this submission\?/i)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/Approve this submission\?[\s\S]*Approve this submission\?/)).not.toBeInTheDocument();
   });
 });

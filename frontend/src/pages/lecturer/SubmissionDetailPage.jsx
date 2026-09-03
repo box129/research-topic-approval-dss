@@ -97,6 +97,25 @@ const MODAL_VARIANT_BY_STATUS = {
   awaiting_revision: 'revision'
 };
 
+// Frozen Board D D3 dialog grammar: the title names the specific action as a
+// natural-English question and the message states the immediate consequence.
+// The typed rationale is echoed read-only in the dialog body because it is the
+// permanent, student-visible thing being committed.
+const MODAL_COPY_BY_STATUS = {
+  approved: {
+    title: 'Approve this submission?',
+    message: 'The submission status will be updated immediately and the student will see the outcome.'
+  },
+  awaiting_revision: {
+    title: 'Request revision for this submission?',
+    message: 'The submission status will be updated immediately and the student will be asked to revise and resubmit.'
+  },
+  rejected: {
+    title: 'Reject this submission?',
+    message: 'The submission status will be updated immediately. This is a terminal outcome and the student will see the recorded reason.'
+  }
+};
+
 // One ruled cell in the proposal-context grid. Long values (a personal email
 // most of all) get room first; overflow-wrap: break-word is the last resort
 // and anywhere-wrapping is never used, so an email never splits mid-character.
@@ -692,15 +711,22 @@ function SubmissionDetailPage() {
           confirmLabel={pendingDecision?.confirmLabel || 'Confirm'}
           isConfirming={isUpdating}
           isOpen={Boolean(pendingDecision)}
-          message={pendingDecision ? `${pendingDecision.confirmLabel} this submission?` : ''}
+          message={(pendingDecision && MODAL_COPY_BY_STATUS[pendingDecision.status]?.message) || ''}
           onCancel={() => setPendingDecision(null)}
           onConfirm={confirmStatusUpdate}
-          title="Confirm Lecturer Decision"
+          title={(pendingDecision && MODAL_COPY_BY_STATUS[pendingDecision.status]?.title) || 'Confirm Lecturer Decision'}
           variant={MODAL_VARIANT_BY_STATUS[pendingDecision?.status] || 'default'}
         >
-          <p className="text-sm text-text-secondary">
-            Confirm this lecturer decision. The submission status will be updated immediately.
-          </p>
+          {/* Rationale echo — confirmation context only, never editable here.
+              The parent decisionReason state stays authoritative; approval's
+              honest fallback makes the per-action contract visible at the
+              moment of consequence (frozen Board D D3). */}
+          <div className="rounded-md border border-border-subtle bg-surface-muted px-4 py-3" data-testid="decision-rationale-echo">
+            <p className="text-sm font-semibold text-text-primary">Decision rationale</p>
+            <p className="mt-1 whitespace-pre-line break-words text-sm leading-6 text-text-secondary">
+              {decisionReason.trim() || 'Not provided — optional for approval.'}
+            </p>
+          </div>
         </ConfirmActionModal>
       </div>
     </LecturerDashboardLayout>
