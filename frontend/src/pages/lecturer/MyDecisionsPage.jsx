@@ -96,9 +96,14 @@ function DecisionRecord({ decision }) {
             : 'No saved similarity check'}
         </p>
       </div>
-      {decision.similaritySnapshotId && (
-        <p className="text-xs text-text-muted lg:hidden">Latest saved similarity check #{decision.similaritySnapshotId}</p>
-      )}
+      {/* Mobile carries the same truthful meaning as the desktop column —
+          including the absence wording. A silent branch would drop the
+          "no saved check" fact at 390px. */}
+      <p className="text-xs text-text-muted lg:hidden">
+        {decision.similaritySnapshotId
+          ? `Latest saved similarity check #${decision.similaritySnapshotId}`
+          : 'No saved similarity check'}
+      </p>
     </article>
   );
 }

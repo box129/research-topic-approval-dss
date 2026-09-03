@@ -221,7 +221,9 @@ describe('Lecturer MyDecisionsPage — Board D provenance and labels', () => {
     renderPage();
 
     expect(await screen.findByText(/knowledge of malaria prevention/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/latest saved similarity check #88/i).length).toBeGreaterThan(0);
+    // Both responsive DOM branches (desktop column + mobile line) carry the
+    // identical truthful wording.
+    expect(screen.getAllByText(/latest saved similarity check #88/i)).toHaveLength(2);
     expect(screen.queryByText(/snapshot linked/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/linked snapshot/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/used for this decision/i)).not.toBeInTheDocument();
@@ -232,7 +234,7 @@ describe('Lecturer MyDecisionsPage — Board D provenance and labels', () => {
     expect(screen.queryByText(/Snapshot #/)).not.toBeInTheDocument();
   });
 
-  it('states the truthful absence wording when no saved check exists', async () => {
+  it('states the truthful absence wording in both responsive branches when no saved check exists', async () => {
     const noSnapshot = {
       ...decisionsResponse,
       data: {
@@ -243,8 +245,11 @@ describe('Lecturer MyDecisionsPage — Board D provenance and labels', () => {
     renderPage();
 
     expect(await screen.findByText(/knowledge of malaria prevention/i)).toBeInTheDocument();
-    expect(screen.getByText('No saved similarity check')).toBeInTheDocument();
+    // Desktop column and mobile line both state the absence — a viewport
+    // branch may never stay silent where the other states an absence.
+    expect(screen.getAllByText('No saved similarity check')).toHaveLength(2);
     expect(screen.queryByText(/no snapshot linked/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/latest saved similarity check #/i)).not.toBeInTheDocument();
   });
 
   it('shows "Revision requested" in the status filter while submitting the unchanged API value', async () => {
