@@ -1,80 +1,25 @@
-import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Link, useLocation } from 'react-router-dom';
+import '@fontsource-variable/geist';
 import './LandingPage.css';
 
-const MOBILE_QUERY = '(max-width: 48rem)';
+/*
+Approved landing target — Candidate 3a (Final candidate: refined 2b, finishing
+alternative 3a, Geist-only). Composition, copy, geometry and rhythm follow the
+frozen landing boards ("Final Candidate - Refined 2b" + "Finishing Alternatives
++ Supersessions"); product-proof content is reconciled to the CURRENT merged
+product truth (Board A neutral similarity classification with subordinate raw
+cosine, Board B decision record with terminal controls removed, matric-first
+student identity, Voyage-only semantic contract, staging honesty).
+*/
 
-const navigationItems = [
-  ['why', 'Why it exists'],
-  ['roles', 'Who it supports'],
-  ['evidence', 'Similarity evidence'],
-  ['approval', 'How approval works'],
-  ['governance', 'Governance']
-];
+const PROOF_DISCLAIMER = 'Illustrative product preview — synthetic records, not departmental data.';
 
-const roleJourneys = [
-  {
-    number: '01',
-    role: 'Student',
-    title: 'Develop and submit an informed proposal.',
-    items: ['Privately pre-check an idea', 'Submit a topic', 'Track review status', 'View lecturer feedback and outcomes']
-  },
-  {
-    number: '02',
-    role: 'Lecturer',
-    title: 'Examine evidence and record a decision.',
-    items: ['Inspect assigned submissions', 'Run or review similarity evidence', 'Inspect supported saved evidence', 'Approve, reject or request revision with rationale', 'Review previous decisions']
-  },
-  {
-    number: '03',
-    role: 'Administrator',
-    title: 'Maintain the records around the workflow.',
-    items: ['Inspect account records', 'Manage supported account-status workflows', 'Manage lecturer–student assignments', 'Maintain supported topic repositories', 'Preview and commit authorised imports', 'Inspect audit records', 'Access supported summaries and CSV exports']
-  }
-];
-
-const semanticEvidencePoints = [
-  ['S', 'Semantic similarity analysis', 'Compares contextual meaning so related topics may still be recognised when wording differs.'],
-  ['C', 'Structured topic context', 'Uses the submitted title and any supplied population, location or study-focus context in one semantic representation.'],
-  ['A', 'Advisory evidence', 'Returns relevant stored records for lecturer review; it does not make an academic decision.']
-];
-
-const approvalSteps = [
-  ['01', 'Topic submission', 'The student records a proposed topic for formal review.'],
-  ['02', 'Similarity checking', 'The workflow compares the proposal with relevant repository records.'],
-  ['03', 'Lecturer review', 'An authorised lecturer considers the proposal, evidence and academic context.'],
-  ['04', 'Decision record', 'Approval, rejection or a request for revision is recorded with rationale where required.']
-];
-
-function useMobileNavigation() {
-  const location = useLocation();
-  const queryRequestsOpen = new URLSearchParams(location.search).get('menu') === 'open';
-  const getIsMobile = () => window.matchMedia?.(MOBILE_QUERY).matches ?? false;
-  const [isMobile, setIsMobile] = useState(getIsMobile);
-  const [isOpen, setIsOpen] = useState(() => getIsMobile() && queryRequestsOpen);
-
-  useEffect(() => {
-    if (!window.matchMedia) return undefined;
-    const mediaQuery = window.matchMedia(MOBILE_QUERY);
-    const handleChange = (event) => {
-      setIsMobile(event.matches);
-      setIsOpen(event.matches && queryRequestsOpen);
-    };
-
-    mediaQuery.addEventListener?.('change', handleChange);
-    return () => mediaQuery.removeEventListener?.('change', handleChange);
-  }, [queryRequestsOpen]);
-
-  return { isMobile, isOpen, setIsOpen };
-}
-
-function AnchorLink({ id, children, className = '', onNavigate, ariaLabel }) {
+function AnchorLink({ id, children, className = '', ariaLabel }) {
   const location = useLocation();
 
   const handleClick = (event) => {
     event.preventDefault();
-    onNavigate?.();
     const target = document.getElementById(id);
     if (!target) return;
     const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
@@ -90,327 +35,326 @@ AnchorLink.propTypes = {
   ariaLabel: PropTypes.string,
   children: PropTypes.node.isRequired,
   className: PropTypes.string,
-  id: PropTypes.string.isRequired,
-  onNavigate: PropTypes.func
+  id: PropTypes.string.isRequired
 };
 
-function Brand() {
+/* 68px masthead band + 44px index rule. The index rule is the one staging
+   notice: environment · function · build, factual institutional metadata. */
+function Masthead() {
   return (
-    <AnchorLink id="top" className="landing-brand" ariaLabel="Research Topic Approval DSS home">
-      <span className="landing-brand__mark" aria-hidden="true">U</span>
-      <span className="landing-brand__full"><strong>UNIOSUN</strong><br />Research Topic Approval DSS</span>
-      <span className="landing-brand__short" aria-hidden="true">Approval DSS</span>
-    </AnchorLink>
-  );
-}
-
-function MenuIcon({ open }) {
-  return open ? (
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
-  ) : (
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
-  );
-}
-
-MenuIcon.propTypes = { open: PropTypes.bool.isRequired };
-
-function PublicMasthead() {
-  const { isMobile, isOpen, setIsOpen } = useMobileNavigation();
-  const menuButtonRef = useRef(null);
-
-  useEffect(() => {
-    const closeOnEscape = (event) => {
-      if (event.key === 'Escape' && isOpen) {
-        setIsOpen(false);
-        menuButtonRef.current?.focus();
-      }
-    };
-    window.addEventListener('keydown', closeOnEscape);
-    return () => window.removeEventListener('keydown', closeOnEscape);
-  }, [isOpen, setIsOpen]);
-
-  return (
-    <header className="landing-masthead" data-testid="landing-masthead">
-      <div className="landing-container landing-masthead__inner">
-        <Brand />
-        <div className="landing-masthead__actions">
-          <span className="landing-environment">Staging environment</span>
-          <Link className="landing-button landing-button--compact landing-button--primary" to="/login">Sign In</Link>
-          <button
-            className="landing-menu-toggle"
-            ref={menuButtonRef}
-            type="button"
-            aria-label={isOpen ? 'Close menu' : 'Menu'}
-            aria-expanded={isOpen}
-            aria-controls="landing-navigation"
-            onClick={() => setIsOpen((current) => !current)}
-          >
-            <MenuIcon open={isOpen} /><span>{isOpen ? 'Close' : 'Menu'}</span>
-          </button>
-        </div>
-        <nav
-          id="landing-navigation"
-          className="landing-nav"
-          aria-label="Landing page"
-          hidden={isMobile && !isOpen}
-        >
-          {navigationItems.map(([id, label]) => (
-            <AnchorLink key={id} id={id} onNavigate={() => setIsOpen(false)}>{label}</AnchorLink>
-          ))}
+    <header className="rl-header" data-testid="landing-masthead">
+      <div className="rl-shell rl-header__band">
+        <AnchorLink id="top" className="rl-brand" ariaLabel="Research Topic Approval DSS home">
+          <span className="rl-brand__mark" aria-hidden="true">U</span>
+          <span className="rl-brand__text">
+            <strong>Research Topic Approval DSS</strong>
+            <small>UNIOSUN · Department of Public Health</small>
+          </span>
+        </AnchorLink>
+        <nav className="rl-nav" aria-label="Landing page">
+          <AnchorLink id="how-it-works">How it works</AnchorLink>
+          <AnchorLink id="evidence">Evidence</AnchorLink>
+          <AnchorLink id="access">Access</AnchorLink>
+          <Link className="rl-nav__signin" to="/login">Sign in</Link>
         </nav>
+      </div>
+      <div className="rl-shell rl-header__index">
+        <span>Pre-pilot · staging environment</span>
+        <span className="rl-header__index-fn">Semantic topic comparison</span>
+        <span className="rl-header__index-release">Pre-pilot build</span>
       </div>
     </header>
   );
 }
 
-function WorkflowFigure() {
+/* Product-proof window chrome: dots, product lockup, path, identity. */
+function WindowChrome({ path, name, meta, initials, role }) {
   return (
-    <figure className="landing-workflow" aria-labelledby="workflow-caption">
-      <figcaption id="workflow-caption">Illustrative approval workflow</figcaption>
-      <div className="landing-workflow__chain">
-        <div className="landing-workflow__node landing-workflow__node--start">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7zM14 3v5h5M10 13h5M10 17h5" /></svg>
-          <span>Proposed topic</span>
+    <div className="rl-window__chrome" aria-hidden="true">
+      <span className="rl-window__dots"><i /><i /><i /></span>
+      <span className="rl-window__app"><b>U</b> Research Topic Approval</span>
+      <span className="rl-window__path">{path}</span>
+      <span className="rl-window__id">
+        <span className="rl-window__idtext">{name}{meta ? <small>{meta}</small> : null}</span>
+        <span className="rl-window__avatar">{initials}</span>
+        <small className="rl-window__role">{role}</small>
+      </span>
+    </div>
+  );
+}
+
+WindowChrome.propTypes = {
+  initials: PropTypes.string.isRequired,
+  meta: PropTypes.string,
+  name: PropTypes.string.isRequired,
+  path: PropTypes.string.isRequired,
+  role: PropTypes.string.isRequired
+};
+
+function StateCaption({ state, children }) {
+  return (
+    <figcaption className="rl-caption">
+      <span className="rl-caption__label">State {state} of 3</span>
+      <span className="rl-caption__text">{children}</span>
+    </figcaption>
+  );
+}
+
+StateCaption.propTypes = {
+  children: PropTypes.node.isRequired,
+  state: PropTypes.string.isRequired
+};
+
+/* State 1 — the student pre-check, rendered to current Board A truth:
+   neutral classification language, no verdict colour, advisory boundary. */
+function StateOneWindow() {
+  return (
+    <figure className="rl-window rl-window--hero" aria-label="Product preview: student topic check">
+      <WindowChrome
+        path="/student/check-my-topic"
+        name="Adaeze Example"
+        meta="PH/2021/0412"
+        initials="AE"
+        role="Student"
+      />
+      <div className="rl-window__body">
+        <div className="rl-proof__head">
+          <span className="rl-proof__crumb">Check My Topic</span>
+          <span className="rl-proof__pill rl-proof__pill--advisory">Advisory · not saved</span>
         </div>
-        <span className="landing-workflow__arrow" aria-hidden="true">→</span>
-        <div className="landing-workflow__node"><span>01</span><strong>Semantic comparison</strong></div>
-        <span className="landing-workflow__arrow" aria-hidden="true">→</span>
-        <div className="landing-workflow__node"><span>02</span><strong>Historical, current-session and under-review records</strong></div>
-        <span className="landing-workflow__arrow" aria-hidden="true">→</span>
-        <div className="landing-workflow__node landing-workflow__node--evidence"><span>03</span><strong>Advisory similarity evidence</strong></div>
-        <span className="landing-workflow__arrow" aria-hidden="true">→</span>
-        <div className="landing-workflow__node landing-workflow__node--decision">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 12 4 4 8-9M4 3h16v18H4z" /></svg>
-          <strong>Lecturer-controlled decision</strong>
+        <p className="rl-proof__result">3 related records found</p>
+        <p className="rl-proof__lede">Related work exists on file. Compare its context before submitting.</p>
+        <p className="rl-proof__checked"><small>Checked</small>Knowledge and practice of malaria prevention among mothers of under-five children in Osogbo</p>
+        <ul className="rl-proof__records">
+          <li>
+            <div>
+              <p>Assessment of malaria prevention practices among caregivers of under-five children in Olorunda LGA</p>
+              <small>2022/2023 session · Dr F. A. Adewale · Historical record</small>
+            </div>
+            <span className="rl-class rl-class--higher">Higher similarity</span>
+          </li>
+          <li>
+            <div>
+              <p>Determinants of insecticide-treated net use in rural households of Osun State</p>
+              <small>2021/2022 session · Dr K. O. Balogun · Historical record</small>
+            </div>
+            <span className="rl-class rl-class--moderate">Moderate similarity</span>
+          </li>
+          <li>
+            <div>
+              <p>Health education and uptake of intermittent preventive treatment of malaria in pregnancy</p>
+              <small>2020/2021 session · Prof R. T. Olaniyan · Historical record</small>
+            </div>
+            <span className="rl-class rl-class--moderate">Moderate similarity</span>
+          </li>
+        </ul>
+        <div className="rl-proof__foot">
+          <p>The decision remains with your lecturer.</p>
+          <div className="rl-proof__actions" aria-hidden="true">
+            <span className="rl-proof__btn rl-proof__btn--ghost">Refine topic</span>
+            <span className="rl-proof__btn rl-proof__btn--primary">Continue to submission</span>
+          </div>
         </div>
       </div>
     </figure>
   );
 }
 
-function LandingHero() {
+/* State 2 — lecturer review at rest, rendered to current Board A/B truth:
+   classification primary, raw cosine subordinate (never a percentage),
+   side-by-side recorded context, rationale contract for reject AND revision. */
+function StateTwoWindow() {
   return (
-    <section className="landing-hero" id="top" tabIndex="-1" aria-labelledby="landing-title">
-      <div className="landing-container landing-hero__grid">
-        <div className="landing-hero__copy">
-          <p className="landing-eyebrow">Research decision support</p>
-          <h1 id="landing-title">Better research topics begin with better evidence.</h1>
-          <p className="landing-hero__lede">A role-based decision-support system that compares proposed undergraduate research topics with existing records using semantic similarity analysis while keeping final approval under lecturer control.</p>
-          <div className="landing-button-row">
-            <Link className="landing-button landing-button--primary" to="/login">Sign In to your workspace</Link>
-            <AnchorLink className="landing-button landing-button--secondary" id="approval">See how the process works</AnchorLink>
+    <figure className="rl-window" aria-label="Product preview: lecturer review">
+      <WindowChrome
+        path="/lecturer/pending-reviews/1042"
+        name="F. A. Adewale"
+        initials="FA"
+        role="Lecturer"
+      />
+      <div className="rl-window__body">
+        <div className="rl-proof__head">
+          <span className="rl-proof__crumb">Submission Details</span>
+          <span className="rl-proof__pill rl-proof__pill--pending">Pending review</span>
+        </div>
+        <p className="rl-proof__field"><small>Submitted topic</small>Knowledge and practice of malaria prevention among mothers of under-five children in Osogbo</p>
+        <p className="rl-proof__advisory">Similarity evidence is advisory. Final decisions remain lecturer-controlled.</p>
+        <dl className="rl-proof__meta">
+          <div><dt>Student name</dt><dd>Adaeze Example</dd></div>
+          <div><dt>Academic session</dt><dd>2025/2026</dd></div>
+          <div><dt>Category</dt><dd>Public Health</dd></div>
+        </dl>
+        <div className="rl-proof__closest">
+          <div className="rl-proof__closesthead">
+            <small>Closest related record</small>
+            <span className="rl-class rl-class--higher">Higher similarity</span>
+            <code>cosine 0.714</code>
           </div>
-          <p className="landing-hero__audience"><strong>For students, lecturers and administrators</strong> working through a traceable topic-approval process.</p>
+          <p>Assessment of malaria prevention practices among caregivers of under-five children in Olorunda LGA</p>
+          <small>2022/2023 session · Dr F. A. Adewale · Historical record</small>
+          <table className="rl-proof__compare">
+            <thead><tr><th scope="col" aria-label="Field" /><th scope="col">Proposed</th><th scope="col">This record</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Population</th><td data-side="Proposed">Mothers of children under five</td><td data-side="This record">Caregivers of under-five children</td></tr>
+              <tr><th scope="row">Location</th><td data-side="Proposed">Osogbo, Osun State</td><td data-side="This record">Olorunda LGA, Osun State</td></tr>
+              <tr><th scope="row">Study focus</th><td data-side="Proposed">Prevention knowledge and household practice</td><td data-side="This record">Prevention practices</td></tr>
+            </tbody>
+          </table>
+          <small className="rl-proof__note">Recorded metadata shown side by side. The system does not score these fields individually.</small>
         </div>
-        <WorkflowFigure />
-      </div>
-    </section>
-  );
-}
-
-function WhyPlatformSection() {
-  return (
-    <section className="landing-section landing-section--cream" id="why" tabIndex="-1" aria-labelledby="why-title">
-      <div className="landing-container landing-split-intro">
-        <div><p className="landing-eyebrow">Why it exists</p><h2 id="why-title">A clearer basis for discussing topic similarity.</h2></div>
-        <div className="landing-prose">
-          <p>Topic review can rely on stored titles and keyword-only checking. That can make synonyms, paraphrases and differently worded but related topics harder to identify consistently across academic sessions.</p>
-          <p>The platform is designed to bring related records and their semantic comparison into one traceable evidence trail—without replacing academic judgement or guaranteeing originality.</p>
-        </div>
-      </div>
-      <div className="landing-container landing-challenges" aria-label="Challenges the platform is designed to support">
-        <div><span>01</span><h3>Beyond exact keywords</h3><p>Support recognition of related meaning when wording differs.</p></div>
-        <div><span>02</span><h3>Across academic sessions</h3><p>Support comparison beyond the current intake.</p></div>
-        <div><span>03</span><h3>Evidence with context</h3><p>Give lecturers traceable material for review.</p></div>
-      </div>
-    </section>
-  );
-}
-
-function RoleJourneySection() {
-  return (
-    <section className="landing-section" id="roles" tabIndex="-1" aria-labelledby="roles-title">
-      <div className="landing-container landing-heading landing-heading--center">
-        <p className="landing-eyebrow">Who it supports</p>
-        <h2 id="roles-title">One process, three distinct responsibilities.</h2>
-        <p>Each role sees the work and evidence appropriate to its part in the approval process.</p>
-      </div>
-      <div className="landing-container landing-roles">
-        {roleJourneys.map((role) => (
-          <article key={role.role}>
-            <p className="landing-role-number">{role.number} / {role.role}</p>
-            <h3>{role.title}</h3>
-            <ul>{role.items.map((item) => <li key={item}>{item}</li>)}</ul>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function SimilarityEvidenceSection() {
-  return (
-    <section className="landing-section landing-section--green" id="evidence" tabIndex="-1" aria-labelledby="evidence-title">
-      <div className="landing-container landing-evidence-layout">
-        <div className="landing-heading landing-heading--light">
-          <p className="landing-eyebrow">Similarity evidence</p>
-          <h2 id="evidence-title">One semantic comparison, reviewed in context.</h2>
-          <p>The semantic similarity result supports academic review. It does not automatically approve or reject a proposal.</p>
-        </div>
-        <div className="landing-methods">
-          {semanticEvidencePoints.map(([code, title, copy]) => (
-            <article key={title}><span className="landing-method-code">{code}</span><div><h3>{title}</h3><p>{copy}</p></div></article>
-          ))}
-        </div>
-      </div>
-      <div className="landing-container landing-disclosure-wrap">
-        <details>
-          <summary>How Voyage semantic comparison supports review</summary>
-          <p>Voyage&apos;s <code>voyage-4-large</code> model compares structured topic context with eligible stored records. It returns advisory semantic evidence only; it does not provide a lexical fallback, an originality guarantee or an automatic decision.</p>
-        </details>
-      </div>
-    </section>
-  );
-}
-
-function ApprovalWorkflowSection() {
-  return (
-    <section className="landing-section" id="approval" tabIndex="-1" aria-labelledby="approval-title">
-      <div className="landing-container landing-heading"><p className="landing-eyebrow">From proposal to decision</p><h2 id="approval-title">A guided approval sequence with a human decision at its centre.</h2></div>
-      <ol className="landing-container landing-approval-steps">
-        {approvalSteps.map(([number, title, copy]) => <li key={title}><span>{number}</span><div><h3>{title}</h3><p>{copy}</p></div></li>)}
-      </ol>
-      <div className="landing-container landing-revision" aria-label="Optional revision path">
-        <p>Possible revision path</p>
-        <div><span>Revision requested</span><b aria-hidden="true">→</b><span>Student submits a revised topic</span><b aria-hidden="true">→</b><span>Lecturer reviews again</span><em aria-hidden="true">↩ returns to review</em></div>
-      </div>
-      <div className="landing-container landing-principle">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 7h14M7 7l-4 7h8L7 7Zm10 0-4 7h8l-4-7Z" /></svg>
-        <p><strong>Similarity evidence supports the decision.</strong> It does not make the decision.</p>
-      </div>
-    </section>
-  );
-}
-
-function RepositoryLifecycleSection() {
-  const metadata = ['Topic title', 'Academic session', 'Category', 'Keywords', 'Supervisor where available', 'Population, location or study focus where recorded', 'Lifecycle status'];
-  return (
-    <section className="landing-section landing-section--cream" id="repository" tabIndex="-1" aria-labelledby="repository-title">
-      <div className="landing-container landing-repository-layout">
-        <div className="landing-heading"><p className="landing-eyebrow">Structured topic repository</p><h2 id="repository-title">Comparison grounded in topic records across their lifecycle.</h2><p>Depending on the supported workflow, comparison may draw on historical topics, current-session topics and topics still under review.</p></div>
-        <div className="landing-repository" aria-label="Topic repository record groups">
-          <div><strong>Historical topics</strong><small>Prior sessions</small></div>
-          <div><strong>Current-session topics</strong><small>Present records</small></div>
-          <div><strong>Under-review topics</strong><small>Active proposals</small></div>
-          <section><h3>Available metadata may include</h3><ul>{metadata.map((item) => <li key={item}>{item}</li>)}</ul></section>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-const evidenceFacts = [['Produced by', 'The checking workflow'], ['Identifies', 'Related stored records'], ['Uses', 'A managed semantic provider'], ['May support', 'Saved lecturer evidence snapshots']];
-const decisionFacts = [['Made by', 'An authorised lecturer'], ['Considers', 'The proposal and academic context'], ['May record', 'Approve, reject or request revision'], ['Documents', 'Rationale where required']];
-
-function ComparisonRecord({ label, title, facts, decision = false }) {
-  return (
-    <article className={decision ? 'landing-comparison__decision' : ''}>
-      <p className="landing-comparison__label"><span aria-hidden="true">{decision ? 'B' : 'A'}</span>{label}</p>
-      <h3>{title}</h3>
-      <dl>{facts.map(([term, description]) => <div key={term}><dt>{term}</dt><dd>{description}</dd></div>)}</dl>
-    </article>
-  );
-}
-
-ComparisonRecord.propTypes = {
-  decision: PropTypes.bool,
-  facts: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
-  label: PropTypes.string.isRequired,
-  title: PropTypes.string.isRequired
-};
-
-function EvidenceVsDecisionSection() {
-  return (
-    <section className="landing-section" id="judgement" tabIndex="-1" aria-labelledby="judgement-title">
-      <div className="landing-container landing-heading landing-heading--center"><p className="landing-eyebrow">Evidence and academic judgement</p><h2 id="judgement-title">A deliberate boundary between finding similarity and making a decision.</h2></div>
-      <div className="landing-container landing-comparison">
-        <ComparisonRecord label="Similarity evidence" title="Material for informed review" facts={evidenceFacts} />
-        <div className="landing-comparison__divider" aria-hidden="true">informs</div>
-        <ComparisonRecord label="Academic decision" title="A judgement with accountable rationale" facts={decisionFacts} decision />
-      </div>
-    </section>
-  );
-}
-
-function GovernanceSection() {
-  const items = [
-    ['01', 'Role-protected access', 'Workspaces and actions follow assigned responsibilities.'],
-    ['02', 'Account-status management', 'Supported account-status workflows are managed explicitly.'],
-    ['03', 'Lecturer–student assignment records', 'Supported assignments preserve accountable relationships.'],
-    ['04', 'Controlled repository imports', 'Authorised imports can be previewed before commit.'],
-    ['05', 'Audit and administrative records', 'Audit records, guarded purge, aggregate summaries and supported CSV exports aid traceability.']
-  ];
-  return (
-    <section className="landing-section landing-section--green-soft" id="governance" tabIndex="-1" aria-labelledby="governance-title">
-      <div className="landing-container landing-governance-layout">
-        <div className="landing-heading"><p className="landing-eyebrow">Governance and traceability</p><h2 id="governance-title">The surrounding controls keep academic work attributable.</h2><p>Supported administration and record-keeping provide context for who can act and how repository changes are handled.</p></div>
-        <ol className="landing-governance-list">{items.map(([number, title, copy]) => <li key={title}><span>{number}</span><div><strong>{title}</strong><small>{copy}</small></div></li>)}</ol>
-      </div>
-    </section>
-  );
-}
-
-function TechnicalFoundationDisclosure() {
-  return (
-    <section className="landing-section landing-technical" id="technical" tabIndex="-1" aria-labelledby="technical-title">
-      <div className="landing-container landing-technical__inner">
-        <div><p className="landing-eyebrow">Technical foundation</p><h2 id="technical-title">A role-protected application with a managed semantic provider.</h2></div>
-        <details className="landing-technical__disclosure">
-          <summary>View technical architecture</summary>
-          <div className="landing-architecture" aria-label="Technical architecture">
-            <p>Technical architecture</p>
-            <div><strong>React</strong><span>Frontend</span></div><b aria-hidden="true">→</b>
-            <div><strong>Node.js / Express</strong><span>Application API</span></div><b aria-hidden="true">→</b>
-            <div><strong>PostgreSQL / Prisma</strong><span>Application records</span></div><b aria-hidden="true">+</b>
-            <div><strong>Voyage API</strong><span>Semantic provider</span></div>
+        <div className="rl-proof__decision">
+          <small>Controlled action</small>
+          <p className="rl-proof__decisiontitle">Lecturer decision</p>
+          <div className="rl-proof__rationale" aria-hidden="true">
+            <small>Decision rationale / comment</small>
+            <span>Add the reason for this decision…</span>
           </div>
-          <p>Role-protected workflows connect the frontend to the application API. The Voyage semantic provider uses <code>voyage-4-large</code> for contextual comparison. This static diagram describes architecture; it does not report runtime status.</p>
-        </details>
+          <small className="rl-proof__note">Required when rejecting a topic or requesting a revision. Similarity evidence remains advisory.</small>
+          <div className="rl-proof__actions" aria-hidden="true">
+            <span className="rl-proof__btn rl-proof__btn--primary">Approve</span>
+            <span className="rl-proof__btn rl-proof__btn--ghost">Request Revision</span>
+            <span className="rl-proof__btn rl-proof__btn--danger">Reject</span>
+          </div>
+        </div>
       </div>
-    </section>
+    </figure>
   );
 }
 
-function FinalSignInCTA() {
+/* State 3 — the recorded decision, rendered to current Board B truth:
+   decision-first, terminal controls removed (not disabled). */
+function StateThreeWindow() {
   return (
-    <section className="landing-final" aria-labelledby="final-title">
-      <div className="landing-container landing-final__inner">
-        <div><p className="landing-eyebrow">Continue to your workspace</p><h2 id="final-title">Continue to your research workspace</h2><p>Students, lecturers and administrators use the same secure sign-in and are directed to the workspace assigned to their account.</p></div>
-        <Link className="landing-button landing-button--gold" to="/login">Sign In to the DSS</Link>
+    <figure className="rl-window" aria-label="Product preview: recorded decision">
+      <WindowChrome
+        path="/lecturer/pending-reviews/1042"
+        name="F. A. Adewale"
+        initials="FA"
+        role="Lecturer"
+      />
+      <div className="rl-window__body">
+        <div className="rl-proof__head">
+          <span className="rl-proof__crumb">Submission Details</span>
+          <span className="rl-proof__pill rl-proof__pill--approved">Approved</span>
+        </div>
+        <p className="rl-proof__field"><small>Submitted topic</small>Knowledge and practice of malaria prevention among mothers of under-five children in Osogbo</p>
+        <div className="rl-proof__rationalecard">
+          <small>Stored lecturer rationale</small>
+          <p>Related work exists in the 2022/2023 record, but the proposed population, location and study focus differ enough to support a distinct project. Approved on condition the student cites the Olorunda LGA study.</p>
+          <small className="rl-proof__decider">Decided by <b>Dr F. A. Adewale</b> on <b>14 Mar 2026, 11:08</b></small>
+        </div>
+        <p className="rl-proof__terminal">This submission is no longer pending review, so no further decision can be recorded here.</p>
       </div>
-      <div className="landing-container landing-staging"><strong>Staging environment</strong><span>Accounts are created by an administrator; this service does not offer self-registration.</span></div>
-    </section>
+    </figure>
   );
 }
+
+const BOUNDARY_STATEMENTS = [
+  ['Low similarity is not originality', 'A quiet result means no closely related record was found. It proves nothing more.'],
+  ['High similarity is not rejection', 'Closely related work is a reason to look carefully, not an automatic outcome.'],
+  ['It does not detect plagiarism', 'The system compares topics and context. It never judges conduct or quality.'],
+  ['An empty record is reported honestly', 'With nothing to compare against, the system says so. It never claims a topic is new.']
+];
+
+const ACCESS_ROWS = [
+  ['Students', 'Sign in with your matric number.'],
+  ['Lecturers', 'Sign in with your registered email address.'],
+  ['Administrators', 'Sign in with your registered email address.']
+];
 
 function LandingPage() {
   return (
-    <div className="public-landing">
-      <a className="landing-skip" href="#landing-main">Skip to main content</a>
-      <PublicMasthead />
+    <div className="rl rl-final">
+      <a className="rl-skip" href="#landing-main">Skip to main content</a>
+      <Masthead />
       <main id="landing-main" tabIndex="-1">
-        <LandingHero />
-        <WhyPlatformSection />
-        <RoleJourneySection />
-        <SimilarityEvidenceSection />
-        <ApprovalWorkflowSection />
-        <RepositoryLifecycleSection />
-        <EvidenceVsDecisionSection />
-        <GovernanceSection />
-        <TechnicalFoundationDisclosure />
-        <FinalSignInCTA />
+        {/* Hero — dark field; the State 1 window crosses the dark→paper edge. */}
+        <section className="rl-hero" id="top" tabIndex="-1" aria-labelledby="landing-title">
+          <div className="rl-hero__dark">
+            <div className="rl-shell rl-hero__copy">
+              <p className="rl-eyebrow rl-eyebrow--ondark">Research decision support</p>
+              <h1 id="landing-title">See related research before the decision.</h1>
+              <p className="rl-hero__lede">Students check a topic before submitting it. Lecturers review it beside the related work already on file.</p>
+              <div className="rl-hero__cta">
+                <Link className="rl-btn rl-btn--primary" to="/login">Sign in to your workspace</Link>
+                <AnchorLink className="rl-hero__how" id="how-it-works">How it works</AnchorLink>
+              </div>
+            </div>
+          </div>
+          <div className="rl-shell rl-shell--proof rl-hero__proof" id="how-it-works" tabIndex="-1">
+            <StateOneWindow />
+            <StateCaption state="1">
+              The private pre-check a student runs before submitting. {PROOF_DISCLAIMER} Similarity is advisory evidence; approval remains an academic decision.
+            </StateCaption>
+          </div>
+        </section>
+
+        {/* State 2 unit: eyebrow → 34px heading → one line → plate → caption. */}
+        <section className="rl-state" aria-labelledby="state2-title">
+          <div className="rl-shell rl-state__head">
+            <p className="rl-eyebrow">The same screen, one step later</p>
+            <h2 id="state2-title">Evidence a lecturer can weigh</h2>
+            <p className="rl-state__line">Recorded context sits beside the proposal, and the decision controls sit at the foot of the same screen.</p>
+          </div>
+          <div className="rl-shell rl-shell--proof">
+            <StateTwoWindow />
+            <StateCaption state="2">
+              Lecturer review with the decision controls at rest. {PROOF_DISCLAIMER}
+            </StateCaption>
+          </div>
+        </section>
+
+        {/* State 3 unit. */}
+        <section className="rl-state" aria-labelledby="state3-title">
+          <div className="rl-shell rl-state__head">
+            <p className="rl-eyebrow">Where the sequence ends</p>
+            <h2 id="state3-title">The decision is a person&apos;s, and it is on the record</h2>
+            <p className="rl-state__line">Every outcome stores who decided, when, and why.</p>
+          </div>
+          <div className="rl-shell rl-shell--proof">
+            <StateThreeWindow />
+            <StateCaption state="3">
+              The same screen once a decision is recorded. Illustrative product preview — the rationale is a worked example, not a departmental decision.
+            </StateCaption>
+          </div>
+        </section>
+
+        {/* Boundary — four statements on full-measure hairlines. */}
+        <section className="rl-boundary" id="evidence" tabIndex="-1" aria-labelledby="boundary-title">
+          <div className="rl-shell rl-state__head">
+            <h2 id="boundary-title">The boundary this system keeps</h2>
+            <p className="rl-state__line">Similarity informs the decision. It never makes it.</p>
+          </div>
+          <dl className="rl-shell rl-boundary__list">
+            {BOUNDARY_STATEMENTS.map(([statement, line]) => (
+              <div key={statement}>
+                <dt>{statement}</dt>
+                <dd>{line}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        {/* Close — V3 composition literally: 560 measure, rigid rows, 260px button. */}
+        <section className="rl-close" id="access" tabIndex="-1" aria-labelledby="close-title">
+          <div className="rl-close__inner">
+            <h2 id="close-title">Continue to your workspace</h2>
+            <dl className="rl-close__rows">
+              {ACCESS_ROWS.map(([role, line]) => (
+                <div key={role}><dt>{role}</dt><dd>{line}</dd></div>
+              ))}
+            </dl>
+            <Link className="rl-btn rl-btn--primary rl-close__btn" to="/login">Sign in to the DSS</Link>
+            <p className="rl-close__note">Accounts are provisioned by the department — there is no self-registration.</p>
+          </div>
+        </section>
       </main>
-      <footer className="landing-footer"><div className="landing-container"><span>Research Topic Approval DSS</span><AnchorLink id="top">Back to top ↑</AnchorLink></div></footer>
+      <footer className="rl-footer">
+        <div className="rl-shell rl-footer__inner">
+          <span>Research Topic Approval DSS</span>
+          <span>UNIOSUN · Department of Public Health · Pre-pilot staging environment</span>
+        </div>
+      </footer>
     </div>
   );
 }
