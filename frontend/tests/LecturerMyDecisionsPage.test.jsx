@@ -285,3 +285,55 @@ describe('Lecturer MyDecisionsPage — Board D provenance and labels', () => {
     expect(screen.queryByText(/awaiting revision/i)).not.toBeInTheDocument();
   });
 });
+
+// Board D2 — decision-record grammar: identity first on mobile, one shared
+// desktop grid, provenance columns wide enough to stay readable. D1 provenance
+// truth (both-branch parity, no linkage wording) is protected above.
+describe('Lecturer MyDecisionsPage — Board D2 record grammar', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('reads topic identity before the mobile workflow status, with rationale directly after', async () => {
+    listLecturerDecisions.mockResolvedValue(decisionsResponse);
+    renderPage();
+
+    const title = await screen.findByText(/knowledge of malaria prevention/i);
+    const article = title.closest('article');
+    const mobileStatus = article.querySelector('div.lg\\:hidden');
+    const rationale = screen.getByText(/approved after review/i);
+
+    expect(mobileStatus).toHaveTextContent('Approved');
+    expect(title.compareDocumentPosition(mobileStatus) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(mobileStatus.compareDocumentPosition(rationale) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('keeps the mobile provenance line as the record footer after the date metadata', async () => {
+    listLecturerDecisions.mockResolvedValue(decisionsResponse);
+    renderPage();
+
+    const title = await screen.findByText(/knowledge of malaria prevention/i);
+    const article = title.closest('article');
+    const footer = article.lastElementChild;
+
+    expect(footer.className).toContain('lg:hidden');
+    expect(footer).toHaveTextContent('Latest saved similarity check #88');
+  });
+
+  it('uses one identical grid definition for the desktop header and every row, with room for identity and provenance', async () => {
+    listLecturerDecisions.mockResolvedValue(decisionsResponse);
+    renderPage();
+
+    const title = await screen.findByText(/knowledge of malaria prevention/i);
+    const row = title.closest('article');
+    const header = document.querySelector('div[class*="lg:grid-cols-"][class*="uppercase"]');
+    const gridOf = (el) => el.className.match(/lg:grid-cols-\[[^\]]+\]/)?.[0];
+
+    expect(gridOf(header)).toBeTruthy();
+    expect(gridOf(row)).toBe(gridOf(header));
+    // Student column floors at 260px (fits the representative long personal
+    // email); the status/latest-check column floors at 220px.
+    expect(gridOf(row)).toContain('minmax(260px,0.9fr)');
+    expect(gridOf(row)).toContain('minmax(220px,0.75fr)');
+  });
+});

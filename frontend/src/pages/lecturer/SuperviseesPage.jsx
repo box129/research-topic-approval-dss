@@ -20,13 +20,12 @@ function formatDate(value) {
   });
 }
 
-function SummaryChip({ label, value, warning = false }) {
+// Neutral by design: supervisees with work pending review is a normal
+// operational count, not a warning (Board D2 F2.1), so this page-local chip
+// carries no warning variant.
+function SummaryChip({ label, value }) {
   return (
-    <p className={`w-fit rounded-full border px-3 py-1 text-sm font-semibold ${
-      warning
-        ? 'border-feedback-warning-border bg-feedback-warning-bg text-feedback-warning'
-        : 'border-border-subtle bg-white text-text-secondary'
-    }`}>
+    <p className="w-fit rounded-full border border-border-subtle bg-white px-3 py-1 text-sm font-semibold text-text-secondary">
       {label} <span className="ml-1 text-text-primary">{value}</span>
     </p>
   );
@@ -38,16 +37,19 @@ function SuperviseeRecord({ assignment }) {
   return (
     <article className="grid gap-4 border-b border-border-subtle px-5 py-4 last:border-b-0 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.8fr)]">
       <div className="min-w-0">
-        <p className="text-xs font-semibold uppercase tracking-wide text-brand-green">Active assignment</p>
-        <div className="mt-2">
-          <StudentIdentity
-            name={assignment.student?.name}
-            matricNumber={assignment.student?.matricNumber}
-            email={assignment.student?.email}
-            testIdPrefix={`supervisee-${assignment.id}-student`}
-          />
-        </div>
-        <p className="mt-2 text-sm text-text-muted">Assigned {formatDate(assignment.assignedAt)}</p>
+        {/* D2 record grammar: the student is the record's primary identity and
+            reads first. "Active assignment" is neutral operational metadata —
+            not academic approval — so it never wears green or the uppercase
+            eyebrow treatment. */}
+        <StudentIdentity
+          name={assignment.student?.name}
+          matricNumber={assignment.student?.matricNumber}
+          email={assignment.student?.email}
+          testIdPrefix={`supervisee-${assignment.id}-student`}
+        />
+        <p className="mt-2 text-sm text-text-secondary">
+          Active assignment · Assigned {formatDate(assignment.assignedAt)}
+        </p>
       </div>
 
       <div className="rounded-[8px] border border-border-subtle bg-surface-page p-4">
@@ -160,7 +162,7 @@ function SuperviseesPage() {
           <div className="flex flex-wrap gap-2" aria-label="Supervisee summary">
             <SummaryChip label="Assigned students" value={summary.total} />
             <SummaryChip label="With submissions" value={summary.withSubmission} />
-            <SummaryChip label="Pending review" value={summary.pendingReview} warning={summary.pendingReview > 0} />
+            <SummaryChip label="Pending review" value={summary.pendingReview} />
           </div>
 
           {items.length === 0 ? (

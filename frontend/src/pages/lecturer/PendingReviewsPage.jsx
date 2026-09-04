@@ -50,17 +50,22 @@ function buildCategoryOptions(submissions) {
     .map((category) => ({ label: category, value: category }));
 }
 
-function SummaryChip({ label, value, warning = false }) {
+// Neutral by design: pending work waiting in a lecturer queue is a normal
+// operational count, not a warning (Board D2 C2.1), so this page-local chip
+// carries no warning variant.
+function SummaryChip({ label, value }) {
   return (
-    <p className={`w-fit rounded-full border px-3 py-1 text-sm font-semibold ${
-      warning
-        ? 'border-feedback-warning-border bg-feedback-warning-bg text-feedback-warning'
-        : 'border-border-subtle bg-white text-text-secondary'
-    }`}>
+    <p className="w-fit rounded-full border border-border-subtle bg-white px-3 py-1 text-sm font-semibold text-text-secondary">
       {label} <span className="ml-1 text-text-primary">{value}</span>
     </p>
   );
 }
+
+// One shared definition for the desktop header and every row, so the two can
+// never drift. Metadata and action columns are sized to their longest
+// supported real value (a full personal email needs ≥220px); the fluid topic
+// column absorbs the remaining width; the action column hugs its label.
+const QUEUE_GRID_COLS = 'lg:grid-cols-[minmax(0,1.45fr)_minmax(260px,0.9fr)_minmax(120px,0.55fr)_minmax(130px,0.55fr)_minmax(140px,0.6fr)_max-content]';
 
 function PendingReviewsPage() {
   const navigate = useNavigate();
@@ -124,7 +129,7 @@ function PendingReviewsPage() {
       {!isLoading && !error && (
         <>
           <div className="flex flex-wrap gap-2" aria-label="Review queue summary">
-            <SummaryChip label="Pending reviews" value={submissions.length} warning={submissions.length > 0} />
+            <SummaryChip label="Pending reviews" value={submissions.length} />
             <SummaryChip label="Visible after filters" value={filteredSubmissions.length} />
           </div>
 
@@ -261,7 +266,7 @@ function PendingReviewsPage() {
                     <PrimaryButton type="button" onClick={loadSubmissions}>Refresh Queue</PrimaryButton>
                   </div>
 
-                  <div className="hidden grid-cols-[minmax(0,1.6fr)_minmax(150px,0.8fr)_minmax(110px,0.55fr)_minmax(120px,0.55fr)_minmax(120px,0.5fr)_auto] gap-4 bg-surface-muted px-5 py-3 text-xs font-semibold uppercase tracking-wide text-text-muted lg:grid">
+                  <div className={`hidden gap-4 bg-surface-muted px-5 py-3 text-xs font-semibold uppercase tracking-wide text-text-muted lg:grid ${QUEUE_GRID_COLS}`}>
                     <span>Topic</span>
                     <span>Student</span>
                     <span>Category</span>
@@ -274,23 +279,30 @@ function PendingReviewsPage() {
                     {filteredSubmissions.map((submission) => (
                       <article
                         key={submission.id}
-                        className="grid gap-4 px-5 py-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(150px,0.8fr)_minmax(110px,0.55fr)_minmax(120px,0.55fr)_minmax(120px,0.5fr)_auto] lg:items-center"
+                        className={`grid gap-4 px-5 py-4 ${QUEUE_GRID_COLS} lg:items-center`}
                       >
                         <div className="min-w-0">
-                          <div className="lg:hidden"><StatusBadge status={submission.status} /></div>
+                          {/* D2 record grammar: the topic is the record's
+                              primary identity, so it reads first; the workflow
+                              pill follows it on mobile (desktop keeps the
+                              dedicated status column). */}
+                          <h3 className="break-words text-sm font-semibold leading-5 text-text-primary">
+                            {submission.title}
+                          </h3>
+                          <div className="mt-2 lg:hidden"><StatusBadge status={submission.status} /></div>
                           {submission.is_revision && (
+                            // Lineage metadata, not the current workflow
+                            // status: rests neutral so it can never be read as
+                            // the amber "Revision requested" pill.
                             <p
-                              className="mt-2 inline-flex rounded-badge bg-status-revision-bg px-2 py-0.5 text-xs font-semibold text-status-revision lg:mt-0"
+                              className="mt-2 text-sm font-semibold text-text-secondary"
                               data-testid={`queue-revision-marker-${submission.id}`}
                             >
                               Revised submission
                             </p>
                           )}
-                          <h3 className="mt-2 break-words text-sm font-semibold leading-5 text-text-primary lg:mt-0">
-                            {submission.title}
-                          </h3>
                           {submission.revision_of?.decision_reason && (
-                            <p className="mt-1 break-words text-xs leading-5 text-text-muted">
+                            <p className="mt-1 break-words text-sm leading-6 text-text-muted">
                               <span className="font-semibold">Revision requested:</span> {submission.revision_of.decision_reason}
                             </p>
                           )}
@@ -323,13 +335,16 @@ function PendingReviewsPage() {
                           </p>
                         </div>
                         <div className="hidden lg:block"><StatusBadge status={submission.status} /></div>
-                        <SecondaryButton
+                        {/* Supported primary row action — ordinary workflow
+                            navigation, so institutional green (D1-R5/D2 C2.5).
+                            An action that wraps stops reading as a control. */}
+                        <PrimaryButton
                           type="button"
-                          className="w-full lg:w-auto"
+                          className="min-h-11 w-full whitespace-nowrap lg:min-h-10 lg:w-auto"
                           onClick={() => navigate(`/lecturer/pending-reviews/${submission.id}`)}
                         >
                           Open Review
-                        </SecondaryButton>
+                        </PrimaryButton>
                       </article>
                     ))}
                   </div>

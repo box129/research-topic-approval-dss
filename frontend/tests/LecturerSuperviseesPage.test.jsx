@@ -161,4 +161,53 @@ describe('Lecturer SuperviseesPage', () => {
     expect(screen.queryByRole('button', { name: /export/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/matric number: 000/i)).not.toBeInTheDocument();
   });
+
+  // Board D2 — assignment-record grammar: student identity first, assignment
+  // state as neutral operational metadata, the nested latest submission
+  // keeping its genuine workflow status.
+  describe('Board D2 record grammar', () => {
+    it('keeps the pending summary neutral even when work is waiting', async () => {
+      listLecturerSupervisees.mockResolvedValue({ data: { items: [assignment] } });
+      renderPage();
+
+      expect(await screen.findByText(/knowledge of malaria prevention/i)).toBeInTheDocument();
+      const pendingChip = screen.getByText(
+        (content, element) => element.tagName === 'P' && element.textContent.replace(/\s+/g, ' ').trim() === 'Pending review 1'
+      );
+      expect(pendingChip.className).toContain('border-border-subtle');
+      expect(pendingChip.className).not.toMatch(/warning|amber|gold/);
+    });
+
+    it('reads student identity before the neutral assignment metadata', async () => {
+      listLecturerSupervisees.mockResolvedValue({ data: { items: [assignment] } });
+      renderPage();
+
+      const name = await screen.findByTestId('supervisee-10-student-name');
+      const meta = screen.getByText(/active assignment · assigned/i);
+
+      expect(name.compareDocumentPosition(meta) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(meta.className).toContain('text-sm');
+      expect(meta.className).not.toMatch(/uppercase|brand-green|tracking/);
+      expect(meta.tagName).toBe('P');
+    });
+
+    it('keeps the nested latest submission on its genuine workflow StatusBadge', async () => {
+      listLecturerSupervisees.mockResolvedValue({ data: { items: [assignment] } });
+      renderPage();
+
+      expect(await screen.findByText(/knowledge of malaria prevention/i)).toBeInTheDocument();
+      const pill = screen.getByText('Pending review', { selector: 'span' });
+      expect(pill.className).toContain('rounded-badge');
+      expect(pill.className).toContain('text-status-pending');
+    });
+
+    it('keeps the truthful no-submission wording', async () => {
+      listLecturerSupervisees.mockResolvedValue({
+        data: { items: [{ ...assignment, id: 12, latestSubmission: null }] }
+      });
+      renderPage();
+
+      expect(await screen.findByText(/no submission record is attached to this supervisee yet\./i)).toBeInTheDocument();
+    });
+  });
 });

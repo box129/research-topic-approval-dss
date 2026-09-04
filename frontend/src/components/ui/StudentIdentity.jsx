@@ -38,8 +38,11 @@ function StudentIdentity({ name, matricNumber, email, testIdPrefix }) {
         </p>
       )}
       {email && (
+        // Room first, restrained wrapping last: the parent column is sized so a
+        // real personal email fits; break-words is the fallback and the address
+        // is never shattered mid-character with break-all/anywhere (Board D2).
         <p
-          className="mt-1 break-all text-sm text-text-muted"
+          className="mt-1 break-words text-sm text-text-muted"
           data-testid={testIdPrefix ? `${testIdPrefix}-email` : undefined}
         >
           {email}

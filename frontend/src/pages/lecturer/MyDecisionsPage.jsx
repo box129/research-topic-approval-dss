@@ -54,15 +54,24 @@ function SummaryChip({ label, value }) {
   );
 }
 
+// One shared definition for the desktop header and every row, so the two can
+// never drift. The student column fits a full personal email; the final column
+// fits "Latest saved similarity check #NN" without treating provenance as a
+// broken narrow metadata column; the fluid topic column absorbs the rest.
+const DECISIONS_GRID_COLS = 'lg:grid-cols-[minmax(0,1.4fr)_minmax(260px,0.9fr)_minmax(120px,0.55fr)_minmax(140px,0.6fr)_minmax(220px,0.75fr)]';
+
 function DecisionRecord({ decision }) {
   return (
-    <article className="grid gap-4 px-5 py-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(150px,0.75fr)_minmax(120px,0.55fr)_minmax(130px,0.55fr)_minmax(120px,0.5fr)] lg:items-center">
+    <article className={`grid gap-4 px-5 py-4 ${DECISIONS_GRID_COLS} lg:items-center`}>
       <div className="min-w-0">
-        <div className="lg:hidden"><StatusBadge status={decision.status} /></div>
-        <h3 className="mt-2 break-words text-sm font-semibold leading-5 text-text-primary lg:mt-0">
+        {/* D2 record grammar: topic identity first; the workflow pill follows
+            it on mobile (desktop keeps the dedicated status column); the
+            lecturer rationale reads directly after the status. */}
+        <h3 className="break-words text-sm font-semibold leading-5 text-text-primary">
           {decision.title}
         </h3>
-        <p className="mt-1 break-words text-sm text-text-secondary">
+        <div className="mt-2 lg:hidden"><StatusBadge status={decision.status} /></div>
+        <p className="mt-2 break-words text-sm text-text-secondary lg:mt-1">
           {decision.decisionFeedback || 'No lecturer rationale recorded.'}
         </p>
       </div>
@@ -264,7 +273,7 @@ function MyDecisionsPage() {
                 <h2 className="text-base font-bold text-text-primary">Reviewed submissions</h2>
                 <SecondaryButton type="button" onClick={loadDecisions}>Refresh History</SecondaryButton>
               </div>
-              <div className="hidden grid-cols-[minmax(0,1.5fr)_minmax(150px,0.75fr)_minmax(120px,0.55fr)_minmax(130px,0.55fr)_minmax(120px,0.5fr)] gap-4 bg-surface-muted px-5 py-3 text-xs font-semibold uppercase tracking-wide text-text-muted lg:grid">
+              <div className={`hidden gap-4 bg-surface-muted px-5 py-3 text-xs font-semibold uppercase tracking-wide text-text-muted lg:grid ${DECISIONS_GRID_COLS}`}>
                 <span>Topic and rationale</span>
                 <span>Student</span>
                 <span>Category</span>

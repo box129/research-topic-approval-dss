@@ -45,7 +45,9 @@ const pendingSubmissions = [
     student_name: 'Bola Student',
     student_email: 'bola.student@uniosun.edu.ng',
     session_name: '2024/2025',
-    submitted_at: '2026-05-22T08:00:00.000Z'
+    submitted_at: '2026-05-22T08:00:00.000Z',
+    is_revision: true,
+    revision_of: { decision_reason: 'Please narrow the study population before resubmitting.' }
   }
 ];
 
@@ -386,5 +388,97 @@ describe('Lecturer PendingReviewsPage — Board C C4 absence states', () => {
 
     expect(screen.getByTestId('hidden-count')).toHaveTextContent('1 submission is pending review but hidden by these filters.');
     expect(screen.getByTestId('pending-filtered-empty')).toHaveTextContent('1 pending review · 0 shown');
+  });
+});
+
+// Board D2 — populated workflow-record grammar. The queue's Board C C4a/C4b
+// branches are protected and untouched; these tests pin only the populated
+// row semantics and the neutral summary.
+describe('Lecturer PendingReviewsPage — Board D2 record grammar', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const chip = (expected) => (content, element) => element.tagName === 'P' && element.textContent.replace(/\s+/g, ' ').trim().startsWith(expected);
+
+  it('keeps the pending summary neutral even when work is waiting', async () => {
+    listLecturerPendingSubmissions.mockResolvedValue(pendingSubmissions);
+    renderPendingReviewsPage();
+
+    expect(await screen.findByText(/assessment of malaria prevention awareness/i)).toBeInTheDocument();
+    const pendingChip = screen.getByText(chip('Pending reviews'));
+    const visibleChip = screen.getByText(chip('Visible after filters'));
+    expect(pendingChip.className).toContain('border-border-subtle');
+    expect(pendingChip.className).not.toMatch(/warning|amber|gold/);
+    expect(visibleChip.className).toContain('border-border-subtle');
+    expect(visibleChip.className).not.toMatch(/warning|amber|gold/);
+  });
+
+  it('reads topic identity before the mobile workflow status', async () => {
+    listLecturerPendingSubmissions.mockResolvedValue(pendingSubmissions);
+    renderPendingReviewsPage();
+
+    const title = await screen.findByText(/assessment of malaria prevention awareness/i);
+    const article = title.closest('article');
+    const mobileStatus = article.querySelector('div.lg\\:hidden');
+    expect(mobileStatus).toHaveTextContent('Pending review');
+    expect(title.compareDocumentPosition(mobileStatus) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('renders the revised-submission lineage marker as neutral metadata, never a workflow pill', async () => {
+    listLecturerPendingSubmissions.mockResolvedValue(pendingSubmissions);
+    renderPendingReviewsPage();
+
+    expect(await screen.findByText(/machine learning models for library/i)).toBeInTheDocument();
+    const marker = screen.getByTestId('queue-revision-marker-2');
+    expect(marker).toHaveTextContent('Revised submission');
+    expect(marker.className).toContain('text-sm');
+    expect(marker.className).not.toMatch(/rounded-badge|status-revision|amber|gold|uppercase/);
+  });
+
+  it('renders the revision-request rationale at the 14px interpretive role', async () => {
+    listLecturerPendingSubmissions.mockResolvedValue(pendingSubmissions);
+    renderPendingReviewsPage();
+
+    expect(await screen.findByText(/machine learning models for library/i)).toBeInTheDocument();
+    const rationale = screen.getByText(/revision requested:/i).closest('p');
+    expect(rationale.className).toContain('text-sm');
+    expect(rationale.className).not.toContain('text-xs');
+  });
+
+  it('makes Open Review the primary product action that never wraps', async () => {
+    const user = userEvent.setup();
+    listLecturerPendingSubmissions.mockResolvedValue(pendingSubmissions);
+    renderPendingReviewsPage();
+
+    expect(await screen.findByText(/assessment of malaria prevention awareness/i)).toBeInTheDocument();
+    const actions = screen.getAllByRole('button', { name: /open review/i });
+    for (const action of actions) {
+      expect(action.className).toContain('bg-brand-green');
+      expect(action.className).toContain('whitespace-nowrap');
+      expect(action.className).toContain('w-full');
+      expect(action.className).toContain('lg:w-auto');
+      expect(action.className).toContain('min-h-11');
+    }
+
+    await user.click(actions[1]);
+    expect(screen.getByTestId('location-display')).toHaveTextContent('/lecturer/pending-reviews/2');
+  });
+
+  it('uses one identical grid definition for the desktop header and every row', async () => {
+    listLecturerPendingSubmissions.mockResolvedValue(pendingSubmissions);
+    renderPendingReviewsPage();
+
+    const title = await screen.findByText(/assessment of malaria prevention awareness/i);
+    const row = title.closest('article');
+    const header = document.querySelector('div[class*="lg:grid-cols-"][class*="uppercase"]');
+    const gridOf = (el) => el.className.match(/lg:grid-cols-\[[^\]]+\]/)?.[0];
+
+    expect(gridOf(header)).toBeTruthy();
+    expect(gridOf(row)).toBe(gridOf(header));
+    // The representative long personal email fixture needs ~260px at the real
+    // workspace widths, so the student minimum sits above the 220px floor.
+    expect(gridOf(row)).toContain('minmax(260px,0.9fr)');
+    expect(gridOf(row)).toContain('max-content');
   });
 });

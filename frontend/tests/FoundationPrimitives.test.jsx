@@ -7,6 +7,7 @@ import EmptyStatePanel from '../src/components/ui/EmptyStatePanel';
 import PrimaryButton from '../src/components/ui/PrimaryButton';
 import SelectInput from '../src/components/ui/SelectInput';
 import StatusBadge from '../src/components/ui/StatusBadge';
+import StudentIdentity from '../src/components/ui/StudentIdentity';
 import TableShell from '../src/components/ui/TableShell';
 import TextInput from '../src/components/ui/TextInput';
 
@@ -179,5 +180,54 @@ describe('StatusBadge workflow contract', () => {
     const pill = screen.getByText('Approved');
     expect(pill.textContent).not.toMatch(/HIGH|MEDIUM|LOW|similarity|risk/i);
     expect(pill.className).not.toMatch(/risk-/);
+  });
+});
+
+// Board D2 — StudentIdentity wrapping contract. Matric-first identity is
+// unchanged; the email gets room first and restrained wrapping last, never
+// break-all/anywhere shattering.
+describe('StudentIdentity identity/wrapping contract', () => {
+  const longPersonalEmail = 'adewale.oluwaseun.adebayo@gmail.com';
+
+  it('wraps a long personal email restrainedly, never with break-all', () => {
+    render(
+      <StudentIdentity
+        name="Adewale Adebayo"
+        matricNumber="HPS/2023/041"
+        email={longPersonalEmail}
+        testIdPrefix="identity"
+      />
+    );
+
+    const email = screen.getByTestId('identity-email');
+    expect(email).toHaveTextContent(longPersonalEmail);
+    expect(email.className).toContain('break-words');
+    expect(email.className).not.toContain('break-all');
+    expect(email.className).not.toMatch(/anywhere/);
+  });
+
+  it('keeps the matric number primary, mono, and readable', () => {
+    render(
+      <StudentIdentity name="Adewale Adebayo" matricNumber="HPS/2023/041" email={longPersonalEmail} testIdPrefix="identity" />
+    );
+
+    const matric = screen.getByTestId('identity-matric');
+    expect(matric).toHaveTextContent('HPS/2023/041');
+    expect(matric.className).toContain('text-sm');
+    expect(matric.className).toContain('font-mono');
+  });
+
+  it('renders nothing for an omitted email — no placeholder, no invented address', () => {
+    render(<StudentIdentity name="Adewale Adebayo" matricNumber="HPS/2023/041" email={null} testIdPrefix="identity" />);
+
+    expect(screen.queryByTestId('identity-email')).not.toBeInTheDocument();
+    expect(screen.queryByText(/no email/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/@uniosun/i)).not.toBeInTheDocument();
+  });
+
+  it('keeps the truthful legacy wording for a missing matric number', () => {
+    render(<StudentIdentity name="Legacy Student" matricNumber={null} email={null} testIdPrefix="identity" />);
+
+    expect(screen.getByTestId('identity-matric-missing')).toHaveTextContent('No matric number on record');
   });
 });
