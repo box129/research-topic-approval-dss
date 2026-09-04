@@ -243,10 +243,61 @@ describe('MySubmissionsPage', () => {
     }]);
     renderMySubmissionsPage();
 
-    expect(await screen.findByTestId('submission-state-9')).toHaveTextContent(/Revised .* under review/);
+    expect(await screen.findByTestId('submission-state-9')).toHaveTextContent(/Revised .* pending review/);
     const history = screen.getByTestId('revision-history-9');
     expect(history).toHaveTextContent(/already revised student topic/i);
     expect(history).toHaveTextContent(/please narrow the population/i);
     expect(screen.queryByTestId('action-required-9')).not.toBeInTheDocument();
+  });
+
+  // Board D2 — card record grammar: topic identity first, workflow pill
+  // second, and the derived attention condition as plain sentence-case text
+  // that never wears the workflow-pill costume.
+  describe('Board D2 record grammar', () => {
+    const awaitingRevisionSubmission = {
+      id: 21,
+      title: 'Sanitation practice assessment in public secondary schools',
+      status: 'awaiting_revision',
+      submitted_at: '2026-05-20T10:00:00.000Z',
+      decision_reason: 'Please narrow the population before resubmitting.',
+      decided_at: '2026-05-22T10:00:00.000Z'
+    };
+
+    it('reads the topic title before the workflow status pill', async () => {
+      listSubmissions.mockResolvedValue([awaitingRevisionSubmission]);
+      renderMySubmissionsPage();
+
+      const title = await screen.findByText(/sanitation practice assessment/i);
+      const card = title.closest('article');
+      const pill = within(card).getByText('Revision requested', { selector: 'span' });
+
+      expect(title.compareDocumentPosition(pill) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it('renders Action required as explicit plain text after the status, never a pill', async () => {
+      listSubmissions.mockResolvedValue([awaitingRevisionSubmission]);
+      renderMySubmissionsPage();
+
+      expect(await screen.findByText(/sanitation practice assessment/i)).toBeInTheDocument();
+      const attention = screen.getByTestId('action-required-21');
+      expect(attention).toHaveTextContent('Action required');
+      expect(attention.className).toContain('text-sm');
+      expect(attention.className).not.toMatch(/rounded-badge|uppercase|bg-status-revision-bg|inline-flex/);
+
+      const card = screen.getByTestId('submission-card-21');
+      expect(card.className).toContain('border-status-revision');
+      expect(card.className).toContain('border-l-4');
+    });
+
+    it('summarises awaiting_revision records as "Revision requested" without changing the count logic', async () => {
+      listSubmissions.mockResolvedValue([awaitingRevisionSubmission]);
+      renderMySubmissionsPage();
+
+      expect(await screen.findByText(/sanitation practice assessment/i)).toBeInTheDocument();
+      const summary = screen.getByLabelText(/submission summary/i);
+      const revisionChip = within(summary).getByText('Revision requested').closest('div');
+      expect(revisionChip).toHaveTextContent('1');
+      expect(within(summary).queryByText(/awaiting revision/i)).not.toBeInTheDocument();
+    });
   });
 });

@@ -58,7 +58,9 @@ function describeSubmission(submission) {
 
   if (status === 'pending_review' || status === 'pending') {
     return {
-      label: submission.is_revision ? 'Revised — under review' : 'Under review',
+      // Workflow vocabulary aligned with StatusBadge; "under review" stays
+      // reserved for the repository lifecycle bucket (Board D2 E2.3).
+      label: submission.is_revision ? 'Revised — pending review' : 'Pending review',
       // Only worth saying when lineage changes the meaning; otherwise the status
       // badge already says "pending review" and repeating it adds nothing.
       showLabel: Boolean(submission.is_revision),
@@ -196,7 +198,7 @@ function MySubmissionsPage() {
             <dl className="flex flex-wrap gap-2" aria-label="Submission summary">
               <div className="rounded-full border border-border-subtle bg-white px-3 py-1.5 text-sm"><dt className="inline font-semibold">Total</dt><dd className="ml-2 inline font-bold">{counts.total}</dd></div>
               <div className="rounded-full border border-status-pending-bg bg-white px-3 py-1.5 text-sm"><dt className="inline font-semibold">Pending</dt><dd className="ml-2 inline font-bold">{counts.pending}</dd></div>
-              <div className="rounded-full border border-status-revision-bg bg-white px-3 py-1.5 text-sm"><dt className="inline font-semibold">Awaiting revision</dt><dd className="ml-2 inline font-bold">{counts.awaitingRevision}</dd></div>
+              <div className="rounded-full border border-status-revision-bg bg-white px-3 py-1.5 text-sm"><dt className="inline font-semibold">Revision requested</dt><dd className="ml-2 inline font-bold">{counts.awaitingRevision}</dd></div>
               <div className="rounded-full border border-border-subtle bg-white px-3 py-1.5 text-sm"><dt className="inline font-semibold">Decided</dt><dd className="ml-2 inline font-bold">{counts.decided}</dd></div>
             </dl>
 
@@ -210,18 +212,13 @@ function MySubmissionsPage() {
                     className={`rounded-[10px] border bg-white p-5 shadow-card ${presentation.actionRequired ? 'border-status-revision border-l-4' : 'border-border-subtle'}`}
                     data-testid={`submission-card-${submission.id}`}
                   >
-                    {/* Action is announced in words, not by colour alone, and sits
-                        above everything else on the card. */}
-                    {presentation.actionRequired && (
-                      <p
-                        className="mb-3 inline-flex rounded-badge bg-status-revision-bg px-3 py-1 text-xs font-bold uppercase tracking-wider text-status-revision"
-                        data-testid={`action-required-${submission.id}`}
-                      >
-                        Action required
-                      </p>
-                    )}
+                    {/* D2 record grammar: the topic title is the card's primary
+                        identity and reads first; the workflow pill follows it;
+                        the attention condition is announced in words after the
+                        status. */}
+                    <h2 className="break-words font-serif text-lg font-semibold leading-snug text-text-primary">{submission.title}</h2>
 
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
                       <StatusBadge status={submission.status || 'not_submitted'} />
                       {presentation.showLabel && (
                         <span className="text-sm font-semibold text-text-primary" data-testid={`submission-state-${submission.id}`}>
@@ -230,7 +227,18 @@ function MySubmissionsPage() {
                       )}
                     </div>
 
-                    <h2 className="mt-3 break-words font-serif text-lg font-semibold leading-snug text-text-primary">{submission.title}</h2>
+                    {/* Derived attention condition, not a stored workflow
+                        status: plain sentence-case text, never the pill
+                        costume. The card's revision left edge plus this text
+                        keep colour from being the only cue. */}
+                    {presentation.actionRequired && (
+                      <p
+                        className="mt-2 text-sm font-semibold text-status-revision"
+                        data-testid={`action-required-${submission.id}`}
+                      >
+                        Action required
+                      </p>
+                    )}
                     <p className="mt-2 break-words text-sm leading-6 text-text-secondary">
                       {submission.category || 'Uncategorised'}
                       {submission.session_name ? ` · Session ${submission.session_name}` : ''}
