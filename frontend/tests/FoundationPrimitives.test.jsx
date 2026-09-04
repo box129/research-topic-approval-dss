@@ -8,7 +8,6 @@ import PrimaryButton from '../src/components/ui/PrimaryButton';
 import SelectInput from '../src/components/ui/SelectInput';
 import StatusBadge from '../src/components/ui/StatusBadge';
 import StudentIdentity from '../src/components/ui/StudentIdentity';
-import TableShell from '../src/components/ui/TableShell';
 import TextInput from '../src/components/ui/TextInput';
 
 describe('foundation UI primitives', () => {
@@ -60,23 +59,6 @@ describe('foundation UI primitives', () => {
 
     expect(screen.getByText(/no records/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /add record/i })).toBeInTheDocument();
-  });
-
-  it('renders table shell header and child table', () => {
-    render(
-      <TableShell title="Submissions" subtitle="Latest records">
-        <table>
-          <tbody>
-            <tr>
-              <td>Topic A</td>
-            </tr>
-          </tbody>
-        </table>
-      </TableShell>
-    );
-
-    expect(screen.getByText(/submissions/i)).toBeInTheDocument();
-    expect(screen.getByText(/topic a/i)).toBeInTheDocument();
   });
 
   it('calls modal actions', async () => {

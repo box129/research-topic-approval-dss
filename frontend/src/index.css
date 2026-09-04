@@ -33,16 +33,6 @@
   --color-feedback-info-bg: #eff6ff;
   --color-feedback-info-border: #bfdbfe;
 
-  --color-risk-low: #047857;
-  --color-risk-low-bg: #ecfdf5;
-  --color-risk-low-border: #a7f3d0;
-  --color-risk-medium: #b45309;
-  --color-risk-medium-bg: #fffbeb;
-  --color-risk-medium-border: #fde68a;
-  --color-risk-high: #b91c1c;
-  --color-risk-high-bg: #fef2f2;
-  --color-risk-high-border: #fecaca;
-
   --color-status-pending: #1d4ed8;
   --color-status-pending-bg: #eff6ff;
   --color-status-approved: #047857;
