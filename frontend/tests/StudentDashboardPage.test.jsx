@@ -94,6 +94,10 @@ describe('StudentDashboardPage', () => {
     const summary = screen.getByLabelText(/submission summary/i);
     expect(within(summary).getByText('3')).toBeInTheDocument();
     expect(within(summary).getAllByText('1')).toHaveLength(3);
+    // Canonical workflow vocabulary on the chip, while the fixture above keeps
+    // the persisted awaiting_revision enum value unchanged.
+    expect(within(summary).getByText('Revision requested')).toBeInTheDocument();
+    expect(within(summary).queryByText(/awaiting revision/i)).not.toBeInTheDocument();
   });
 
   it('shows pending review guidance', async () => {
@@ -123,9 +127,13 @@ describe('StudentDashboardPage', () => {
 
     expect(await screen.findByText(/narrow the topic scope before resubmission/i)).toBeInTheDocument();
     expect(screen.getByText('Review the feedback above, then submit a revised topic for lecturer review.')).toBeInTheDocument();
+    // Guidance and badge both use the canonical vocabulary; the retired
+    // "awaiting revision" phrasing never renders.
+    expect(screen.getAllByText(/revision requested/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByText(/awaiting revision/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /review feedback/i })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Submit topic' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'View my submissions' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'View My Submissions' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Check another topic' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Submit topic' }));
@@ -133,8 +141,8 @@ describe('StudentDashboardPage', () => {
     firstRender.unmount();
 
     const secondRender = renderDashboard();
-    await screen.findByRole('button', { name: 'View my submissions' });
-    await user.click(screen.getByRole('button', { name: 'View my submissions' }));
+    await screen.findByRole('button', { name: 'View My Submissions' });
+    await user.click(screen.getByRole('button', { name: 'View My Submissions' }));
     expect(screen.getByTestId('location-display')).toHaveTextContent('/student/my-submissions');
     secondRender.unmount();
 

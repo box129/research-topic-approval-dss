@@ -35,7 +35,7 @@ function formatDate(value) {
 function statusGuidance(submission) {
   const status = normalizeStatus(submission?.status);
   if (status === 'pending' || status === 'pending_review') return { title: 'Lecturer review is pending', message: 'No action is required on this record right now.', action: 'View My Submissions' };
-  if (status === 'awaiting_revision') return { title: 'Revision requested', message: 'Review the feedback above, then submit a revised topic for lecturer review.', action: 'View my submissions' };
+  if (status === 'awaiting_revision') return { title: 'Revision requested', message: 'Review the feedback above, then submit a revised topic for lecturer review.', action: 'View My Submissions' };
   if (status === 'approved') return { title: 'Topic approved', message: 'You can continue with the next academic steps provided by your department.', action: 'View My Submissions' };
   if (status === 'rejected') return { title: 'Topic rejected', message: 'Review the feedback before choosing another proposal.', action: 'View My Submissions' };
   return { title: 'Submission status available', message: 'Open My Submissions to review the recorded status and available information.', action: 'View My Submissions' };
@@ -120,7 +120,7 @@ function StudentDashboardPage() {
             <SecondaryButton type="button" onClick={() => navigate('/student/check-my-topic')}>Check another topic</SecondaryButton>
           </div>
 
-          <dl className="flex flex-wrap gap-2" aria-label="Submission summary"><div className="rounded-full border border-border-subtle bg-white px-3 py-1.5 text-sm"><dt className="inline font-semibold">Total submissions</dt><dd className="ml-2 inline font-bold">{summary.total}</dd></div><div className="rounded-full border border-status-pending-bg bg-white px-3 py-1.5 text-sm"><dt className="inline font-semibold">Pending</dt><dd className="ml-2 inline font-bold">{summary.pending}</dd></div><div className="rounded-full border border-status-revision-bg bg-white px-3 py-1.5 text-sm"><dt className="inline font-semibold">Awaiting revision</dt><dd className="ml-2 inline font-bold">{summary.revision}</dd></div><div className="rounded-full border border-status-approved-bg bg-white px-3 py-1.5 text-sm"><dt className="inline font-semibold">Approved</dt><dd className="ml-2 inline font-bold">{summary.approved}</dd></div></dl>
+          <dl className="flex flex-wrap gap-2" aria-label="Submission summary"><div className="rounded-full border border-border-subtle bg-white px-3 py-1.5 text-sm"><dt className="inline font-semibold">Total submissions</dt><dd className="ml-2 inline font-bold">{summary.total}</dd></div><div className="rounded-full border border-status-pending-bg bg-white px-3 py-1.5 text-sm"><dt className="inline font-semibold">Pending</dt><dd className="ml-2 inline font-bold">{summary.pending}</dd></div><div className="rounded-full border border-status-revision-bg bg-white px-3 py-1.5 text-sm"><dt className="inline font-semibold">Revision requested</dt><dd className="ml-2 inline font-bold">{summary.revision}</dd></div><div className="rounded-full border border-status-approved-bg bg-white px-3 py-1.5 text-sm"><dt className="inline font-semibold">Approved</dt><dd className="ml-2 inline font-bold">{summary.approved}</dd></div></dl>
         </>
       )}
     </StudentDashboardLayout>

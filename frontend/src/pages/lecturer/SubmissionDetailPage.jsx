@@ -689,7 +689,7 @@ function SubmissionDetailPage() {
                     type="button"
                     className="min-h-11 w-full border-feedback-warning-border text-feedback-warning hover:bg-feedback-warning-bg sm:w-auto"
                     disabled={isUpdating}
-                    onClick={() => handleStatusUpdate('awaiting_revision', 'Request Revision', 'marked as awaiting revision')}
+                    onClick={() => handleStatusUpdate('awaiting_revision', 'Request Revision', 'revision requested')}
                   >
                     Request Revision
                   </SecondaryButton>

@@ -118,6 +118,10 @@ describe('AdminDashboardPage', () => {
     expect(screen.getByText(/30 historical, 10 current-session, 5 under-review topics/i)).toBeInTheDocument();
     expect(screen.getByText(/^4$/)).toBeInTheDocument();
     expect(screen.getByText(/8 total submissions/i)).toBeInTheDocument();
+    // The awaitingRevision summary field renders as canonical vocabulary in
+    // the helper prose; the retired phrasing never renders.
+    expect(screen.getByText(/revision requested/i)).toBeInTheDocument();
+    expect(screen.queryByText(/awaiting revision/i)).not.toBeInTheDocument();
     expect(screen.getByText(/^7$/)).toBeInTheDocument();
     expect(screen.getByText(/1 high-risk, 2 medium-risk, 4 low-risk stored snapshots/i)).toBeInTheDocument();
   });

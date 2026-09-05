@@ -171,6 +171,11 @@ describe('Lecturer ResearchTrendsPage', () => {
     expect(screen.getByText(/2024\/2025/i)).toBeInTheDocument();
     expect(screen.getByText(/High risk/i)).toBeInTheDocument();
     expect(screen.getByText(/Partial success/i)).toBeInTheDocument();
+    // The awaitingRevision summary field renders under the canonical workflow
+    // label; the retired phrasing never renders. (Risk labels above are
+    // deliberately untouched in this slice.)
+    expect(screen.getByText('Revision requested')).toBeInTheDocument();
+    expect(screen.queryByText(/awaiting revision/i)).not.toBeInTheDocument();
   });
 
   it('keeps unsupported additional analysis explicitly unavailable', async () => {
