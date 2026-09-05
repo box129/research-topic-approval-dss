@@ -193,6 +193,12 @@ describe('AdminReportsPage', () => {
     // the retired phrasing never renders.
     expect(screen.getByText(/Revision requested: 1/i)).toBeInTheDocument();
     expect(screen.queryByText(/awaiting revision/i)).not.toBeInTheDocument();
+    // Slice 3: neutral similarity pills fed by the unchanged byRisk fields.
+    expect(screen.getByText(/Higher similarity: 1/i)).toBeInTheDocument();
+    expect(screen.getByText(/Moderate similarity: 2/i)).toBeInTheDocument();
+    expect(screen.getByText(/Lower similarity: 3/i)).toBeInTheDocument();
+    expect(screen.getByText(/Not classified: 1/i)).toBeInTheDocument();
+    expect(screen.queryByText(/high risk|medium risk|low risk|unknown risk/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Historical: 30/i)).toBeInTheDocument();
     expect(screen.getByText(/USER_STATUS_CHANGED/i)).toBeInTheDocument();
   });
