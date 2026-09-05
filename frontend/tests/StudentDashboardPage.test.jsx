@@ -25,6 +25,28 @@ function renderDashboard() {
   );
 }
 
+/*
+Slice 4 contract: stored lecturer rationale is historical decision context and
+renders neutrally for every decided status; workflow semantics stay on the
+status treatment (StatusBadge), never on the rationale panel.
+*/
+function assertNeutralFeedbackPanel(bodyText) {
+  const heading = screen.getByText('Lecturer feedback');
+  const panel = heading.closest('aside');
+  expect(panel).not.toBeNull();
+  expect(panel).toHaveClass('border-border-subtle', 'bg-surface-muted');
+  expect(panel).not.toHaveClass('border-feedback-warning-border');
+  expect(panel).not.toHaveClass('bg-feedback-warning-bg');
+  expect(heading).toHaveClass('text-text-muted');
+  expect(heading).not.toHaveClass('text-feedback-warning');
+  const body = screen.getByText(bodyText);
+  expect(body).toHaveClass('text-text-secondary');
+  expect(body).not.toHaveClass('text-feedback-warning');
+  const timestamp = screen.getByText(/decision recorded/i);
+  expect(timestamp).toHaveClass('text-text-muted');
+  expect(timestamp).not.toHaveClass('text-feedback-warning');
+}
+
 describe('StudentDashboardPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -121,11 +143,13 @@ describe('StudentDashboardPage', () => {
       title: 'Assessment of sanitation practice in public schools',
       status: 'awaiting_revision',
       decision_reason: 'Narrow the topic scope before resubmission.',
+      decided_at: '2026-05-03T09:00:00.000Z',
       submitted_at: '2026-05-02T10:00:00.000Z'
     }]);
     const firstRender = renderDashboard();
 
     expect(await screen.findByText(/narrow the topic scope before resubmission/i)).toBeInTheDocument();
+    assertNeutralFeedbackPanel(/narrow the topic scope before resubmission/i);
     expect(screen.getByText('Review the feedback above, then submit a revised topic for lecturer review.')).toBeInTheDocument();
     // Guidance and badge both use the canonical vocabulary; the retired
     // "awaiting revision" phrasing never renders.
@@ -153,19 +177,25 @@ describe('StudentDashboardPage', () => {
   });
 
   it.each([
-    ['approved', /topic approved/i, /next academic steps/i],
-    ['rejected', /topic rejected/i, /review the feedback/i]
-  ])('shows truthful %s guidance', async (status, title, message) => {
+    ['approved', /topic approved/i, /next academic steps/i, 'Approved'],
+    ['rejected', /topic rejected/i, /review the feedback/i, 'Rejected']
+  ])('shows truthful %s guidance with a neutral stored rationale', async (status, title, message, badgeLabel) => {
     listSubmissions.mockResolvedValue([{
       id: 1,
       title: `${status} student topic record`,
       status,
+      decision_reason: 'Recorded rationale for this decision.',
+      decided_at: '2026-05-04T10:00:00.000Z',
       submitted_at: '2026-05-03T10:00:00.000Z'
     }]);
     renderDashboard();
 
     expect(await screen.findByText(title)).toBeInTheDocument();
     expect(screen.getByText(message)).toBeInTheDocument();
+    // The workflow status stays semantic through the existing status treatment…
+    expect(screen.getAllByText(badgeLabel).length).toBeGreaterThanOrEqual(1);
+    // …while the stored rationale panel is neutral for every decided status.
+    assertNeutralFeedbackPanel('Recorded rationale for this decision.');
     expect(screen.queryByText(/similarity score|approval probability|review estimate/i)).not.toBeInTheDocument();
   });
 

@@ -102,7 +102,10 @@ function StudentDashboardPage() {
                   {current.keywords ? ` · Keywords: ${current.keywords}` : ''}
                 </p>
               </div>
-              {current.decision_reason && DECIDED_STATUSES.has(status) && <aside className="rounded-lg border border-feedback-warning-border bg-feedback-warning-bg p-4"><h3 className="text-xs font-bold uppercase text-feedback-warning">Lecturer feedback</h3><p className="mt-2 break-words text-sm leading-6 text-feedback-warning">{current.decision_reason}</p>{current.decided_at && <p className="mt-2 text-xs text-feedback-warning">Decision recorded {formatDate(current.decided_at)}</p>}</aside>}
+              {/* Stored lecturer rationale is historical decision context, so the panel
+    stays neutral for every decided status; the workflow status alone carries
+    semantic colour (StatusBadge above). */}
+              {current.decision_reason && DECIDED_STATUSES.has(status) && <aside className="rounded-lg border border-border-subtle bg-surface-muted p-4"><h3 className="text-xs font-bold uppercase text-text-muted">Lecturer feedback</h3><p className="mt-2 break-words text-sm leading-6 text-text-secondary">{current.decision_reason}</p>{current.decided_at && <p className="mt-2 text-xs text-text-muted">Decision recorded {formatDate(current.decided_at)}</p>}</aside>}
             </div>
           </article>
 
