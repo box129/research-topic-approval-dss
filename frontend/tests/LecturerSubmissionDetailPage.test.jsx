@@ -355,6 +355,10 @@ describe('Lecturer SubmissionDetailPage', () => {
       );
     });
     expect(screen.queryByDisplayValue(/please narrow/i)).not.toBeInTheDocument();
+    // The payload keeps the persisted enum while the visible success toast
+    // uses the canonical workflow vocabulary.
+    expect(await screen.findByText('Submission revision requested successfully.')).toBeInTheDocument();
+    expect(screen.queryByText(/awaiting revision/i)).not.toBeInTheDocument();
   });
 
   it('opens confirmation modal before reject and preserves status payload', async () => {

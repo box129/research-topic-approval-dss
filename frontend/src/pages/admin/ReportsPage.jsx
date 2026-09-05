@@ -321,7 +321,7 @@ function ReportsPage() {
               >
                 <div className="flex flex-wrap gap-2">
                   <CountPill label="Pending" value={summary.submissions?.byStatus?.pendingReview} />
-                  <CountPill label="Awaiting revision" value={summary.submissions?.byStatus?.awaitingRevision} />
+                  <CountPill label="Revision requested" value={summary.submissions?.byStatus?.awaitingRevision} />
                   <CountPill label="Approved" value={summary.submissions?.byStatus?.approved} />
                   <CountPill label="Rejected" value={summary.submissions?.byStatus?.rejected} />
                   <CountPill label="Decided" value={summary.submissions?.decisionCoverage?.decided} />

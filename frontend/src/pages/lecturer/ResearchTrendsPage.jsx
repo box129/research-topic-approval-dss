@@ -156,7 +156,7 @@ function ResearchTrendsPage() {
                 title="Submission status distribution"
                 items={[
                   { label: 'Pending review', value: submissionStatus.pendingReview },
-                  { label: 'Awaiting revision', value: submissionStatus.awaitingRevision },
+                  { label: 'Revision requested', value: submissionStatus.awaitingRevision },
                   { label: 'Approved', value: submissionStatus.approved },
                   { label: 'Rejected', value: submissionStatus.rejected }
                 ]}

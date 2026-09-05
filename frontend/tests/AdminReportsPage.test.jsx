@@ -189,6 +189,10 @@ describe('AdminReportsPage', () => {
     expect(screen.getByText(/User coverage/i)).toBeInTheDocument();
     expect(screen.getByText(/Students: 3/i)).toBeInTheDocument();
     expect(screen.getByText(/Approved: 4/i)).toBeInTheDocument();
+    // The awaitingRevision field drives the pill under the canonical label;
+    // the retired phrasing never renders.
+    expect(screen.getByText(/Revision requested: 1/i)).toBeInTheDocument();
+    expect(screen.queryByText(/awaiting revision/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Historical: 30/i)).toBeInTheDocument();
     expect(screen.getByText(/USER_STATUS_CHANGED/i)).toBeInTheDocument();
   });
