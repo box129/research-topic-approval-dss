@@ -123,7 +123,10 @@ describe('AdminDashboardPage', () => {
     expect(screen.getByText(/revision requested/i)).toBeInTheDocument();
     expect(screen.queryByText(/awaiting revision/i)).not.toBeInTheDocument();
     expect(screen.getByText(/^7$/)).toBeInTheDocument();
-    expect(screen.getByText(/1 high-risk, 2 medium-risk, 4 low-risk stored snapshots/i)).toBeInTheDocument();
+    // Slice 3: the helper renders neutral similarity language from the
+    // unchanged highRisk/mediumRisk/lowRisk summary fields.
+    expect(screen.getByText(/1 higher similarity, 2 moderate similarity, 4 lower similarity stored snapshots/i)).toBeInTheDocument();
+    expect(screen.queryByText(/high-risk|medium-risk|low-risk/i)).not.toBeInTheDocument();
   });
 
   it('shows API, database, and Voyage semantic-provider health without inventing a provider status', async () => {

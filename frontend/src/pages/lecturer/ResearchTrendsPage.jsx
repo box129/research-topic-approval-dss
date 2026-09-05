@@ -162,12 +162,12 @@ function ResearchTrendsPage() {
                 ]}
               />
               <StatusList
-                title="Stored similarity risk counts"
+                title="Stored similarity classification counts"
                 items={[
-                  { label: 'High risk', value: similarityRisk.high },
-                  { label: 'Medium risk', value: similarityRisk.medium },
-                  { label: 'Low risk', value: similarityRisk.low },
-                  { label: 'Unknown risk', value: similarityRisk.unknown }
+                  { label: 'Higher similarity', value: similarityRisk.high },
+                  { label: 'Moderate similarity', value: similarityRisk.medium },
+                  { label: 'Lower similarity', value: similarityRisk.low },
+                  { label: 'Not classified', value: similarityRisk.unknown }
                 ]}
               />
               <StatusList

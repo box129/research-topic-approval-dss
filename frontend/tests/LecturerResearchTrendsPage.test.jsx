@@ -169,7 +169,14 @@ describe('Lecturer ResearchTrendsPage', () => {
     expect(screen.getByText('45')).toBeInTheDocument();
     expect(screen.getAllByText(/Public Health/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/2024\/2025/i)).toBeInTheDocument();
-    expect(screen.getByText(/High risk/i)).toBeInTheDocument();
+    // Slice 3: neutral similarity classification vocabulary; values still come
+    // from the unchanged byRisk response keys (high/medium/low/unknown).
+    expect(screen.getByText('Stored similarity classification counts')).toBeInTheDocument();
+    expect(screen.getByText('Higher similarity').closest('div')).toHaveTextContent('1');
+    expect(screen.getByText('Moderate similarity').closest('div')).toHaveTextContent('2');
+    expect(screen.getByText('Lower similarity').closest('div')).toHaveTextContent('3');
+    expect(screen.getByText('Not classified').closest('div')).toHaveTextContent('1');
+    expect(screen.queryByText(/high risk|medium risk|low risk|unknown risk/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Partial success/i)).toBeInTheDocument();
     // The awaitingRevision summary field renders under the canonical workflow
     // label; the retired phrasing never renders. (Risk labels above are

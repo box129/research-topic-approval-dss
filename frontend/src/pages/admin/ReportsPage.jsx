@@ -344,10 +344,10 @@ function ReportsPage() {
                 title="Similarity snapshots"
               >
                 <div className="flex flex-wrap gap-2">
-                  <CountPill label="High risk" value={summary.similarityChecks?.byRisk?.high} />
-                  <CountPill label="Medium risk" value={summary.similarityChecks?.byRisk?.medium} />
-                  <CountPill label="Low risk" value={summary.similarityChecks?.byRisk?.low} />
-                  <CountPill label="Unknown risk" value={summary.similarityChecks?.byRisk?.unknown} />
+                  <CountPill label="Higher similarity" value={summary.similarityChecks?.byRisk?.high} />
+                  <CountPill label="Moderate similarity" value={summary.similarityChecks?.byRisk?.medium} />
+                  <CountPill label="Lower similarity" value={summary.similarityChecks?.byRisk?.low} />
+                  <CountPill label="Not classified" value={summary.similarityChecks?.byRisk?.unknown} />
                 </div>
               </SectionCard>
 
