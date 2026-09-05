@@ -259,13 +259,28 @@ function MyDecisionsPage() {
 
           {decisions.length === 0 ? (
             <section className="rounded-[10px] border border-border-subtle bg-white p-5 shadow-card">
-              <EmptyStatePanel
-                title="No decisions returned"
-                message="No completed decisions match the current filters."
-                action={(
-                  <SecondaryButton type="button" onClick={loadDecisions}>Refresh History</SecondaryButton>
-                )}
-              />
+              {/* Board C empty-state taxonomy: a zero-result page with no active
+                  filter is a genuinely empty history and must never blame
+                  filters; with an active filter the copy names the filters and
+                  offers a direct way out. Server-side filtering means the
+                  client's own filter state is the distinguishing signal. */}
+              {hasActiveFilters ? (
+                /* The filter card above already shows its Clear Filters button
+                   whenever a filter is active, so the panel carries no second
+                   copy of the same action. */
+                <EmptyStatePanel
+                  title="No decisions match these filters"
+                  message="Try adjusting or clearing the current filters."
+                />
+              ) : (
+                <EmptyStatePanel
+                  title="No decisions recorded yet"
+                  message="Completed decisions you record will appear here."
+                  action={(
+                    <SecondaryButton type="button" onClick={loadDecisions}>Refresh History</SecondaryButton>
+                  )}
+                />
+              )}
             </section>
           ) : (
             <section className="overflow-hidden rounded-[10px] border border-border-subtle bg-white shadow-card">

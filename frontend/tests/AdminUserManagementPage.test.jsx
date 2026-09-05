@@ -343,7 +343,21 @@ describe('AdminUserManagementPage', () => {
     });
   });
 
-  it('shows an honest empty state when the user list is empty', async () => {
+  const emptyUsersResponse = {
+    data: { items: [] },
+    meta: {
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0,
+        hasNextPage: false,
+        hasPreviousPage: false
+      }
+    }
+  };
+
+  it('renders the genuine-empty state when the directory has no accounts and no filter is active', async () => {
     listAdminUsers.mockImplementation((params = {}) => {
       if (params.role === 'lecturer') {
         return Promise.resolve(lecturerOptionsResponse);
@@ -353,27 +367,59 @@ describe('AdminUserManagementPage', () => {
         return Promise.resolve(studentOptionsResponse);
       }
 
-      return Promise.resolve({
-        data: { items: [] },
-        meta: {
-          pagination: {
-            page: 1,
-            limit: 10,
-            total: 0,
-            totalPages: 0,
-            hasNextPage: false,
-            hasPreviousPage: false
-          }
-        }
-      });
+      return Promise.resolve(emptyUsersResponse);
     });
 
     render(<AdminUserManagementPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/No user records/i)).toBeInTheDocument();
+      expect(screen.getByText('No user records')).toBeInTheDocument();
     });
-    expect(screen.getByText(/No accounts match the selected filters/i)).toBeInTheDocument();
+    expect(screen.getByText('No user accounts are currently available.')).toBeInTheDocument();
+    // A genuinely empty directory must never be blamed on filters.
+    expect(screen.queryByText(/match the selected filters/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/match these filters/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /clear filters/i })).not.toBeInTheDocument();
+  });
+
+  it('renders the filtered-empty state and restores the unfiltered directory via Clear Filters', async () => {
+    listAdminUsers.mockImplementation((params = {}) => {
+      if (params.role === 'lecturer') {
+        return Promise.resolve(lecturerOptionsResponse);
+      }
+
+      if (params.role === 'student') {
+        return Promise.resolve(studentOptionsResponse);
+      }
+
+      return Promise.resolve(params.search ? emptyUsersResponse : listResponse);
+    });
+
+    render(<AdminUserManagementPage />);
+    expect(await screen.findByRole('heading', { level: 2, name: 'Student One' })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText(/search name or email/i), {
+      target: { name: 'search', value: 'no-match-term' }
+    });
+
+    expect(await screen.findByText('No user records match these filters')).toBeInTheDocument();
+    expect(screen.getByText('Try adjusting or clearing the current filters.')).toBeInTheDocument();
+    // The filter context stays visible while the filtered result is empty.
+    expect(screen.getByPlaceholderText(/search name or email/i)).toHaveValue('no-match-term');
+    expect(screen.queryByText('No user accounts are currently available.')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Clear Filters' }));
+
+    expect(await screen.findByRole('heading', { level: 2, name: 'Student One' })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/search name or email/i)).toHaveValue('');
+    await waitFor(() => {
+      expect(listAdminUsers).toHaveBeenLastCalledWith({
+        page: 1,
+        limit: 10,
+        sort: 'updatedAt',
+        direction: 'desc'
+      });
+    });
   });
 
   it('shows unavailable states when the users endpoint fails', async () => {

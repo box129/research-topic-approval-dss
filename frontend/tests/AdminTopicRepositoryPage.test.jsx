@@ -271,27 +271,65 @@ describe('AdminTopicRepositoryPage', () => {
     });
   });
 
-  it('shows an honest empty state when no topic records match', async () => {
-    listAdminTopics.mockResolvedValue({
-      data: { items: [] },
-      meta: {
-        pagination: {
-          page: 1,
-          limit: 10,
-          total: 0,
-          totalPages: 0,
-          hasNextPage: false,
-          hasPreviousPage: false
-        }
+  const emptyListResponse = {
+    data: { items: [] },
+    meta: {
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0,
+        hasNextPage: false,
+        hasPreviousPage: false
       }
-    });
+    }
+  };
+
+  it('renders the genuine-empty state when the repository has no records and no filter is active', async () => {
+    listAdminTopics.mockResolvedValue(emptyListResponse);
 
     render(<AdminTopicRepositoryPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/No topic records returned/i)).toBeInTheDocument();
+      expect(screen.getByText('No topic records yet')).toBeInTheDocument();
     });
-    expect(screen.getByText(/No topics match the selected filters/i)).toBeInTheDocument();
+    expect(screen.getByText('No topic records are currently available in the repository.')).toBeInTheDocument();
+    // A genuinely empty repository must never be blamed on filters.
+    expect(screen.queryByText(/match the selected filters/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/match these filters/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /clear filters/i })).not.toBeInTheDocument();
+  });
+
+  it('renders the filtered-empty state and restores the unfiltered list via Clear Filters', async () => {
+    listAdminTopics.mockImplementation((params) => Promise.resolve(
+      params.search ? emptyListResponse : listResponse
+    ));
+
+    render(<AdminTopicRepositoryPage />);
+    expect(await screen.findByText(/Malaria prevention in rural communities/i)).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText(/search title/i), {
+      target: { name: 'search', value: 'no-match-term' }
+    });
+
+    expect(await screen.findByText('No topic records match these filters')).toBeInTheDocument();
+    expect(screen.getByText('Try adjusting or clearing the current filters.')).toBeInTheDocument();
+    // The filter context stays visible while the filtered result is empty.
+    expect(screen.getByPlaceholderText(/search title/i)).toHaveValue('no-match-term');
+    expect(screen.queryByText('No topic records yet')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Clear Filters' }));
+
+    expect(await screen.findByText(/Malaria prevention in rural communities/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/search title/i)).toHaveValue('');
+    await waitFor(() => {
+      expect(listAdminTopics).toHaveBeenLastCalledWith({
+        page: 1,
+        limit: 10,
+        sort: 'updatedAt',
+        direction: 'desc'
+      });
+    });
   });
 
   it('shows unavailable states when repository endpoints fail', async () => {
