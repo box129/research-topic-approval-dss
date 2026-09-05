@@ -156,27 +156,68 @@ describe('Lecturer MyDecisionsPage', () => {
     });
   });
 
-  it('shows an honest empty state when no decisions are returned', async () => {
-    listLecturerDecisions.mockResolvedValue({
-      data: { items: [] },
-      meta: {
-        pagination: {
-          page: 1,
-          limit: 10,
-          total: 0,
-          totalPages: 0,
-          hasNextPage: false,
-          hasPreviousPage: false
-        },
-        filters: {},
-        dataCoverage: 'Read-only lecturer decision history from existing submissions.'
-      }
-    });
+  const emptyDecisionsResponse = {
+    data: { items: [] },
+    meta: {
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0,
+        hasNextPage: false,
+        hasPreviousPage: false
+      },
+      filters: {},
+      dataCoverage: 'Read-only lecturer decision history from existing submissions.'
+    }
+  };
+
+  it('renders the genuine-empty state when zero decisions exist and no filter is active', async () => {
+    listLecturerDecisions.mockResolvedValue(emptyDecisionsResponse);
 
     renderPage();
 
-    expect(await screen.findByText(/No decisions returned/i)).toBeInTheDocument();
-    expect(screen.getByText(/No completed decisions match the current filters/i)).toBeInTheDocument();
+    expect(await screen.findByText('No decisions recorded yet')).toBeInTheDocument();
+    expect(screen.getByText('Completed decisions you record will appear here.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /refresh history/i })).toBeInTheDocument();
+    // A genuinely empty history must never be blamed on filters.
+    expect(screen.queryByText(/match the current filters/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/match these filters/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /clear filters/i })).not.toBeInTheDocument();
+  });
+
+  it('renders the filtered-empty state and restores the unfiltered view via Clear Filters', async () => {
+    const user = userEvent.setup();
+    listLecturerDecisions.mockImplementation((params) => Promise.resolve(
+      params.search ? emptyDecisionsResponse : decisionsResponse
+    ));
+
+    renderPage();
+    expect(await screen.findByText(/knowledge of malaria prevention/i)).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/search decisions/i), { target: { value: 'no-match-term' } });
+
+    expect(await screen.findByText('No decisions match these filters')).toBeInTheDocument();
+    expect(screen.getByText('Try adjusting or clearing the current filters.')).toBeInTheDocument();
+    // The filter context stays visible and the genuine-empty copy stays absent.
+    expect(screen.getByLabelText(/search decisions/i)).toHaveValue('no-match-term');
+    expect(screen.queryByText('No decisions recorded yet')).not.toBeInTheDocument();
+
+    // Exactly one Clear Filters action exists — the filter card's own button.
+    // The empty panel deliberately carries no duplicate of the same action.
+    const clearButton = screen.getByRole('button', { name: 'Clear Filters' });
+    await user.click(clearButton);
+
+    expect(await screen.findByText(/knowledge of malaria prevention/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/search decisions/i)).toHaveValue('');
+    await waitFor(() => {
+      expect(listLecturerDecisions).toHaveBeenLastCalledWith({
+        direction: 'desc',
+        limit: 10,
+        page: 1,
+        sort: 'decidedAt'
+      });
+    });
   });
 
   it('shows unavailable state when the endpoint fails', async () => {

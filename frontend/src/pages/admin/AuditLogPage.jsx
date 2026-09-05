@@ -3,6 +3,7 @@ import AdminDashboardLayout from '../../layouts/AdminDashboardLayout';
 import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import InfoCallout from '../../components/ui/InfoCallout';
 import PageHeader from '../../components/ui/PageHeader';
+import SecondaryButton from '../../components/ui/SecondaryButton';
 import {
   getAdminAuditLogDetail,
   listAdminAuditLogs,
@@ -360,6 +361,20 @@ function AuditLogPage() {
     }));
   }
 
+  // The audit endpoint is server-filtered, so the client's own filter state
+  // distinguishes a genuinely empty log (fresh system, or after a retention
+  // purge) from a filtered-out view.
+  const hasActiveFilters = Boolean(filters.search.trim()) || Boolean(filters.eventType.trim()) || filters.actorRole !== 'all';
+
+  function clearFilters() {
+    setFilters({
+      actorRole: 'all',
+      eventType: '',
+      search: '',
+      page: 1
+    });
+  }
+
   async function handleSelect(auditLog) {
     setDetailState('loading');
     setDetailError('');
@@ -533,10 +548,20 @@ function AuditLogPage() {
             ) : null}
 
             {!isLoading && !hasError && auditLogs.length === 0 ? (
-              <EmptyStatePanel
-                message="No audit events match the selected filters."
-                title="No audit events"
-              />
+              hasActiveFilters ? (
+                <EmptyStatePanel
+                  title="No audit events match these filters"
+                  message="Try adjusting or clearing the current filters."
+                  action={(
+                    <SecondaryButton type="button" onClick={clearFilters}>Clear Filters</SecondaryButton>
+                  )}
+                />
+              ) : (
+                <EmptyStatePanel
+                  title="No audit events yet"
+                  message="No audit events are currently available."
+                />
+              )
             ) : null}
 
             {!isLoading && !hasError && auditLogs.length > 0 ? (

@@ -3,6 +3,7 @@ import AdminDashboardLayout from '../../layouts/AdminDashboardLayout';
 import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import InfoCallout from '../../components/ui/InfoCallout';
 import PageHeader from '../../components/ui/PageHeader';
+import SecondaryButton from '../../components/ui/SecondaryButton';
 import ConfirmActionModal from '../../components/ui/ConfirmActionModal';
 import StudentIdentity from '../../components/ui/StudentIdentity';
 import { useAuth } from '../../auth/useAuth';
@@ -1236,6 +1237,19 @@ function UserManagementPage() {
     }));
   }
 
+  // The directory endpoint is server-filtered, so the client's own filter
+  // state distinguishes a genuinely empty directory from a filtered-out view.
+  const hasActiveFilters = Boolean(filters.search.trim()) || filters.role !== 'all' || filters.status !== 'all';
+
+  function clearFilters() {
+    setFilters({
+      role: 'all',
+      search: '',
+      status: 'all',
+      page: 1
+    });
+  }
+
   function handleStatusChange(targetUser, nextStatus) {
     setPendingStatusChange({ targetUser, nextStatus });
   }
@@ -1624,10 +1638,20 @@ function UserManagementPage() {
           ) : null}
 
           {!isLoading && !hasError && users.length === 0 ? (
-            <EmptyStatePanel
-              message="No accounts match the selected filters."
-              title="No user records"
-            />
+            hasActiveFilters ? (
+              <EmptyStatePanel
+                title="No user records match these filters"
+                message="Try adjusting or clearing the current filters."
+                action={(
+                  <SecondaryButton type="button" onClick={clearFilters}>Clear Filters</SecondaryButton>
+                )}
+              />
+            ) : (
+              <EmptyStatePanel
+                title="No user records"
+                message="No user accounts are currently available."
+              />
+            )
           ) : null}
 
           {!isLoading && !hasError && users.length > 0 ? (

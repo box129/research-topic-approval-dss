@@ -3,6 +3,7 @@ import AdminDashboardLayout from '../../layouts/AdminDashboardLayout';
 import EmptyStatePanel from '../../components/ui/EmptyStatePanel';
 import InfoCallout from '../../components/ui/InfoCallout';
 import PageHeader from '../../components/ui/PageHeader';
+import SecondaryButton from '../../components/ui/SecondaryButton';
 import {
   commitAdminTopicImport,
   getAdminTopicsSummary,
@@ -266,6 +267,17 @@ function TopicRepositoryPage() {
   const totals = summary?.totals || {};
   const isLoading = listState === 'loading';
   const hasListError = listState === 'error';
+  // The list endpoint is server-filtered, so the client's own filter state is
+  // what distinguishes a genuinely empty repository from a filtered-out view.
+  const hasActiveFilters = Boolean(filters.search.trim()) || filters.lifecycle !== 'all';
+
+  function clearFilters() {
+    setFilters({
+      lifecycle: 'all',
+      search: '',
+      page: 1
+    });
+  }
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -447,10 +459,20 @@ function TopicRepositoryPage() {
           ) : null}
 
           {!isLoading && !hasListError && topics.length === 0 ? (
-            <EmptyStatePanel
-              title="No topic records returned"
-              message="No topics match the selected filters."
-            />
+            hasActiveFilters ? (
+              <EmptyStatePanel
+                title="No topic records match these filters"
+                message="Try adjusting or clearing the current filters."
+                action={(
+                  <SecondaryButton type="button" onClick={clearFilters}>Clear Filters</SecondaryButton>
+                )}
+              />
+            ) : (
+              <EmptyStatePanel
+                title="No topic records yet"
+                message="No topic records are currently available in the repository."
+              />
+            )
           ) : null}
 
           {!isLoading && !hasListError && topics.length > 0 ? (

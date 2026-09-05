@@ -292,27 +292,68 @@ describe('AdminAuditLogPage', () => {
     expect(screen.queryByText(/Candidate logs:/i)).not.toBeInTheDocument();
   });
 
-  it('shows an honest empty state when no audit logs are returned', async () => {
-    listAdminAuditLogs.mockResolvedValue({
-      data: { items: [] },
-      meta: {
-        pagination: {
-          page: 1,
-          limit: 10,
-          total: 0,
-          totalPages: 0,
-          hasNextPage: false,
-          hasPreviousPage: false
-        }
+  const emptyAuditResponse = {
+    data: { items: [] },
+    meta: {
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0,
+        hasNextPage: false,
+        hasPreviousPage: false
       }
-    });
+    }
+  };
+
+  it('renders the genuine-empty state when no audit events exist and no filter is active', async () => {
+    // Truthful for a fresh system and for a repository after a retention purge.
+    listAdminAuditLogs.mockResolvedValue(emptyAuditResponse);
 
     render(<AdminAuditLogPage />);
 
     await waitFor(() => {
-      expect(screen.getAllByText(/No audit events/i).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('No audit events yet')).toBeInTheDocument();
     });
-    expect(screen.getByText(/No audit events match the selected filters/i)).toBeInTheDocument();
+    expect(screen.getByText('No audit events are currently available.')).toBeInTheDocument();
+    // A genuinely empty log must never be blamed on filters.
+    expect(screen.queryByText(/match the selected filters/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/match these filters/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /clear filters/i })).not.toBeInTheDocument();
+  });
+
+  it('renders the filtered-empty state and restores the unfiltered log via Clear Filters', async () => {
+    listAdminAuditLogs.mockImplementation((params = {}) => Promise.resolve(
+      params.search ? emptyAuditResponse : listResponse
+    ));
+
+    render(<AdminAuditLogPage />);
+    await waitFor(() => {
+      expect(screen.getAllByText(/USER_STATUS_CHANGED/i).length).toBeGreaterThanOrEqual(1);
+    });
+
+    fireEvent.change(screen.getByPlaceholderText(/search event, actor, target/i), {
+      target: { name: 'search', value: 'no-match-term' }
+    });
+
+    expect(await screen.findByText('No audit events match these filters')).toBeInTheDocument();
+    expect(screen.getByText('Try adjusting or clearing the current filters.')).toBeInTheDocument();
+    // The filter context stays visible while the filtered result is empty.
+    expect(screen.getByPlaceholderText(/search event, actor, target/i)).toHaveValue('no-match-term');
+    expect(screen.queryByText('No audit events yet')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Clear Filters' }));
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/USER_STATUS_CHANGED/i).length).toBeGreaterThanOrEqual(1);
+    });
+    expect(screen.getByPlaceholderText(/search event, actor, target/i)).toHaveValue('');
+    await waitFor(() => {
+      expect(listAdminAuditLogs).toHaveBeenLastCalledWith({
+        page: 1,
+        limit: 10
+      });
+    });
   });
 
   it('does not expose uncontrolled audit export or deletion controls', async () => {
