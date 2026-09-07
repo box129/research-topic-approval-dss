@@ -380,6 +380,9 @@ describe('AdminUserManagementPage', () => {
     expect(screen.queryByText(/match the selected filters/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/match these filters/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /clear filters/i })).not.toBeInTheDocument();
+    // F-01: zero-total metadata renders no pagination summary.
+    expect(screen.queryByText(/page 1 of 0/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/showing 0 of 0 matching/i)).not.toBeInTheDocument();
   });
 
   it('renders the filtered-empty state and restores the unfiltered directory via Clear Filters', async () => {
@@ -407,6 +410,8 @@ describe('AdminUserManagementPage', () => {
     // The filter context stays visible while the filtered result is empty.
     expect(screen.getByPlaceholderText(/search name or email/i)).toHaveValue('no-match-term');
     expect(screen.queryByText('No user accounts are currently available.')).not.toBeInTheDocument();
+    // F-01: the filtered zero-total state renders no pagination summary either.
+    expect(screen.queryByText(/page 1 of 0/i)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Clear Filters' }));
 
@@ -420,6 +425,8 @@ describe('AdminUserManagementPage', () => {
         direction: 'desc'
       });
     });
+    // Non-empty regression proof: with records restored, pagination renders.
+    expect(screen.getByText(/page 1 of 1/i)).toBeInTheDocument();
   });
 
   it('shows unavailable states when the users endpoint fails', async () => {

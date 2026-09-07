@@ -1674,7 +1674,9 @@ function UserManagementPage() {
           ) : null}
         </div>
 
-        {meta?.pagination ? (
+        {/* Pagination summary only when records exist — zero-total metadata
+            must never render "Page 1 of 0" beneath an empty state. */}
+        {meta?.pagination?.total > 0 ? (
           <div className="mt-5 flex flex-col gap-2 rounded-[1rem] border border-border-subtle bg-surface-muted px-4 py-3 text-sm text-text-secondary sm:flex-row sm:items-center sm:justify-between">
             <span>
               Showing {formatCount(users.length)} of {formatCount(meta.pagination.total)} matching users.

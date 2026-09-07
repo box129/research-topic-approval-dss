@@ -303,7 +303,10 @@ function MyDecisionsPage() {
             </section>
           )}
 
-          {meta?.pagination && (
+          {/* Zero-total metadata is a truthful empty result, not a page: the
+              empty-state panel above says everything, so no pagination UI
+              (no "Page 1 of 0", no disabled pager) renders without records. */}
+          {meta?.pagination && meta.pagination.total > 0 && (
             <nav
               aria-label="Decision history pagination"
               className="flex flex-col gap-3 rounded-[10px] border border-border-subtle bg-white px-4 py-3 text-sm text-text-secondary shadow-card sm:flex-row sm:items-center sm:justify-between"
