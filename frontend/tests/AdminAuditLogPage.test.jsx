@@ -320,6 +320,9 @@ describe('AdminAuditLogPage', () => {
     expect(screen.queryByText(/match the selected filters/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/match these filters/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /clear filters/i })).not.toBeInTheDocument();
+    // F-01: zero-total metadata renders no pagination summary.
+    expect(screen.queryByText(/page 1 of 0/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/showing 0 of 0 matching/i)).not.toBeInTheDocument();
   });
 
   it('renders the filtered-empty state and restores the unfiltered log via Clear Filters', async () => {
@@ -341,6 +344,8 @@ describe('AdminAuditLogPage', () => {
     // The filter context stays visible while the filtered result is empty.
     expect(screen.getByPlaceholderText(/search event, actor, target/i)).toHaveValue('no-match-term');
     expect(screen.queryByText('No audit events yet')).not.toBeInTheDocument();
+    // F-01: the filtered zero-total state renders no pagination summary either.
+    expect(screen.queryByText(/page 1 of 0/i)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Clear Filters' }));
 
@@ -354,6 +359,8 @@ describe('AdminAuditLogPage', () => {
         limit: 10
       });
     });
+    // Non-empty regression proof: with records restored, pagination renders.
+    expect(screen.getByText(/page 1 of 1/i)).toBeInTheDocument();
   });
 
   it('does not expose uncontrolled audit export or deletion controls', async () => {

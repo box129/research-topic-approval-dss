@@ -184,6 +184,10 @@ describe('Lecturer MyDecisionsPage', () => {
     expect(screen.queryByText(/match the current filters/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/match these filters/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /clear filters/i })).not.toBeInTheDocument();
+    // F-01: zero-total metadata is an empty result, not a page — no pagination
+    // summary and no pager controls render.
+    expect(screen.queryByText(/page 1 of 0/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('navigation', { name: /decision history pagination/i })).not.toBeInTheDocument();
   });
 
   it('renders the filtered-empty state and restores the unfiltered view via Clear Filters', async () => {
@@ -202,6 +206,8 @@ describe('Lecturer MyDecisionsPage', () => {
     // The filter context stays visible and the genuine-empty copy stays absent.
     expect(screen.getByLabelText(/search decisions/i)).toHaveValue('no-match-term');
     expect(screen.queryByText('No decisions recorded yet')).not.toBeInTheDocument();
+    // F-01: the filtered zero-total state renders no pagination UI either.
+    expect(screen.queryByText(/page 1 of 0/i)).not.toBeInTheDocument();
 
     // Exactly one Clear Filters action exists — the filter card's own button.
     // The empty panel deliberately carries no duplicate of the same action.
@@ -218,6 +224,8 @@ describe('Lecturer MyDecisionsPage', () => {
         sort: 'decidedAt'
       });
     });
+    // Non-empty regression proof: with records restored, pagination renders.
+    expect(screen.getByText(/page 1 of 1/i)).toBeInTheDocument();
   });
 
   it('shows unavailable state when the endpoint fails', async () => {
