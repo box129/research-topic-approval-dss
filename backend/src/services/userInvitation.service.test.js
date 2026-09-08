@@ -485,3 +485,136 @@ describe('sendBulkInvitations', () => {
       .rejects.toMatchObject({ code: 'USER_INVITATION_BATCH_TOO_LARGE' });
   });
 });
+
+describe('issueBootstrapAdminActivation (bootstrap-only)', () => {
+  const { INVITABLE_ROLES } = require('./userInvitation.service');
+
+  const bootstrapAdmin = {
+    ...invitableStudent,
+    id: 9,
+    name: 'First Admin',
+    email: 'first.admin@department.example.com',
+    role: 'ADMIN',
+    matricNumber: null
+  };
+
+  test('ordinary invitation policy is untouched: INVITABLE_ROLES has no ADMIN', () => {
+    expect([...INVITABLE_ROLES].sort()).toEqual(['LECTURER', 'STUDENT']);
+    expect(INVITABLE_ROLES.has('ADMIN')).toBe(false);
+  });
+
+  test('refuses non-admin, missing-email, suspended, and already-activated targets without sending', async () => {
+    const cases = [
+      [{ ...bootstrapAdmin, role: 'STUDENT' }, 'BOOTSTRAP_ACTIVATION_ROLE_INVALID'],
+      [{ ...bootstrapAdmin, email: null }, 'BOOTSTRAP_ACTIVATION_EMAIL_REQUIRED'],
+      [{ ...bootstrapAdmin, status: 'SUSPENDED' }, 'BOOTSTRAP_ACTIVATION_ACCOUNT_SUSPENDED'],
+      [{ ...bootstrapAdmin, mustChangePassword: false }, 'BOOTSTRAP_ACTIVATION_ALREADY_COMPLETED']
+    ];
+
+    for (const [user, code] of cases) {
+      const prismaMock = createPrismaMock({ users: [user] });
+      const { service, emailProvider } = createService(prismaMock);
+
+      await expect(service.issueBootstrapAdminActivation({ user })).rejects.toMatchObject({ code });
+      expect(emailProvider.sendInvitationEmail).not.toHaveBeenCalled();
+      expect(prismaMock.user.update).not.toHaveBeenCalled();
+    }
+  });
+
+  test('stores only the token hash, emails the raw token once, and audits with the bootstrap source', async () => {
+    const prismaMock = createPrismaMock({ users: [{ ...bootstrapAdmin }] });
+    const { service, emailProvider, audit } = createService(prismaMock);
+
+    const result = await service.issueBootstrapAdminActivation({ user: { ...bootstrapAdmin } });
+
+    expect(result).toEqual({ delivery: { status: 'sent' } });
+    expect('token' in result).toBe(false);
+
+    expect(emailProvider.sendInvitationEmail).toHaveBeenCalledTimes(1);
+    const { to, token } = emailProvider.sendInvitationEmail.mock.calls[0][0];
+    expect(to).toBe(bootstrapAdmin.email);
+
+    const stored = prismaMock.__store.find((user) => user.id === bootstrapAdmin.id);
+    expect(stored.invitationTokenHash).toBe(hashInvitationToken(token));
+    expect(stored.invitationTokenHash).not.toBe(token);
+    expect(stored.invitationExpiresAt.getTime()).toBe(BASE_TIME.getTime() + 168 * 60 * 60 * 1000);
+
+    const auditEvent = audit.createAuditLogSafely.mock.calls[0][0];
+    expect(auditEvent.eventType).toBe('USER_INVITATION_SENT');
+    expect(auditEvent.metadata).toMatchObject({
+      targetUserRole: 'ADMIN',
+      source: 'bootstrap-admin-script',
+      resend: false
+    });
+    expect(JSON.stringify(audit.createAuditLogSafely.mock.calls)).not.toContain(token);
+  });
+
+  test('re-issuing rotates the stored hash so a previous activation link dies, and audits as resent', async () => {
+    const withPrior = { ...bootstrapAdmin, invitationTokenHash: 'prior-hash', invitationLastAttemptAt: new Date(BASE_TIME) };
+    const prismaMock = createPrismaMock({ users: [withPrior] });
+    const { service, audit } = createService(prismaMock);
+
+    const result = await service.issueBootstrapAdminActivation({ user: { ...withPrior } });
+
+    expect(result.delivery.status).toBe('sent');
+    const stored = prismaMock.__store.find((user) => user.id === bootstrapAdmin.id);
+    expect(stored.invitationTokenHash).not.toBe('prior-hash');
+    expect(audit.createAuditLogSafely.mock.calls[0][0].eventType).toBe('USER_INVITATION_RESENT');
+  });
+
+  test('delivery failure records a safe reason, still kills any previous link, and reports truthfully', async () => {
+    const failure = Object.assign(new Error('mailer down'), { reasonCode: 'smtp-auth-failed' });
+    const prismaMock = createPrismaMock({ users: [{ ...bootstrapAdmin, invitationTokenHash: 'prior-hash' }] });
+    const emailProvider = { sendInvitationEmail: jest.fn().mockRejectedValue(failure) };
+    const { service, audit } = createService(prismaMock, { emailProvider });
+
+    const result = await service.issueBootstrapAdminActivation({
+      user: { ...bootstrapAdmin, invitationTokenHash: 'prior-hash' }
+    });
+
+    expect(result).toEqual({ delivery: { status: 'failed', reasonCode: 'smtp-auth-failed' } });
+
+    const stored = prismaMock.__store.find((user) => user.id === bootstrapAdmin.id);
+    expect(stored.invitationTokenHash).not.toBe('prior-hash');
+    expect(stored.invitationLastError).toBe('smtp-auth-failed');
+
+    const failedEvent = audit.createAuditLogSafely.mock.calls
+      .map(([event]) => event)
+      .find((event) => event.eventType === 'USER_INVITATION_DELIVERY_FAILED');
+    expect(failedEvent.metadata).toMatchObject({ reasonCode: 'smtp-auth-failed', source: 'bootstrap-admin-script' });
+  });
+
+  test('a bootstrap ADMIN activation token is accepted by the existing acceptance flow', async () => {
+    const token = generateInvitationToken();
+    const activatableAdmin = {
+      ...bootstrapAdmin,
+      invitationTokenHash: hashInvitationToken(token),
+      invitationExpiresAt: new Date(BASE_TIME.getTime() + 60 * 60 * 1000),
+      resetTokenHash: 'stale-reset-hash',
+      resetTokenExpiresAt: new Date(BASE_TIME.getTime() + 60 * 60 * 1000)
+    };
+    const prismaMock = createPrismaMock({ users: [activatableAdmin] });
+    const { service } = createService(prismaMock);
+
+    const validated = await service.validateInvitationToken({ token });
+    expect(validated.valid).toBe(true);
+    expect(validated.account.role).toBe('admin');
+
+    const accepted = await service.acceptInvitation({ token, password: 'ChosenByAdmin9' });
+    expect(accepted.user).toMatchObject({ role: 'admin', mustChangePassword: false });
+    expect(typeof accepted.token).toBe('string');
+
+    const stored = prismaMock.__store.find((user) => user.id === bootstrapAdmin.id);
+    expect(stored.mustChangePassword).toBe(false);
+    expect(stored.credentialVersion).toBe(2);
+    expect(stored.invitationTokenHash).toBeNull();
+    expect(stored.invitationExpiresAt).toBeNull();
+    expect(stored.resetTokenHash).toBeNull();
+    expect(stored.resetTokenExpiresAt).toBeNull();
+    expect(await bcrypt.compare('ChosenByAdmin9', stored.passwordHash)).toBe(true);
+
+    // Single use: the same link is dead after acceptance.
+    await expect(service.acceptInvitation({ token, password: 'ChosenByAdmin9' }))
+      .rejects.toMatchObject({ code: 'INVITATION_INVALID' });
+  });
+});

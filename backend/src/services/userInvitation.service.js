@@ -315,6 +315,121 @@ function createUserInvitationService({
     return { summary, results };
   };
 
+  /**
+   * Bootstrap-only administrator activation. This is deliberately NOT part of
+   * the ordinary invitation feature: INVITABLE_ROLES stays STUDENT/LECTURER,
+   * no HTTP route reaches this function, and it exists solely so the first
+   * administrator establishes their own private password from an emailed
+   * activation link — no credential is ever printed, logged, or handed to the
+   * bootstrap operator. It reuses the same token, hash-at-rest, expiry and
+   * delivery machinery as ordinary invitations, so the existing acceptance
+   * flow consumes the link unchanged. Re-issuing always rotates the stored
+   * hash first, so any previously issued (possibly undelivered) link is dead
+   * the moment a new one exists.
+   */
+  const issueBootstrapAdminActivation = async ({ user, source = 'bootstrap-admin-script' } = {}) => {
+    if (!user || user.role !== 'ADMIN') {
+      throw new UserInvitationError('Bootstrap activation applies only to the first-administrator bootstrap flow.', {
+        code: 'BOOTSTRAP_ACTIVATION_ROLE_INVALID',
+        statusCode: 403
+      });
+    }
+
+    if (!user.email) {
+      throw new UserInvitationError('Bootstrap activation requires the administrator email address.', {
+        code: 'BOOTSTRAP_ACTIVATION_EMAIL_REQUIRED',
+        statusCode: 409
+      });
+    }
+
+    if (user.status !== 'ACTIVE') {
+      throw new UserInvitationError('Bootstrap activation requires an active administrator account.', {
+        code: 'BOOTSTRAP_ACTIVATION_ACCOUNT_SUSPENDED',
+        statusCode: 409
+      });
+    }
+
+    if (!user.mustChangePassword) {
+      throw new UserInvitationError('This administrator has already established a private password.', {
+        code: 'BOOTSTRAP_ACTIVATION_ALREADY_COMPLETED',
+        statusCode: 409
+      });
+    }
+
+    const isResend = Boolean(user.invitationTokenHash || user.invitationLastAttemptAt);
+    const token = generateToken();
+    const tokenHash = hashInvitationToken(token);
+    const issuedAt = now();
+    const expiresAt = new Date(issuedAt.getTime() + authConfig.invitationExpiresHours * 60 * 60 * 1000);
+
+    // Rotate the stored hash before attempting delivery: from this moment the
+    // previous activation link is dead regardless of how delivery goes.
+    await prismaClient.user.update({
+      where: { id: user.id },
+      data: {
+        invitationTokenHash: tokenHash,
+        invitationExpiresAt: expiresAt,
+        invitationLastAttemptAt: issuedAt,
+        invitationLastError: null
+      }
+    });
+
+    try {
+      await emailProvider.sendInvitationEmail({
+        to: user.email,
+        name: user.name,
+        token,
+        expiresHours: authConfig.invitationExpiresHours
+      });
+    } catch (error) {
+      const reasonCode = error?.reasonCode || 'delivery-failed';
+      await prismaClient.user.update({
+        where: { id: user.id },
+        data: { invitationLastError: reasonCode }
+      });
+
+      await audit.createAuditLogSafely({
+        eventType: AUDIT_EVENT_TYPES.USER_INVITATION_DELIVERY_FAILED,
+        targetType: 'User',
+        targetId: String(user.id),
+        metadata: {
+          targetUserId: user.id,
+          targetUserEmail: user.email,
+          targetUserRole: user.role,
+          reasonCode,
+          resend: isResend,
+          source
+        }
+      });
+
+      return { delivery: { status: 'failed', reasonCode } };
+    }
+
+    await prismaClient.user.update({
+      where: { id: user.id },
+      data: {
+        invitationLastSentAt: now(),
+        invitationLastError: null
+      }
+    });
+
+    await audit.createAuditLogSafely({
+      eventType: isResend ? AUDIT_EVENT_TYPES.USER_INVITATION_RESENT : AUDIT_EVENT_TYPES.USER_INVITATION_SENT,
+      targetType: 'User',
+      targetId: String(user.id),
+      metadata: {
+        targetUserId: user.id,
+        targetUserEmail: user.email,
+        targetUserRole: user.role,
+        expiresAt: expiresAt.toISOString(),
+        resend: isResend,
+        source
+      }
+    });
+
+    return { delivery: { status: 'sent' } };
+  };
+
   const findUserByActiveToken = async (tokenValue) => {
     const token = normalizeTokenInput(tokenValue);
     if (!token) {
@@ -457,6 +572,7 @@ function createUserInvitationService({
   return {
     issueInvitation,
     sendBulkInvitations,
+    issueBootstrapAdminActivation,
     validateInvitationToken,
     acceptInvitation
   };
