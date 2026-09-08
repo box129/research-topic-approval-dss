@@ -32,6 +32,75 @@ class SubmissionServiceError extends Error {
   }
 }
 
+// One live topic-approval process per student (pilot workflow invariant, not a
+// department-confirmed policy): a PENDING_REVIEW submission, an AWAITING_REVISION
+// submission with no submitted revision, or an APPROVED submission each block a
+// new initial submission. Only REJECTED frees a fresh start. Revisions are
+// continuations of the existing lineage and are never blocked by this rule.
+const DUPLICATE_SUBMISSION_CONFLICTS = {
+  PENDING_REVIEW: {
+    code: 'SUBMISSION_ALREADY_PENDING',
+    message: 'You already have a topic pending review. Track it in My Submissions.'
+  },
+  AWAITING_REVISION: {
+    code: 'SUBMISSION_AWAITING_REVISION_OPEN',
+    message: 'You have a topic awaiting revision. Revise and resubmit it from My Submissions instead of starting a new topic.'
+  },
+  APPROVED: {
+    code: 'SUBMISSION_ALREADY_APPROVED',
+    message: 'You already have an approved topic. A new topic cannot be started from the student submission flow.'
+  }
+};
+
+function duplicateSubmissionError(status) {
+  const conflict = DUPLICATE_SUBMISSION_CONFLICTS[status];
+  return new SubmissionServiceError(conflict.message, 409, conflict.code);
+}
+
+// Names which unique constraint a P2002 came from. Prisma reports the target as
+// an array of field names for constraints it knows from the schema
+// (['revision_of_id']) and may fall back to the raw index name for constraints
+// that only exist in SQL, so both spellings are matched. Anything else is
+// reported as an unknown conflict rather than being blamed on the wrong rule.
+function describeP2002Target(error) {
+  const target = error?.meta?.target;
+  const text = (Array.isArray(target) ? target : [target])
+    .filter((part) => typeof part === 'string')
+    .join(' ');
+
+  if (text.includes('revision_of_id')) {
+    return 'revision';
+  }
+
+  if (text.includes('one_pending_per_student') || text.includes('student_id')) {
+    return 'pending';
+  }
+
+  return 'unknown';
+}
+
+function conflictFromP2002(error) {
+  const target = describeP2002Target(error);
+
+  if (target === 'pending') {
+    return duplicateSubmissionError('PENDING_REVIEW');
+  }
+
+  if (target === 'revision') {
+    return new SubmissionServiceError(
+      'This submission has already been revised.',
+      409,
+      'SUBMISSION_ALREADY_REVISED'
+    );
+  }
+
+  return new SubmissionServiceError(
+    'This topic could not be submitted because it conflicts with another of your submissions. Check My Submissions and try again.',
+    409,
+    'SUBMISSION_CONFLICT'
+  );
+}
+
 function countWords(value) {
   return String(value || '')
     .trim()
@@ -471,12 +540,45 @@ function createSubmissionService({
     }
   };
 
+  // The one-live-process pre-check. Runs after cheap input validation and
+  // before any Voyage call, so the common duplicate attempt costs nothing and
+  // triggers no side effects. One query returns every blocking row: a pending
+  // review, an approved topic, or an awaiting-revision submission that has no
+  // submitted revision continuing it — a superseded AWAITING_REVISION parent is
+  // deliberately outside the filter because its lineage already moved on.
+  // REJECTED rows are intentionally not selected: rejection frees a fresh start.
+  // This check is workflow policy only; the race guard is the partial unique
+  // index submissions_one_pending_per_student_key.
+  const assertNoLiveSubmissionProcess = async (studentId) => {
+    const blockingSubmissions = await prismaClient.submission.findMany({
+      where: {
+        studentId,
+        OR: [
+          { status: 'PENDING_REVIEW' },
+          { status: 'APPROVED' },
+          { status: 'AWAITING_REVISION', revision: { is: null } }
+        ]
+      },
+      select: { status: true }
+    });
+
+    const blockingStatuses = new Set(blockingSubmissions.map((submission) => submission.status));
+
+    // Most actionable state first: waiting beats revising beats "already done".
+    for (const status of ['PENDING_REVIEW', 'AWAITING_REVISION', 'APPROVED']) {
+      if (blockingStatuses.has(status)) {
+        throw duplicateSubmissionError(status);
+      }
+    }
+  };
+
   const createSubmission = async ({ user, input }) => {
     assertStudentUser(user);
     const title = validateSubmissionInput(input || {});
     const category = normalizeOptionalText(input?.category);
     const keywords = normalizeKeywords(input?.keywords);
     const semanticContext = normalizeSemanticContext(input);
+    await assertNoLiveSubmissionProcess(user.id);
     const session = await getCurrentSession();
     const sessionId = session?.id || null;
 
@@ -493,37 +595,51 @@ function createSubmissionService({
       'Your topic could not be submitted because semantic analysis is currently unavailable. Please try again shortly.'
     );
 
-    const submission = await prismaClient.$transaction(async (tx) => {
-      const created = await tx.submission.create({
-        data: {
-          studentId: user.id,
-          sessionId,
-          title,
-          category,
-          keywords,
-          ...semanticContext,
-          status: 'PENDING_REVIEW'
-        },
-        include: {
-          session: true
-        }
-      });
+    let submission;
 
-      await tx.underReviewTopic.create({
-        data: {
-          ...topicShape,
-          keywords: topicShape.keywords || '',
-          sessionYear: session?.name || '',
-          supervisorName: '',
-          sourceType: 'submission',
-          reviewStartedAt: created.submittedAt,
-          submissionId: created.id,
-          ...embeddingData
-        }
-      });
+    try {
+      submission = await prismaClient.$transaction(async (tx) => {
+        const created = await tx.submission.create({
+          data: {
+            studentId: user.id,
+            sessionId,
+            title,
+            category,
+            keywords,
+            ...semanticContext,
+            status: 'PENDING_REVIEW'
+          },
+          include: {
+            session: true
+          }
+        });
 
-      return created;
-    });
+        await tx.underReviewTopic.create({
+          data: {
+            ...topicShape,
+            keywords: topicShape.keywords || '',
+            sessionYear: session?.name || '',
+            supervisorName: '',
+            sourceType: 'submission',
+            reviewStartedAt: created.submittedAt,
+            submissionId: created.id,
+            ...embeddingData
+          }
+        });
+
+        return created;
+      });
+    } catch (error) {
+      // The pre-check above is policy, not the race guard: two concurrent
+      // creations can both pass it. The partial unique index
+      // submissions_one_pending_per_student_key decides the race, and the loser
+      // rolls back here with nothing persisted and no post-commit side effects.
+      if (error?.code === 'P2002') {
+        throw conflictFromP2002(error);
+      }
+
+      throw error;
+    }
 
     await corpusLifecycle.refreshResidentCorpusSafely('submission creation');
 
@@ -629,13 +745,13 @@ function createSubmissionService({
     } catch (error) {
       // The unique index on revision_of_id is the real race guard: a
       // double-submitted resubmission loses here instead of creating a second
-      // competing revision of the same original.
+      // competing revision of the same original. A revision row is also a
+      // PENDING_REVIEW row, so it can instead lose the one-pending-per-student
+      // index to a concurrent initial submission — the target-aware mapping
+      // reports whichever constraint actually fired rather than claiming
+      // "already revised" for a different conflict.
       if (error?.code === 'P2002') {
-        throw new SubmissionServiceError(
-          'This submission has already been revised.',
-          409,
-          'SUBMISSION_ALREADY_REVISED'
-        );
+        throw conflictFromP2002(error);
       }
 
       throw error;

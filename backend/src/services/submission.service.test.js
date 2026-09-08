@@ -18,7 +18,9 @@ function createPrismaMock(overrides = {}) {
       create: jest.fn(),
       count: jest.fn(),
       findUnique: jest.fn(),
-      findMany: jest.fn(),
+      // Default: no existing submissions, so the one-live-process pre-check in
+      // createSubmission passes unless a test seeds blocking rows.
+      findMany: jest.fn().mockResolvedValue([]),
       update: jest.fn(),
       updateMany: jest.fn().mockResolvedValue({ count: 1 }),
       ...overrides.submission
@@ -1571,6 +1573,58 @@ describe('submission revision lineage', () => {
     });
   });
 
+  test('a revision losing the one-pending-per-student index is not mislabelled as already revised', async () => {
+    // Cross-race: a concurrent initial submission took the student's single
+    // PENDING_REVIEW slot, so the revision insert violates the pending index,
+    // not revision_of_id. The student must hear the truthful pending conflict.
+    const pendingViolation = Object.assign(new Error('Unique constraint failed'), {
+      code: 'P2002',
+      meta: { target: 'submissions_one_pending_per_student_key' }
+    });
+    const prisma = revisionPrismaMock(
+      awaitingRevisionOriginal(),
+      jest.fn().mockRejectedValue(pendingViolation)
+    );
+    const service = createSubmissionService({
+      prismaClient: prisma,
+      corpusLifecycle: createCorpusLifecycleMock()
+    });
+
+    await expect(service.createRevisionSubmission({
+      user: studentUser,
+      submissionId: 21,
+      input: revisionInput
+    })).rejects.toMatchObject({
+      statusCode: 409,
+      code: 'SUBMISSION_ALREADY_PENDING',
+      message: 'You already have a topic pending review. Track it in My Submissions.'
+    });
+  });
+
+  test('a revision P2002 with an unidentifiable target reports a truthful generic conflict', async () => {
+    const unknownViolation = Object.assign(new Error('Unique constraint failed'), {
+      code: 'P2002',
+      meta: { target: ['some_future_constraint'] }
+    });
+    const prisma = revisionPrismaMock(
+      awaitingRevisionOriginal(),
+      jest.fn().mockRejectedValue(unknownViolation)
+    );
+    const service = createSubmissionService({
+      prismaClient: prisma,
+      corpusLifecycle: createCorpusLifecycleMock()
+    });
+
+    await expect(service.createRevisionSubmission({
+      user: studentUser,
+      submissionId: 21,
+      input: revisionInput
+    })).rejects.toMatchObject({
+      statusCode: 409,
+      code: 'SUBMISSION_CONFLICT'
+    });
+  });
+
   test('a revision that cannot be embedded fails honestly and writes nothing', async () => {
     const prisma = revisionPrismaMock(awaitingRevisionOriginal());
     const corpusLifecycle = createCorpusLifecycleMock({
@@ -1763,6 +1817,295 @@ describe('review queue student identity', () => {
       id: 21,
       title: validInput.title,
       decision_reason: 'Narrow the population and state the study design.'
+    });
+  });
+});
+
+describe('one live topic-approval process per student', () => {
+  // Pilot workflow invariant: PENDING_REVIEW, unsuperseded AWAITING_REVISION
+  // and APPROVED each block a new initial submission; only REJECTED frees a
+  // fresh start. The pre-check must refuse before any Voyage call, any insert,
+  // and any post-commit side effect.
+  const EXPECTED_PRECHECK_QUERY = {
+    where: {
+      studentId: studentUser.id,
+      OR: [
+        { status: 'PENDING_REVIEW' },
+        { status: 'APPROVED' },
+        { status: 'AWAITING_REVISION', revision: { is: null } }
+      ]
+    },
+    select: { status: true }
+  };
+
+  function blockedServiceHarness(blockingRows) {
+    const prisma = createPrismaMock({
+      submission: {
+        findMany: jest.fn().mockResolvedValue(blockingRows)
+      }
+    });
+    const corpusLifecycle = createCorpusLifecycleMock();
+    const notificationEvents = { notifyReviewersOfSubmissionCreatedSafely: jest.fn() };
+    const service = createSubmissionService({ prismaClient: prisma, corpusLifecycle, notificationEvents });
+    return { prisma, corpusLifecycle, notificationEvents, service };
+  }
+
+  function expectNothingHappened({ prisma, corpusLifecycle, notificationEvents }) {
+    expect(corpusLifecycle.prepareDocumentEmbedding).not.toHaveBeenCalled();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+    expect(prisma.submission.create).not.toHaveBeenCalled();
+    expect(prisma.underReviewTopic.create).not.toHaveBeenCalled();
+    expect(corpusLifecycle.refreshResidentCorpusSafely).not.toHaveBeenCalled();
+    expect(notificationEvents.notifyReviewersOfSubmissionCreatedSafely).not.toHaveBeenCalled();
+  }
+
+  test('a second initial submission is refused while one is pending review', async () => {
+    const harness = blockedServiceHarness([{ status: 'PENDING_REVIEW' }]);
+
+    await expect(harness.service.createSubmission({
+      user: studentUser,
+      input: validInput
+    })).rejects.toMatchObject({
+      statusCode: 409,
+      code: 'SUBMISSION_ALREADY_PENDING',
+      message: 'You already have a topic pending review. Track it in My Submissions.'
+    });
+
+    expect(harness.prisma.submission.findMany).toHaveBeenCalledWith(EXPECTED_PRECHECK_QUERY);
+    expectNothingHappened(harness);
+  });
+
+  test('a new initial submission is refused while a revision is still owed', async () => {
+    const harness = blockedServiceHarness([{ status: 'AWAITING_REVISION' }]);
+
+    await expect(harness.service.createSubmission({
+      user: studentUser,
+      input: validInput
+    })).rejects.toMatchObject({
+      statusCode: 409,
+      code: 'SUBMISSION_AWAITING_REVISION_OPEN',
+      message: 'You have a topic awaiting revision. Revise and resubmit it from My Submissions instead of starting a new topic.'
+    });
+
+    expectNothingHappened(harness);
+  });
+
+  test('a new initial submission is refused after an approval', async () => {
+    const harness = blockedServiceHarness([{ status: 'APPROVED' }]);
+
+    await expect(harness.service.createSubmission({
+      user: studentUser,
+      input: validInput
+    })).rejects.toMatchObject({
+      statusCode: 409,
+      code: 'SUBMISSION_ALREADY_APPROVED',
+      message: 'You already have an approved topic. A new topic cannot be started from the student submission flow.'
+    });
+
+    expectNothingHappened(harness);
+  });
+
+  test('the pending conflict wins the message when several blocking states coexist', async () => {
+    const harness = blockedServiceHarness([{ status: 'APPROVED' }, { status: 'PENDING_REVIEW' }]);
+
+    await expect(harness.service.createSubmission({
+      user: studentUser,
+      input: validInput
+    })).rejects.toMatchObject({ code: 'SUBMISSION_ALREADY_PENDING' });
+  });
+
+  test('a student with only rejected history can start a fresh initial submission', async () => {
+    // REJECTED rows are outside the pre-check filter entirely, so the query
+    // returns nothing for this student and creation proceeds unchanged.
+    const createdAt = new Date('2026-05-19T10:00:00Z');
+    const prisma = createPrismaMock({
+      academicSession: {
+        findFirst: jest.fn().mockResolvedValue({ id: 3 })
+      },
+      submission: {
+        create: jest.fn().mockResolvedValue({
+          id: 31,
+          studentId: studentUser.id,
+          sessionId: 3,
+          session: { id: 3, name: '2025/2026' },
+          title: validInput.title,
+          category: validInput.category,
+          keywords: validInput.keywords,
+          status: 'PENDING_REVIEW',
+          submittedAt: createdAt,
+          createdAt,
+          updatedAt: createdAt
+        })
+      }
+    });
+    const service = createSubmissionService({ prismaClient: prisma, corpusLifecycle: createCorpusLifecycleMock() });
+
+    const result = await service.createSubmission({ user: studentUser, input: validInput });
+
+    expect(prisma.submission.findMany).toHaveBeenCalledWith(EXPECTED_PRECHECK_QUERY);
+    expect(EXPECTED_PRECHECK_QUERY.where.OR).not.toContainEqual(
+      expect.objectContaining({ status: 'REJECTED' })
+    );
+    expect(result).toMatchObject({ id: 31, status: 'pending_review' });
+  });
+
+  test('the pre-check is scoped to the submitting student only', async () => {
+    // Another student's live process must never block this one: the query
+    // filters on the authenticated student's own id.
+    const otherStudent = { id: 8, role: 'student' };
+    const createdAt = new Date('2026-05-19T10:00:00Z');
+    const prisma = createPrismaMock({
+      academicSession: {
+        findFirst: jest.fn().mockResolvedValue({ id: 3 })
+      },
+      submission: {
+        create: jest.fn().mockResolvedValue({
+          id: 32,
+          studentId: otherStudent.id,
+          sessionId: 3,
+          session: { id: 3, name: '2025/2026' },
+          title: validInput.title,
+          category: null,
+          keywords: null,
+          status: 'PENDING_REVIEW',
+          submittedAt: createdAt,
+          createdAt,
+          updatedAt: createdAt
+        })
+      }
+    });
+    const service = createSubmissionService({ prismaClient: prisma, corpusLifecycle: createCorpusLifecycleMock() });
+
+    const result = await service.createSubmission({
+      user: otherStudent,
+      input: { title: validInput.title }
+    });
+
+    expect(prisma.submission.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ studentId: otherStudent.id })
+      })
+    );
+    expect(result).toMatchObject({ id: 32, status: 'pending_review' });
+  });
+
+  test('a superseded awaiting-revision parent is not treated as an outstanding obligation', async () => {
+    // The AWAITING_REVISION arm of the pre-check filters to rows with no
+    // submitted revision; a superseded parent is excluded by the query itself,
+    // so the database returns nothing and creation proceeds. The filter shape
+    // is asserted explicitly because the mock cannot evaluate it.
+    const createdAt = new Date('2026-05-19T10:00:00Z');
+    const prisma = createPrismaMock({
+      academicSession: {
+        findFirst: jest.fn().mockResolvedValue({ id: 3 })
+      },
+      submission: {
+        create: jest.fn().mockResolvedValue({
+          id: 33,
+          studentId: studentUser.id,
+          sessionId: 3,
+          session: { id: 3, name: '2025/2026' },
+          title: validInput.title,
+          category: null,
+          keywords: null,
+          status: 'PENDING_REVIEW',
+          submittedAt: createdAt,
+          createdAt,
+          updatedAt: createdAt
+        })
+      }
+    });
+    const service = createSubmissionService({ prismaClient: prisma, corpusLifecycle: createCorpusLifecycleMock() });
+
+    await service.createSubmission({ user: studentUser, input: { title: validInput.title } });
+
+    const query = prisma.submission.findMany.mock.calls[0][0];
+    expect(query.where.OR).toContainEqual({
+      status: 'AWAITING_REVISION',
+      revision: { is: null }
+    });
+  });
+
+  test('a concurrent create losing the pending index maps to a truthful 409 with nothing persisted', async () => {
+    // Two concurrent creations can both pass the pre-check; the partial unique
+    // index arbitrates. The loser has paid one stateless Voyage call and must
+    // leave no rows and trigger no post-commit side effects.
+    const pendingViolation = Object.assign(new Error('Unique constraint failed'), {
+      code: 'P2002',
+      meta: { target: 'submissions_one_pending_per_student_key' }
+    });
+    const prisma = createPrismaMock({
+      academicSession: {
+        findFirst: jest.fn().mockResolvedValue({ id: 3 })
+      },
+      submission: {
+        create: jest.fn().mockRejectedValue(pendingViolation)
+      }
+    });
+    const corpusLifecycle = createCorpusLifecycleMock();
+    const notificationEvents = { notifyReviewersOfSubmissionCreatedSafely: jest.fn() };
+    const service = createSubmissionService({ prismaClient: prisma, corpusLifecycle, notificationEvents });
+
+    await expect(service.createSubmission({
+      user: studentUser,
+      input: validInput
+    })).rejects.toMatchObject({
+      statusCode: 409,
+      code: 'SUBMISSION_ALREADY_PENDING',
+      message: 'You already have a topic pending review. Track it in My Submissions.'
+    });
+
+    expect(corpusLifecycle.prepareDocumentEmbedding).toHaveBeenCalledTimes(1);
+    expect(prisma.underReviewTopic.create).not.toHaveBeenCalled();
+    expect(corpusLifecycle.refreshResidentCorpusSafely).not.toHaveBeenCalled();
+    expect(notificationEvents.notifyReviewersOfSubmissionCreatedSafely).not.toHaveBeenCalled();
+  });
+
+  test('the race mapping also recognises the Prisma field-array form of the pending target', async () => {
+    const pendingViolation = Object.assign(new Error('Unique constraint failed'), {
+      code: 'P2002',
+      meta: { target: ['student_id'] }
+    });
+    const prisma = createPrismaMock({
+      academicSession: {
+        findFirst: jest.fn().mockResolvedValue({ id: 3 })
+      },
+      submission: {
+        create: jest.fn().mockRejectedValue(pendingViolation)
+      }
+    });
+    const service = createSubmissionService({ prismaClient: prisma, corpusLifecycle: createCorpusLifecycleMock() });
+
+    await expect(service.createSubmission({
+      user: studentUser,
+      input: validInput
+    })).rejects.toMatchObject({
+      statusCode: 409,
+      code: 'SUBMISSION_ALREADY_PENDING'
+    });
+  });
+
+  test('an unidentifiable P2002 during creation reports a truthful generic conflict', async () => {
+    const unknownViolation = Object.assign(new Error('Unique constraint failed'), {
+      code: 'P2002',
+      meta: {}
+    });
+    const prisma = createPrismaMock({
+      academicSession: {
+        findFirst: jest.fn().mockResolvedValue({ id: 3 })
+      },
+      submission: {
+        create: jest.fn().mockRejectedValue(unknownViolation)
+      }
+    });
+    const service = createSubmissionService({ prismaClient: prisma, corpusLifecycle: createCorpusLifecycleMock() });
+
+    await expect(service.createSubmission({
+      user: studentUser,
+      input: validInput
+    })).rejects.toMatchObject({
+      statusCode: 409,
+      code: 'SUBMISSION_CONFLICT'
     });
   });
 });
