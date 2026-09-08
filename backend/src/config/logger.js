@@ -96,31 +96,46 @@ const developmentFormat = winston.format.combine(
   })
 );
 
-// Define transports. Console/stdout is the primary production channel; the
-// file copies are local-only and non-durable.
-const transports = [
-  new winston.transports.Console(),
+// Transports. Console/stdout is the ONLY production channel: the hosting
+// platform's log collector is the durable persistence/retention layer, and the
+// process never depends on (or grows) local log files there. The cwd-relative
+// file copies are a development convenience only.
+function buildTransports({ production }) {
+  const transports = [new winston.transports.Console()];
 
-  // File transport for errors
-  new winston.transports.File({
-    filename: 'logs/error.log',
-    level: 'error',
-  }),
+  if (!production) {
+    transports.push(
+      // Development file copy for errors
+      new winston.transports.File({
+        filename: 'logs/error.log',
+        level: 'error',
+      }),
 
-  // File transport for all logs
-  new winston.transports.File({
-    filename: 'logs/combined.log',
-  }),
-];
+      // Development file copy for all logs
+      new winston.transports.File({
+        filename: 'logs/combined.log',
+      })
+    );
+  }
 
-// Create logger instance
-const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  levels,
-  format: isProductionEnvironment() ? productionFormat : developmentFormat,
-  transports,
-});
+  return transports;
+}
+
+// Factory so tests can construct the logger for a specific environment
+// deterministically; the exported default instance follows NODE_ENV.
+function createLoggerInstance({ production = isProductionEnvironment() } = {}) {
+  return winston.createLogger({
+    level: process.env.LOG_LEVEL || 'info',
+    levels,
+    format: production ? productionFormat : developmentFormat,
+    transports: buildTransports({ production }),
+  });
+}
+
+const logger = createLoggerInstance();
 
 module.exports = logger;
 module.exports.redactSensitiveValues = redactSensitiveValues;
 module.exports.SENSITIVE_LOG_KEY_PATTERN = SENSITIVE_LOG_KEY_PATTERN;
+module.exports.createLoggerInstance = createLoggerInstance;
+module.exports.buildTransports = buildTransports;

@@ -42,7 +42,16 @@ describe('ResidentCorpus', () => {
     const log = { info: jest.fn(), error: jest.fn() };
     const corpus = new ResidentCorpus(client({ historical: [{ id: 1, title: 'Sensitive Topic Title', embedding: vector(.1), embeddingSourceHash: 'current' }] }), log);
 
-    expect(corpus.stats()).toEqual({ built: false, topics: null, searchable: null, builtAt: null, lastRefreshError: null });
+    expect(corpus.stats()).toEqual({
+      built: false,
+      topics: null,
+      searchable: null,
+      builtAt: null,
+      sourceTopicCount: null,
+      searchableTopicCount: null,
+      skippedInvalidEmbeddingCount: null,
+      lastRefreshError: null
+    });
 
     await corpus.refresh();
     const stats = corpus.stats();
@@ -70,5 +79,130 @@ describe('ResidentCorpus', () => {
     expect(log.info).toHaveBeenCalledTimes(1);
     expect(log.info.mock.calls[0][0]).toMatch(/recovered/);
     expect(corpus.stats().lastRefreshError).toBeNull();
+  });
+
+  describe('partial-corpus accounting', () => {
+    const makeLog = () => ({ info: jest.fn(), warn: jest.fn(), error: jest.fn() });
+
+    test('an all-valid snapshot reports source == admitted with zero skipped and no warning', async () => {
+      const log = makeLog();
+      const corpus = new ResidentCorpus(client({
+        historical: [{ id: 1, embedding: vector(.1), embeddingSourceHash: 'current' }],
+        current: [{ id: 2, embedding: vector(.2), embeddingSourceHash: 'current' }]
+      }), log);
+
+      await corpus.refresh();
+
+      expect(corpus.stats()).toMatchObject({
+        built: true,
+        sourceTopicCount: 2,
+        searchableTopicCount: 2,
+        skippedInvalidEmbeddingCount: 0
+      });
+      expect(log.warn).not.toHaveBeenCalled();
+    });
+
+    test('rows failing the embedding contract are counted, warned about once, and never described by content', async () => {
+      const log = makeLog();
+      const corpus = new ResidentCorpus(client({
+        historical: [
+          { id: 1, title: 'Sensitive Valid Title', embedding: vector(.1), embeddingSourceHash: 'current' },
+          { id: 2, title: 'Sensitive Broken Title', embedding: null, embeddingSourceHash: 'current' },
+          { id: 3, title: 'Sensitive Stale Title', embedding: vector(.3), embeddingSourceHash: 'old' }
+        ]
+      }), log);
+
+      await corpus.refresh();
+
+      const stats = corpus.stats();
+      expect(stats).toMatchObject({
+        sourceTopicCount: 3,
+        searchableTopicCount: 1,
+        skippedInvalidEmbeddingCount: 2
+      });
+
+      expect(log.warn).toHaveBeenCalledTimes(1);
+      expect(log.warn.mock.calls[0][0]).toMatch(/partial/i);
+      expect(log.warn.mock.calls[0][1]).toEqual({
+        sourceTopicCount: 3,
+        searchableTopicCount: 1,
+        skippedInvalidEmbeddingCount: 2
+      });
+      const serializedLogging = JSON.stringify(log.warn.mock.calls) + JSON.stringify(log.info.mock.calls);
+      expect(serializedLogging).not.toContain('Sensitive');
+      expect(serializedLogging).not.toContain('0.1');
+    });
+
+    test('an equivalent partial refresh does not repeat the warning; a changed skipped count warns again', async () => {
+      const log = makeLog();
+      const db = client({
+        historical: [
+          { id: 1, embedding: vector(.1), embeddingSourceHash: 'current' },
+          { id: 2, embedding: null, embeddingSourceHash: 'current' }
+        ]
+      });
+      const corpus = new ResidentCorpus(db, log);
+
+      await corpus.refresh();
+      await corpus.refresh();
+      expect(log.warn).toHaveBeenCalledTimes(1);
+
+      db.historicalTopic.findMany.mockResolvedValue([
+        { id: 1, embedding: vector(.1), embeddingSourceHash: 'current' },
+        { id: 2, embedding: null, embeddingSourceHash: 'current' },
+        { id: 3, embedding: null, embeddingSourceHash: 'current' }
+      ]);
+      await corpus.refresh();
+      expect(log.warn).toHaveBeenCalledTimes(2);
+      expect(log.warn.mock.calls[1][1].skippedInvalidEmbeddingCount).toBe(2);
+    });
+
+    test('recovering full embedding coverage emits one recovery event', async () => {
+      const log = makeLog();
+      const db = client({
+        historical: [
+          { id: 1, embedding: vector(.1), embeddingSourceHash: 'current' },
+          { id: 2, embedding: null, embeddingSourceHash: 'current' }
+        ]
+      });
+      const corpus = new ResidentCorpus(db, log);
+      await corpus.refresh();
+
+      db.historicalTopic.findMany.mockResolvedValue([
+        { id: 1, embedding: vector(.1), embeddingSourceHash: 'current' },
+        { id: 2, embedding: vector(.2), embeddingSourceHash: 'current' }
+      ]);
+      await corpus.refresh();
+
+      expect(log.info).toHaveBeenCalledTimes(1);
+      expect(log.info.mock.calls[0][0]).toMatch(/full embedding coverage/i);
+      await corpus.refresh();
+      expect(log.info).toHaveBeenCalledTimes(1);
+      expect(corpus.stats().skippedInvalidEmbeddingCount).toBe(0);
+    });
+
+    test('a failed replacement build preserves the active snapshot and its counts', async () => {
+      const log = makeLog();
+      const db = client({
+        historical: [
+          { id: 1, embedding: vector(.1), embeddingSourceHash: 'current' },
+          { id: 2, embedding: null, embeddingSourceHash: 'current' }
+        ]
+      });
+      const corpus = new ResidentCorpus(db, log);
+      const active = await corpus.refresh();
+
+      db.historicalTopic.findMany.mockRejectedValue(new Error('database unavailable'));
+      await expect(corpus.refresh()).rejects.toThrow('database unavailable');
+
+      expect(corpus.snapshot).toBe(active);
+      expect(corpus.stats()).toMatchObject({
+        built: true,
+        sourceTopicCount: 2,
+        searchableTopicCount: 1,
+        skippedInvalidEmbeddingCount: 1,
+        lastRefreshError: 'database unavailable'
+      });
+    });
   });
 });
