@@ -174,6 +174,12 @@ model Submission {
   createdAt                DateTime                  @default(now()) @map("created_at")
   updatedAt                DateTime                  @updatedAt @map("updated_at")
 
+  // At most one PENDING_REVIEW submission may exist per student. Prisma cannot
+  // express a partial unique index in the schema language, so it is defined in
+  // migration 20260908090000_enforce_single_pending_submission as
+  // "submissions_one_pending_per_student_key" ON (student_id) WHERE status =
+  // 'PENDING_REVIEW'. It is the database concurrency backstop; the stricter
+  // one-live-process workflow policy is enforced in submission.service.js.
   @@index([studentId])
   @@index([sessionId])
   @@index([status])

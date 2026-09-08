@@ -71,6 +71,8 @@ function minimalPrisma(overrides = {}) {
     submission: {
       create: jest.fn(async ({ data }) => ({ id: 22, ...data, session: { id: 3, name: '2025/2026' }, revisionOf: null, submittedAt: new Date(), createdAt: new Date(), updatedAt: new Date() })),
       findUnique: jest.fn(),
+      // No existing submissions: the one-live-process pre-check passes.
+      findMany: jest.fn().mockResolvedValue([]),
       update: jest.fn(),
       updateMany: jest.fn().mockResolvedValue({ count: 1 })
     },
@@ -134,6 +136,8 @@ describe('canonical representation across workflow paths', () => {
     const prisma = minimalPrisma({
       submission: {
         findUnique: jest.fn().mockResolvedValue(original),
+        // No existing submissions: the one-live-process pre-check passes.
+        findMany: jest.fn().mockResolvedValue([]),
         create: jest.fn(async ({ data }) => ({ id: 22, ...data, session: { id: 3, name: '2025/2026' }, revisionOf: original, submittedAt: new Date(), createdAt: new Date(), updatedAt: new Date() })),
         update: jest.fn()
       }
