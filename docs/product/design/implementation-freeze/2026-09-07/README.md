@@ -1,6 +1,10 @@
 # Implementation Freeze Record — Authenticated Workspace (2026-09-07)
 
-**Status: UI FREEZE CANDIDATE — CAPTURED AND VERIFIED**
+**Status: AUTHENTICATED UI FREEZE — FINALIZED AND VERIFIED**
+
+Freeze record merged via PR #154 on 2026-09-08. Freeze-record commit on main:
+`409d8a31b6d0da90fd6da63ce6b707607464debb`. The captured frontend implementation
+remains `24b01bca1c80d54661eeea8d0800f3d05782fe22`.
 
 This package is the formal record of the authenticated-workspace user interface as
 implemented at a single, named commit, captured from the real running system. It is
