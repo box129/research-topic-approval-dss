@@ -7,6 +7,8 @@ const {
   createAuditLogSafely
 } = require('./auditLog.service');
 const { serializeUser } = require('./adminUser.service');
+const emailService = require('./email.service');
+const userInvitationService = require('./userInvitation.service');
 const {
   EMAIL_FORMAT,
   MATRIC_FORMAT,
@@ -192,7 +194,9 @@ function createUserProvisioningService({
   prismaClient = prisma,
   audit = { createAuditLogSafely },
   hashPassword = (value) => bcrypt.hash(value, 12),
-  generatePassword = generateTemporaryPassword
+  generatePassword = generateTemporaryPassword,
+  emailCapability = () => emailService.describeEmailCapability(),
+  issueBootstrapActivation = (args) => userInvitationService.issueBootstrapAdminActivation(args)
 } = {}) {
   const assertNoDuplicates = async (tx, { email, matricNumber, excludeId }) => {
     // A student may legitimately have no email; NULL is not a collision.
@@ -502,9 +506,28 @@ function createUserProvisioningService({
 
   // Operator-invoked production initialization. Never runs automatically,
   // never uses a fixed password, and refuses ambiguous bootstrap state.
+  //
+  // The first administrator activates their own account from an emailed
+  // activation link (the existing invitation acceptance flow) and chooses a
+  // private password the operator never learns. No credential is returned,
+  // printed, logged, or audited by this flow — the account is created with an
+  // unrevealed random placeholder hash that activation replaces.
   const bootstrapFirstAdmin = async ({ email: emailValue, name: nameValue } = {}) => {
     const name = normalizeName(nameValue);
     const email = normalizeCanonicalEmail(emailValue);
+
+    // The first administrator activates by email, so without a real transport
+    // the activation link cannot be delivered. Refuse before touching the
+    // database rather than creating an account nobody can activate. The
+    // capability summary is secret-free by contract.
+    const capability = emailCapability();
+    if (capability?.provider !== 'smtp' || capability?.status !== 'configured') {
+      return {
+        status: 'email-unavailable',
+        message: 'Bootstrap requires configured SMTP because the first administrator activates their account by email. '
+          + String(capability?.message || '')
+      };
+    }
 
     const existingAdmins = await prismaClient.user.findMany({
       where: { role: 'ADMIN' },
@@ -514,10 +537,56 @@ function createUserProvisioningService({
     if (existingAdmins.length > 0) {
       const sameEmailAdmin = existingAdmins.find((admin) => admin.email === email);
       if (sameEmailAdmin) {
+        if (!sameEmailAdmin.mustChangePassword) {
+          return {
+            status: 'already-bootstrapped',
+            user: serializeUser(sameEmailAdmin),
+            message: 'An administrator with this email already exists and has completed activation. No changes were made and no credential was issued.'
+          };
+        }
+
+        // Bootstrap recovery: the account exists but activation was never
+        // completed (the email failed, expired, or was lost). This is not
+        // ordinary admin invitation support; it exists only so a failed first
+        // delivery can never strand the first administrator.
+        //
+        // Recovery must first kill EVERY previously issued credential path,
+        // not just the activation link: an incomplete administrator may have
+        // been created by the old bootstrap flow, whose temporary password was
+        // printed to the operator's terminal and may survive in hosting logs,
+        // and mustChangePassword alone does not stop that password from
+        // signing in. A fresh unrevealed placeholder replaces the hash (the
+        // plaintext is discarded with this scope and never returned, printed,
+        // logged, or audited), the credentialVersion bump invalidates every
+        // previously issued session, and any stale reset link dies. The
+        // rotated activation token issued below then remains the only
+        // practical way into the account.
+        const replacementPlaceholder = generatePassword();
+        const replacementHash = await hashPassword(replacementPlaceholder);
+        const refreshedAdmin = await prismaClient.user.update({
+          where: { id: sameEmailAdmin.id },
+          data: {
+            passwordHash: replacementHash,
+            mustChangePassword: true,
+            credentialVersion: { increment: 1 },
+            resetTokenHash: null,
+            resetTokenExpiresAt: null
+          }
+        });
+
+        const activation = await issueBootstrapActivation({ user: refreshedAdmin });
+        if (activation.delivery.status !== 'sent') {
+          return {
+            status: 'activation-delivery-failed',
+            created: false,
+            reasonCode: activation.delivery.reasonCode,
+            user: serializeUser(refreshedAdmin)
+          };
+        }
+
         return {
-          status: 'already-bootstrapped',
-          user: serializeUser(sameEmailAdmin),
-          message: 'An administrator with this email already exists. No changes were made and no credential was issued.'
+          status: 'activation-resent',
+          user: serializeUser(refreshedAdmin)
         };
       }
 
@@ -535,8 +604,13 @@ function createUserProvisioningService({
       };
     }
 
-    const temporaryPassword = generatePassword();
-    const passwordHash = await hashPassword(temporaryPassword);
+    // The schema requires a credential, but nobody ever receives this one: a
+    // cryptographically random placeholder is hashed and the plaintext is
+    // discarded with this scope. It is never returned, printed, logged, or
+    // audited, so the operator cannot sign in as the administrator; invitation
+    // acceptance replaces the hash with the administrator's own choice.
+    const placeholderCredential = generatePassword();
+    const passwordHash = await hashPassword(placeholderCredential);
 
     let created;
     try {
@@ -574,6 +648,8 @@ function createUserProvisioningService({
       where: { email: { endsWith: '.demo@uniosun.edu.ng' } }
     });
 
+    const activation = await issueBootstrapActivation({ user: created });
+
     await audit.createAuditLogSafely({
       eventType: AUDIT_EVENT_TYPES.ADMIN_BOOTSTRAPPED,
       targetType: 'User',
@@ -582,17 +658,30 @@ function createUserProvisioningService({
         targetUserId: created.id,
         targetUserEmail: created.email,
         mustChangePassword: true,
-        source: 'bootstrap-admin-script'
+        source: 'bootstrap-admin-script',
+        activationDeliveryStatus: activation.delivery.status,
+        ...(activation.delivery.reasonCode ? { activationReasonCode: activation.delivery.reasonCode } : {})
       }
     });
 
+    const warnings = demoUserCount > 0
+      ? [`${demoUserCount} demo seed account(s) exist in this database. Demo accounts are development-only and must not be present in production.`]
+      : [];
+
+    if (activation.delivery.status !== 'sent') {
+      return {
+        status: 'activation-delivery-failed',
+        created: true,
+        reasonCode: activation.delivery.reasonCode,
+        user: serializeUser(created),
+        warnings
+      };
+    }
+
     return {
-      status: 'created',
+      status: 'created-activation-sent',
       user: serializeUser(created),
-      temporaryPassword,
-      warnings: demoUserCount > 0
-        ? [`${demoUserCount} demo seed account(s) exist in this database. Demo accounts are development-only and must not be present in production.`]
-        : []
+      warnings
     };
   };
 

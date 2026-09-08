@@ -743,41 +743,162 @@ describe('correctUserIdentity', () => {
   });
 });
 
+
 describe('bootstrapFirstAdmin', () => {
-  test('creates the first administrator on an empty database', async () => {
+  const SENTINEL_PLACEHOLDER = 'SENTINEL-BOOTSTRAP-CREDENTIAL-492817';
+  const smtpReady = () => ({ provider: 'smtp', status: 'configured', message: 'SMTP transport is configured.' });
+  const activationSent = () => jest.fn().mockResolvedValue({ delivery: { status: 'sent' } });
+
+  function bootstrapService(prismaMock, { audit, activation = activationSent(), capability = smtpReady, generatePassword } = {}) {
+    const auditImpl = audit || { createAuditLogSafely: jest.fn().mockResolvedValue(null) };
+    const service = createService(prismaMock, {
+      audit: auditImpl,
+      emailCapability: capability,
+      issueBootstrapActivation: activation,
+      ...(generatePassword ? { generatePassword } : {})
+    });
+    return { service, audit: auditImpl, activation };
+  }
+
+  test('creates the first administrator and sends activation without disclosing any credential', async () => {
     const prismaMock = createPrismaMock();
-    const audit = { createAuditLogSafely: jest.fn().mockResolvedValue(null) };
-    const service = createService(prismaMock, { audit });
+    const { service, audit, activation } = bootstrapService(prismaMock, {
+      generatePassword: () => SENTINEL_PLACEHOLDER
+    });
 
     const result = await service.bootstrapFirstAdmin({
       email: 'First.Admin@UNIOSUN.edu.ng',
       name: 'First Admin'
     });
 
-    expect(result.status).toBe('created');
+    expect(result.status).toBe('created-activation-sent');
     expect(result.user).toMatchObject({
       email: 'first.admin@uniosun.edu.ng',
       role: 'admin',
       status: 'active',
       mustChangePassword: true
     });
-    expect(validatePasswordPolicy(result.temporaryPassword)).toBe(true);
+
+    // The placeholder credential must never leave the service in any form.
+    expect('temporaryPassword' in result).toBe(false);
+    expect(JSON.stringify(result)).not.toContain(SENTINEL_PLACEHOLDER);
 
     const createdRow = prismaMock.user.create.mock.calls[0][0].data;
     expect(createdRow.mustChangePassword).toBe(true);
-    expect(createdRow.passwordHash).not.toBe(result.temporaryPassword);
-    expect(await bcrypt.compare(result.temporaryPassword, createdRow.passwordHash)).toBe(true);
+    expect(createdRow.passwordHash).not.toBe(SENTINEL_PLACEHOLDER);
+    expect(await bcrypt.compare(SENTINEL_PLACEHOLDER, createdRow.passwordHash)).toBe(true);
+
+    // Activation goes through the bootstrap-only issuer exactly once, with
+    // the created ADMIN row.
+    expect(activation).toHaveBeenCalledTimes(1);
+    expect(activation.mock.calls[0][0].user).toMatchObject({ role: 'ADMIN', email: 'first.admin@uniosun.edu.ng' });
 
     const auditEvent = audit.createAuditLogSafely.mock.calls[0][0];
     expect(auditEvent.eventType).toBe('ADMIN_BOOTSTRAPPED');
-    expect(JSON.stringify(auditEvent)).not.toContain(result.temporaryPassword);
+    expect(auditEvent.metadata.activationDeliveryStatus).toBe('sent');
+    expect(JSON.stringify(auditEvent)).not.toContain(SENTINEL_PLACEHOLDER);
   });
 
-  test('is idempotent for the same administrator email', async () => {
-    const prismaMock = createPrismaMock({
-      users: [{ ...existingAdmin, email: 'first.admin@uniosun.edu.ng' }]
+  test('refuses before creating anything when email capability is not real SMTP', async () => {
+    for (const capability of [
+      { provider: 'disabled', status: 'disabled', message: 'EMAIL CAPABILITY DISABLED' },
+      { provider: 'mock', status: 'mock', message: 'Mock provider (development/test only).' },
+      { provider: 'mock', status: 'invalid', message: 'Mock email provider is not allowed in production.' }
+    ]) {
+      const prismaMock = createPrismaMock();
+      const generatePassword = jest.fn();
+      const { service, activation } = bootstrapService(prismaMock, {
+        capability: () => capability,
+        generatePassword
+      });
+
+      const result = await service.bootstrapFirstAdmin({
+        email: 'first.admin@uniosun.edu.ng',
+        name: 'First Admin'
+      });
+
+      expect(result.status).toBe('email-unavailable');
+      expect(result.message).toMatch(/requires configured SMTP/i);
+      expect(prismaMock.user.findMany).not.toHaveBeenCalled();
+      expect(prismaMock.user.create).not.toHaveBeenCalled();
+      expect(generatePassword).not.toHaveBeenCalled();
+      expect(activation).not.toHaveBeenCalled();
+    }
+  });
+
+  test('keeps the account and reports truthfully when the first activation email fails', async () => {
+    const prismaMock = createPrismaMock();
+    const activation = jest.fn().mockResolvedValue({ delivery: { status: 'failed', reasonCode: 'smtp-auth-failed' } });
+    const { service, audit } = bootstrapService(prismaMock, {
+      activation,
+      generatePassword: () => SENTINEL_PLACEHOLDER
     });
-    const service = createService(prismaMock);
+
+    const result = await service.bootstrapFirstAdmin({
+      email: 'first.admin@uniosun.edu.ng',
+      name: 'First Admin'
+    });
+
+    expect(result.status).toBe('activation-delivery-failed');
+    expect(result.created).toBe(true);
+    expect(result.reasonCode).toBe('smtp-auth-failed');
+    expect('temporaryPassword' in result).toBe(false);
+    expect(JSON.stringify(result)).not.toContain(SENTINEL_PLACEHOLDER);
+
+    // The account stays, safely inert: mustChangePassword remains true and no
+    // usable credential was disclosed anywhere.
+    expect(prismaMock.user.create).toHaveBeenCalledTimes(1);
+    expect(prismaMock.__store.find((user) => user.role === 'ADMIN').mustChangePassword).toBe(true);
+
+    const auditEvent = audit.createAuditLogSafely.mock.calls[0][0];
+    expect(auditEvent.metadata.activationDeliveryStatus).toBe('failed');
+    expect(auditEvent.metadata.activationReasonCode).toBe('smtp-auth-failed');
+  });
+
+  test('rerunning for the same unactivated administrator reissues activation instead of refusing', async () => {
+    const pendingAdmin = {
+      ...existingAdmin,
+      email: 'first.admin@uniosun.edu.ng',
+      mustChangePassword: true,
+      invitationTokenHash: 'old-hash',
+      invitationLastError: 'smtp-auth-failed'
+    };
+    const prismaMock = createPrismaMock({ users: [pendingAdmin] });
+    const { service, activation } = bootstrapService(prismaMock);
+
+    const result = await service.bootstrapFirstAdmin({
+      email: 'FIRST.ADMIN@uniosun.edu.ng',
+      name: 'First Admin'
+    });
+
+    expect(result.status).toBe('activation-resent');
+    expect(prismaMock.user.create).not.toHaveBeenCalled();
+    expect(activation).toHaveBeenCalledTimes(1);
+    expect(activation.mock.calls[0][0].user).toMatchObject({ email: 'first.admin@uniosun.edu.ng' });
+  });
+
+  test('reports delivery failure on a recovery rerun without touching the account', async () => {
+    const pendingAdmin = { ...existingAdmin, email: 'first.admin@uniosun.edu.ng', mustChangePassword: true };
+    const prismaMock = createPrismaMock({ users: [pendingAdmin] });
+    const activation = jest.fn().mockResolvedValue({ delivery: { status: 'failed', reasonCode: 'smtp-recipient-rejected' } });
+    const { service } = bootstrapService(prismaMock, { activation });
+
+    const result = await service.bootstrapFirstAdmin({
+      email: 'first.admin@uniosun.edu.ng',
+      name: 'First Admin'
+    });
+
+    expect(result.status).toBe('activation-delivery-failed');
+    expect(result.created).toBe(false);
+    expect(result.reasonCode).toBe('smtp-recipient-rejected');
+    expect(prismaMock.user.create).not.toHaveBeenCalled();
+  });
+
+  test('is idempotent once the administrator has completed activation', async () => {
+    const prismaMock = createPrismaMock({
+      users: [{ ...existingAdmin, email: 'first.admin@uniosun.edu.ng', mustChangePassword: false }]
+    });
+    const { service, activation } = bootstrapService(prismaMock);
 
     const result = await service.bootstrapFirstAdmin({
       email: 'FIRST.ADMIN@uniosun.edu.ng',
@@ -785,13 +906,14 @@ describe('bootstrapFirstAdmin', () => {
     });
 
     expect(result.status).toBe('already-bootstrapped');
-    expect(result.temporaryPassword).toBeUndefined();
+    expect('temporaryPassword' in result).toBe(false);
     expect(prismaMock.user.create).not.toHaveBeenCalled();
+    expect(activation).not.toHaveBeenCalled();
   });
 
   test('refuses when a different administrator already exists', async () => {
     const prismaMock = createPrismaMock({ users: [{ ...existingAdmin }] });
-    const service = createService(prismaMock);
+    const { service, activation } = bootstrapService(prismaMock);
 
     const result = await service.bootstrapFirstAdmin({
       email: 'second.admin@uniosun.edu.ng',
@@ -799,15 +921,15 @@ describe('bootstrapFirstAdmin', () => {
     });
 
     expect(result.status).toBe('conflict');
-    expect(result.temporaryPassword).toBeUndefined();
     expect(prismaMock.user.create).not.toHaveBeenCalled();
+    expect(activation).not.toHaveBeenCalled();
   });
 
   test('refuses when the email belongs to a non-admin account', async () => {
     const prismaMock = createPrismaMock({
       users: [{ ...existingAdmin, id: 4, email: 'owned@uniosun.edu.ng', role: 'STUDENT' }]
     });
-    const service = createService(prismaMock);
+    const { service, activation } = bootstrapService(prismaMock);
 
     const result = await service.bootstrapFirstAdmin({
       email: 'owned@uniosun.edu.ng',
@@ -816,7 +938,56 @@ describe('bootstrapFirstAdmin', () => {
 
     expect(result.status).toBe('conflict');
     expect(prismaMock.user.create).not.toHaveBeenCalled();
+    expect(activation).not.toHaveBeenCalled();
   });
+
+  test('bootstrap recovery invalidates every legacy credential path before re-issuing activation', async () => {
+    const RECOVERY_SENTINEL = 'SENTINEL-LEGACY-RECOVERY-CREDENTIAL-731945';
+    const KNOWN_LEGACY_PASSWORD = 'LegacyPrintedTemp9x';
+    const legacyAdmin = {
+      ...existingAdmin,
+      email: 'first.admin@uniosun.edu.ng',
+      mustChangePassword: true,
+      credentialVersion: 1,
+      passwordHash: await bcrypt.hash(KNOWN_LEGACY_PASSWORD, 4),
+      resetTokenHash: 'old-reset-hash',
+      resetTokenExpiresAt: new Date('2027-01-01T00:00:00.000Z'),
+      invitationTokenHash: 'old-invite-hash'
+    };
+    const prismaMock = createPrismaMock({ users: [legacyAdmin] });
+    const { service, audit, activation } = bootstrapService(prismaMock, {
+      generatePassword: () => RECOVERY_SENTINEL
+    });
+
+    const result = await service.bootstrapFirstAdmin({
+      email: 'FIRST.ADMIN@uniosun.edu.ng',
+      name: 'First Admin'
+    });
+
+    expect(result.status).toBe('activation-resent');
+    expect(prismaMock.user.create).not.toHaveBeenCalled();
+
+    const updated = prismaMock.__store.find((user) => user.id === legacyAdmin.id);
+    // The known (possibly disclosed) legacy temporary password is dead...
+    expect(await bcrypt.compare(KNOWN_LEGACY_PASSWORD, updated.passwordHash)).toBe(false);
+    // ...replaced by the unrevealed placeholder, which exists only as a hash.
+    expect(await bcrypt.compare(RECOVERY_SENTINEL, updated.passwordHash)).toBe(true);
+    expect(updated.credentialVersion).toBe(2);
+    expect(updated.resetTokenHash).toBeNull();
+    expect(updated.resetTokenExpiresAt).toBeNull();
+    expect(updated.mustChangePassword).toBe(true);
+
+    // Activation is issued against the post-rotation account state, through
+    // the bootstrap-only issuer (which itself rotates the activation token).
+    expect(activation).toHaveBeenCalledTimes(1);
+    expect(activation.mock.calls[0][0].user).toMatchObject({ credentialVersion: 2 });
+
+    // The placeholder never leaves the service in any serialisable form.
+    expect('temporaryPassword' in result).toBe(false);
+    expect(JSON.stringify(result)).not.toContain(RECOVERY_SENTINEL);
+    expect(JSON.stringify(audit.createAuditLogSafely.mock.calls)).not.toContain(RECOVERY_SENTINEL);
+  });
+
 
   test('warns when demo seed accounts exist', async () => {
     const prismaMock = createPrismaMock({
@@ -827,27 +998,14 @@ describe('bootstrapFirstAdmin', () => {
         role: 'STUDENT'
       }]
     });
-    const service = createService(prismaMock);
+    const { service } = bootstrapService(prismaMock);
 
     const result = await service.bootstrapFirstAdmin({
       email: 'real.admin@uniosun.edu.ng',
       name: 'Real Admin'
     });
 
-    expect(result.status).toBe('created');
+    expect(result.status).toBe('created-activation-sent');
     expect(result.warnings.join(' ')).toMatch(/demo seed account/i);
-  });
-
-  test('two bootstrap runs generate different temporary credentials', async () => {
-    const first = await createService(createPrismaMock()).bootstrapFirstAdmin({
-      email: 'a@uniosun.edu.ng',
-      name: 'A'
-    });
-    const second = await createService(createPrismaMock()).bootstrapFirstAdmin({
-      email: 'b@uniosun.edu.ng',
-      name: 'B'
-    });
-
-    expect(first.temporaryPassword).not.toBe(second.temporaryPassword);
   });
 });
