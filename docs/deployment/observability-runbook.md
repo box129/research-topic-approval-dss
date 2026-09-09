@@ -55,20 +55,37 @@ provider, and SMTP).
   - `semanticProvider` — the Voyage verification state (bounded probe with a
     documented cache/grace policy); not available ⇒ overall `degraded`
     (HTTP 503). No fallback scoring exists.
-  - `residentCorpus` — the in-process comparison corpus:
-    - **never built** (no active snapshot) ⇒ overall `not_ready` (HTTP 503):
-      similarity checks cannot run at all;
-    - **active but a later refresh failed** ⇒ component `degraded`, overall
-      stays `ready`: the previous valid snapshot is intentionally preserved
-      and continues to serve checks — investigate `refreshFailed: true`
-      alongside the `Resident corpus refresh failed` log line, but do not
-      restart merely to clear it;
+  - `residentCorpus` — the in-process comparison corpus. Startup builds the
+    first snapshot deliberately, and a failed initial build retries
+    automatically (bounded timer) until it succeeds — a fresh process
+    converges to ready on its own, with no user request required. States:
+    - **`unavailable` (no active snapshot)** ⇒ overall `not_ready` (HTTP 503):
+      similarity checks cannot run yet. On a fresh boot this is normal for the
+      first moments (**initialization in progress**) and resolves itself once
+      `Resident corpus initial snapshot built` appears in the logs. If it
+      persists, the **initial build is failing and retrying**: look for
+      `Resident corpus refresh failed` lines (logged once per distinct
+      outage) and fix the underlying cause — the process keeps retrying and
+      becomes ready without a restart. "Never built" does not by itself mean
+      a refresh error occurred.
+    - **`degraded` (active but a later refresh failed)** ⇒ overall stays
+      `ready`: the previous valid snapshot is intentionally preserved and
+      continues to serve checks — investigate `refreshFailed: true` alongside
+      the `Resident corpus refresh failed` log line, but do not restart merely
+      to clear it. A successfully built **empty** snapshot (zero eligible
+      rows) is valid `available` state, not `unavailable`; checks then
+      truthfully report that nothing exists to compare against.
     - **active with skipped rows** — `skippedInvalidEmbeddingCount > 0` means
       stored rows whose embeddings fail the validity contract are excluded
       from search. This is informational in readiness (a `Resident corpus
       snapshot is partial…` warning is logged once per change); whether any
       skipped rows should ever fail readiness is a separately-tracked product
       decision.
+    - Count semantics: `sourceTopicCount` and `skippedInvalidEmbeddingCount`
+      are frozen on the active snapshot; `searchableTopicCount` is
+      current-time derived because under-review rows age out of the 48-hour
+      eligibility window without a rebuild — the admitted-row count and the
+      currently-searchable count are deliberately different numbers.
   - `emailDelivery` — informational SMTP capability (`configured` = EMAIL
     READY); it never gates readiness, but first-admin bootstrap refuses
     without it.
@@ -82,7 +99,8 @@ provider, and SMTP).
 | --- | --- | --- |
 | readiness 503, `database: unavailable` | PostgreSQL unreachable/timing out | check database service/network; watch for `Database connectivity recovered` |
 | readiness 503, `semanticProvider` not available | Voyage unverified/failed | check Voyage status/key validity; no fallback exists by design |
-| readiness 503, `residentCorpus: unavailable` | corpus never built since boot | check `Resident corpus refresh failed` log lines; verify DB rows/embeddings |
+| readiness 503, `residentCorpus: unavailable`, boot just happened | initial snapshot still building | wait for `Resident corpus initial snapshot built`; no action needed |
+| readiness 503, `residentCorpus: unavailable`, persisting | initial build failing; process is retrying automatically | fix the cause shown by `Resident corpus refresh failed`; readiness converges without a restart |
 | ready, `residentCorpus: degraded` | serving preserved snapshot; refresh failing | investigate refresh failures; data stays truthful meanwhile |
 | `skippedInvalidEmbeddingCount > 0` | partial corpus; some rows excluded | inspect stored embeddings (admin system status shows the same counts) |
 | `Fatal uncaught failure` then exit | process crashed by policy | read the logged stack; the process must be restarted by the supervisor |

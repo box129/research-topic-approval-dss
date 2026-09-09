@@ -38,9 +38,13 @@ class ResidentCorpus {
       // equivalent refresh: a new or changed skipped count warns, and a return
       // to full embedding coverage is announced once.
       if (next.skippedInvalidEmbeddingCount > 0 && next.skippedInvalidEmbeddingCount !== previousSkipped) {
+        // admittedTopicCount counts every valid row frozen into the snapshot;
+        // how many of those are CURRENTLY searchable also depends on the
+        // 48-hour under-review eligibility window evaluated at query time, so
+        // that time-dependent number is deliberately not named here.
         this.log.warn('Resident corpus snapshot is partial: stored rows with invalid embeddings were excluded from search', {
           sourceTopicCount: next.sourceTopicCount,
-          searchableTopicCount: next.topics.length,
+          admittedTopicCount: next.topics.length,
           skippedInvalidEmbeddingCount: next.skippedInvalidEmbeddingCount
         });
       } else if (next.skippedInvalidEmbeddingCount === 0 && previousSkipped > 0) {
@@ -59,8 +63,11 @@ class ResidentCorpus {
   async get() { return !this.snapshot || Date.now() - this.lastRefreshAt >= REFRESH_INTERVAL_MS ? this.refresh() : this.snapshot; }
   searchable(snapshot = this.snapshot, now = Date.now()) { if (!snapshot) throw new Error('Resident corpus is unavailable.'); return snapshot.topics.filter(topic => isEligible(topic, now)); }
   // Safe operational summary for admin diagnostics and readiness: sizes and
-  // timestamps only, never topic content. All counts come from the active
-  // snapshot itself, so they always agree with what is actually being served.
+  // timestamps only, never topic content. sourceTopicCount and
+  // skippedInvalidEmbeddingCount are frozen on the active snapshot, while
+  // searchableTopicCount is deliberately CURRENT-TIME derived: under-review
+  // rows age out of the 48-hour eligibility window without a rebuild, so the
+  // searchable number tracks what a check would actually compare against.
   stats(now = Date.now()) {
     if (!this.snapshot) {
       return {

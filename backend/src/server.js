@@ -566,6 +566,75 @@ app.use(notFoundHandler);
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
+// A fresh process must converge to readiness on its own. The resident corpus
+// is the DSS's core comparison substrate, and readiness (deliberately) only
+// OBSERVES corpus state — so startup builds the initial snapshot explicitly
+// instead of waiting for some user's similarity request to wake it up. A
+// failed initial build retries on a bounded, unref'd timer (the corpus's own
+// refresh logging already dedups per outage, so retries add no log storm) and
+// stops with the HTTP server. Zero eligible rows is a VALID successful build:
+// an empty snapshot is honest operational state, not "never built". This
+// guard covers ONLY the first snapshot; once it exists the existing lazy
+// refresh keeps it fresh, and the broader refresh single-flight question
+// remains a separately-tracked item.
+const CORPUS_INIT_RETRY_MS = 30000;
+
+function startCorpusInitialization({
+  corpus,
+  log,
+  retryDelayMs = CORPUS_INIT_RETRY_MS,
+  setTimeoutImpl = setTimeout,
+  clearTimeoutImpl = clearTimeout
+}) {
+  let stopped = false;
+  let timer = null;
+  let inFlight = null;
+
+  const attempt = async () => {
+    try {
+      const snapshot = await corpus.refresh();
+      if (stopped) {
+        return;
+      }
+      log.info('Resident corpus initial snapshot built.', {
+        sourceTopicCount: snapshot.sourceTopicCount,
+        admittedTopicCount: snapshot.topics.length,
+        skippedInvalidEmbeddingCount: snapshot.skippedInvalidEmbeddingCount
+      });
+    } catch {
+      // refresh() already logged the failure (once per distinct outage);
+      // schedule a bounded retry so the process converges when the cause
+      // clears — no user request required.
+      if (!stopped) {
+        timer = setTimeoutImpl(run, retryDelayMs);
+        // Never let the retry timer keep the process alive.
+        timer.unref?.();
+      }
+    }
+  };
+
+  const run = () => {
+    timer = null;
+    if (!stopped) {
+      inFlight = attempt();
+    }
+  };
+
+  run();
+
+  return {
+    stop() {
+      stopped = true;
+      if (timer) {
+        clearTimeoutImpl(timer);
+        timer = null;
+      }
+    },
+    // Test seam: awaits the currently in-flight initialization attempt.
+    whenIdle: () => inFlight
+  };
+}
+
 function startServer({
   application = app,
   runtimeConfig = config,
@@ -573,7 +642,11 @@ function startServer({
   log = logger,
   processRef = process,
   exit = (code) => process.exit(code),
-  host = '0.0.0.0'
+  host = '0.0.0.0',
+  corpus = require('./services/residentCorpus.service').residentCorpus,
+  corpusInitRetryDelayMs = CORPUS_INIT_RETRY_MS,
+  corpusSetTimeout = setTimeout,
+  corpusClearTimeout = clearTimeout
 } = {}) {
   const server = application.listen(runtimeConfig.port, host);
   const lifecycle = createServerLifecycle({
@@ -587,6 +660,18 @@ function startServer({
   // Fatal-failure policy: uncaughtException/unhandledRejection log one
   // redacted fatal event and terminate through a bounded shutdown.
   const removeFatalHandlers = lifecycle.installFatalHandlers(processRef);
+
+  // Deliberate initial corpus construction; stops with the HTTP server so no
+  // retry timer can outlive a shutdown.
+  const corpusInitialization = startCorpusInitialization({
+    corpus,
+    log,
+    retryDelayMs: corpusInitRetryDelayMs,
+    setTimeoutImpl: corpusSetTimeout,
+    clearTimeoutImpl: corpusClearTimeout
+  });
+  server.on('close', corpusInitialization.stop);
+
   let listening = false;
 
   server.on('listening', () => {
@@ -610,6 +695,7 @@ function startServer({
     if (!listening) {
       removeSignalHandlers();
       removeFatalHandlers();
+      corpusInitialization.stop();
       exit(1);
     }
   });
@@ -618,7 +704,8 @@ function startServer({
     server,
     shutdown: lifecycle.shutdown,
     removeSignalHandlers,
-    removeFatalHandlers
+    removeFatalHandlers,
+    corpusInitialization
   };
 }
 

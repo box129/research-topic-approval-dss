@@ -125,7 +125,7 @@ describe('ResidentCorpus', () => {
       expect(log.warn.mock.calls[0][0]).toMatch(/partial/i);
       expect(log.warn.mock.calls[0][1]).toEqual({
         sourceTopicCount: 3,
-        searchableTopicCount: 1,
+        admittedTopicCount: 1,
         skippedInvalidEmbeddingCount: 2
       });
       const serializedLogging = JSON.stringify(log.warn.mock.calls) + JSON.stringify(log.info.mock.calls);
@@ -179,6 +179,54 @@ describe('ResidentCorpus', () => {
       await corpus.refresh();
       expect(log.info).toHaveBeenCalledTimes(1);
       expect(corpus.stats().skippedInvalidEmbeddingCount).toBe(0);
+    });
+
+    test('a zero-row database still produces a successfully built empty snapshot, never "never built"', async () => {
+      const log = makeLog();
+      const corpus = new ResidentCorpus(client({}), log);
+
+      expect(corpus.stats().built).toBe(false);
+      await corpus.refresh();
+
+      expect(corpus.stats()).toMatchObject({
+        built: true,
+        sourceTopicCount: 0,
+        searchableTopicCount: 0,
+        skippedInvalidEmbeddingCount: 0,
+        lastRefreshError: null
+      });
+      expect(log.warn).not.toHaveBeenCalled();
+      expect(log.error).not.toHaveBeenCalled();
+    });
+
+    test('admitted rows and currently-searchable rows are distinct: expired under-review rows stay admitted but not searchable', async () => {
+      const log = makeLog();
+      const corpus = new ResidentCorpus(client({
+        current: [{ id: 1, embedding: vector(.1), embeddingSourceHash: 'current' }],
+        review: [
+          // Valid embedding but past the 48-hour eligibility window: frozen
+          // into the snapshot (admitted) yet excluded from current search.
+          { id: 2, embedding: vector(.2), embeddingSourceHash: 'current', reviewStartedAt: new Date(Date.now() - 49 * 3600000) },
+          { id: 3, embedding: null, embeddingSourceHash: 'current', reviewStartedAt: new Date() }
+        ]
+      }), log);
+
+      await corpus.refresh();
+
+      const stats = corpus.stats();
+      expect(stats).toMatchObject({
+        sourceTopicCount: 3,
+        topics: 2,
+        searchableTopicCount: 1,
+        skippedInvalidEmbeddingCount: 1
+      });
+      // The partial warning names the frozen admitted count, not the
+      // time-dependent searchable count.
+      expect(log.warn.mock.calls[0][1]).toEqual({
+        sourceTopicCount: 3,
+        admittedTopicCount: 2,
+        skippedInvalidEmbeddingCount: 1
+      });
     });
 
     test('a failed replacement build preserves the active snapshot and its counts', async () => {
