@@ -13,14 +13,24 @@ function isEligible(topic, now = Date.now()) { return topic.collection !== 'UNDE
 // shrinking the comparison corpus. Counts only — never titles, vectors, or
 // identities. The counts are frozen onto the snapshot so stats() always
 // describes the exact snapshot being served, never a half-built replacement.
+// Each excluded row additionally leaves a minimal descriptor holding ONLY the
+// two fields isEligible() consumes, so whether the gap would affect a search
+// run at any later instant can be re-derived without retaining content,
+// vectors, hashes, or identities.
 function build(rows) {
   const candidates = COLLECTIONS.flatMap(([collection, key]) => decorate(rows[key] || [], collection));
-  const topics = candidates.filter(validStoredEmbedding);
+  const topics = [];
+  const skippedDescriptors = [];
+  for (const candidate of candidates) {
+    if (validStoredEmbedding(candidate)) { topics.push(candidate); continue; }
+    skippedDescriptors.push(Object.freeze({ collection: candidate.collection, reviewStartedAt: candidate.reviewStartedAt ?? null }));
+  }
   return Object.freeze({
     topics: Object.freeze(topics),
+    skippedDescriptors: Object.freeze(skippedDescriptors),
     builtAt: new Date().toISOString(),
     sourceTopicCount: candidates.length,
-    skippedInvalidEmbeddingCount: candidates.length - topics.length
+    skippedInvalidEmbeddingCount: skippedDescriptors.length
   });
 }
 class ResidentCorpus {
@@ -103,12 +113,23 @@ class ResidentCorpus {
     return this.refresh();
   }
   searchable(snapshot = this.snapshot, now = Date.now()) { if (!snapshot) throw new Error('Resident corpus is unavailable.'); return snapshot.topics.filter(topic => isEligible(topic, now)); }
+  // How many excluded-invalid rows WOULD be searchable at `now` had their
+  // stored embeddings been valid — the fail-closed policy input: any nonzero
+  // value means a similarity result would be computed against a corpus known
+  // to be missing rows a check should compare. Derived per call with the SAME
+  // isEligible() window as searchable(), never frozen at build time: an
+  // expired under-review gap ages out of this count without a rebuild, and a
+  // frozen copy would keep refusing checks for a gap that no longer affects
+  // any comparison.
+  skippedSearchEligibleCount(snapshot = this.snapshot, now = Date.now()) { if (!snapshot) throw new Error('Resident corpus is unavailable.'); return snapshot.skippedDescriptors.filter(descriptor => isEligible(descriptor, now)).length; }
   // Safe operational summary for admin diagnostics and readiness: sizes and
   // timestamps only, never topic content. sourceTopicCount and
   // skippedInvalidEmbeddingCount are frozen on the active snapshot, while
-  // searchableTopicCount is deliberately CURRENT-TIME derived: under-review
-  // rows age out of the 48-hour eligibility window without a rebuild, so the
-  // searchable number tracks what a check would actually compare against.
+  // searchableTopicCount and skippedSearchEligibleEmbeddingCount are
+  // deliberately CURRENT-TIME derived: under-review rows age out of the
+  // 48-hour eligibility window without a rebuild, so both numbers track what
+  // a check run now would actually compare against — and what it would be
+  // missing.
   stats(now = Date.now()) {
     if (!this.snapshot) {
       return {
@@ -119,6 +140,7 @@ class ResidentCorpus {
         sourceTopicCount: null,
         searchableTopicCount: null,
         skippedInvalidEmbeddingCount: null,
+        skippedSearchEligibleEmbeddingCount: null,
         lastRefreshError: this.lastRefreshError
       };
     }
@@ -131,6 +153,7 @@ class ResidentCorpus {
       sourceTopicCount: this.snapshot.sourceTopicCount,
       searchableTopicCount: searchableCount,
       skippedInvalidEmbeddingCount: this.snapshot.skippedInvalidEmbeddingCount,
+      skippedSearchEligibleEmbeddingCount: this.skippedSearchEligibleCount(this.snapshot, now),
       lastRefreshError: this.lastRefreshError
     };
   }

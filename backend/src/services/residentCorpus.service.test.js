@@ -50,6 +50,7 @@ describe('ResidentCorpus', () => {
       sourceTopicCount: null,
       searchableTopicCount: null,
       skippedInvalidEmbeddingCount: null,
+      skippedSearchEligibleEmbeddingCount: null,
       lastRefreshError: null
     });
 
@@ -227,6 +228,109 @@ describe('ResidentCorpus', () => {
         admittedTopicCount: 2,
         skippedInvalidEmbeddingCount: 1
       });
+    });
+
+    test('an invalid row in any collection counts as search-eligible skipped', async () => {
+      const corpus = new ResidentCorpus(client({
+        historical: [
+          { id: 1, embedding: vector(.1), embeddingSourceHash: 'current' },
+          { id: 2, embedding: null, embeddingSourceHash: 'current' }
+        ],
+        current: [{ id: 3, embedding: vector(.3), embeddingSourceHash: 'old' }],
+        review: [{ id: 4, embedding: null, embeddingSourceHash: 'current', reviewStartedAt: new Date() }]
+      }), makeLog());
+
+      await corpus.refresh();
+
+      expect(corpus.stats()).toMatchObject({
+        sourceTopicCount: 4,
+        searchableTopicCount: 1,
+        skippedInvalidEmbeddingCount: 3,
+        skippedSearchEligibleEmbeddingCount: 3
+      });
+    });
+
+    test('an invalid under-review row past the 48-hour window is skipped but not search-eligible', async () => {
+      // Had this row's embedding been valid it still would not be compared:
+      // the gap cannot change any similarity result, so it must not count as
+      // search-eligible (and must not gate readiness or checks).
+      const corpus = new ResidentCorpus(client({
+        historical: [{ id: 1, embedding: vector(.1), embeddingSourceHash: 'current' }],
+        review: [{ id: 2, embedding: null, embeddingSourceHash: 'current', reviewStartedAt: new Date(Date.now() - 49 * 3600000) }]
+      }), makeLog());
+
+      await corpus.refresh();
+
+      expect(corpus.stats()).toMatchObject({
+        skippedInvalidEmbeddingCount: 1,
+        skippedSearchEligibleEmbeddingCount: 0
+      });
+    });
+
+    test('the search-eligible skipped count ages out on the SAME snapshot with no rebuild', async () => {
+      const reviewStartedAt = new Date('2026-09-01T00:00:00Z');
+      const db = client({ review: [{ id: 1, embedding: null, embeddingSourceHash: 'current', reviewStartedAt }] });
+      const corpus = new ResidentCorpus(db, makeLog());
+      await corpus.refresh();
+      const snapshot = corpus.snapshot;
+
+      const withinWindow = reviewStartedAt.getTime() + 47 * 3600000 + 59 * 60000;
+      const afterWindow = reviewStartedAt.getTime() + 49 * 3600000;
+
+      expect(corpus.stats(withinWindow).skippedSearchEligibleEmbeddingCount).toBe(1);
+      expect(corpus.stats(afterWindow).skippedSearchEligibleEmbeddingCount).toBe(0);
+      // Same frozen snapshot, one set of database reads: the count is derived
+      // at call time, never frozen at build time.
+      expect(corpus.snapshot).toBe(snapshot);
+      expect(db.underReviewTopic.findMany).toHaveBeenCalledTimes(1);
+    });
+
+    test('search-eligible skipped rows can never exceed total skipped rows', async () => {
+      const corpus = new ResidentCorpus(client({
+        historical: [{ id: 1, embedding: null, embeddingSourceHash: 'current' }],
+        review: [
+          { id: 2, embedding: null, embeddingSourceHash: 'current', reviewStartedAt: new Date() },
+          { id: 3, embedding: null, embeddingSourceHash: 'current', reviewStartedAt: new Date(Date.now() - 49 * 3600000) }
+        ]
+      }), makeLog());
+
+      await corpus.refresh();
+
+      const stats = corpus.stats();
+      expect(stats.skippedInvalidEmbeddingCount).toBe(3);
+      expect(stats.skippedSearchEligibleEmbeddingCount).toBe(2);
+      expect(stats.skippedSearchEligibleEmbeddingCount).toBeLessThanOrEqual(stats.skippedInvalidEmbeddingCount);
+    });
+
+    test('excluded-row descriptors retain only collection and review start — no content, vectors, or identities', async () => {
+      const corpus = new ResidentCorpus(client({
+        historical: [{
+          id: 7,
+          title: 'Sensitive Broken Title',
+          population: 'Sensitive population',
+          location: 'Sensitive location',
+          studyFocus: 'Sensitive focus',
+          category: 'Sensitive category',
+          keywords: 'sensitive keywords',
+          studentId: 'PHS/22/0042',
+          embedding: null,
+          embeddingSourceHash: 'current'
+        }],
+        review: [{ id: 8, title: 'Sensitive Review Title', embedding: null, embeddingSourceHash: 'current', reviewStartedAt: new Date('2026-09-01T00:00:00Z') }]
+      }), makeLog());
+
+      await corpus.refresh();
+
+      const descriptors = corpus.snapshot.skippedDescriptors;
+      expect(descriptors).toHaveLength(2);
+      for (const descriptor of descriptors) {
+        expect(Object.keys(descriptor).sort()).toEqual(['collection', 'reviewStartedAt']);
+      }
+      expect(descriptors.map(descriptor => descriptor.collection)).toEqual(['HISTORICAL', 'UNDER_REVIEW']);
+      expect(descriptors[0].reviewStartedAt).toBeNull();
+      const serialized = JSON.stringify(descriptors);
+      expect(serialized).not.toContain('Sensitive');
+      expect(serialized).not.toContain('PHS/22/0042');
     });
 
     test('a failed replacement build preserves the active snapshot and its counts', async () => {

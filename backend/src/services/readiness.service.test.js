@@ -11,6 +11,7 @@ const HEALTHY_CORPUS_STATS = {
   sourceTopicCount: 9,
   searchableTopicCount: 8,
   skippedInvalidEmbeddingCount: 0,
+  skippedSearchEligibleEmbeddingCount: 0,
   lastRefreshError: null
 };
 
@@ -140,6 +141,7 @@ describe('Voyage readiness service', () => {
         sourceTopicCount: null,
         searchableTopicCount: null,
         skippedInvalidEmbeddingCount: null,
+        skippedSearchEligibleEmbeddingCount: null,
         lastRefreshError: 'database unavailable'
       });
 
@@ -171,13 +173,17 @@ describe('Voyage readiness service', () => {
       expect(JSON.stringify(result.body)).not.toContain('ECONNREFUSED');
     });
 
-    test('CASE C: a partial corpus stays ready in this PR with the skipped count visible', async () => {
+    test('CASE C: skipped rows outside the search-eligibility window do not gate readiness', async () => {
+      // Every excluded row is an under-review gap already past the 48-hour
+      // window: had those rows been valid they still would not be compared,
+      // so the corpus is not missing anything a check would use.
       spyCorpusStats({
         ...HEALTHY_CORPUS_STATS,
         topics: 6,
         searchable: 6,
         searchableTopicCount: 6,
-        skippedInvalidEmbeddingCount: 3
+        skippedInvalidEmbeddingCount: 3,
+        skippedSearchEligibleEmbeddingCount: 0
       });
 
       const result = await readinessService.getReadiness();
@@ -189,8 +195,53 @@ describe('Voyage readiness service', () => {
         sourceTopicCount: 9,
         searchableTopicCount: 6,
         skippedInvalidEmbeddingCount: 3,
+        skippedSearchEligibleEmbeddingCount: 0,
         refreshFailed: false
       });
+    });
+
+    test('CASE E: a corpus missing currently-searchable rows reports partial and withdraws readiness', async () => {
+      spyCorpusStats({
+        ...HEALTHY_CORPUS_STATS,
+        topics: 6,
+        searchable: 6,
+        searchableTopicCount: 6,
+        skippedInvalidEmbeddingCount: 3,
+        skippedSearchEligibleEmbeddingCount: 2
+      });
+
+      const result = await readinessService.getReadiness();
+
+      expect(result.httpStatus).toBe(503);
+      expect(result.body.status).toBe('not_ready');
+      expect(result.body.checks.residentCorpus).toBe('partial');
+      expect(result.body.details.residentCorpus).toMatchObject({
+        sourceTopicCount: 9,
+        searchableTopicCount: 6,
+        skippedInvalidEmbeddingCount: 3,
+        skippedSearchEligibleEmbeddingCount: 2,
+        refreshFailed: false
+      });
+      expect(result.body.details.residentCorpus.message).toMatch(/refuse to run until the corpus is repaired/);
+    });
+
+    test('CASE F: the partial condition outranks the preserved-refresh-error degraded detail', async () => {
+      spyCorpusStats({
+        ...HEALTHY_CORPUS_STATS,
+        skippedInvalidEmbeddingCount: 1,
+        skippedSearchEligibleEmbeddingCount: 1,
+        lastRefreshError: 'connect ECONNREFUSED 127.0.0.1:5432'
+      });
+
+      const result = await readinessService.getReadiness();
+
+      expect(result.httpStatus).toBe(503);
+      expect(result.body.status).toBe('not_ready');
+      expect(result.body.checks.residentCorpus).toBe('partial');
+      // The refresh failure is still exposed as a safe boolean alongside the
+      // partial condition, never as raw error text.
+      expect(result.body.details.residentCorpus.refreshFailed).toBe(true);
+      expect(JSON.stringify(result.body)).not.toContain('ECONNREFUSED');
     });
 
     test('CASE D: a healthy active corpus reports normal readiness with counts and no sensitive content', async () => {
@@ -207,7 +258,8 @@ describe('Voyage readiness service', () => {
         builtAt: '2026-08-23T12:00:00.000Z',
         sourceTopicCount: 9,
         searchableTopicCount: 8,
-        skippedInvalidEmbeddingCount: 0
+        skippedInvalidEmbeddingCount: 0,
+        skippedSearchEligibleEmbeddingCount: 0
       });
     });
 

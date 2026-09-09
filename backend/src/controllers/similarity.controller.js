@@ -56,7 +56,19 @@ async function checkSimilarity(req, res, next) {
         }
       });
     }
-    const searchable = residentCorpus.searchable(await residentCorpus.get());
+    const snapshot = await residentCorpus.get();
+    // Fail closed on an incomplete corpus: when stored rows that should be
+    // searchable right now are excluded for invalid embeddings, ranking
+    // against the remainder can silently understate similarity (the missing
+    // row may be the strongest match), so no verdict is produced at all.
+    // Refused before the Voyage query embedding and before the empty-corpus
+    // branch — an entirely-invalid corpus is incomplete, not evidence of
+    // originality. Repair is operator-run (scripts/backfill-topic-embeddings.js),
+    // never automatic.
+    if (residentCorpus.skippedSearchEligibleCount(snapshot) > 0) {
+      return res.status(503).json({ status:'error', message:'Similarity analysis is temporarily unavailable because the stored comparison corpus is incomplete. Please try again later.', details:{ error_code:'CORPUS_INCOMPLETE' } });
+    }
+    const searchable = residentCorpus.searchable(snapshot);
     // An empty comparison corpus is reported truthfully: it is not evidence that
     // the proposed topic is new or original, so no risk class is asserted.
     if (!searchable.length) {
