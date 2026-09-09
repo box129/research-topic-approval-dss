@@ -14,11 +14,11 @@ jest.mock('../services/voyageSemanticSimilarity.service', () => ({
   retrieve: jest.fn(() => []),
   classify: jest.fn(() => 'LOW')
 }));
-jest.mock('../services/residentCorpus.service', () => ({ residentCorpus: { get: jest.fn().mockResolvedValue({ topics: [] }), searchable: jest.fn(() => []) } }));
+jest.mock('../services/residentCorpus.service', () => ({ residentCorpus: { get: jest.fn().mockResolvedValue({ topics: [] }), searchable: jest.fn(() => []), skippedSearchEligibleCount: jest.fn(() => 0) } }));
 jest.mock('../config/logger', () => ({ error: jest.fn(), info: jest.fn(), warn: jest.fn() }));
 
 const { embedQuery, embedDocument } = require('../services/voyageEmbedding.service');
-const { retrieve } = require('../services/voyageSemanticSimilarity.service');
+const { retrieve, classify } = require('../services/voyageSemanticSimilarity.service');
 const { residentCorpus } = require('../services/residentCorpus.service');
 
 const storedTopic = { id: 9, title: 'Stored eligible topic', collection: 'HISTORICAL', embedding: [] };
@@ -28,6 +28,7 @@ describe('Voyage production similarity controller', () => {
     jest.clearAllMocks();
     residentCorpus.get.mockResolvedValue({ topics: [storedTopic] });
     residentCorpus.searchable.mockReturnValue([storedTopic]);
+    residentCorpus.skippedSearchEligibleCount.mockReturnValue(0);
   });
 
   test('uses one new-topic query embedding and no reverse/document embedding calls', async () => {
@@ -137,6 +138,89 @@ describe('Voyage production similarity controller', () => {
       'No eligible stored topics are currently available for comparison. This result does not establish that the topic is new or original.'
     );
   });
+
+  test('an incomplete corpus refuses similarity before any Voyage or scoring work (fail closed)', async () => {
+    let checkSimilarity;
+    jest.isolateModules(() => { ({ checkSimilarity } = require('./similarity.controller')); });
+    residentCorpus.skippedSearchEligibleCount.mockReturnValue(2);
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+    await checkSimilarity({ body: { topic: 'New topic' } }, res, jest.fn());
+
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(res.json).toHaveBeenCalledWith({
+      status: 'error',
+      message: 'Similarity analysis is temporarily unavailable because the stored comparison corpus is incomplete. Please try again later.',
+      details: { error_code: 'CORPUS_INCOMPLETE' }
+    });
+    // The refusal happens before the pipeline starts: no query embedding, no
+    // ranking, no classification, and therefore no verdict of any kind.
+    expect(embedQuery).not.toHaveBeenCalled();
+    expect(retrieve).not.toHaveBeenCalled();
+    expect(classify).not.toHaveBeenCalled();
+    const serialized = JSON.stringify(res.json.mock.calls);
+    for (const forbidden of ['LOW', 'MEDIUM', 'HIGH', 'matches', 'max_similarity', 'overall_risk', 'original']) {
+      expect(serialized).not.toContain(forbidden);
+    }
+  });
+
+  test('an entirely-invalid corpus is refused as incomplete, never reported as an empty corpus', async () => {
+    let checkSimilarity;
+    jest.isolateModules(() => { ({ checkSimilarity } = require('./similarity.controller')); });
+    // Every stored row was excluded for an invalid embedding: zero rows are
+    // searchable, but the truthful answer is "incomplete", not "nothing
+    // exists to compare against".
+    residentCorpus.get.mockResolvedValue({ topics: [] });
+    residentCorpus.searchable.mockReturnValue([]);
+    residentCorpus.skippedSearchEligibleCount.mockReturnValue(1);
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+    await checkSimilarity({ body: { topic: 'New topic' } }, res, jest.fn());
+
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(res.json.mock.calls[0][0]).toMatchObject({ status: 'error', details: { error_code: 'CORPUS_INCOMPLETE' } });
+    expect(res.json.mock.calls[0][0].data).toBeUndefined();
+    expect(embedQuery).not.toHaveBeenCalled();
+  });
+
+  test('expired-gap-only corpora keep the truthful empty-corpus response', async () => {
+    let checkSimilarity;
+    jest.isolateModules(() => { ({ checkSimilarity } = require('./similarity.controller')); });
+    // The only invalid rows are under-review rows already outside the 48-hour
+    // window: had they been valid they still would not be compared, so the
+    // corpus is not incomplete and the existing empty-corpus truth stands.
+    residentCorpus.searchable.mockReturnValue([]);
+    residentCorpus.skippedSearchEligibleCount.mockReturnValue(0);
+    const res = { json: jest.fn() };
+
+    await checkSimilarity({ body: { topic: 'New topic' } }, res, jest.fn());
+
+    const payload = res.json.mock.calls[0][0];
+    expect(payload.status).toBe('success');
+    expect(payload.data.corpus_size).toBe(0);
+    expect(payload.data.overall_risk).toBeNull();
+  });
+
+  test('the refusal is evaluated per request against the served snapshot, so an aged-out gap admits the next check without a rebuild', async () => {
+    let checkSimilarity;
+    jest.isolateModules(() => { ({ checkSimilarity } = require('./similarity.controller')); });
+    const snapshot = { topics: [storedTopic] };
+    residentCorpus.get.mockResolvedValue(snapshot);
+    residentCorpus.skippedSearchEligibleCount.mockReturnValueOnce(1).mockReturnValueOnce(0);
+    embedQuery.mockResolvedValue(Array(1024).fill(0));
+    retrieve.mockReturnValue([]);
+
+    const refused = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+    await checkSimilarity({ body: { topic: 'New topic' } }, refused, jest.fn());
+    expect(refused.status).toHaveBeenCalledWith(503);
+    expect(embedQuery).not.toHaveBeenCalled();
+
+    const admitted = { json: jest.fn() };
+    await checkSimilarity({ body: { topic: 'New topic' } }, admitted, jest.fn());
+    expect(residentCorpus.skippedSearchEligibleCount).toHaveBeenLastCalledWith(snapshot);
+    expect(admitted.json.mock.calls[0][0].status).toBe('success');
+    expect(embedQuery).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('similarity match context serialization', () => {
@@ -171,10 +255,11 @@ describe('similarity match context serialization', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // A non-empty corpus, so the controller reaches ranking instead of taking
-    // the honest empty-corpus path.
+    // A non-empty, complete corpus, so the controller reaches ranking instead
+    // of taking the honest empty-corpus path or the fail-closed refusal.
     residentCorpus.get.mockResolvedValue({ topics: [storedTopic] });
     residentCorpus.searchable.mockReturnValue([storedTopic]);
+    residentCorpus.skippedSearchEligibleCount.mockReturnValue(0);
   });
 
   async function runCheckWith(matchTopic) {

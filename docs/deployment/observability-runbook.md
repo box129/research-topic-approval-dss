@@ -75,17 +75,36 @@ provider, and SMTP).
       to clear it. A successfully built **empty** snapshot (zero eligible
       rows) is valid `available` state, not `unavailable`; checks then
       truthfully report that nothing exists to compare against.
-    - **active with skipped rows** — `skippedInvalidEmbeddingCount > 0` means
-      stored rows whose embeddings fail the validity contract are excluded
-      from search. This is informational in readiness (a `Resident corpus
-      snapshot is partial…` warning is logged once per change); whether any
-      skipped rows should ever fail readiness is a separately-tracked product
-      decision.
+    - **`partial` (active but missing currently-searchable rows)** ⇒ overall
+      `not_ready` (HTTP 503): `skippedSearchEligibleEmbeddingCount > 0` means
+      stored rows that SHOULD be searchable right now are excluded because
+      their embeddings fail the validity contract. Every similarity check
+      (student pre-check and lecturer review alike) then refuses with
+      HTTP 503 and `error_code: CORPUS_INCOMPLETE` — no Voyage call, no
+      scores, no LOW/MEDIUM/HIGH verdict — rather than rank against a corpus
+      known to be missing rows, so readiness withdraws the instance until the
+      corpus is repaired. Repair is operator-run, never automatic: run
+      `node scripts/backfill-topic-embeddings.js` (it re-embeds only rows
+      failing the validity contract), then confirm
+      `skippedSearchEligibleEmbeddingCount` has returned to 0 in readiness or
+      admin system status. Hosted-staging acceptance must run this backfill
+      and verify `skippedSearchEligibleEmbeddingCount = 0` before the
+      deployment is accepted.
+    - **Total vs eligible skipped counts** — `skippedInvalidEmbeddingCount`
+      is every excluded-invalid row; `skippedSearchEligibleEmbeddingCount` is
+      only those that would be compared right now. An invalid under-review
+      row already outside the 48-hour eligibility window would not be
+      compared even if valid, so it stays in the total but not the eligible
+      count and gates nothing — the total can sit above zero while the
+      service is fully ready. (The `Resident corpus snapshot is partial…`
+      warning is still logged once per change in the total.)
     - Count semantics: `sourceTopicCount` and `skippedInvalidEmbeddingCount`
-      are frozen on the active snapshot; `searchableTopicCount` is
-      current-time derived because under-review rows age out of the 48-hour
-      eligibility window without a rebuild — the admitted-row count and the
-      currently-searchable count are deliberately different numbers.
+      are frozen on the active snapshot; `searchableTopicCount` and
+      `skippedSearchEligibleEmbeddingCount` are current-time derived because
+      under-review rows age out of the 48-hour eligibility window without a
+      rebuild — an expired gap stops gating on its own, with no restart and
+      no rebuild, and the admitted-row count and the currently-searchable
+      count are deliberately different numbers.
   - `emailDelivery` — informational SMTP capability (`configured` = EMAIL
     READY); it never gates readiness, but first-admin bootstrap refuses
     without it.
@@ -102,5 +121,6 @@ provider, and SMTP).
 | readiness 503, `residentCorpus: unavailable`, boot just happened | initial snapshot still building | wait for `Resident corpus initial snapshot built`; no action needed |
 | readiness 503, `residentCorpus: unavailable`, persisting | initial build failing; process is retrying automatically | fix the cause shown by `Resident corpus refresh failed`; readiness converges without a restart |
 | ready, `residentCorpus: degraded` | serving preserved snapshot; refresh failing | investigate refresh failures; data stays truthful meanwhile |
-| `skippedInvalidEmbeddingCount > 0` | partial corpus; some rows excluded | inspect stored embeddings (admin system status shows the same counts) |
+| readiness 503, `residentCorpus: partial` | corpus missing rows that should be searchable; similarity checks refusing with `CORPUS_INCOMPLETE` | run `node scripts/backfill-topic-embeddings.js`; verify `skippedSearchEligibleEmbeddingCount` returns to 0 |
+| `skippedInvalidEmbeddingCount > 0` with `skippedSearchEligibleEmbeddingCount: 0` | only expired under-review gaps are excluded; nothing a check would compare is missing | no gate; the same backfill script clears the residue when convenient |
 | `Fatal uncaught failure` then exit | process crashed by policy | read the logged stack; the process must be restarted by the supervisor |

@@ -9,7 +9,8 @@ jest.mock('./voyageSemanticSimilarity.service', () => ({
 jest.mock('./residentCorpus.service', () => ({
   residentCorpus: {
     get: jest.fn(),
-    searchable: jest.fn()
+    searchable: jest.fn(),
+    skippedSearchEligibleCount: jest.fn(() => 0)
   }
 }));
 jest.mock('../config/logger', () => ({ error: jest.fn() }));
