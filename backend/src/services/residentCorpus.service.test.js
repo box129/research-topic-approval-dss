@@ -254,3 +254,219 @@ describe('ResidentCorpus', () => {
     });
   });
 });
+
+describe('refresh serialization (single-flight)', () => {
+  const { REFRESH_INTERVAL_MS } = require('./residentCorpus.service');
+  const makeLog = () => ({ info: jest.fn(), warn: jest.fn(), error: jest.fn() });
+  const tick = () => new Promise(resolve => setImmediate(resolve));
+
+  // A client whose reads are manually gated: each refresh attempt parks its
+  // three findMany promises in `pending` until the test releases them, so
+  // attempt ordering is fully deterministic with no real sleeps.
+  function gatedClient() {
+    const pending = [];
+    let calls = 0;
+    const client = {};
+    for (const key of ['historicalTopic', 'currentSessionTopic', 'underReviewTopic']) {
+      client[key] = {
+        findMany: jest.fn(() => {
+          calls += 1;
+          return new Promise((resolve, reject) => pending.push({ key, resolve, reject }));
+        })
+      };
+    }
+    return {
+      client,
+      pending,
+      callCount: () => calls,
+      take() { return pending.splice(0, pending.length); },
+      release(reads, worldRows) {
+        for (const entry of reads) entry.resolve(entry.key === 'currentSessionTopic' ? worldRows : []);
+      },
+      fail(reads, error) {
+        for (const entry of reads) entry.reject(error);
+      }
+    };
+  }
+
+  const world = (...ids) => ids.map(id => ({ id, embedding: vector(id / 10), embeddingSourceHash: 'current' }));
+
+  test('1) concurrent stale get() calls share exactly one attempt and one set of reads', async () => {
+    const gate = gatedClient();
+    const corpus = new ResidentCorpus(gate.client, makeLog());
+
+    const first = corpus.get();
+    const second = corpus.get();
+    await tick();
+
+    expect(gate.callCount()).toBe(3);
+    gate.release(gate.take(), world(1));
+
+    const [snapshotA, snapshotB] = await Promise.all([first, second]);
+    expect(snapshotA).toBe(snapshotB);
+    expect(snapshotA.sourceTopicCount).toBe(1);
+  });
+
+  test('2) explicit refresh during a running attempt resolves only from a post-request build', async () => {
+    const gate = gatedClient();
+    const corpus = new ResidentCorpus(gate.client, makeLog());
+
+    const attemptA = corpus.refresh();
+    await tick();
+    const readsA = gate.take(); // A read the OLD world (before the caller's write)
+
+    let explicitSettled = false;
+    const explicitB = corpus.refresh().finally(() => { explicitSettled = true; });
+    await tick();
+    // No concurrent reads: B queued instead of starting a second attempt.
+    expect(gate.callCount()).toBe(3);
+
+    gate.release(readsA, world(1));
+    await attemptA;
+    await tick();
+    // A settled but B must NOT have resolved from A's pre-write build.
+    expect(explicitSettled).toBe(false);
+    expect(corpus.snapshot.sourceTopicCount).toBe(1);
+
+    // The follow-up now reads the NEW world (the committed write is visible).
+    const readsB = gate.take();
+    expect(readsB).toHaveLength(3);
+    gate.release(readsB, world(1, 2));
+    await explicitB;
+
+    expect(explicitSettled).toBe(true);
+    expect(corpus.snapshot.sourceTopicCount).toBe(2);
+    expect(gate.callCount()).toBe(6);
+  });
+
+  test('3) multiple explicit refreshes during one attempt coalesce into a single follow-up', async () => {
+    const gate = gatedClient();
+    const corpus = new ResidentCorpus(gate.client, makeLog());
+
+    corpus.refresh();
+    await tick();
+    const readsA = gate.take();
+
+    const explicitB = corpus.refresh();
+    const explicitC = corpus.refresh();
+    expect(explicitB).toBe(explicitC);
+
+    gate.release(readsA, world(1));
+    await tick();
+    gate.release(gate.take(), world(1, 2));
+    await Promise.all([explicitB, explicitC]);
+
+    // Exactly two attempts total: A plus one shared follow-up.
+    expect(gate.callCount()).toBe(6);
+    expect(corpus.snapshot.sourceTopicCount).toBe(2);
+  });
+
+  test('4) an explicit refresh arriving while the follow-up runs queues another and is never lost', async () => {
+    const gate = gatedClient();
+    const corpus = new ResidentCorpus(gate.client, makeLog());
+
+    const attemptA = corpus.refresh();
+    await tick();
+    const readsA = gate.take();
+
+    const explicitB = corpus.refresh();
+    gate.release(readsA, world(1));
+    await attemptA;
+    await tick();
+    const readsB = gate.take(); // follow-up B is now running
+
+    const explicitD = corpus.refresh(); // arrives DURING B
+    expect(explicitD).not.toBe(explicitB);
+    await tick();
+    expect(gate.callCount()).toBe(6); // D queued, not concurrent
+
+    gate.release(readsB, world(1, 2));
+    await explicitB;
+    await tick();
+    const readsD = gate.take();
+    expect(readsD).toHaveLength(3);
+    gate.release(readsD, world(1, 2, 3));
+    await explicitD;
+
+    expect(corpus.snapshot.sourceTopicCount).toBe(3);
+    expect(gate.callCount()).toBe(9);
+  });
+
+  test('5) attempts are serialized, so an older build can never overwrite a newer one', async () => {
+    const gate = gatedClient();
+    const corpus = new ResidentCorpus(gate.client, makeLog());
+
+    corpus.refresh();
+    await tick();
+    const readsA = gate.take();
+
+    const explicitB = corpus.refresh();
+    await tick();
+    // The audit's race precondition (two attempts reading concurrently) is
+    // structurally impossible now: only A's reads exist until A settles.
+    expect(gate.callCount()).toBe(3);
+    expect(gate.pending).toHaveLength(0);
+
+    gate.release(readsA, world(1));
+    await tick();
+    const atAfterA = corpus.lastRefreshAt;
+    gate.release(gate.take(), world(1, 2));
+    await explicitB;
+
+    // Final state is the newest serialized build, monotonically.
+    expect(corpus.snapshot.sourceTopicCount).toBe(2);
+    expect(corpus.lastRefreshAt).toBeGreaterThanOrEqual(atAfterA);
+  });
+
+  test('6) joiners of a failing shared attempt all reject while the previous snapshot and counts survive', async () => {
+    const gate = gatedClient();
+    const log = makeLog();
+    const corpus = new ResidentCorpus(gate.client, log);
+
+    const boot = corpus.refresh();
+    await tick();
+    gate.release(gate.take(), world(1));
+    await boot;
+    const activeSnapshot = corpus.snapshot;
+
+    // Force staleness deterministically (no real sleeps), then join two reads.
+    corpus.lastRefreshAt = Date.now() - REFRESH_INTERVAL_MS - 1;
+    const readOne = corpus.get();
+    const readTwo = corpus.get();
+    await tick();
+    expect(gate.callCount()).toBe(6); // one shared attempt for both joiners
+
+    gate.fail(gate.take(), new Error('database unavailable'));
+    await expect(readOne).rejects.toThrow('database unavailable');
+    await expect(readTwo).rejects.toThrow('database unavailable');
+
+    expect(corpus.snapshot).toBe(activeSnapshot);
+    expect(corpus.stats()).toMatchObject({ built: true, sourceTopicCount: 1, lastRefreshError: 'database unavailable' });
+    expect(log.error).toHaveBeenCalledTimes(1);
+  });
+
+  test('7) a follow-up queued behind a failing attempt still runs and recovers truthfully', async () => {
+    const gate = gatedClient();
+    const log = makeLog();
+    const corpus = new ResidentCorpus(gate.client, log);
+
+    const attemptA = corpus.refresh();
+    await tick();
+    const readsA = gate.take();
+
+    const explicitB = corpus.refresh();
+    gate.fail(readsA, new Error('database unavailable'));
+    await expect(attemptA).rejects.toThrow('database unavailable');
+    await tick();
+
+    // B runs despite A's failure and does not inherit A's rejection.
+    const readsB = gate.take();
+    expect(readsB).toHaveLength(3);
+    gate.release(readsB, world(1, 2));
+    await expect(explicitB).resolves.toMatchObject({ sourceTopicCount: 2 });
+
+    expect(corpus.stats()).toMatchObject({ built: true, sourceTopicCount: 2, lastRefreshError: null });
+    expect(log.error).toHaveBeenCalledTimes(1);
+    expect(log.info.mock.calls.some(([message]) => /recovered/.test(message))).toBe(true);
+  });
+});

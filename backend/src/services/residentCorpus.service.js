@@ -24,8 +24,13 @@ function build(rows) {
   });
 }
 class ResidentCorpus {
-  constructor(client = prisma, log = logger) { this.client = client; this.log = log; this.snapshot = null; this.lastRefreshError = null; this.lastRefreshAt = 0; }
-  async refresh() {
+  constructor(client = prisma, log = logger) { this.client = client; this.log = log; this.snapshot = null; this.lastRefreshError = null; this.lastRefreshAt = 0; this.inFlightRefresh = null; this.queuedFollowUp = null; }
+  // One actual read/build/swap attempt. Only the serialization layer below may
+  // call this: refresh attempts must never run concurrently, because an
+  // older-started attempt finishing last would overwrite a newer snapshot,
+  // advance lastRefreshAt with stale data, and let an obsolete failure mark a
+  // healthy snapshot degraded (all reproduced in the single-flight audit).
+  async _refreshOnce() {
     try {
       const rows = Object.fromEntries(await Promise.all(COLLECTIONS.map(async ([, key]) => [key, await this.client[key].findMany()])));
       const next = build(rows);
@@ -60,7 +65,43 @@ class ResidentCorpus {
       this.lastRefreshError = error.message; throw error;
     }
   }
-  async get() { return !this.snapshot || Date.now() - this.lastRefreshAt >= REFRESH_INTERVAL_MS ? this.refresh() : this.snapshot; }
+  // Explicit freshness barrier for callers that just committed a write
+  // (submission create/revise, lecturer decision, topic import, startup).
+  // Contract: when the returned promise resolves, at least one attempt whose
+  // database reads BEGAN after this call has completed — a caller's committed
+  // row can therefore never be missing because it joined an attempt that read
+  // the tables before the commit became visible. While an attempt is running,
+  // all explicit callers share ONE queued follow-up (bounded, never an
+  // unbounded queue); the follow-up starts only after the running attempt
+  // settles, runs even if that attempt failed, and a further explicit call
+  // arriving while the follow-up itself runs queues another one, so no
+  // write-triggered refresh is ever lost.
+  refresh() {
+    if (!this.inFlightRefresh) {
+      this.inFlightRefresh = this._refreshOnce().finally(() => { this.inFlightRefresh = null; });
+      return this.inFlightRefresh;
+    }
+    if (!this.queuedFollowUp) {
+      this.queuedFollowUp = this.inFlightRefresh
+        .catch(() => {})
+        .then(() => {
+          // Clear before starting the next generation so an explicit refresh
+          // arriving while the follow-up runs queues a fresh follow-up.
+          this.queuedFollowUp = null;
+          return this.refresh();
+        });
+    }
+    return this.queuedFollowUp;
+  }
+  // Read-side freshness accessor: a fresh snapshot is returned immediately; a
+  // stale/absent one joins the attempt already in flight (recency is all a
+  // reader needs) or starts exactly one. Stale-boundary bursts therefore
+  // collapse to a single set of database reads.
+  async get() {
+    if (this.snapshot && Date.now() - this.lastRefreshAt < REFRESH_INTERVAL_MS) { return this.snapshot; }
+    if (this.inFlightRefresh) { return this.inFlightRefresh; }
+    return this.refresh();
+  }
   searchable(snapshot = this.snapshot, now = Date.now()) { if (!snapshot) throw new Error('Resident corpus is unavailable.'); return snapshot.topics.filter(topic => isEligible(topic, now)); }
   // Safe operational summary for admin diagnostics and readiness: sizes and
   // timestamps only, never topic content. sourceTopicCount and
