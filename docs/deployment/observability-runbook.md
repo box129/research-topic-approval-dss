@@ -83,13 +83,25 @@ provider, and SMTP).
       HTTP 503 and `error_code: CORPUS_INCOMPLETE` — no Voyage call, no
       scores, no LOW/MEDIUM/HIGH verdict — rather than rank against a corpus
       known to be missing rows, so readiness withdraws the instance until the
-      corpus is repaired. Repair is operator-run, never automatic: run
-      `node scripts/backfill-topic-embeddings.js` (it re-embeds only rows
-      failing the validity contract), then confirm
+      corpus is repaired. Repair is operator-run, never automatic: from a
+      shell inside the backend container (the CLI ships in the production
+      image, and that private environment already carries the required
+      database and Voyage configuration — the managed database has no public
+      ingress, so repair is not run from a workstation), execute
+      `node /app/scripts/backfill-topic-embeddings.js`. It re-embeds only
+      rows failing the validity contract and prints one JSON report:
+      `{"completed":N,"skipped":N,"failed":N}`. Process exit alone is NOT
+      proof of repair — the script tolerates per-row failures — so inspect
+      the report and require `failed: 0`, then confirm
       `skippedSearchEligibleEmbeddingCount` has returned to 0 in readiness or
-      admin system status. Hosted-staging acceptance must run this backfill
-      and verify `skippedSearchEligibleEmbeddingCount = 0` before the
-      deployment is accepted.
+      admin system status before declaring recovery. If `failed > 0`, do not
+      declare recovery and do not re-run the script in a blind loop against
+      Voyage: investigate the operational cause (provider outage,
+      credentials, malformed rows) first; readiness and similarity stay
+      fail-closed until the eligible gaps are actually repaired.
+      Hosted-staging acceptance must run this backfill and verify `failed: 0`
+      plus `skippedSearchEligibleEmbeddingCount = 0` before the deployment is
+      accepted.
     - **Total vs eligible skipped counts** — `skippedInvalidEmbeddingCount`
       is every excluded-invalid row; `skippedSearchEligibleEmbeddingCount` is
       only those that would be compared right now. An invalid under-review
@@ -121,6 +133,6 @@ provider, and SMTP).
 | readiness 503, `residentCorpus: unavailable`, boot just happened | initial snapshot still building | wait for `Resident corpus initial snapshot built`; no action needed |
 | readiness 503, `residentCorpus: unavailable`, persisting | initial build failing; process is retrying automatically | fix the cause shown by `Resident corpus refresh failed`; readiness converges without a restart |
 | ready, `residentCorpus: degraded` | serving preserved snapshot; refresh failing | investigate refresh failures; data stays truthful meanwhile |
-| readiness 503, `residentCorpus: partial` | corpus missing rows that should be searchable; similarity checks refusing with `CORPUS_INCOMPLETE` | run `node scripts/backfill-topic-embeddings.js`; verify `skippedSearchEligibleEmbeddingCount` returns to 0 |
-| `skippedInvalidEmbeddingCount > 0` with `skippedSearchEligibleEmbeddingCount: 0` | only expired under-review gaps are excluded; nothing a check would compare is missing | no gate; the same backfill script clears the residue when convenient |
+| readiness 503, `residentCorpus: partial` | corpus missing rows that should be searchable; similarity checks refusing with `CORPUS_INCOMPLETE` | in the backend container run `node /app/scripts/backfill-topic-embeddings.js`; require `failed: 0` in its JSON report, then verify `skippedSearchEligibleEmbeddingCount` returns to 0 |
+| `skippedInvalidEmbeddingCount > 0` with `skippedSearchEligibleEmbeddingCount: 0` | only expired under-review gaps are excluded; nothing a check would compare is missing | no gate; the same backfill CLI clears the residue when convenient |
 | `Fatal uncaught failure` then exit | process crashed by policy | read the logged stack; the process must be restarted by the supervisor |

@@ -79,6 +79,11 @@ COPY --from=production-dependencies --chown=app:app /app/node_modules ./node_mod
 COPY --chown=app:app package*.json ./
 COPY --chown=app:app prisma ./prisma
 COPY --chown=app:app src ./src
+# Operator repair CLI documented in the observability runbook: the fail-closed
+# CORPUS_INCOMPLETE state is recovered by an operator running
+# `node /app/scripts/backfill-topic-embeddings.js` inside this environment.
+# Packaged only so that command exists; it is never part of serving startup.
+COPY --chown=app:app scripts/backfill-topic-embeddings.js ./scripts/backfill-topic-embeddings.js
 RUN mkdir -p /app/logs /app/tmp/imports \
     && chown -R app:app /app
 
