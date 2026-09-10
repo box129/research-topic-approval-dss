@@ -24,7 +24,7 @@ classification. The constants are compile-time code constants: no
 environment variable, admin setting, database setting, or deployment
 configuration can change them.
 
-## B. Immutable evidence locator
+## B. Published immutable-evidence locator
 
 | Ref | Value |
 | --- | --- |
@@ -34,7 +34,10 @@ configuration can change them.
 | Production adoption commit (on `main`) | `6e68080` — "feat(similarity): adopt Voyage semantic production scoring" |
 
 The evaluation lineage is deliberately not part of the production branch
-history; the annotated tag makes it permanently reachable from the remote.
+history; the published annotated tag makes the evidence durably reachable
+from origin. Git itself does not prevent a tag ref from being moved or
+deleted — immutability here is project policy: this evidence tag must not
+be moved, deleted, or reused.
 
 ## C. Benchmark identity
 
