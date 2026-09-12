@@ -96,10 +96,14 @@ services:
         generateValue: true
 
       # The public browser origin. Render assigns the frontend hostname at
-      # creation time, so this is supplied once the frontend exists rather than
-      # hardcoded here. It must be the exact https:// origin.
+      # creation time, so this references the frontend service's Render-generated
+      # RENDER_EXTERNAL_URL rather than being hardcoded or supplied by hand. That
+      # value is the exact https:// origin.
       - key: FRONTEND_URL
-        sync: false
+        fromService:
+          name: rtadss-staging-frontend
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
       # Same-origin deployment: leave CORS_ORIGIN unset so the single allowed
       # origin derives from FRONTEND_URL.
       - key: CORS_CREDENTIALS
