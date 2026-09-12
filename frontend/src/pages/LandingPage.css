@@ -101,9 +101,29 @@ the `import '@fontsource-variable/geist'` in LandingPage.jsx.
 .rl-header__index-fn { text-align: center; }
 .rl-header__index-release { font-family: var(--rl-mono); font-size: 12.5px; }
 
-/* ============ Hero: flat dark field, window crossing the edge ============ */
+/* ============ Hero: institutional aerial behind the dark field ============ */
 .rl-hero { background: var(--rl-paper); }
-.rl-hero__dark { background: var(--rl-field); color: var(--rl-white); padding-bottom: 168px; }
+/* The approved campus aerial sits behind the hero copy under a directional
+   field-toned veil (the rgb triplet is --rl-field #0F2A22 — a custom property
+   cannot carry a layered alpha). Densest at the top, where it meets the flat
+   masthead band and quiets the golden upper-left sky, and behind the copy for
+   contrast; it eases toward the foot so the building reads beneath the
+   product window crossing the edge. Position favours the building in the
+   image's lower half. */
+.rl-hero__dark {
+  color: var(--rl-white); padding-bottom: 168px;
+  background-color: var(--rl-field);
+  background-image:
+    linear-gradient(180deg,
+      rgb(15 42 34 / 0.95) 0%,
+      rgb(15 42 34 / 0.87) 32%,
+      rgb(15 42 34 / 0.66) 68%,
+      rgb(15 42 34 / 0.48) 100%),
+    url('../assets/landing/uniosun-campus-aerial.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center, center 72%;
+}
 .rl-hero__copy { padding-top: clamp(3rem, 6vw, 4.5rem); text-align: center; }
 .rl-eyebrow {
   font-size: 12px; font-weight: 600; letter-spacing: 0.14em;
@@ -325,7 +345,20 @@ the `import '@fontsource-variable/geist'` in LandingPage.jsx.
   .rl-header__index { flex-wrap: wrap; row-gap: 0.1rem; padding-block: 0.45rem; }
   .rl-header__index-fn { display: none; }
 
-  .rl-hero__dark { padding-bottom: 128px; }
+  /* Narrow cover-crop shows ~a third of the aerial's width: keep the central
+     rotunda and entrance in frame rather than the desktop framing, and hold a
+     slightly denser foot so full-width CTAs stay readable over the trees. */
+  .rl-hero__dark {
+    padding-bottom: 128px;
+    background-position: center, 50% 76%;
+    background-image:
+      linear-gradient(180deg,
+        rgb(15 42 34 / 0.95) 0%,
+        rgb(15 42 34 / 0.88) 36%,
+        rgb(15 42 34 / 0.7) 70%,
+        rgb(15 42 34 / 0.56) 100%),
+      url('../assets/landing/uniosun-campus-aerial.png');
+  }
   .rl-window--hero { margin-top: -128px; }
   .rl-hero__copy h1 { font-size: 2.15rem; }
   .rl-hero__cta { flex-direction: column; gap: 1rem; }
